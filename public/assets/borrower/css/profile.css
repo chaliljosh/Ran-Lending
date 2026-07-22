@@ -1,0 +1,170 @@
+/* ══════════════════════════════════════════
+   Profile Page Styles
+   ══════════════════════════════════════════ */
+
+.section-header-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px;
+    padding: 14px 20px;
+    border-bottom: 1px solid #f1f3f5;
+    background: #fafbfc;
+}
+.section-header-bar i { font-size: 16px; color: #8a9bb0; }
+.section-header-bar span {
+    font-size: 11px; font-weight: 700; color: #8a9bb0;
+    text-transform: uppercase; letter-spacing: 0.6px;
+}
+.field-label-custom {
+    font-size: 11px; font-weight: 600; color: #8a9bb0;
+    text-transform: uppercase; letter-spacing: 0.4px;
+    display: flex; align-items: center; gap: 4px;
+    margin-bottom: 5px;
+}
+.field-label-custom i { font-size: 11px; }
+.field-locked {
+    font-size: 14px; color: #1a2a3a;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+.profile-editable {
+    font-size: 14px; color: #1a2a3a;
+    padding: 8px 12px;
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    width: 100%;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.profile-editable:focus {
+    border-color: #4a7cf7;
+    box-shadow: 0 0 0 3px rgba(74,124,247,0.12);
+    outline: none;
+}
+.profile-editable:disabled {
+    background: #f8f9fa;
+    border-color: #e9ecef;
+    color: #1a2a3a;
+    cursor: default;
+}
+.avatar-circle {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: #e8f0fe;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700; color: #4a7cf7;
+    flex-shrink: 0;
+}
+.duration-wrap { display: flex; gap: 8px; }
+.duration-wrap input, .duration-wrap select { flex: 1; }
+
+
+/* ══════════════════════════════════════════
+   Per-Section Edit / Save
+   Each card has its own "Edit" link in the header
+   and its own Save/Cancel row at the bottom of
+   that same card — no page-wide edit mode.
+   ══════════════════════════════════════════ */
+
+.section-edit-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #4a7cf7;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.section-edit-link i {
+    font-size: 13px;
+    color: #4a7cf7;
+}
+.section-edit-link:hover {
+    color: #3a6ce0;
+}
+.section-edit-link:hover i {
+    color: #3a6ce0;
+}
+
+.section-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px dashed #e9ecef;
+}
+
+
+/* ══════════════════════════════════════════
+   DARK MODE — html.app-skin-dark
+   ══════════════════════════════════════════ */
+
+html.app-skin-dark .section-header-bar {
+    background: #162032 !important;
+    border-bottom-color: #2d3f55 !important;
+}
+
+html.app-skin-dark .section-header-bar span,
+html.app-skin-dark .section-header-bar i {
+    color: #a8bdd4 !important;
+}
+
+html.app-skin-dark .field-label-custom {
+    color: #a8bdd4 !important;
+}
+
+html.app-skin-dark .field-label-custom i {
+    color: #a8bdd4 !important;
+}
+
+html.app-skin-dark .field-locked {
+    background: #162032 !important;
+    border-color: #2d3f55 !important;
+    color: #dde6f0 !important;
+}
+
+html.app-skin-dark .profile-editable {
+    background: #162032 !important;
+    border-color: #2d3f55 !important;
+    color: #dde6f0 !important;
+}
+
+html.app-skin-dark .profile-editable:focus {
+    background: #1a2840 !important;
+    border-color: #4a7cf7 !important;
+    color: #f0f5ff !important;
+    box-shadow: 0 0 0 3px rgba(74,124,247,0.2) !important;
+}
+
+html.app-skin-dark .profile-editable:disabled {
+    background: #111d2b !important;
+    border-color: #1e2a3b !important;
+    color: #c4d4e8 !important;
+    cursor: default !important;
+}
+
+html.app-skin-dark .profile-editable option {
+    background: #1e2a3b !important;
+    color: #dde6f0 !important;
+}
+
+html.app-skin-dark .avatar-circle {
+    background: #1e3a5f !important;
+    color: #6ea8fe !important;
+}
+
+html.app-skin-dark small.text-muted {
+    color: #7a94b0 !important;
+}
+
+html.app-skin-dark .section-edit-link,
+html.app-skin-dark .section-edit-link i {
+    color: #6ea8fe !important;
+}
+
+html.app-skin-dark .section-actions {
+    border-top-color: #2d3f55 !important;
+}

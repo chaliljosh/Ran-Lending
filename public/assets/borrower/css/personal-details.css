@@ -1,0 +1,268 @@
+/* ── Submission Overlay ── */
+#submissionOverlay {
+    display: none; opacity: 0;
+    transition: opacity 0.25s ease;
+    position: fixed; inset: 0; z-index: 99999;
+    background: rgba(0,0,0,0.55);
+    align-items: center; justify-content: center; padding: 16px;
+}
+#submissionOverlay .modal-box {
+    background: #fff; border-radius: 16px; overflow: hidden;
+    width: 100%; max-width: 460px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+    text-align: center; animation: slideUp 0.3s ease;
+}
+@keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}
+#submissionOverlay .accent-bar { height: 6px; background: linear-gradient(90deg, #4a7cf7, #6ea8fe); }
+#submissionOverlay .modal-inner { padding: 40px 32px 36px; }
+#submissionOverlay .icon-wrap {
+    width: 76px; height: 76px; border-radius: 50%; background: #e8f0fe;
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;
+}
+#submissionOverlay .icon-wrap i { font-size: 38px; color: #4a7cf7; }
+#submissionOverlay h5 { font-weight: 700; margin-bottom: 6px; font-size: 1.15rem; }
+#submissionOverlay .sub-text { color: #6c757d; font-size: 0.9rem; line-height: 1.6; margin-bottom: 24px; }
+#submissionOverlay .waiting-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #fff; border: 1px solid #dee2e6;
+    border-radius: 30px; padding: 7px 18px; font-size: 0.83rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 24px;
+}
+#submissionOverlay .waiting-badge i { color: #f0a500; font-size: 14px; }
+#submissionOverlay .waiting-badge .muted { color: #6c757d; }
+#submissionOverlay .waiting-badge .count {
+    background: #e8f0fe; color: #4a7cf7;
+    font-weight: 700; font-size: 0.85rem; padding: 2px 10px; border-radius: 20px;
+}
+#submissionOverlay .btn-go {
+    display: inline-block; background: #4a7cf7; color: #fff;
+    border: none; border-radius: 10px; padding: 10px 40px;
+    font-size: 0.95rem; font-weight: 600; cursor: pointer;
+    text-decoration: none; transition: background 0.2s;
+}
+#submissionOverlay .btn-go:hover { background: #3a6de0; color: #fff; }
+
+/* ── Form Section Cards ── */
+.form-section {
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px 28px 20px;
+    margin-bottom: 20px;
+    border: 1px solid #eef0f7;
+    box-shadow: 0 2px 12px rgba(74,124,247,0.06);
+}
+.form-section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 22px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #f0f4ff;
+}
+.form-section-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+}
+.icon-blue   { background: #e8f0fe; color: #4a7cf7; }
+.icon-green  { background: #dcfce7; color: #16a34a; }
+.icon-orange { background: #fff7ed; color: #ea580c; }
+.icon-purple { background: #f3e8ff; color: #9333ea; }
+.form-section-title { font-size: 1rem; font-weight: 700; color: #1e293b; margin: 0; }
+.form-section-sub   { font-size: 0.78rem; color: #94a3b8; margin: 0; }
+
+/* ── Input Styling ── */
+.form-control, .form-select {
+    border-radius: 10px !important;
+    border: 1.5px solid #e2e8f0 !important;
+    padding: 10px 14px !important;
+    font-size: 0.875rem !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
+    background: #fafbff !important;
+}
+.form-control:focus, .form-select:focus {
+    border-color: #4a7cf7 !important;
+    box-shadow: 0 0 0 3px rgba(74,124,247,0.12) !important;
+    background: #fff !important;
+}
+.form-control:disabled, .form-select:disabled {
+    background: #f1f5f9 !important;
+    color: #64748b !important;
+    border-color: #e2e8f0 !important;
+    cursor: not-allowed !important;
+}
+.form-label {
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    color: #475569 !important;
+    margin-bottom: 6px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.4px !important;
+}
+
+/* ── Submit Button ── */
+#submitBtn {
+    background: linear-gradient(135deg, #4a7cf7, #6ea8fe);
+    border: none; border-radius: 12px;
+    padding: 12px 40px; font-size: 0.95rem; font-weight: 600;
+    color: #fff; transition: all 0.2s;
+    box-shadow: 0 4px 15px rgba(74,124,247,0.35);
+}
+#submitBtn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(74,124,247,0.45);
+}
+#submitBtn:disabled {
+    background: #cbd5e1; box-shadow: none; cursor: not-allowed;
+}
+
+/* ── Progress Steps ── */
+.form-progress {
+    display: flex; align-items: center; gap: 0;
+    margin-bottom: 28px; padding: 20px 24px;
+    background: #f8faff; border-radius: 14px;
+    border: 1px solid #e8f0fe;
+}
+.progress-step {
+    display: flex; flex-direction: column; align-items: center;
+    flex: 1; position: relative; cursor: default;
+}
+.progress-step-circle {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; margin-bottom: 6px;
+    background: #e2e8f0; color: #94a3b8;
+    transition: all 0.3s;
+}
+.progress-step.active .progress-step-circle  { background: #4a7cf7; color: #fff; box-shadow: 0 4px 12px rgba(74,124,247,0.35); }
+.progress-step.done .progress-step-circle    { background: #dcfce7; color: #16a34a; }
+.progress-step-label { font-size: 0.7rem; font-weight: 600; color: #94a3b8; text-align: center; }
+.progress-step.active .progress-step-label  { color: #4a7cf7; }
+.progress-step.done .progress-step-label    { color: #16a34a; }
+.progress-connector { flex: 1; height: 2px; background: #e2e8f0; margin-bottom: 22px; max-width: 60px; }
+.progress-connector.done { background: #4a7cf7; }
+
+/* ── Readonly field ── */
+.form-control[readonly] {
+    background: #f1f5f9 !important;
+    color: #64748b !important;
+}
+
+/* ══════════════════════════════════════════
+   DARK MODE — html.app-skin-dark
+   (NXL/NEXEL theme adds this class to <html>)
+   ══════════════════════════════════════════ */
+
+/* Form section cards */
+html.app-skin-dark .form-section {
+    background: #1e2a3b !important;
+    border-color: #2d3f55 !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3) !important;
+}
+
+html.app-skin-dark .form-section-header {
+    border-bottom-color: #2d3f55 !important;
+}
+
+html.app-skin-dark .form-section-title {
+    color: #e2e8f0 !important;
+}
+
+html.app-skin-dark .form-section-sub {
+    color: #64748b !important;
+}
+
+/* Labels */
+html.app-skin-dark .form-label {
+    color: #94a3b8 !important;
+}
+
+/* Inputs & selects */
+html.app-skin-dark .form-control,
+html.app-skin-dark .form-select {
+    background: #162032 !important;
+    border-color: #2d3f55 !important;
+    color: #e2e8f0 !important;
+}
+
+html.app-skin-dark .form-control::placeholder {
+    color: #4a6080 !important;
+}
+
+html.app-skin-dark .form-control:focus,
+html.app-skin-dark .form-select:focus {
+    background: #1a2840 !important;
+    border-color: #4a7cf7 !important;
+    color: #e2e8f0 !important;
+    box-shadow: 0 0 0 3px rgba(74,124,247,0.2) !important;
+}
+
+html.app-skin-dark .form-control:disabled,
+html.app-skin-dark .form-select:disabled {
+    background: #111d2b !important;
+    color: #4a6080 !important;
+    border-color: #1e2a3b !important;
+    cursor: not-allowed !important;
+}
+
+html.app-skin-dark .form-control[readonly] {
+    background: #111d2b !important;
+    color: #4a6080 !important;
+    border-color: #1e2a3b !important;
+}
+
+/* Select option text */
+html.app-skin-dark .form-select option {
+    background: #1e2a3b !important;
+    color: #e2e8f0 !important;
+}
+
+/* Small muted text */
+html.app-skin-dark small.text-muted {
+    color: #4a6080 !important;
+}
+
+/* Progress bar */
+html.app-skin-dark .form-progress {
+    background: #162032 !important;
+    border-color: #2d3f55 !important;
+}
+
+html.app-skin-dark .progress-step-circle {
+    background: #2d3f55 !important;
+    color: #4a6080 !important;
+}
+
+html.app-skin-dark .progress-connector {
+    background: #2d3f55 !important;
+}
+
+html.app-skin-dark .progress-connector.done {
+    background: #4a7cf7 !important;
+}
+
+/* Submission overlay modal */
+html.app-skin-dark #submissionOverlay .modal-box {
+    background: #1e2a3b !important;
+}
+
+html.app-skin-dark #submissionOverlay h5 {
+    color: #e2e8f0 !important;
+}
+
+html.app-skin-dark #submissionOverlay .sub-text {
+    color: #94a3b8 !important;
+}
+
+html.app-skin-dark #submissionOverlay .waiting-badge {
+    background: #162032 !important;
+    border-color: #2d3f55 !important;
+    color: #94a3b8 !important;
+}
+
+html.app-skin-dark #submissionOverlay .waiting-badge .muted {
+    color: #64748b !important;
+}

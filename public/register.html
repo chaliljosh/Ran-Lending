@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ran Lending - Registration</title>
+  <link rel="shortcut icon" type="image/png" href="assets/login/images/logos/seodashlogo.png" />
+  <link rel="stylesheet" href="assets/login/css/styles.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/login/css/register.css" />
+</head>
+<body>
+
+  <!-- Back to Home -->
+  <a href="login.html" class="back-btn">
+    <i class="bi bi-arrow-left"></i> Back to Home
+  </a>
+
+  <div class="page-wrap">
+    <div class="register-card">
+
+      <!-- RIGHT PANEL -->
+      <div class="card-right">
+        <div class="form-header">
+          <h2>Create Account</h2>
+          <p>Fill in your details to get started</p>
+        </div>
+
+        <!-- Error Alert -->
+        <div id="registerAlert" style="display:none; background:#fee2e2; border:1px solid #fca5a5; color:#991b1b; padding:10px 14px; border-radius:8px; margin-bottom:16px; font-size:0.875rem;"></div>
+
+        <div class="form-grid">
+
+          <div class="field">
+            <label for="lastName">Last Name</label>
+            <div class="input-wrap">
+              <i class="bi bi-person field-icon"></i>
+              <!-- ✅ Auto capitalize first letter of each word -->
+              <input type="text" id="lastName" placeholder="Enter last name"
+                oninput="this.value = this.value.replace(/\b\w/g, c => c.toUpperCase())">
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="firstName">First Name</label>
+            <div class="input-wrap">
+              <i class="bi bi-person field-icon"></i>
+              <!-- ✅ Auto capitalize first letter of each word -->
+              <input type="text" id="firstName" placeholder="Enter first name"
+                oninput="this.value = this.value.replace(/\b\w/g, c => c.toUpperCase())">
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="middleName">Middle Name</label>
+            <div class="input-wrap">
+              <i class="bi bi-person-badge field-icon"></i>
+              <!-- ✅ Auto capitalize first letter of each word -->
+              <input type="text" id="middleName" placeholder="Enter middle name"
+                oninput="this.value = this.value.replace(/\b\w/g, c => c.toUpperCase())">
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="email">Email Address</label>
+            <div class="input-wrap">
+              <i class="bi bi-envelope field-icon"></i>
+              <input type="email" id="email" placeholder="Enter email address">
+            </div>
+          </div>
+
+          <div class="field col-span-2">
+            <label>Birthday</label>
+            <div class="birthday-row">
+              <div class="input-wrap">
+                <i class="bi bi-calendar3 field-icon"></i>
+                <select id="birthMonth">
+                  <option value="" disabled selected>Month</option>
+                  <option value="1">January</option><option value="2">February</option>
+                  <option value="3">March</option><option value="4">April</option>
+                  <option value="5">May</option><option value="6">June</option>
+                  <option value="7">July</option><option value="8">August</option>
+                  <option value="9">September</option><option value="10">October</option>
+                  <option value="11">November</option><option value="12">December</option>
+                </select>
+              </div>
+              <div class="input-wrap">
+                <i class="bi bi-calendar3 field-icon"></i>
+                <!-- Dating PHP for-loop (1-31) - ngayon JS na ang gagawa nito, tignan sa dulo ng file -->
+                <select id="birthDay">
+                  <option value="" disabled selected>Day</option>
+                </select>
+              </div>
+              <div class="input-wrap">
+                <i class="bi bi-calendar3 field-icon"></i>
+                <!-- Dating PHP for-loop (current year pababa hanggang 1950) - JS na rin -->
+                <select id="birthYear">
+                  <option value="" disabled selected>Year</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="field col-span-2">
+            <label for="password">Password</label>
+            <div class="input-wrap pw-wrap">
+              <i class="bi bi-lock field-icon"></i>
+              <input type="password" id="password" placeholder="Create a password">
+              <button class="toggle-pw" type="button" onclick="togglePw('password', this)">
+                <i class="bi bi-eye-slash"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="field col-span-2">
+            <label for="confirmPassword">Confirm Password</label>
+            <div class="input-wrap pw-wrap">
+              <i class="bi bi-lock-fill field-icon"></i>
+              <input type="password" id="confirmPassword" placeholder="Re-enter password">
+              <button class="toggle-pw" type="button" onclick="togglePw('confirmPassword', this)">
+                <i class="bi bi-eye-slash"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="col-span-2">
+            <button class="btn-signup" id="signupBtn">
+              Sign Up <i class="bi bi-arrow-right"></i>
+            </button>
+          </div>
+
+        </div>
+
+        <p class="footer-text">
+          Already have an account? <a href="login.html">Sign In</a>
+        </p>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- OTP Modal -->
+  <div class="modal-overlay" id="otpModal">
+    <div class="modal-box">
+      <button onclick="document.getElementById('otpModal').classList.remove('show')"
+              style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:1.2rem;cursor:pointer;color:#6c757d;line-height:1;">
+        <i class="bi bi-x-lg"></i>
+      </button>
+      <div class="modal-icon" style="background:#e8f0fe;">
+        <i class="bi bi-envelope-check" style="font-size:36px; color:#2d5be3;"></i>
+      </div>
+      <h5>Verify Your Email</h5>
+      <p>We sent a 6-digit OTP to your email address. Please enter it below.</p>
+      <input type="hidden" id="otpEmail">
+      <input type="text" class="otp-input" id="otpInput" maxlength="6" placeholder="000000">
+      <button class="modal-btn" id="verifyOtpBtn">Verify</button>
+      <br>
+      <button class="resend-btn" id="resendOtpBtn">Resend OTP</button>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div class="modal-overlay" id="successModal">
+    <div class="modal-box">
+      <div class="modal-icon" style="background:#dcfce7;">
+        <i class="bi bi-check-circle-fill" style="font-size:36px; color:#16a34a;"></i>
+      </div>
+      <h5>Account Created!</h5>
+      <p>Your email has been verified and your account has been successfully created. You can now sign in.</p>
+      <button class="modal-btn" onclick="window.location.href='login.html'">Go to Login</button>
+    </div>
+  </div>
+
+  <script src="assets/login/libs/jquery/dist/jquery.min.js"></script>
+  <script src="assets/login/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Kapalit ng dating PHP for-loops para sa Day/Year dropdowns
+    (function () {
+      const daySelect = document.getElementById('birthDay');
+      for (let d = 1; d <= 31; d++) {
+        const opt = document.createElement('option');
+        opt.value = d;
+        opt.textContent = d;
+        daySelect.appendChild(opt);
+      }
+
+      const yearSelect = document.getElementById('birthYear');
+      const currentYear = new Date().getFullYear();
+      for (let y = currentYear; y >= 1950; y--) {
+        const opt = document.createElement('option');
+        opt.value = y;
+        opt.textContent = y;
+        yearSelect.appendChild(opt);
+      }
+    })();
+  </script>
+  <script src="functions/csrf.js"></script>
+  <script src="functions/register.js"></script>
+</body>
+</html>

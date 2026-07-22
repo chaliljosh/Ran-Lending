@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="zxx">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Personal Details - Ran Lending</title>
+    <link rel="shortcut icon" type="image/x-icon" href="/assets/borrower/images/favicon.ico" />
+    <link rel="stylesheet" type="text/css" href="/assets/borrower/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="/assets/borrower/vendors/css/vendors.min.css" />
+    <link rel="stylesheet" type="text/css" href="/assets/borrower/vendors/css/daterangepicker.min.css" />
+    <link rel="stylesheet" type="text/css" href="/assets/borrower/css/theme.min.css" />
+    <link rel="stylesheet" type="text/css" href="/assets/borrower/css/personal-details.css" />
+</head>
+<body>
+    <nav class="nxl-navigation">
+        <div class="navbar-wrapper" style="position: relative;">
+            <div class="m-header">
+                <a href="{{ route('borrower.dashboard') }}" class="b-brand">
+                    <h3 class="fst-italic">Ran Serenity</h3>
+                </a>
+            </div>
+            <div class="navbar-content" style="padding-bottom: 80px;">
+                <ul class="nxl-navbar">
+                    <li class="nxl-item">
+                        <a href="{{ route('borrower.dashboard') }}" class="nxl-link">
+                            <span class="nxl-micon"><i class="feather-airplay"></i></span>
+                            <span class="nxl-mtext">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nxl-item">
+                        <a href="{{ route('borrower.personal-details') }}" class="nxl-link active">
+                            <span class="nxl-micon"><i class="feather-user-check"></i></span>
+                            <span class="nxl-mtext">Personal Details</span>
+                        </a>
+                    </li>
+                    @if($isFullyApproved)
+                    <li class="nxl-item">
+                        <a href="/borrower/apply-loan" class="nxl-link">
+                            <span class="nxl-micon"><i class="feather-file-plus"></i></span>
+                            <span class="nxl-mtext">Apply for a Loan</span>
+                        </a>
+                    </li>
+                    <li class="nxl-item">
+                        <a href="/borrower/loan-details" class="nxl-link">
+                            <span class="nxl-micon"><i class="feather-file-text"></i></span>
+                            <span class="nxl-mtext">View Loan Details</span>
+                        </a>
+                    </li>
+                    <li class="nxl-item">
+                        <a href="/borrower/notifications" class="nxl-link">
+                            <span class="nxl-micon"><i class="feather-bell"></i></span>
+                            <span class="nxl-mtext">Notifications</span>
+                        </a>
+                    </li>
+                    <li class="nxl-item">
+                        <a href="/borrower/profile" class="nxl-link">
+                            <span class="nxl-micon"><i class="feather-user"></i></span>
+                            <span class="nxl-mtext">My Profile</span>
+                        </a>
+                    </li>
+                    @endif
+                </ul>
+            </div>
+            <div style="padding:14px 16px;border-top:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:12px;position:absolute;bottom:0;left:0;right:0;background:inherit;">
+                <div style="width:38px;height:38px;border-radius:50%;background:#4a7cf7;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:0.85rem;flex-shrink:0;">
+                    {{ $initials }}
+                </div>
+                <div style="overflow:hidden;flex:1;">
+                    <p style="margin:0;font-size:0.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $userName }}</p>
+                    <p style="margin:0;font-size:0.75rem;opacity:0.6;">Borrower</p>
+                </div>
+                <a href="javascript:void(0);" onclick="confirmLogout()" title="Logout" style="color:#e74c3c;font-size:1.1rem;flex-shrink:0;opacity:0.8;">
+                    <i class="feather-log-out"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="nxl-header">
+        <div class="header-wrapper">
+            <div class="header-left d-flex align-items-center gap-4">
+                <a href="javascript:void(0);" class="nxl-head-mobile-toggler" id="mobile-collapse">
+                    <div class="hamburger hamburger--arrowturn">
+                        <div class="hamburger-box"><div class="hamburger-inner"></div></div>
+                    </div>
+                </a>
+                <div class="nxl-navigation-toggle">
+                    <a href="javascript:void(0);" id="menu-mini-button"><i class="feather-align-left"></i></a>
+                    <a href="javascript:void(0);" id="menu-expend-button" style="display:none"><i class="feather-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="nxl-container">
+        <div class="nxl-content">
+            <div class="page-header">
+                <div class="page-header-left d-flex align-items-center">
+                    <div class="page-header-title"><h5 class="m-b-10">Personal Details</h5></div>
+                    <ul class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ route('borrower.dashboard') }}">Home</a></li>
+                        <li class="breadcrumb-item">Personal Details</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="main-content">
+
+                @if($detailsStatus === 'pending')
+                <div class="row justify-content-center">
+                    <div class="col-lg-6">
+                        <div class="card text-center">
+                            <div class="card-body py-5">
+                                <div style="width:80px;height:80px;background:#fff8e1;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+                                    <i class="feather-clock" style="font-size:36px;color:#f0a500;"></i>
+                                </div>
+                                <h4 class="fw-bold mb-2">Details Already Submitted</h4>
+                                <p class="text-muted mb-4">Your personal details have been submitted and are currently being reviewed by our admins. Please wait for approval.</p>
+                                <div style="background:#f8f9fa;border-radius:12px;padding:20px;margin-bottom:20px;">
+                                    <p class="fw-bold mb-2" style="font-size:0.85rem;color:#6c757d;text-transform:uppercase;letter-spacing:0.5px;">Admin Approvals</p>
+                                    <h2 style="font-size:2.5rem;font-weight:700;margin:0;">{{ $approvedCount }} / 3</h2>
+                                </div>
+                                <a href="{{ route('borrower.dashboard') }}" class="btn btn-primary px-5">
+                                    <i class="feather-arrow-left me-2"></i>Back to Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @elseif($detailsStatus === 'approved')
+                <div class="row justify-content-center">
+                    <div class="col-lg-6">
+                        <div class="card text-center" style="border: 2px solid #28a745;">
+                            <div class="card-body py-5">
+                                <div style="width:80px;height:80px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+                                    <i class="feather-check-circle" style="font-size:36px;color:#28a745;"></i>
+                                </div>
+                                <h4 class="fw-bold mb-2">Profile Approved</h4>
+                                <p class="text-muted mb-4">Your personal details have been verified and approved. You are now eligible to apply for a loan.</p>
+                                <a href="/borrower/apply-loan" class="btn btn-success px-5">
+                                    <i class="feather-file-plus me-2"></i>Apply for a Loan
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @else
+                <div class="row">
+                    <div class="col-lg-12">
+
+                        @if($detailsStatus === 'rejected')
+                        <div class="alert alert-danger d-flex align-items-center gap-3 mb-4" role="alert" style="border-radius:12px; border-left: 4px solid #dc3545;">
+                            <i class="feather-alert-circle" style="font-size:22px;flex-shrink:0;"></i>
+                            <div>
+                                <strong>Submission Rejected</strong><br>
+                                <small>Your previous submission was rejected. Please update your information and resubmit.</small>
+                            </div>
+                        </div>
+                        @endif
+
+                        <form id="personalDetailsForm" onsubmit="return false;">
+
+                            <div class="form-section">
+                                <div class="form-section-header">
+                                    <div><p class="form-section-title">Personal Information</p></div>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        <label class="form-label">Last Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="lastName" value="{{ $regData['lastName'] }}" placeholder="Enter last name" {{ $regData['lastName'] ? 'disabled' : 'required' }}>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">First Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="firstName" value="{{ $regData['firstName'] }}" placeholder="Enter first name" {{ $regData['firstName'] ? 'disabled' : 'required' }}>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Middle Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="middleName" value="{{ $regData['middleName'] }}" placeholder="Enter middle name" {{ $regData['middleName'] ? 'disabled' : 'required' }}>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Suffix</label>
+                                        <select class="form-select" id="suffix">
+                                            <option value="" {{ ($details->suffix ?? '') === '' ? 'selected' : '' }}>None</option>
+                                            @foreach(['Jr.', 'Sr.', 'II', 'III', 'IV', 'V'] as $s)
+                                            <option value="{{ $s }}" {{ ($details->suffix ?? '') === $s ? 'selected' : '' }}>{{ $s }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Birthday <span class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" id="birthday" value="{{ $regData['birthday'] }}" {{ $regData['birthday'] ? 'disabled' : 'required' }}>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Age</label>
+                                        <input type="number" class="form-control" id="age" placeholder="Auto-calculated" readonly>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Gender <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="gender" required>
+                                            <option value="">Select gender</option>
+                                            <option value="male" {{ ($details->gender ?? '') === 'male' ? 'selected' : '' }}>Male</option>
+                                            <option value="female" {{ ($details->gender ?? '') === 'female' ? 'selected' : '' }}>Female</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Civil Status <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="civilStatus" required>
+                                            <option value="">Select status</option>
+                                            @foreach(['single','taken','married','widowed','separated'] as $cs)
+                                            <option value="{{ $cs }}" {{ ($details->civil_status ?? '') === $cs ? 'selected' : '' }}>{{ ucfirst($cs) }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Citizenship <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="citizenship" value="{{ $details->citizenship ?? '' }}" placeholder="e.g. Filipino" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Cellphone Number <span class="text-danger">*</span></label>
+                                        <input type="tel" class="form-control" id="cellphone" value="{{ $details->cellphone_num ?? '+63 ' }}" placeholder="+63 912 345 6789" maxlength="16" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Birth Country <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="birthCountry" value="{{ $details->birth_country ?? '' }}" placeholder="e.g. Philippines" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Birth Province <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="birthProvince" value="{{ $details->birth_province ?? '' }}" placeholder="e.g. Cagayan" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Birth City <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="birthCity" value="{{ $details->birth_city ?? '' }}" placeholder="e.g. Tuguegarao" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Email Address <span class="text-danger">*</span></label>
+                                        <input type="email" class="form-control" id="email" value="{{ $regData['email'] }}" placeholder="Enter email address" {{ $regData['email'] ? 'disabled' : 'required' }}>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Monthly Income <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="monthlyIncome" value="{{ $details->monthly_income ?? '' }}" placeholder="e.g. 25000" inputmode="numeric" maxlength="6" autocomplete="off" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Type of ID <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="idType" required>
+                                            <option value="">Select ID type</option>
+                                            @foreach(['national_id'=>'National ID (PhilSys)','passport'=>'Passport','drivers_license'=>"Driver's License",'umid'=>'UMID','sss'=>'SSS ID','tin'=>'TIN ID','postal'=>'Postal ID','voters'=>"Voter's ID",'prc'=>'PRC ID'] as $val => $label)
+                                            <option value="{{ $val }}" {{ ($details->id_type ?? '') === $val ? 'selected' : '' }}>{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">ID/Passport Number <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="idNumber" value="{{ $details->id_number ?? '' }}" placeholder="Enter ID or passport number" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Attach Valid ID <span class="text-danger">*</span></label>
+                                        <input type="file" class="form-control" id="validId" accept="image/*,.pdf" {{ ($details->id_file_path ?? null) ? '' : 'required' }}>
+                                        <small class="text-muted mt-1 d-block"><i class="feather-info me-1"></i>Accepted: JPG, PNG, PDF (Max 5MB)</small>
+                                        <div id="idPreview" class="mt-2"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <div class="form-section-header"><div><p class="form-section-title">Present Address</p></div></div>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Country</label>
+                                        <input type="text" class="form-control" id="country" value="Philippines" readonly>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Region <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="region" required><option value="">Select Region</option></select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Province <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="province" disabled required><option value="">Select Province</option></select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">City/Municipality <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="city" disabled required><option value="">Select City/Municipality</option></select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Barangay <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="barangay" disabled required><option value="">Select Barangay</option></select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Zipcode <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="zipcode" value="{{ $details->zipcode ?? '' }}" placeholder="e.g. 1000" maxlength="4" required>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label">Home Address <span class="text-danger">*</span></label>
+                                        <textarea class="form-control" id="homeAddress" rows="2" placeholder="e.g. Block 5 Lot 10, Greenfield Subdivision, Rizal Street" required></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <div class="form-section-header"><div><p class="form-section-title">Work Information</p></div></div>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Employment Status <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="employmentStatus" required>
+                                            <option value="">Select status</option>
+                                            @foreach(['employed'=>'Employed','self_employed'=>'Self-Employed','unemployed'=>'Unemployed','student'=>'Student','retired'=>'Retired'] as $val => $label)
+                                            <option value="{{ $val }}">{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6" id="companyNameWrapper">
+                                        <label class="form-label" id="companyNameLabel">Company/Business Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="companyName" placeholder="Enter company/business name">
+                                    </div>
+                                    <div class="col-md-6" id="positionWrapper">
+                                        <label class="form-label" id="positionLabel">Position/Occupation <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="position" placeholder="Enter position/occupation">
+                                    </div>
+                                    <div class="col-md-3" id="yearsWrapper">
+                                        <label class="form-label" id="yearsLabel">Years <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control" id="yearsInCompany" placeholder="e.g. 2" min="0" max="50" step="1">
+                                    </div>
+                                    <div class="col-md-3" id="monthsWrapper">
+                                        <label class="form-label" id="monthsLabel">Months</label>
+                                        <select class="form-select" id="monthsInCompany">
+                                            @for($m = 0; $m <= 11; $m++)
+                                            <option value="{{ $m }}">{{ $m }} months</option>
+                                            @endfor
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <div class="form-section-header"><div><p class="form-section-title">Co-Maker Information</p></div></div>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Co-Maker Last Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="coMakerLastName" placeholder="Enter last name" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Co-Maker First Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="coMakerFirstName" placeholder="Enter first name" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Co-Maker Middle Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="coMakerMiddleName" placeholder="Enter middle name" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Relationship to Borrower <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="coMakerRelationship" required>
+                                            <option value="">Select relationship</option>
+                                            @foreach(['spouse'=>'Spouse','parent'=>'Parent','sibling'=>'Sibling','child'=>'Child','relative'=>'Other Relative','friend'=>'Friend','colleague'=>'Colleague'] as $val => $label)
+                                            <option value="{{ $val }}">{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Co-Maker Contact Number <span class="text-danger">*</span></label>
+                                        <input type="tel" class="form-control" id="coMakerContact" value="+63 " placeholder="+63 912 345 6789" maxlength="16" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-3 mb-4">
+                                <button type="button" class="btn px-5" id="submitBtn">
+                                    <i class="feather-send me-2"></i>Submit for Approval
+                                </button>
+                                <a href="{{ route('borrower.dashboard') }}" class="btn btn-outline-secondary px-5" style="border-radius:12px;">
+                                    <i class="feather-x me-2"></i>Cancel
+                                </a>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+                @endif
+
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p class="text-center"><span>By: <a target="_blank" href="#">Ran Serenity</a></span></p>
+        </footer>
+    </main>
+
+    <div id="submissionOverlay">
+        <div class="modal-box">
+            <div class="accent-bar"></div>
+            <div class="modal-inner">
+                <div class="icon-wrap"><i class="feather-check-circle"></i></div>
+                <h5>Submitted Successfully!</h5>
+                <p class="sub-text">Your personal details have been submitted.<br>Please wait for the admin to review your information.</p>
+                <div class="waiting-badge">
+                    <i class="feather-clock"></i>
+                    <span class="muted">Waiting for admin approval</span>
+                    <span class="count">0 / 3</span>
+                </div>
+                <a href="{{ route('borrower.dashboard') }}" class="btn-go">
+                    <i class="feather-home" style="margin-right:6px;"></i>Go to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/assets/borrower/vendors/js/vendors.min.js"></script>
+    <script src="/assets/borrower/vendors/js/daterangepicker.min.js"></script>
+    <script src="/assets/borrower/vendors/js/apexcharts.min.js"></script>
+    <script src="/assets/borrower/vendors/js/circle-progress.min.js"></script>
+    <script src="/assets/borrower/js/common-init.min.js"></script>
+    <script src="/assets/borrower/js/dashboard-init.min.js"></script>
+    <script src="/assets/borrower/js/theme-customizer-init.min.js"></script>
+    <script src="/functions/logout-modal.js"></script>
+    @if($detailsStatus === 'incomplete' || $detailsStatus === 'rejected')
+    <script src="/functions/personal-details.js"></script>
+    @endif
+</body>
+</html>

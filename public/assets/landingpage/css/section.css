@@ -1,0 +1,542 @@
+ #header {
+      background: rgba(26, 26, 46, 0.92);         /* dark blue, slightly transparent */
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    #header .sitename,
+    #header .logo h1 {
+      color: #ffffff !important;
+    }
+    #navmenu ul li a {
+      color: #ffffff !important;
+    }
+    #navmenu ul li a:hover,
+    #navmenu ul li a.active {
+      color: #dc3545 !important;                  /* red on hover / active */
+    }
+    /* "Get Started" button in navbar */
+    #header .cta-btn {
+      background: #dc3545 !important;
+      color: #fff !important;
+      border-radius: 6px;
+      padding: 8px 22px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    #header .cta-btn:hover {
+      background: #c82333 !important;
+    }
+
+    /* ============================================================
+       HERO SECTION
+       ============================================================ */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1a1a2e, #0f3460);
+      padding: 100px 15px 60px;
+    }
+
+    .hero-inner {
+      display: flex;
+      align-items: center;
+      gap: 60px;
+      max-width: 1100px;
+      width: 100%;
+    }
+
+    /* --- Left: headline + stats --- */
+    .hero-text { flex: 1; }
+
+    .hero-badge {
+      display: inline-block;
+      background: rgba(220, 53, 69, 0.15);
+      color: #dc3545;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 6px 16px;
+      border-radius: 30px;
+      margin-bottom: 20px;
+    }
+
+    .hero-text h1 {
+      font-family: 'Raleway', sans-serif;
+      font-size: 2.9rem;
+      font-weight: 800;
+      line-height: 1.15;
+      color: #ffffff;
+      margin-bottom: 18px;
+    }
+    .hero-text h1 .red { color: #dc3545; }
+
+    .hero-text > p {
+      color: rgba(255,255,255,0.6);
+      font-size: 1rem;
+      line-height: 1.7;
+      max-width: 420px;
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 36px;
+      margin-top: 30px;
+    }
+    .hero-stats h4 {
+      font-family: 'Raleway', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 2px;
+    }
+    .hero-stats p {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 0;
+    }
+
+    /* --- Right: calculator card --- */
+    .calc-card {
+      flex: 0 0 400px;
+      background: #fff;
+      border-radius: 20px;
+      padding: 36px 32px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    }
+    .calc-card h3 {
+      font-family: 'Raleway', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #dc3545;
+      margin-bottom: 4px;
+    }
+    .calc-card .calc-subtitle {
+      color: #999;
+      font-size: 0.88rem;
+      margin-bottom: 24px;
+    }
+
+    .calc-row { margin-bottom: 22px; }
+
+    .calc-row .calc-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }
+    .calc-row .calc-label {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #1a1a2e;
+    }
+    .calc-row .calc-value {
+      font-family: 'Raleway', sans-serif;
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: #1a1a2e;
+    }
+    .calc-row .calc-value .unit {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #999;
+      margin-left: 4px;
+    }
+
+    /* Slider */
+    .calc-row input[type="range"] {
+      width: 100%;
+      height: 5px;
+      appearance: none;
+      -webkit-appearance: none;
+      background: #eee;
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+    }
+    .calc-row input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 24px;
+      height: 24px;
+      background: #1a1a2e;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    }
+    .calc-row input[type="range"]::-moz-range-thumb {
+      width: 24px;
+      height: 24px;
+      background: #1a1a2e;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    }
+
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+      font-size: 0.75rem;
+      color: #aaa;
+    }
+
+    /* Term pills */
+    .term-pills { display: flex; gap: 8px; }
+    .term-pills button {
+      flex: 1;
+      padding: 10px 4px;
+      border: 2px solid #eee;
+      border-radius: 10px;
+      background: #fff;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #555;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .term-pills button:hover {
+      border-color: #dc3545;
+      color: #dc3545;
+    }
+    .term-pills button.active {
+      background: #dc3545;
+      border-color: #dc3545;
+      color: #fff;
+    }
+
+    /* Summary box */
+    .calc-summary {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-top: 10px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .calc-summary .sum-label {
+      font-size: 0.88rem;
+      color: #555;
+    }
+    .calc-summary .sum-label small {
+      display: block;
+      color: #aaa;
+      margin-top: 2px;
+    }
+    .calc-summary .sum-amount {
+      font-family: 'Raleway', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #1a1a2e;
+    }
+
+    /* CTA button */
+    .calc-cta {
+      display: block;
+      width: 100%;
+      padding: 15px;
+      background: #dc3545;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Raleway', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .calc-cta:hover {
+      background: #c82333;
+      color: #fff;
+    }
+
+    /* ============================================================
+       ABOUT SECTION overrides
+       ============================================================ */
+    #about {
+      background: #ffffff;
+    }
+    #about h3 {
+      font-family: 'Raleway', sans-serif;
+      color: #1a1a2e;
+      font-weight: 800;
+      margin-bottom: 16px;
+    }
+    #about p {
+      color: #555;
+      line-height: 1.7;
+    }
+    #about ul li {
+      color: #555;
+      margin-bottom: 8px;
+    }
+    /* The green check icons → red */
+    #about ul li i {
+      color: #dc3545 !important;
+    }
+    /* Play button on the video thumbnail */
+    #about .pulsating-play-btn {
+      background: #dc3545 !important;
+    }
+
+    /* ============================================================
+       TERMS / FEATURES SECTION overrides
+       ============================================================ */
+    #features {
+      background: #f8f9fa;
+    }
+
+    /* Section title "Terms" */
+    #features .section-title h2 {
+      font-family: 'Raleway', sans-serif;
+      color: #1a1a2e;
+      font-weight: 800;
+    }
+    #features .section-title p {
+      color: #dc3545;
+      font-weight: 600;
+    }
+
+    /* Tab nav links */
+    #features .nav-tabs .nav-link {
+      color: #1a1a2e !important;
+      border: 2px solid transparent;
+      border-radius: 10px 10px 0 0;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    #features .nav-tabs .nav-link i {
+      color: #1a1a2e;
+      font-size: 1.4rem;
+      display: block;
+      margin-bottom: 6px;
+    }
+    #features .nav-tabs .nav-link h4 {
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 0;
+      color: #1a1a2e;
+    }
+    /* Active / hovered tab */
+    #features .nav-tabs .nav-link:hover,
+    #features .nav-tabs .nav-link.active {
+      background: #dc3545 !important;
+      border-color: #dc3545 !important;
+      color: #fff !important;
+    }
+    #features .nav-tabs .nav-link:hover i,
+    #features .nav-tabs .nav-link.active i,
+    #features .nav-tabs .nav-link:hover h4,
+    #features .nav-tabs .nav-link.active h4 {
+      color: #fff !important;
+    }
+
+    /* Tab content headings */
+    #features .tab-content h3 {
+      font-family: 'Raleway', sans-serif;
+      color: #1a1a2e;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+    #features .tab-content p {
+      color: #555;
+      line-height: 1.7;
+    }
+    #features .tab-content ul li {
+      color: #555;
+      margin-bottom: 6px;
+    }
+    /* Check icons → red */
+    #features .tab-content ul li i {
+      color: #dc3545 !important;
+    }
+
+    /* ============================================================
+       PROCESS SECTION overrides
+       ============================================================ */
+    #services-2 {
+      background: #ffffff;
+    }
+    #services-2 .section-title h2 {
+      font-family: 'Raleway', sans-serif;
+      color: #1a1a2e;
+      font-weight: 800;
+    }
+    #services-2 .section-title p {
+      color: #dc3545;
+      font-weight: 600;
+    }
+    /* Big icons next to each step */
+    #services-2 .service-item .icon {
+      color: #dc3545 !important;
+      font-size: 2rem;
+      margin-right: 16px;
+    }
+    #services-2 .service-item h4 {
+      font-family: 'Raleway', sans-serif;
+      color: #1a1a2e;
+      font-weight: 700;
+    }
+    #services-2 .service-item h4 a {
+      color: #1a1a2e !important;
+      text-decoration: none;
+    }
+    #services-2 .service-item h4 a:hover {
+      color: #dc3545 !important;
+    }
+    #services-2 .service-item p {
+      color: #666;
+    }
+
+    /* ============================================================
+       CONTACT SECTION overrides
+       ============================================================ */
+    #contact {
+      background: #f8f9fa;
+    }
+    #contact .section-title h2 {
+      font-family: 'Raleway', sans-serif;
+      color: #1a1a2e;
+      font-weight: 800;
+    }
+    #contact .section-title p {
+      color: #dc3545;
+      font-weight: 600;
+    }
+    /* Info icons (address / phone / email) */
+    #contact .info-item i {
+      color: #dc3545 !important;
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+    }
+    #contact .info-item h3 {
+      font-family: 'Raleway', sans-serif;
+      color: #1a1a2e;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+    #contact .info-item p {
+      color: #555;
+    }
+    /* Form inputs */
+    #contact .form-control {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 0.92rem;
+      transition: border-color 0.2s;
+    }
+    #contact .form-control:focus {
+      border-color: #dc3545;
+      box-shadow: 0 0 0 3px rgba(220,53,69,0.15);
+    }
+    /* Send Message button */
+    #contact button[type="submit"] {
+      background: #dc3545 !important;
+      color: #fff !important;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 36px;
+      font-family: 'Raleway', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #contact button[type="submit"]:hover {
+      background: #c82333 !important;
+    }
+
+    /* ============================================================
+       FOOTER overrides
+       ============================================================ */
+    #footer {
+      background: #1a1a2e !important;
+      color: rgba(255,255,255,0.7);
+    }
+    #footer .sitename {
+      color: #fff !important;
+    }
+    #footer .footer-contact p {
+      color: rgba(255,255,255,0.6);
+    }
+    #footer .footer-contact strong {
+      color: #fff;
+    }
+    /* Social icons */
+    #footer .social-links a {
+      color: rgba(255,255,255,0.5);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+    #footer .social-links a:hover {
+      background: #dc3545;
+      border-color: #dc3545;
+      color: #fff;
+    }
+    /* "Useful Links" heading */
+    #footer .footer-links h4 {
+      color: #fff;
+      font-family: 'Raleway', sans-serif;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+    #footer .footer-links ul li a {
+      color: rgba(255,255,255,0.55);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    #footer .footer-links ul li a:hover {
+      color: #dc3545;
+    }
+    #footer .footer-links ul li i {
+      color: #dc3545;
+    }
+    /* Copyright bar */
+    #footer .copyright p {
+      color: rgba(255,255,255,0.4);
+      font-size: 0.85rem;
+    }
+    #footer .copyright .sitename {
+      color: #dc3545 !important;
+    }
+
+    /* ============================================================
+       SCROLL-TO-TOP button
+       ============================================================ */
+    #scroll-top {
+      background: #dc3545 !important;
+      color: #fff !important;
+    }
+    #scroll-top:hover {
+      background: #c82333 !important;
+    }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 900px) {
+      .hero-inner        { flex-direction: column; text-align: center; }
+      .hero-text > p     { max-width: 100%; }
+      .hero-stats        { justify-content: center; }
+      .calc-card         { flex: 0 0 100%; max-width: 400px; }
+    }
+    @media (max-width: 480px) {
+      .hero-text h1      { font-size: 2.1rem; }
+      .calc-card         { padding: 28px 20px; }
+    }
