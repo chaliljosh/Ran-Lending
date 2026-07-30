@@ -1,0 +1,214 @@
+/* public/css/modals-modern.css
+   Modern confirmation/status modal styling for the admin dashboard.
+   Include this AFTER bootstrap.min.css and theme.min.css so it can override them. */
+
+.modal-modern .modal-content {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+    padding: 8px;
+}
+
+.modal-modern .modal-header-clean {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px 0;
+}
+
+.modal-modern .modal-header-clean .header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-modern .modal-header-clean .header-left i {
+    font-size: 18px;
+    color: #0f172a;
+}
+
+.modal-modern .modal-header-clean h6 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.modal-modern .modal-header-clean .btn-close-clean {
+    background: none;
+    border: none;
+    font-size: 20px;
+    line-height: 1;
+    color: #94a3b8;
+    cursor: pointer;
+}
+
+.modal-modern .modal-body {
+    padding: 24px 32px 8px;
+}
+
+.modal-modern .modal-icon-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+}
+
+.modal-modern .modal-icon-circle.icon-success {
+    background: #dcfce7;
+}
+.modal-modern .modal-icon-circle.icon-success i {
+    color: #16a34a;
+    font-size: 30px;
+}
+
+.modal-modern .modal-icon-circle.icon-warning {
+    background: #fef3c7;
+}
+.modal-modern .modal-icon-circle.icon-warning i {
+    color: #d97706;
+    font-size: 30px;
+}
+
+.modal-modern .modal-icon-circle.icon-danger {
+    background: #fee2e2;
+}
+.modal-modern .modal-icon-circle.icon-danger i {
+    color: #dc2626;
+    font-size: 30px;
+}
+
+.modal-modern .modal-title-text {
+    font-size: 19px;
+    font-weight: 700;
+    color: #0f172a;
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.modal-modern .modal-message-text {
+    font-size: 14.5px;
+    color: #64748b;
+    text-align: center;
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.modal-modern .modal-detail-card {
+    background: #f8fafc;
+    border: 1px solid #eef1f5;
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+}
+
+.modal-modern .modal-detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+}
+
+.modal-modern .modal-detail-row + .modal-detail-row {
+    border-top: 1px solid #eef1f5;
+}
+
+.modal-modern .modal-detail-label {
+    font-size: 12.5px;
+    color: #94a3b8;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.modal-modern .modal-detail-value {
+    font-size: 14px;
+    color: #0f172a;
+    font-weight: 600;
+}
+
+.modal-modern .modal-note {
+    background: #f1f5f9;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 12.5px;
+    color: #64748b;
+    line-height: 1.55;
+    margin-bottom: 20px;
+}
+
+.modal-modern .modal-note-info {
+    display: flex;
+    gap: 10px;
+    background: #eff6ff;
+    border: 1px solid #dbeafe;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 12.5px;
+    color: #1e40af;
+    line-height: 1.55;
+    margin-bottom: 20px;
+    text-align: left;
+}
+.modal-modern .modal-note-info i {
+    font-size: 16px;
+    color: #2563eb;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.modal-modern .modal-footer {
+    border-top: none;
+    padding: 8px 32px 28px;
+    gap: 10px;
+}
+
+.modal-modern .btn-modal-cancel {
+    background: #f1f5f9;
+    color: #475569;
+    border: none;
+    border-radius: 10px;
+    padding: 11px 20px;
+    font-weight: 600;
+    font-size: 14px;
+    flex: 1;
+    transition: background 0.15s;
+}
+.modal-modern .btn-modal-cancel:hover {
+    background: #e2e8f0;
+    color: #475569;
+}
+
+.modal-modern .btn-modal-primary {
+    border: none;
+    border-radius: 10px;
+    padding: 11px 20px;
+    font-weight: 600;
+    font-size: 14px;
+    flex: 1;
+    color: #fff;
+    transition: opacity 0.15s;
+}
+.modal-modern .btn-modal-primary:hover {
+    opacity: 0.9;
+    color: #fff;
+}
+
+.modal-modern .btn-approve {
+    background: #16a34a;
+}
+
+.modal-modern .btn-reject {
+    background: #dc2626;
+}
+
+.modal-modern .btn-ok-success {
+    background: #16a34a;
+}
+
+.modal-modern .btn-ok-warning {
+    background: #d97706;
+}

@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="{{ asset('assets/admin/css/bootstrap.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/admin/vendors/css/vendors.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/admin/css/theme.min.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/logout-modal.css') }}">
     <style>
         .detail-card { border: 1px solid #e9ecef; border-radius: 12px; padding: 20px; margin-bottom: 16px; background: #fff; transition: box-shadow 0.2s; }
         .detail-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
@@ -33,6 +34,7 @@
         html.app-skin-dark .detail-card { background: #1e2a3a; border-color: #2d3f55; }
         html.app-skin-dark .detail-card .bname { color: #e2e8f0; }
         html.app-skin-dark .info-item span { color: #e2e8f0; }
+        .decision-card-form.is-submitting { opacity: 0.6; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -62,13 +64,16 @@
                         <a href="javascript:void(0);" class="nxl-link">
                             <span class="nxl-micon"><i class="feather-file-text"></i></span>
                             <span class="nxl-mtext">Loan Applications</span>
+                            @if(($pendingLoanCount ?? 0) > 0)
+                                <span class="badge bg-danger ms-auto">{{ $pendingLoanCount }}</span>
+                            @endif
                             <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
                         </a>
                         <ul class="nxl-submenu">
-                            <li class="nxl-item"><a class="nxl-link" href="#">Pending Applications</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="#">Approved</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="#">Rejected</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="#">On Hold</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.loan-applications') }}">Pending Applications</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'approved']) }}">Approved</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'rejected']) }}">Rejected</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'on_hold']) }}">On Hold</a></li>
                         </ul>
                     </li>
                     <li class="nxl-item nxl-hasmenu">
@@ -141,13 +146,6 @@
 
             <div class="main-content">
 
-                @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
-                    <i class="feather-check-circle me-2"></i> Decision saved successfully!
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-                @endif
-
                 <div class="d-flex gap-2 mb-4">
                     <button class="tab-btn active" onclick="showTab('pending', this)">
                         Pending
@@ -204,14 +202,14 @@
                             <i class="feather-check-circle"></i> You have already reviewed this — decision recorded.
                         </div>
                         @else
-                        <form method="POST" action="{{ route('admin.borrower-verification') }}" class="action-bar">
+                        <form method="POST" action="{{ route('admin.borrower-verification') }}" class="action-bar decision-card-form">
                             @csrf
                             <input type="hidden" name="detail_id" value="{{ $d['detail_id'] }}">
                             <input type="text" name="remarks" class="form-control remarks-input" placeholder="Remarks (optional)">
-                            <button type="submit" name="action" value="approved" class="btn btn-success" onclick="return confirm('Approve this borrower?')">
+                            <button type="button" class="btn btn-success" onclick="cardConfirmAction(this, 'approved')">
                                 <i class="feather-check me-1"></i> Approve
                             </button>
-                            <button type="submit" name="action" value="rejected" class="btn btn-danger" onclick="return confirm('Reject this borrower?')">
+                            <button type="button" class="btn btn-danger" onclick="cardConfirmAction(this, 'rejected')">
                                 <i class="feather-x me-1"></i> Reject
                             </button>
                         </form>
@@ -282,17 +280,57 @@
         </footer>
     </main>
 
+    <!-- Shared confirmation modal for Approve/Reject on the pending list -->
+    <div class="modal fade" id="cardConfirmModal" tabindex="-1" aria-labelledby="cardConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title" id="cardConfirmModalLabel">
+                      Borrower Verification
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <i id="cardConfirmIcon" style="font-size:40px;"></i>
+                    <p id="cardConfirmText" class="mt-3 mb-0 fw-semibold"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light flex-fill" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn flex-fill" id="cardConfirmBtn"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success modal — shown either via session flash (redirect from the detail
+         page after submitting a decision) or via JS after the AJAX approve/reject
+         on the pending list below. -->
+    <div class="modal" id="successModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-body text-center py-4">
+                    <i class="feather-check-circle" style="font-size:48px; color:#16a34a;"></i>
+                    <p class="mt-3 mb-0 fw-semibold">Decision submitted successfully!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="{{ asset('assets/admin/vendors/js/vendors.min.js') }}"></script>
     <script src="{{ asset('assets/admin/js/common-init.min.js') }}"></script>
     <script src="{{ asset('assets/admin/js/theme-customizer-init.min.js') }}"></script>
     <script src="{{ asset('functions/logout-modal.js') }}"></script>
+    @if(session('success'))
     <script>
-        function showTab(tab, btn) {
-            document.getElementById('tab-pending').style.display  = tab === 'pending'  ? 'block' : 'none';
-            document.getElementById('tab-reviewed').style.display = tab === 'reviewed' ? 'block' : 'none';
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-        }
+        // Landed here via redirect right after a decision was submitted on the
+        // detail page — auto-show the success modal, same as the AJAX flow does.
+        document.addEventListener('DOMContentLoaded', function () {
+            const successModal = new bootstrap.Modal(document.getElementById('successModal'), { backdrop: 'static' });
+            successModal.show();
+            setTimeout(() => successModal.hide(), 2000);
+        });
     </script>
+    @endif
+    <script src="{{ asset('functions/borrower-verification.js') }}"></script>
 </body>
 </html>

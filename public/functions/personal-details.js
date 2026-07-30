@@ -20,54 +20,65 @@ function handleEmploymentStatus() {
 
     const companyWrapper = document.getElementById('companyNameWrapper');
     const positionWrapper = document.getElementById('positionWrapper');
+    const yearLevelWrapper = document.getElementById('yearLevelWrapper');
     const yearsWrapper = document.getElementById('yearsWrapper');
     const monthsWrapper = document.getElementById('monthsWrapper');
 
     const companyInput = document.getElementById('companyName');
     const positionInput = document.getElementById('position');
+    const yearLevelInput = document.getElementById('yearLevel');
     const yearsInput = document.getElementById('yearsInCompany');
     const monthsInput = document.getElementById('monthsInCompany');
 
     const companyLabel = document.getElementById('companyNameLabel');
     const positionLabel = document.getElementById('positionLabel');
-    const yearsLabel = document.getElementById('yearsLabel');
-    const monthsLabel = document.getElementById('monthsLabel');
+
+    // I-clear lagi ang values pag nagpalit ng status, para hindi ma-carry over
+    // ang laman (hal. School Name papunta sa Company Name, o Course papunta sa Position).
+    companyInput.value = '';
+    positionInput.value = '';
+    yearLevelInput.value = '';
+    yearsInput.value = '';
+    monthsInput.value = '0';
 
     if (status === 'unemployed' || status === 'retired') {
         companyWrapper.style.display = 'none';
         positionWrapper.style.display = 'none';
+        yearLevelWrapper.style.display = 'none';
         yearsWrapper.style.display = 'none';
         monthsWrapper.style.display = 'none';
         companyInput.removeAttribute('required');
         positionInput.removeAttribute('required');
+        yearLevelInput.removeAttribute('required');
         yearsInput.removeAttribute('required');
-        companyInput.value = '';
-        positionInput.value = '';
-        yearsInput.value = '';
-        monthsInput.value = '0';
 
     } else if (status === 'student') {
         companyWrapper.style.display = '';
         positionWrapper.style.display = '';
-        yearsWrapper.style.display = '';
-        monthsWrapper.style.display = '';
+        yearLevelWrapper.style.display = '';
+        yearsWrapper.style.display = 'none';
+        monthsWrapper.style.display = 'none';
         companyInput.setAttribute('required', 'required');
         positionInput.setAttribute('required', 'required');
-        yearsInput.setAttribute('required', 'required');
+        yearLevelInput.setAttribute('required', 'required');
+        yearsInput.removeAttribute('required');
         companyInput.placeholder = 'Enter school name';
-        positionInput.placeholder = 'Enter course & year level';
+        positionInput.placeholder = 'Enter course (e.g. BSIT)';
         companyLabel.innerHTML = 'School Name <span class="text-danger">*</span>';
-        positionLabel.innerHTML = 'Course / Year Level <span class="text-danger">*</span>';
-        yearsLabel.innerHTML = 'Years in School <span class="text-danger">*</span>';
-        monthsLabel.innerHTML = 'Months in School <span class="text-danger">*</span>';
+        positionLabel.innerHTML = 'Course <span class="text-danger">*</span>';
 
     } else if (status === 'employed' || status === 'self_employed') {
+        const yearsLabel = document.getElementById('yearsLabel');
+        const monthsLabel = document.getElementById('monthsLabel');
+
         companyWrapper.style.display = '';
         positionWrapper.style.display = '';
+        yearLevelWrapper.style.display = 'none';
         yearsWrapper.style.display = '';
         monthsWrapper.style.display = '';
         companyInput.setAttribute('required', 'required');
         positionInput.setAttribute('required', 'required');
+        yearLevelInput.removeAttribute('required');
         yearsInput.setAttribute('required', 'required');
         companyInput.placeholder = 'Enter company/business name';
         positionInput.placeholder = 'Enter position/occupation';
@@ -79,10 +90,12 @@ function handleEmploymentStatus() {
     } else {
         companyWrapper.style.display = 'none';
         positionWrapper.style.display = 'none';
+        yearLevelWrapper.style.display = 'none';
         yearsWrapper.style.display = 'none';
         monthsWrapper.style.display = 'none';
         companyInput.removeAttribute('required');
         positionInput.removeAttribute('required');
+        yearLevelInput.removeAttribute('required');
         yearsInput.removeAttribute('required');
     }
 
@@ -338,6 +351,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.getElementById('companyNameWrapper').style.display = 'none';
     document.getElementById('positionWrapper').style.display = 'none';
+    document.getElementById('yearLevelWrapper').style.display = 'none';
     document.getElementById('yearsWrapper').style.display = 'none';
     document.getElementById('monthsWrapper').style.display = 'none';
 
@@ -435,12 +449,20 @@ document.addEventListener('DOMContentLoaded', function () {
         const status = document.getElementById('employmentStatus').value;
         const years  = parseInt(document.getElementById('yearsInCompany').value) || 0;
         const months = parseInt(document.getElementById('monthsInCompany').value) || 0;
-        const yearsInCompany = status === 'unemployed' || status === 'retired'
+        const yearsInCompany = (status === 'unemployed' || status === 'retired' || status === 'student')
             ? 0
             : parseFloat((years + (months / 12)).toFixed(2));
 
+        // Student: pagsamahin ang Course at Year Level papunta sa "position" column
+        // (walang bagong DB column na kailangan, e.g. "BSIT - 4th Year").
+        let positionValue = document.getElementById('position').value;
+        if (status === 'student') {
+            const yearLevelValue = document.getElementById('yearLevel').value;
+            positionValue = yearLevelValue ? `${positionValue} - ${yearLevelValue}` : positionValue;
+        }
+
         formData.append('companyName',      document.getElementById('companyName').value);
-        formData.append('position',         document.getElementById('position').value);
+        formData.append('position',         positionValue);
         formData.append('employmentStatus', status);
         formData.append('yearsInCompany',   yearsInCompany);
 

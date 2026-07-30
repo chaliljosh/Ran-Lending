@@ -1,0 +1,126 @@
+/* Modal */
+.logout-modal{
+    border:none;
+    border-radius:16px;
+    overflow:hidden;
+    box-shadow:0 15px 35px rgba(0,0,0,.15);
+}
+
+/* Modal Width */
+#logoutConfirmModal .modal-dialog{
+    max-width:560px;
+}
+
+/* Header */
+.logout-modal .modal-header{
+    padding:18px 24px;
+    border-bottom:1px solid #E5E7EB;
+}
+
+.logout-modal .modal-title{
+    font-size:20px;
+    font-weight:700;
+    color:#1E293B;
+}
+
+/* Body */
+.logout-modal .modal-body{
+    padding:24px 24px 18px;
+}
+
+.logout-icon{
+    width:68px;
+    height:68px;
+    margin:0 auto 16px;
+    border-radius:50%;
+    background:#EFF6FF;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.logout-icon i{
+    font-size:32px;
+    color:#2563EB;
+}
+
+.logout-modal .modal-body h5{
+    font-size:18px;
+    font-weight:700;
+    color:#1E293B;
+    margin-bottom:8px;
+}
+
+.logout-modal .modal-body p{
+    font-size:15px;
+    color:#64748B;
+    line-height:1.5;
+    margin-bottom:22px;
+}
+
+/* Footer */
+.logout-modal .modal-footer{
+    border-top:none;
+    padding:0 24px 24px;
+    gap:12px;
+}
+
+/* Shared Button Style */
+.logout-cancel-btn,
+.logout-danger-btn{
+    flex:1;
+    height:48px;
+    border-radius:10px !important;
+    font-weight:600;
+    transition:all .2s ease;
+}
+
+/* Cancel Button */
+.logout-cancel-btn{
+    background:#F8FAFC !important;
+    color:#475569 !important;
+    border:1px solid #E2E8F0 !important;
+}
+
+.logout-cancel-btn:hover{
+    background:#E2E8F0 !important;
+    color:#334155 !important;
+    border-color:#CBD5E1 !important;
+    box-shadow:none !important;
+}
+
+.logout-cancel-btn:focus{
+    background:#E2E8F0 !important;
+    color:#334155 !important;
+    border-color:#CBD5E1 !important;
+    box-shadow:0 0 0 .2rem rgba(37,99,235,.15) !important;
+}
+
+.logout-cancel-btn:active{
+    background:#CBD5E1 !important;
+    color:#1E293B !important;
+    border-color:#94A3B8 !important;
+}
+
+/* Logout Button */
+.logout-danger-btn{
+    background:#2563EB !important;
+    color:#FFFFFF !important;
+    border:none !important;
+}
+
+.logout-danger-btn:hover{
+    background:#1D4ED8 !important;
+    color:#FFFFFF !important;
+}
+
+.logout-danger-btn:focus{
+    background:#1D4ED8 !important;
+    color:#FFFFFF !important;
+    box-shadow:0 0 0 .2rem rgba(37,99,235,.25) !important;
+}
+
+.logout-danger-btn:active{
+    background:#1E40AF !important;
+    color:#FFFFFF !important;
+}

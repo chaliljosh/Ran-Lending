@@ -10,6 +10,7 @@
     <link rel="stylesheet" type="text/css" href="/assets/borrower/vendors/css/vendors.min.css" />
     <link rel="stylesheet" type="text/css" href="/assets/borrower/vendors/css/daterangepicker.min.css" />
     <link rel="stylesheet" type="text/css" href="/assets/borrower/css/theme.min.css" />
+     <link rel="stylesheet" href="{{ asset('assets/borrower/css/logout-modal.css') }}">
     <style>
         .nxl-container { min-height: calc(100vh - 80px) !important; display: flex !important; flex-direction: column !important; }
         .nxl-content { flex: 1 !important; display: flex !important; flex-direction: column !important; }
@@ -19,80 +20,7 @@
 </head>
 <body>
 
-    <nav class="nxl-navigation">
-        <div class="navbar-wrapper" style="position: relative;">
-            <div class="m-header">
-                <a href="{{ route('borrower.dashboard') }}" class="b-brand">
-                    <h3 class="fst-italic">Ran Serenity</h3>
-                </a>
-            </div>
-            <div class="navbar-content" style="padding-bottom: 80px;">
-                <ul class="nxl-navbar">
-                    <li class="nxl-item">
-                        <a href="{{ route('borrower.dashboard') }}" class="nxl-link active">
-                            <span class="nxl-micon"><i class="feather-airplay"></i></span>
-                            <span class="nxl-mtext">Dashboard</span>
-                        </a>
-                    </li>
-
-                    @if(!$isFullyApproved)
-                    <li class="nxl-item">
-                        <a href="/borrower/personal-details" class="nxl-link">
-                            <span class="nxl-micon"><i class="feather-user-check"></i></span>
-                            <span class="nxl-mtext">Personal Details</span>
-                        </a>
-                    </li>
-                    @endif
-
-                    @if($isFullyApproved)
-                    <li class="nxl-item">
-                        <a href="/borrower/apply-loan" class="nxl-link">
-                            <span class="nxl-micon"><i class="feather-file-plus"></i></span>
-                            <span class="nxl-mtext">Apply for a Loan</span>
-                        </a>
-                    </li>
-                    <li class="nxl-item">
-                        <a href="/borrower/loan-details" class="nxl-link">
-                            <span class="nxl-micon"><i class="feather-file-text"></i></span>
-                            <span class="nxl-mtext">View Loan Details</span>
-                        </a>
-                    </li>
-                    <li class="nxl-item">
-                        <a href="/borrower/notifications" class="nxl-link">
-                            <span class="nxl-micon"><i class="feather-bell"></i></span>
-                            <span class="nxl-mtext">Notifications</span>
-                        </a>
-                    </li>
-                    <li class="nxl-item">
-                        <a href="/borrower/profile" class="nxl-link">
-                            <span class="nxl-micon"><i class="feather-user"></i></span>
-                            <span class="nxl-mtext">My Profile</span>
-                        </a>
-                    </li>
-                    <li class="nxl-item">
-                        <a href="javascript:void(0);" onclick="confirmLogout()" class="nxl-link" style="color:#e74c3c;">
-                            <span class="nxl-micon"><i class="feather-log-out" style="color:#e74c3c;"></i></span>
-                            <span class="nxl-mtext">Logout</span>
-                        </a>
-                    </li>
-                    @endif
-                </ul>
-            </div>
-
-            <div style="padding:14px 16px;border-top:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:12px;position:absolute;bottom:0;left:0;right:0;background:inherit;">
-                <div style="width:38px;height:38px;border-radius:50%;background:#4a7cf7;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:0.85rem;flex-shrink:0;">
-                    {{ $initials }}
-                </div>
-                <div style="overflow:hidden;flex:1;">
-                    <p style="margin:0;font-size:0.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $userName }}</p>
-                    <p style="margin:0;font-size:0.75rem;opacity:0.6;">Borrower</p>
-                </div>
-                <a href="javascript:void(0);" onclick="confirmLogout()" title="Logout" style="color:#e74c3c;font-size:1.1rem;flex-shrink:0;opacity:0.8;">
-                    <i class="feather-log-out"></i>
-                </a>
-            </div>
-        </div>
-    </nav>
+    @include('borrower.partials.sidebar')
 
     <header class="nxl-header">
         <div class="header-wrapper">
@@ -135,14 +63,14 @@
                 @if($detailsStatus === 'incomplete')
                 <div class="row justify-content-center">
                     <div class="col-lg-6">
-                        <div class="card text-center" style="border: 2px dashed #4a7cf7;">
+                        <div class="card text-center" style="">
                             <div class="card-body py-5">
                                 <div style="width:80px; height:80px; background:#e8f0fe; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
                                     <i class="feather-user-check" style="font-size:36px; color:#4a7cf7;"></i>
                                 </div>
                                 <h4 class="fw-bold mb-2">Complete Your Profile</h4>
                                 <p class="text-muted mb-4">Please fill up your personal details first before you can access the full dashboard and apply for a loan.</p>
-                                <a href="/borrower/personal-details" class="btn btn-primary px-5">
+                                <a href="{{ route('borrower.personal-details') }}" class="btn btn-primary px-5">
                                     <i class="feather-edit me-2"></i>Fill Up Personal Details
                                 </a>
                             </div>
@@ -155,8 +83,8 @@
                     <div class="col-lg-6">
                         <div class="card text-center">
                             <div class="card-body py-5">
-                                <div style="width:80px; height:80px; background:#fff8e1; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
-                                    <i class="feather-clock" style="font-size:36px; color:#f0a500;"></i>
+                                <div style="width:80px; height:80px; background:#F97316; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
+                                    <i class="feather-clock" style="font-size:36px; color:#FFFFFF;"></i>
                                 </div>
                                 <h4 class="fw-bold mb-2">Under Review</h4>
                                 <p class="text-muted mb-4">Your personal details have been submitted and are currently being reviewed by our admins. Please wait for approval.</p>
@@ -180,7 +108,7 @@
                                 </div>
                                 <h4 class="fw-bold mb-2">Application Rejected</h4>
                                 <p class="text-muted mb-4">Unfortunately, your personal details were not approved. Please update your information and resubmit.</p>
-                                <a href="/borrower/personal-details" class="btn btn-danger px-5">
+                                <a href="{{ route('borrower.personal-details') }}" class="btn btn-danger px-5">
                                     <i class="feather-edit me-2"></i>Update Personal Details
                                 </a>
                             </div>
@@ -296,7 +224,7 @@
                                     <p class="text-success mb-0"><i class="feather-check-circle me-1"></i>You're all caught up — no payments due soon.</p>
                                 @else
                                     <p class="mb-2">{{ $notifications[0]['message'] }}</p>
-                                    <a href="/borrower/notifications" class="fs-12 fw-semibold">View all notifications →</a>
+                                    <a href="{{ route('borrower.notifications') }}" class="fs-12 fw-semibold">View all notifications →</a>
                                 @endif
                             </div>
                         </div>

@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="zxx">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>My Profile - Ran Lending</title>
+    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('assets/borrower/images/favicon.ico') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/borrower/css/bootstrap.min.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/borrower/vendors/css/vendors.min.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/borrower/css/theme.min.css') }}" />
+     <link rel="stylesheet" href="{{ asset('assets/borrower/css/logout-modal.css') }}">
+    <style>
+        .avatar-circle { width:64px; height:64px; border-radius:50%; background:#4a7cf7; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.3rem; flex-shrink:0; }
+        .section-header-bar { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid #f1f3f5; font-weight:700; font-size:0.92rem; color:#1a2a3a; }
+        .section-edit-link { font-size:0.82rem; font-weight:600; color:#4a7cf7; text-decoration:none; display:inline-flex; align-items:center; gap:4px; }
+        .field-label-custom { font-size:0.72rem; font-weight:600; color:#8a9bb0; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:4px; display:flex; align-items:center; gap:4px; }
+        .field-locked { font-size:0.9rem; font-weight:500; color:#1a2a3a; padding:8px 0; }
+        .profile-editable { font-size:0.9rem; }
+        .profile-editable:disabled { background:#fff; border-color:transparent; padding-left:0; color:#1a2a3a; opacity:1; }
+        .section-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:16px; padding-top:16px; border-top:1px solid #f1f3f5; }
+    </style>
+</head>
+<body>
+    @include('borrower.partials.sidebar')
+
+    <header class="nxl-header">
+        <div class="header-wrapper">
+            <div class="header-left d-flex align-items-center gap-4">
+                <a href="javascript:void(0);" class="nxl-head-mobile-toggler" id="mobile-collapse">
+                    <div class="hamburger hamburger--arrowturn"><div class="hamburger-box"><div class="hamburger-inner"></div></div></div>
+                </a>
+                <div class="nxl-navigation-toggle">
+                    <a href="javascript:void(0);" id="menu-mini-button"><i class="feather-align-left"></i></a>
+                    <a href="javascript:void(0);" id="menu-expend-button" style="display:none"><i class="feather-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="header-right ms-auto">
+                <div class="d-flex align-items-center">
+                    <div class="nxl-h-item dark-light-theme">
+                        <a href="javascript:void(0);" class="nxl-head-link me-0 dark-button"><i class="feather-moon"></i></a>
+                        <a href="javascript:void(0);" class="nxl-head-link me-0 light-button" style="display:none"><i class="feather-sun"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="nxl-container">
+        <div class="nxl-content">
+            <div class="page-header">
+                <div class="page-header-left d-flex align-items-center">
+                    <div class="page-header-title"><h5 class="m-b-10">My Profile</h5></div>
+                    <ul class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ route('borrower.dashboard') }}">Home</a></li>
+                        <li class="breadcrumb-item">Profile</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <div class="row g-3">
+
+                    <!-- Profile Header -->
+                    <div class="col-12">
+                        <div class="card stretch stretch-full">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar-circle">{{ $initials }}</div>
+                                    <div>
+                                        <h5 class="fw-bold mb-1">
+                                            {{ trim(($profileData['first_name'] ?? '') . ' ' . ($profileData['middle_name'] ?? '') . ' ' . ($profileData['last_name'] ?? '')) }}
+                                        </h5>
+                                        <p class="text-muted mb-2" style="font-size:0.85rem;">{{ $profileData['email'] ?? '' }}</p>
+                                        <div class="d-flex gap-2">
+                                            <span class="badge" style="background:#dcfce7;color:#16a34a;border:1px solid #bbf7d0;font-size:0.75rem;">
+                                                <i class="feather-check-circle me-1"></i>Active Account
+                                            </span>
+                                            <span class="badge" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;font-size:0.75rem;">
+                                                <i class="feather-shield me-1"></i>Verified
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Personal Information -->
+                    <div class="col-12">
+                        <div class="card stretch stretch-full">
+                            <div class="section-header-bar">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="feather-user"></i>
+                                    <span>Personal Information</span>
+                                </div>
+                                <a href="javascript:void(0);" class="section-edit-link" id="editLink-personal" onclick="toggleSectionEdit('personal')">
+                                    <i class="feather-edit-2"></i> Edit
+                                </a>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <div class="field-label-custom"><i class="feather-lock"></i> Last Name</div>
+                                        <div class="field-locked">{{ $profileData['last_name'] ?? '—' }}</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="field-label-custom"><i class="feather-lock"></i> First Name</div>
+                                        <div class="field-locked">{{ $profileData['first_name'] ?? '—' }}</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="field-label-custom"><i class="feather-lock"></i> Middle Name</div>
+                                        <div class="field-locked">{{ $profileData['middle_name'] ?? '—' }}</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="field-label-custom"><i class="feather-lock"></i> Birthday</div>
+                                        <div class="field-locked">{{ !empty($profileData['birthday']) ? \Carbon\Carbon::parse($profileData['birthday'])->format('F d, Y') : '—' }}</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="field-label-custom"><i class="feather-lock"></i> Age</div>
+                                        <div class="field-locked">{{ !empty($profileData['birthday']) ? \Carbon\Carbon::parse($profileData['birthday'])->age : '—' }}</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="field-label-custom"><i class="feather-lock"></i> Gender</div>
+                                        <div class="field-locked">{{ ucfirst($profileData['gender'] ?? '—') }}</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="field-label-custom">Civil Status</div>
+                                        <select class="form-select profile-editable" id="civilStatus" data-section="personal" disabled>
+                                            @foreach(['single','taken','married','widowed','separated'] as $cs)
+                                            <option value="{{ $cs }}" {{ ($profileData['civil_status'] ?? '') === $cs ? 'selected' : '' }}>{{ ucfirst($cs) }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="field-label-custom"><i class="feather-lock"></i> Citizenship</div>
+                                        <div class="field-locked">{{ $profileData['citizenship'] ?? '—' }}</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="field-label-custom">Cellphone Number</div>
+                                        <input type="tel" class="form-control profile-editable" id="phone" data-section="personal" value="{{ $profileData['cellphone_num'] ?? '' }}" disabled>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="field-label-custom"><i class="feather-lock"></i> Email Address</div>
+                                        <div class="field-locked">{{ $profileData['email'] ?? '—' }}</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="field-label-custom"><i class="feather-lock"></i> Monthly Income</div>
+                                        <div class="field-locked">₱{{ number_format((float) ($profileData['monthly_income'] ?? 0), 2) }}</div>
+                                    </div>
+                                </div>
+
+                                <div class="section-actions d-none" id="sectionActions-personal">
+                                    <button class="btn btn-secondary btn-sm px-3" onclick="cancelSectionEdit('personal')">
+                                        <i class="feather-x me-1"></i>Cancel
+                                    </button>
+                                    <button class="btn btn-success btn-sm px-3" id="saveBtn-personal" onclick="saveSection('personal')">
+                                        <i class="feather-save me-1"></i>Save Changes
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Present Address -->
+                    <div class="col-12">
+                        <div class="card stretch stretch-full">
+                            <div class="section-header-bar">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="feather-map-pin"></i>
+                                    <span>Present Address</span>
+                                </div>
+                                <a href="javascript:void(0);" class="section-edit-link" id="editLink-address" onclick="toggleSectionEdit('address')">
+                                    <i class="feather-edit-2"></i> Edit
+                                </a>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <div class="field-label-custom"><i class="feather-lock"></i> Country</div>
+                                        <div class="field-locked">Philippines</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="field-label-custom"><i class="feather-lock"></i> Region</div>
+                                        <div class="field-locked">{{ $profileData['region'] ?? '—' }}</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="field-label-custom">Province</div>
+                                        <input type="text" class="form-control profile-editable" id="province" data-section="address" value="{{ $profileData['province'] ?? '' }}" disabled>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="field-label-custom">City / Municipality</div>
+                                        <input type="text" class="form-control profile-editable" id="city" data-section="address" value="{{ $profileData['city'] ?? '' }}" disabled>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="field-label-custom">Barangay</div>
+                                        <input type="text" class="form-control profile-editable" id="barangay" data-section="address" value="{{ $profileData['barangay'] ?? '' }}" disabled>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="field-label-custom">Zipcode</div>
+                                        <input type="text" class="form-control profile-editable" id="zipcode" data-section="address" value="{{ $profileData['zipcode'] ?? '' }}" maxlength="4" disabled>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="field-label-custom">Home Address</div>
+                                        <textarea class="form-control profile-editable" id="homeAddress" data-section="address" rows="2" disabled style="resize:none;">{{ $profileData['home_address'] ?? '' }}</textarea>
+                                    </div>
+                                </div>
+
+                                <div class="section-actions d-none" id="sectionActions-address">
+                                    <button class="btn btn-secondary btn-sm px-3" onclick="cancelSectionEdit('address')">
+                                        <i class="feather-x me-1"></i>Cancel
+                                    </button>
+                                    <button class="btn btn-success btn-sm px-3" id="saveBtn-address" onclick="saveSection('address')">
+                                        <i class="feather-save me-1"></i>Save Changes
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Work + Co-Maker -->
+                    <div class="col-lg-6">
+                        <div class="card stretch stretch-full">
+                            <div class="section-header-bar">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="feather-briefcase"></i>
+                                    <span>Work Information</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <div class="field-label-custom"><i class="feather-lock"></i> Employment Status</div>
+                                        <div class="field-locked">{{ ucfirst(str_replace('_', ' ', $profileData['employment_status'] ?? '—')) }}</div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="field-label-custom"><i class="feather-lock"></i> Company / Business Name</div>
+                                        <div class="field-locked">{{ $profileData['company_name'] ?? '—' }}</div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="field-label-custom"><i class="feather-lock"></i> Position / Occupation</div>
+                                        <div class="field-locked">{{ $profileData['position'] ?? '—' }}</div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="field-label-custom"><i class="feather-lock"></i> Duration in Company</div>
+                                        @php
+                                            $yic = (float) ($profileData['years_in_company'] ?? 0);
+                                            $yicYears  = floor($yic);
+                                            $yicMonths = round(($yic - $yicYears) * 12);
+                                        @endphp
+                                        <div class="field-locked">
+                                            {{ (int) $yicYears }} year{{ $yicYears != 1 ? 's' : '' }}, {{ (int) $yicMonths }} month{{ $yicMonths != 1 ? 's' : '' }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <div class="card stretch stretch-full">
+                            <div class="section-header-bar">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="feather-users"></i>
+                                    <span>Co-Maker Information</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <div class="field-label-custom"><i class="feather-lock"></i> Last Name</div>
+                                        <div class="field-locked">{{ $profileData['co_last'] ?? '—' }}</div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="field-label-custom"><i class="feather-lock"></i> First Name</div>
+                                        <div class="field-locked">{{ $profileData['co_first'] ?? '—' }}</div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="field-label-custom"><i class="feather-lock"></i> Relationship</div>
+                                        <div class="field-locked">{{ ucfirst($profileData['relationship'] ?? '—') }}</div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="field-label-custom"><i class="feather-lock"></i> Contact Number</div>
+                                        <div class="field-locked">{{ $profileData['co_contact'] ?? '—' }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security -->
+                    <div class="col-12">
+                        <div class="card stretch stretch-full">
+                            <div class="section-header-bar">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="feather-shield"></i>
+                                    <span>Security Settings</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1" style="font-size:0.9rem;">Change Password</h6>
+                                        <p class="text-muted mb-0" style="font-size:0.8rem;">Update your account password anytime</p>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                                        <i class="feather-lock me-1"></i>Change
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <footer class="footer">
+            <p class="text-center"><span>By: <a target="_blank" href="#">Ran Serenity</a></span></p>
+        </footer>
+    </main>
+
+    <!-- Change Password Modal -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius:16px;overflow:hidden;">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">Change Password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="resetCpModal()"></button>
+                </div>
+                <div class="modal-body px-4 pt-3">
+                    <div id="cpError" class="alert alert-danger d-none mb-3"></div>
+                    <div id="cpSuccess" class="alert alert-success d-none mb-3">
+                        <i class="feather-check-circle me-2"></i>Password changed successfully!
+                    </div>
+                    <div id="cpForm">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" style="font-size:0.85rem;">Current Password</label>
+                            <div style="position:relative;">
+                                <input type="password" class="form-control pe-5" id="cpCurrent" placeholder="Enter current password">
+                                <button type="button" onclick="cpToggle('cpCurrent', this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#8a9bb0;padding:0;">
+                                    <i class="feather-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" style="font-size:0.85rem;">New Password</label>
+                            <div style="position:relative;">
+                                <input type="password" class="form-control pe-5" id="cpNew" placeholder="Enter new password">
+                                <button type="button" onclick="cpToggle('cpNew', this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#8a9bb0;padding:0;">
+                                    <i class="feather-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" style="font-size:0.85rem;">Confirm New Password</label>
+                            <div style="position:relative;">
+                                <input type="password" class="form-control pe-5" id="cpConfirm" placeholder="Re-enter new password">
+                                <button type="button" onclick="cpToggle('cpConfirm', this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#8a9bb0;padding:0;">
+                                    <i class="feather-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4 pt-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="resetCpModal()">Cancel</button>
+                    <button type="button" class="btn btn-primary px-4" id="cpSaveBtn" onclick="submitChangePassword()">
+                        <span id="cpBtnText">Change Password</span>
+                        <span id="cpSpinner" class="spinner-border spinner-border-sm ms-2 d-none"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ asset('assets/borrower/vendors/js/vendors.min.js') }}"></script>
+    <script src="{{ asset('assets/borrower/js/common-init.min.js') }}"></script>
+    <script src="{{ asset('assets/borrower/js/theme-customizer-init.min.js') }}"></script>
+    <script src="{{ asset('functions/logout-modal.js') }}"></script>
+
+    <script>
+        window.PROFILE_CONFIG = {
+            csrfToken: '{{ csrf_token() }}',
+            updateSectionUrl: '{{ url("/api/borrower/profile/update-section") }}',
+            changePasswordUrl: '{{ url("/api/borrower/profile/change-password") }}',
+        };
+    </script>
+    <script src="{{ asset('functions/profile.js') }}"></script>
+</body>
+</html>

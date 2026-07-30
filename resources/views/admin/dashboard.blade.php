@@ -9,6 +9,7 @@
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/bootstrap.min.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/vendors/css/vendors.min.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/theme.min.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/logout-modal.css') }}">
 </head>
 <body>
     <nav class="nxl-navigation">
@@ -45,7 +46,7 @@
                             <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
                         </a>
                         <ul class="nxl-submenu">
-                            <li class="nxl-item"><a class="nxl-link" href="#">Pending Applications</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.loan-applications') }}">Pending Applications</a></li>
                             <li class="nxl-item"><a class="nxl-link" href="#">Approved</a></li>
                             <li class="nxl-item"><a class="nxl-link" href="#">Rejected</a></li>
                             <li class="nxl-item"><a class="nxl-link" href="#">On Hold</a></li>
@@ -272,7 +273,7 @@
                                                 </tr>
                                             @empty
                                                 <tr>
-                                                    <td colspan="4" class="text-center text-muted py-4">Wala pang loan applications.</td>
+                                                    <td colspan="4" class="text-center text-muted py-4">No Pending applications.</td>
                                                 </tr>
                                             @endforelse
                                         </tbody>
