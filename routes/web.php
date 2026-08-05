@@ -59,5 +59,9 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
     Route::match(['get', 'post'], '/borrower-verification', [AdminController::class, 'borrowerVerification'])->name('borrower-verification');
     Route::match(['get', 'post'], '/verification-detail/{id}', [AdminController::class, 'verificationDetail'])->name('verification-detail');
     Route::match(['get', 'post'], '/loan-applications', [AdminController::class, 'loanApplications'])->name('loan-applications');
-Route::match(['get', 'post'], '/loan-application-detail/{id}', [AdminController::class, 'loanApplicationDetail'])->name('loan-application-detail');
+    Route::match(['get', 'post'], '/loan-application-detail/{id}', [AdminController::class, 'loanApplicationDetail'])->name('loan-application-detail');
+
+    // Bagong route para sa All Borrowers page — list lang, walang approve/reject
+    Route::get('/borrowers', [AdminController::class, 'allBorrowers'])->name('borrowers');
+    Route::get('/borrowers/active', [AdminController::class, 'activeBorrowers'])->name('active-borrowers');
 });

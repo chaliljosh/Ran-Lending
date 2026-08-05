@@ -8,6 +8,7 @@
   <link rel="shortcut icon" type="image/png" href="assets/login/images/logos/seodashlogo.png" />
   <link rel="stylesheet" href="assets/login/css/styles.min.css" />
   <link rel="stylesheet" href="assets/login/css/login.css" />
+  <link rel="stylesheet" href="css/otp-modal.css" />
 </head>
 <body>
   <div class="page-wrapper d-flex flex-column min-vh-100" id="main-wrapper">
@@ -86,6 +87,43 @@
 
   </div>
 
+  <!-- Shared OTP Modal — public/css/otp-modal.css + public/functions/otp-modal.js -->
+  <div class="otp-overlay" id="otpOverlay">
+      <div class="otp-modal">
+          <div class="otp-icon-circle">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                  <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+          </div>
+          <h5 class="otp-title">2-Step Verification</h5>
+          <p class="otp-subtitle">Enter the 6-digit code sent to</p>
+          <p class="otp-email" id="otpMaskedEmail"></p>
+
+          <div class="otp-inputs" id="otpInputs">
+              <input type="text" inputmode="numeric" maxlength="1">
+              <input type="text" inputmode="numeric" maxlength="1">
+              <input type="text" inputmode="numeric" maxlength="1">
+              <input type="text" inputmode="numeric" maxlength="1">
+              <input type="text" inputmode="numeric" maxlength="1">
+              <input type="text" inputmode="numeric" maxlength="1">
+          </div>
+
+          <div class="otp-error" id="otpError"></div>
+
+          <button type="button" class="otp-primary-btn" id="otpVerifyBtn">
+              <span class="otp-btn-label">Verify</span>
+              <span class="otp-spinner"></span>
+          </button>
+
+          <div class="otp-resend" id="otpResendWrap"></div>
+
+          <button type="button" class="otp-back-link" id="otpBackBtn">Back to Login</button>
+
+         
+      </div>
+  </div>
+
   <script src="assets/login/libs/jquery/dist/jquery.min.js"></script>
   <script src="assets/login/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
@@ -96,6 +134,7 @@
       document.getElementById('registeredAlert').classList.add('d-flex');
     }
   </script>
+  <script src="functions/otp-modal.js"></script>
   <script src="functions/login.js"></script>
 </body>
 </html>

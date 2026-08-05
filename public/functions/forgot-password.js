@@ -55,40 +55,9 @@ function showToast(msg, type = 'success') {
     }, 4000);
 }
 
-/* ── Cooldown timer para sa Resend button (pinipigilan ang spam-click) ── */
-function startResendCooldown(seconds) {
-    const btn = document.getElementById('resendBtn');
-    btn.disabled = true;
-    btn.style.pointerEvents = 'none';
-
-    let remaining = seconds;
-    btn.textContent = `Resend (${remaining}s)`;
-
-    const timer = setInterval(() => {
-        remaining--;
-        btn.textContent = `Resend (${remaining}s)`;
-        if (remaining <= 0) {
-            clearInterval(timer);
-            btn.disabled = false;
-            btn.style.pointerEvents = 'auto';
-            btn.textContent = 'Resend';
-        }
-    }, 1000);
-}
-
 function goStep(n) {
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     document.getElementById('panel' + n).classList.add('active');
-}
-
-function otpMove(current, nextId) {
-    if (current.value && nextId) document.getElementById(nextId).focus();
-}
-
-function otpBack(event, current, prevId) {
-    if (event.key === 'Backspace' && !current.value && prevId) {
-        document.getElementById(prevId).focus();
-    }
 }
 
 function togglePw(id, btn) {
@@ -135,96 +104,19 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .then(res => res.json())
         .then(data => {
+            btn.disabled = false;
+            btn.textContent = 'Send Verification Code';
+
             if (data.success) {
-                document.getElementById('sentEmail').textContent = email;
-                goStep(2);
+                openForgotPasswordOtpModal(email);
             } else {
                 showError(1, data.message);
             }
-            btn.disabled = false;
-            btn.textContent = 'Send Verification Code';
         })
         .catch(() => {
             showError(1, 'Something went wrong. Please try again.');
             btn.disabled = false;
             btn.textContent = 'Send Verification Code';
-        });
-    });
-
-    // ── STEP 2: Verify OTP
-    document.getElementById('verifyOtpBtn').addEventListener('click', function () {
-        const email = document.getElementById('emailInput').value.trim();
-        const otp   = ['otp1','otp2','otp3','otp4','otp5','otp6']
-                        .map(id => document.getElementById(id).value)
-                        .join('');
-
-        if (otp.length !== 6) { showError(2, 'Please enter the complete 6-digit OTP.'); return; }
-
-        const btn = this;
-        btn.disabled = true;
-        btn.textContent = 'Verifying...';
-
-        const formData = new FormData();
-        formData.append('action', 'verify_otp');
-        formData.append('email', email);
-        formData.append('otp', otp);
-
-        fetch('/api/forgot-password/reset', {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: { 'X-XSRF-TOKEN': getCsrfToken() },
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                goStep(3);
-            } else {
-                showError(2, data.message);
-            }
-            btn.disabled = false;
-            btn.textContent = 'Verify Code';
-        })
-        .catch(() => {
-            showError(2, 'Something went wrong.');
-            btn.disabled = false;
-            btn.textContent = 'Verify Code';
-        });
-    });
-
-    // ── STEP 2: Resend OTP
-    document.getElementById('resendBtn').addEventListener('click', function () {
-        const email = document.getElementById('emailInput').value.trim();
-        const btn = this;
-        btn.disabled = true;
-        btn.style.pointerEvents = 'none';
-        btn.textContent = 'Sending...';
-
-        const formData = new FormData();
-        formData.append('email', email);
-
-        fetch('/api/forgot-password/send-otp', {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: { 'X-XSRF-TOKEN': getCsrfToken() },
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            showToast(data.message, data.success ? 'success' : 'error');
-            if (data.success) {
-                startResendCooldown(60);
-            } else {
-                btn.disabled = false;
-                btn.style.pointerEvents = 'auto';
-                btn.textContent = 'Resend';
-            }
-        })
-        .catch(() => {
-            showToast('Something went wrong.', 'error');
-            btn.disabled = false;
-            btn.style.pointerEvents = 'auto';
-            btn.textContent = 'Resend';
         });
     });
 
@@ -274,3 +166,50 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+
+/* ── Opens the shared OtpModal, wired up to the forgot-password OTP endpoints.
+   Kapag na-verify na, diretso na sa Panel 3 (bagong password) — wala nang
+   panel2 na atskip pa. ── */
+function openForgotPasswordOtpModal(email) {
+    OtpModal.open({
+        maskedEmail: email,
+        onVerify: function (code) {
+            const formData = new FormData();
+            formData.append('action', 'verify_otp');
+            formData.append('email', email);
+            formData.append('otp', code);
+
+            return fetch('/api/forgot-password/reset', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'X-XSRF-TOKEN': getCsrfToken() },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) throw new Error(data.message || 'Invalid or expired code.');
+                return data;
+            });
+        },
+        onResend: function () {
+            const formData = new FormData();
+            formData.append('email', email);
+
+            return fetch('/api/forgot-password/send-otp', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'X-XSRF-TOKEN': getCsrfToken() },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) throw new Error(data.message || 'Could not resend code.');
+                return data;
+            });
+        },
+        onSuccess: function () {
+            OtpModal.close();
+            goStep(3);
+        }
+    });
+}

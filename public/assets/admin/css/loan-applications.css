@@ -1,0 +1,215 @@
+/* ========================================
+   LOAN APPLICATIONS PAGE - STYLES
+   Ginagamit ito sa: loan-applications.blade.php
+   ======================================== */
+
+.app-card {
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    background: #fff;
+}
+
+.badge-pending  { background: #fff8e1; color: #f0a500; border: 1px solid #f0a500; }
+.badge-onhold   { background: #fff3cd; color: #856404; border: 1px solid #856404; }
+.badge-approved { background: #dcfce7; color: #16a34a; border: 1px solid #16a34a; }
+.badge-rejected { background: #fee2e2; color: #dc2626; border: 1px solid #dc2626; }
+
+.reviewed-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: #e8f0fe;
+    color: #4a7cf7;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.action-bar {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #f1f3f5;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    margin: 14px 0;
+}
+
+.info-item label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #8a9bb0;
+    text-transform: uppercase;
+    display: block;
+}
+
+.info-item span {
+    font-size: 0.85rem;
+    color: #1a2a3a;
+    font-weight: 500;
+}
+
+.tab-btn {
+    cursor: pointer;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.88rem;
+    border: 1.5px solid #e9ecef;
+    background: #fff;
+    color: #6c757d;
+    transition: all 0.2s;
+}
+
+.tab-btn.active {
+    background: #4a7cf7;
+    color: #fff;
+    border-color: #4a7cf7;
+}
+
+.decision-card-form.is-submitting {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* ========================================
+   SEARCH BAR (Approved / Rejected / On Hold view)
+
+   Yung <i class="feather-search"> ay pinapalitan ng
+   feather-icons JavaScript library papuntang <svg>
+   pag na-load ang page, kaya kailangan nating i-target
+   pareho ang "i" at "svg" dito.
+   ======================================== */
+
+.search-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 0 14px;
+    margin-bottom: 20px;
+}
+
+.search-bar-wrap i,
+.search-bar-wrap svg {
+    color: #8a9bb0;
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    pointer-events: none;
+}
+
+.search-bar-wrap input {
+    flex: 1;
+    height: 44px;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    color: #1a2a3a;          /* kulay ng titik na ita-type */
+    caret-color: #1a2a3a;    /* FIX: kulay ng blinking text cursor.
+                                 Dati puti ito (nagmana galing sa
+                                 theme.min.css), kaya hindi makita
+                                 sa puting background. Ngayon dark
+                                 gray/navy na, kaya makikita na. */
+}
+
+.search-bar-wrap input:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+/* ========================================
+   DARK MODE STYLES
+   ======================================== */
+html.app-skin-dark .app-card {
+    background: #1e2a3a;
+    border-color: #2d3f55;
+}
+
+html.app-skin-dark .app-card div[style*="font-weight:700"] {
+    color: #e2e8f0;
+}
+
+html.app-skin-dark .info-item label {
+    color: #8a9bb0;
+}
+
+html.app-skin-dark .info-item span {
+    color: #e2e8f0;
+}
+
+html.app-skin-dark .search-bar-wrap {
+    background: #1e2a3a;
+    border-color: #2d3f55;
+}
+
+html.app-skin-dark .search-bar-wrap input {
+    color: #e2e8f0;
+    caret-color: #e2e8f0;   /* sa dark mode, dapat maputi ang cursor
+                                para makita sa dark na background */
+}
+
+html.app-skin-dark .search-bar-wrap input::placeholder {
+    color: #64748b;
+}
+
+html.app-skin-dark .card {
+    background: #1e2a3a;
+    border-color: #2d3f55;
+}
+
+html.app-skin-dark .card .text-muted {
+    color: #94a3b8 !important;
+}
+
+/* ========================================
+   FOOTER SA IBABA
+   ======================================== */
+.nxl-container {
+    min-height: calc(100vh - 80px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.nxl-content {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.nxl-content .main-content {
+    flex: 1 !important;
+}
+
+.footer {
+    flex-shrink: 0 !important;
+    margin-top: auto !important;
+}
+
+/* ========================================
+   SIDEBAR SUBMENU HIGHLIGHT
+   (Loan Applications dropdown sa sidebar)
+   ======================================== */
+.nxl-submenu li[data-current="true"] > a.nxl-link {
+    background: rgba(74, 124, 247, 0.1) !important;
+    color: #4a7cf7 !important;
+    font-weight: 600 !important;
+    border-radius: 6px;
+}
+
+.nxl-submenu li[data-current="false"].active > a.nxl-link:not(:hover) {
+    background: transparent !important;
+}

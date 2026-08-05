@@ -11,21 +11,7 @@
     <link rel="stylesheet" href="{{ asset('assets/admin/css/theme.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/admin/css/logout-modal.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/admin/css/modals-modern.css') }}">
-    <style>
-        .app-card { border:1px solid #e9ecef; border-radius:12px; padding:20px; margin-bottom:16px; background:#fff; }
-        .badge-pending  { background:#fff8e1; color:#f0a500; border:1px solid #f0a500; }
-        .badge-onhold   { background:#fff3cd; color:#856404; border:1px solid #856404; }
-        .badge-approved { background:#dcfce7; color:#16a34a; border:1px solid #16a34a; }
-        .badge-rejected { background:#fee2e2; color:#dc2626; border:1px solid #dc2626; }
-        .reviewed-badge { display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:20px; background:#e8f0fe; color:#4a7cf7; font-size:0.82rem; font-weight:600; }
-        .action-bar { display:flex; gap:8px; align-items:flex-start; flex-wrap:wrap; margin-top:14px; padding-top:14px; border-top:1px solid #f1f3f5; }
-        .info-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin:14px 0; }
-        .info-item label { font-size:0.72rem; font-weight:600; color:#8a9bb0; text-transform:uppercase; display:block; }
-        .info-item span  { font-size:0.85rem; color:#1a2a3a; font-weight:500; }
-        .tab-btn { cursor:pointer; padding:8px 20px; border-radius:8px; font-weight:500; font-size:0.88rem; border:1.5px solid #e9ecef; background:#fff; color:#6c757d; transition:all 0.2s; }
-        .tab-btn.active { background:#4a7cf7; color:#fff; border-color:#4a7cf7; }
-        .decision-card-form.is-submitting { opacity: 0.6; pointer-events: none; }
-    </style>
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/loan-applications.css') }}">
 </head>
 <body>
     <nav class="nxl-navigation">
@@ -41,14 +27,21 @@
                             <span class="nxl-mtext">Dashboard</span>
                         </a>
                     </li>
-                    <li class="nxl-item">
-                        <a href="{{ route('admin.borrower-verification') }}" class="nxl-link">
+                   <li class="nxl-item nxl-hasmenu">
+                        <a href="javascript:void(0);" class="nxl-link">
                             <span class="nxl-micon"><i class="feather-user-check"></i></span>
                             <span class="nxl-mtext">Borrower Verification</span>
-                            @if(($pendingCount ?? 0) > 0)
+                            @if($pendingCount > 0)
                                 <span class="badge bg-danger ms-auto">{{ $pendingCount }}</span>
                             @endif
+                            <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
                         </a>
+                      <ul class="nxl-submenu">
+    <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.borrower-verification') }}">Pending</a></li>
+    <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.borrower-verification', ['status' => 'approved']) }}">Approved</a></li>
+    <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.borrower-verification', ['status' => 'rejected']) }}">Rejected</a></li>
+    <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.borrower-verification', ['status' => 'on_hold']) }}">On Hold</a></li>
+</ul>
                     </li>
                     <li class="nxl-item nxl-hasmenu nxl-trigger active">
                         <a href="javascript:void(0);" class="nxl-link">
@@ -60,21 +53,17 @@
                             <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
                         </a>
                         <ul class="nxl-submenu">
-                            <li class="nxl-item">
-                                <a class="nxl-link {{ ($viewStatus ?? 'pending') === 'pending' ? 'active' : '' }}"
-                                   href="{{ route('admin.loan-applications') }}">Pending Applications</a>
+                            <li class="nxl-item" data-current="{{ ($viewStatus ?? 'pending') === 'pending' ? 'true' : 'false' }}">
+                                <a class="nxl-link" href="{{ route('admin.loan-applications') }}">Pending Applications</a>
                             </li>
-                            <li class="nxl-item">
-                                <a class="nxl-link {{ ($viewStatus ?? '') === 'approved' ? 'active' : '' }}"
-                                   href="{{ route('admin.loan-applications', ['status' => 'approved']) }}">Approved</a>
+                            <li class="nxl-item" data-current="{{ ($viewStatus ?? '') === 'approved' ? 'true' : 'false' }}">
+                                <a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'approved']) }}">Approved</a>
                             </li>
-                            <li class="nxl-item">
-                                <a class="nxl-link {{ ($viewStatus ?? '') === 'rejected' ? 'active' : '' }}"
-                                   href="{{ route('admin.loan-applications', ['status' => 'rejected']) }}">Rejected</a>
+                            <li class="nxl-item" data-current="{{ ($viewStatus ?? '') === 'rejected' ? 'true' : 'false' }}">
+                                <a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'rejected']) }}">Rejected</a>
                             </li>
-                            <li class="nxl-item">
-                                <a class="nxl-link {{ ($viewStatus ?? '') === 'on_hold' ? 'active' : '' }}"
-                                   href="{{ route('admin.loan-applications', ['status' => 'on_hold']) }}">On Hold</a>
+                            <li class="nxl-item" data-current="{{ ($viewStatus ?? '') === 'on_hold' ? 'true' : 'false' }}">
+                                <a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'on_hold']) }}">On Hold</a>
                             </li>
                         </ul>
                     </li>
@@ -85,8 +74,8 @@
                             <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
                         </a>
                         <ul class="nxl-submenu">
-                            <li class="nxl-item"><a class="nxl-link" href="#">All Borrowers</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="#">Active Borrowers</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.borrowers') }}">All Borrowers</a></li>
+                           <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.active-borrowers') }}">Active Borrowers</a></li>
                             <li class="nxl-item"><a class="nxl-link" href="#">Penalty Tracking</a></li>
                         </ul>
                     </li>
@@ -201,7 +190,7 @@
                                         <span style="color:#16a34a;font-weight:600;">✅ {{ $app['approved_count'] }} approved</span>
                                         &nbsp;|&nbsp;
                                         <span style="color:#dc2626;font-weight:600;">❌ {{ $app['rejected_count'] }} rejected</span>
-                                        &nbsp;|&nbsp; 
+                                        &nbsp;|&nbsp; Needs 3 approvals
                                     </span>
                                     <a href="{{ route('admin.loan-application-detail', $app['application_id']) }}" class="btn btn-sm btn-outline-primary">
                                         <i class="feather-eye me-1"></i> View Details
@@ -221,7 +210,12 @@
                                 @csrf
                                 <input type="hidden" name="application_id" value="{{ $app['application_id'] }}">
                                 <input type="text" name="remarks" class="form-control" style="flex:1;min-width:200px;" placeholder="Remarks (optional)">
-                               
+                                <button type="button" class="btn btn-success" onclick="loanCardConfirmAction(this, 'approved')">
+                                    <i class="feather-check me-1"></i> Approve
+                                </button>
+                                <button type="button" class="btn btn-danger" onclick="loanCardConfirmAction(this, 'rejected')">
+                                    <i class="feather-x me-1"></i> Reject
+                                </button>
                             </form>
                         </div>
                         @endforeach
@@ -265,17 +259,23 @@
                 @else
                 {{-- ================= FILTERED VIEW: Approved / Rejected / On Hold ================= --}}
 
+                    <div class="search-bar-wrap">
+                        <i class="feather-search"></i>
+                        <input type="text" class="form-control" id="filterSearchInput"
+                               placeholder="Search by name or email..."
+                               onkeyup="filterApplications(this.value)">
+                    </div>
+
                     @if(count($filteredApplications) === 0)
                     <div class="card">
                         <div class="card-body text-center py-5">
                             <i class="feather-inbox" style="font-size:48px;color:#8a9bb0;"></i>
-                            <h5 class="mt-3 fw-bold">Wala pang application dito</h5>
-                            <p class="text-muted">No {{ str_replace('_', ' ', $viewStatus) }} applications yet.</p>
+                            <h5 class="mt-3 fw-bold">No Applications yet</h5>
                         </div>
                     </div>
                     @else
                         @foreach($filteredApplications as $app)
-                        <div class="app-card">
+                        <div class="app-card" data-search="{{ strtolower($app->last_name . ' ' . $app->first_name . ' ' . $app->email) }}">
                             <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
                                 <div>
                                     <div style="font-size:1rem;font-weight:700;">
@@ -335,15 +335,84 @@
         </div>
     </div>
 
-    <!-- Success modal -->
-    <div class="modal modal-modern" id="successModal" tabindex="-1" aria-hidden="true">
+    <!-- Result modals — one of these shows after a decision is recorded,
+         depending on the application's status after that decision. -->
+
+    <!-- Generic "decision recorded" -->
+    <div class="modal fade modal-modern" id="decisionSuccessModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-body">
                     <div class="modal-icon-circle icon-success">
                         <i class="feather-check-circle"></i>
                     </div>
-                    <p class="modal-title-text">Decision submitted successfully!</p>
+                    <p class="modal-title-text">Decision submitted</p>
+                    <p class="modal-message-text">
+                        Your decision has been recorded successfully. The application will remain under review until all three administrators have submitted their decisions.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-modal-primary btn-ok-success" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mixed decisions -->
+    <div class="modal fade modal-modern" id="onHoldModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="modal-icon-circle icon-warning">
+                        <i class="feather-alert-triangle"></i>
+                    </div>
+                    <p class="modal-title-text">Application on hold</p>
+                    <p class="modal-message-text">
+                        The administrators have reached different decisions. The application has been placed on hold for further discussion.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-modal-primary btn-ok-warning" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fully approved by all 3 -->
+    <div class="modal fade modal-modern" id="finalApprovalModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="modal-icon-circle icon-success">
+                        <i class="feather-check-circle"></i>
+                    </div>
+                    <p class="modal-title-text">Application approved</p>
+                    <p class="modal-message-text">
+                        The loan application has been approved by all administrators.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-modal-primary btn-ok-success" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fully rejected by all 3 -->
+    <div class="modal fade modal-modern" id="finalRejectionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="modal-icon-circle icon-danger">
+                        <i class="feather-x-circle"></i>
+                    </div>
+                    <p class="modal-title-text">Application rejected</p>
+                    <p class="modal-message-text">
+                        The loan application has been rejected by all administrators.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-modal-primary btn-ok-warning" data-bs-dismiss="modal">OK</button>
                 </div>
             </div>
         </div>
@@ -356,9 +425,15 @@
     @if(session('success'))
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const successModal = new bootstrap.Modal(document.getElementById('successModal'), { backdrop: 'static' });
-            successModal.show();
-            setTimeout(() => successModal.hide(), 2000);
+            const status = @json(session('decisionStatus'));
+            let modalId = 'decisionSuccessModal';
+            if (status === 'approved') modalId = 'finalApprovalModal';
+            else if (status === 'rejected') modalId = 'finalRejectionModal';
+            else if (status === 'on_hold') modalId = 'onHoldModal';
+
+            const modalEl = document.getElementById(modalId);
+            const modal = new bootstrap.Modal(modalEl, { backdrop: 'static' });
+            modal.show();
         });
     </script>
     @endif

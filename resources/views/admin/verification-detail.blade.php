@@ -9,25 +9,15 @@
     <link rel="stylesheet" href="{{ asset('assets/admin/css/bootstrap.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/admin/vendors/css/vendors.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/admin/css/theme.min.css') }}" />
-     <link rel="stylesheet" href="{{ asset('assets/admin/css/logout-modal.css') }}">
-    <style>
-        .section-title { font-size: 0.8rem; font-weight: 700; color: #4a7cf7; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; padding-bottom: 6px; border-bottom: 2px solid #e8f0fe; }
-        .info-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
-        .info-item label { font-size: 0.72rem; font-weight: 600; color: #8a9bb0; text-transform: uppercase; letter-spacing: 0.4px; display: block; margin-bottom: 3px; }
-        .info-item span { font-size: 0.88rem; color: #1a2a3a; font-weight: 500; }
-        .badge-approved { background: #dcfce7; color: #16a34a; border: 1px solid #16a34a; }
-        .badge-rejected { background: #fee2e2; color: #dc2626; border: 1px solid #dc2626; }
-        .badge-pending  { background: #fff8e1; color: #f0a500; border: 1px solid #f0a500; }
-        .badge-onhold   { background: #fff3cd; color: #856404; border: 1px solid #856404; }
-        .decision-card { border-radius: 10px; padding: 12px 16px; margin-bottom: 10px; font-size: 0.85rem; }
-        .decision-approved { background: #dcfce7; border-left: 4px solid #16a34a; }
-        .decision-rejected { background: #fee2e2; border-left: 4px solid #dc2626; }
-        .comment-bubble { background: #f8f9fa; border-radius: 10px; padding: 10px 14px; margin-bottom: 10px; font-size: 0.85rem; border-left: 4px solid #4a7cf7; }
-        .comment-bubble .admin-name { font-weight: 700; color: #4a7cf7; font-size: 0.78rem; }
-        .comment-bubble .comment-time { color: #adb5bd; font-size: 0.75rem; }
-    </style>
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/logout-modal.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/modals-modern.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/verification-detail.css') }}" />
+    
 </head>
 <body>
+    @php
+        $cameFrom = request()->query('from', 'borrowers');
+    @endphp
     <nav class="nxl-navigation">
         <div class="navbar-wrapper">
             <div class="m-header">
@@ -41,37 +31,55 @@
                             <span class="nxl-mtext">Dashboard</span>
                         </a>
                     </li>
-                    <li class="nxl-item">
-                        <a href="{{ route('admin.borrower-verification') }}" class="nxl-link active">
+                    <li class="nxl-item nxl-hasmenu {{ $cameFrom === 'verification' ? 'nxl-trigger active' : '' }}">
+                        <a href="javascript:void(0);" class="nxl-link">
                             <span class="nxl-micon"><i class="feather-user-check"></i></span>
                             <span class="nxl-mtext">Borrower Verification</span>
-                            @if(($pendingCount ?? 0) > 0)
+                            @if($pendingCount > 0)
                                 <span class="badge bg-danger ms-auto">{{ $pendingCount }}</span>
                             @endif
+                            <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
                         </a>
+                        <ul class="nxl-submenu">
+                            <li class="nxl-item" data-current="{{ $cameFrom === 'verification' && ($viewStatus ?? 'pending') === 'pending' ? 'true' : 'false' }}">
+                                <a class="nxl-link" href="{{ route('admin.borrower-verification') }}">Pending</a>
+                            </li>
+                            <li class="nxl-item" data-current="{{ $cameFrom === 'verification' && ($viewStatus ?? '') === 'approved' ? 'true' : 'false' }}">
+                                <a class="nxl-link" href="{{ route('admin.borrower-verification', ['status' => 'approved']) }}">Approved</a>
+                            </li>
+                            <li class="nxl-item" data-current="{{ $cameFrom === 'verification' && ($viewStatus ?? '') === 'rejected' ? 'true' : 'false' }}">
+                                <a class="nxl-link" href="{{ route('admin.borrower-verification', ['status' => 'rejected']) }}">Rejected</a>
+                            </li>
+                            <li class="nxl-item" data-current="{{ $cameFrom === 'verification' && ($viewStatus ?? '') === 'on_hold' ? 'true' : 'false' }}">
+                                <a class="nxl-link" href="{{ route('admin.borrower-verification', ['status' => 'on_hold']) }}">On Hold</a>
+                            </li>
+                        </ul>
                     </li>
                     <li class="nxl-item nxl-hasmenu">
                         <a href="javascript:void(0);" class="nxl-link">
                             <span class="nxl-micon"><i class="feather-file-text"></i></span>
                             <span class="nxl-mtext">Loan Applications</span>
+                            @if(($pendingLoanCount ?? 0) > 0)
+                                <span class="badge bg-danger ms-auto">{{ $pendingLoanCount }}</span>
+                            @endif
                             <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
                         </a>
                         <ul class="nxl-submenu">
-                            <li class="nxl-item"><a class="nxl-link" href="#">Pending Applications</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="#">Approved</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="#">Rejected</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="#">On Hold</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.loan-applications') }}">Pending Applications</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'approved']) }}">Approved</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'rejected']) }}">Rejected</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'on_hold']) }}">On Hold</a></li>
                         </ul>
                     </li>
-                    <li class="nxl-item nxl-hasmenu">
+                    <li class="nxl-item nxl-hasmenu {{ $cameFrom !== 'verification' ? 'nxl-trigger active' : '' }}">
                         <a href="javascript:void(0);" class="nxl-link">
                             <span class="nxl-micon"><i class="feather-users"></i></span>
                             <span class="nxl-mtext">Borrowers</span>
                             <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
                         </a>
                         <ul class="nxl-submenu">
-                            <li class="nxl-item"><a class="nxl-link" href="#">All Borrowers</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="#">Active Borrowers</a></li>
+                            <li class="nxl-item" data-current="{{ $cameFrom !== 'verification' ? 'true' : 'false' }}"><a class="nxl-link" href="{{ route('admin.borrowers') }}">All Borrowers</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.active-borrowers') }}">Active Borrowers</a></li>
                             <li class="nxl-item"><a class="nxl-link" href="#">Penalty Tracking</a></li>
                         </ul>
                     </li>
@@ -126,14 +134,24 @@
                     <div class="page-header-title"><h5 class="m-b-10">Borrower Details</h5></div>
                     <ul class="breadcrumb">
                         <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Home</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('admin.borrower-verification') }}">Borrower Verification</a></li>
+                        @if($cameFrom === 'verification')
+                            <li class="breadcrumb-item"><a href="{{ route('admin.borrower-verification', ($viewStatus ?? 'pending') !== 'pending' ? ['status' => $viewStatus] : []) }}">Borrower Verification</a></li>
+                        @else
+                            <li class="breadcrumb-item"><a href="{{ route('admin.borrowers') }}">All Borrowers</a></li>
+                        @endif
                         <li class="breadcrumb-item">Details #{{ $detailId }}</li>
                     </ul>
                 </div>
                 <div class="page-header-right ms-auto">
-                    <a href="{{ route('admin.borrower-verification') }}" class="btn btn-light">
-                        <i class="feather-arrow-left me-2"></i>Back
-                    </a>
+                    @if($cameFrom === 'verification')
+                        <a href="{{ route('admin.borrower-verification', ($viewStatus ?? 'pending') !== 'pending' ? ['status' => $viewStatus] : []) }}" class="btn btn-light">
+                            Back
+                        </a>
+                    @else
+                        <a href="{{ route('admin.borrowers') }}" class="btn btn-light">
+                            Back
+                        </a>
+                    @endif
                 </div>
             </div>
 
@@ -150,13 +168,48 @@
                     </div>
                 </div>
                 @endif
+
+                {{-- ============================================
+                     BORROWER PROFILE SUMMARY HEADER
+                ============================================ --}}
+                @php
+                    $initials = strtoupper(substr($d->first_name ?? 'B', 0, 1) . substr($d->last_name ?? 'R', 0, 1));
+                @endphp
+                <div class="borrower-summary-card">
+                    <div class="borrower-avatar">{{ $initials }}</div>
+                    <div class="borrower-summary-info">
+                        <h5>{{ $d->first_name }} {{ $d->last_name }}</h5>
+                        <div class="borrower-summary-meta">
+                            <span><strong>Borrower ID:</strong> #{{ $detailId }}</span>
+                            <span><strong>Submitted:</strong> {{ isset($d->created_at) ? \Carbon\Carbon::parse($d->created_at)->format('M d, Y') : '—' }}</span>
+                            <span><strong>Email:</strong> {{ $d->reg_email }}</span>
+                        </div>
+                    </div>
+                    <div class="borrower-summary-status">
+                        @if($d->status === 'approved')
+                            <span class="badge badge-approved">Approved</span>
+                        @elseif($d->status === 'rejected')
+                            <span class="badge badge-rejected">Rejected</span>
+                        @elseif($d->status === 'on_hold')
+                            <span class="badge badge-onhold">On Hold</span>
+                        @else
+                            <span class="badge badge-pending">Pending</span>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- ============================================
+                     PROGRESS TIMELINE
+                ============================================ --}}
+                
+
                 <div class="row">
                     <div class="col-lg-8">
 
                         <!-- Personal Info -->
                         <div class="card mb-3">
                             <div class="card-body">
-                                <div class="section-title">Personal Information</div>
+                                <div class="section-title"><i class="feather-user"></i>Personal Information</div>
                                 <div class="info-row">
                                     <div class="info-item"><label>Last Name</label><span>{{ $d->last_name }}</span></div>
                                     <div class="info-item"><label>First Name</label><span>{{ $d->first_name }}</span></div>
@@ -169,17 +222,17 @@
                                     <div class="info-item"><label>Citizenship</label><span>{{ $d->citizenship ?? '—' }}</span></div>
                                     <div class="info-item"><label>Cellphone</label><span>{{ $d->cellphone_num ?? '—' }}</span></div>
                                     <div class="info-item"><label>Email</label><span>{{ $d->reg_email }}</span></div>
-                                    <div class="info-item"><label>Monthly Income</label><span>₱{{ number_format($d->monthly_income ?? 0, 2) }}</span></div>
+                                    <div class="info-item highlight"><label>Monthly Income</label><span>₱{{ number_format($d->monthly_income ?? 0, 2) }}</span></div>
                                 </div>
 
-                                <div class="section-title mt-2">Birth Place</div>
+                                <div class="section-title mt-2"><i class="feather-map-pin"></i>Birth Place</div>
                                 <div class="info-row">
                                     <div class="info-item"><label>Country</label><span>{{ $d->birth_country ?? '—' }}</span></div>
                                     <div class="info-item"><label>Province</label><span>{{ $d->birth_province ?? '—' }}</span></div>
                                     <div class="info-item"><label>City</label><span>{{ $d->birth_city ?? '—' }}</span></div>
                                 </div>
 
-                                <div class="section-title mt-2">Valid ID</div>
+                                <div class="section-title mt-2"><i class="feather-credit-card"></i>Valid ID</div>
                                 <div class="info-row">
                                     <div class="info-item"><label>ID Type</label><span>{{ $d->id_type ?? '—' }}</span></div>
                                     <div class="info-item"><label>ID Number</label><span>{{ $d->id_number ?? '—' }}</span></div>
@@ -189,7 +242,9 @@
                                     <label class="form-label fw-semibold" style="font-size:0.75rem; color:#8a9bb0; text-transform:uppercase;">Attached ID</label><br>
                                     @php $ext = strtolower(pathinfo($d->id_file_path, PATHINFO_EXTENSION)); @endphp
                                     @if(in_array($ext, ['jpg','jpeg','png','gif','webp']))
-                                    <img src="{{ asset('storage/' . $d->id_file_path) }}" style="max-width:300px; border-radius:8px; border:1px solid #e9ecef;" alt="Valid ID">
+                                    <span class="id-thumb-wrap" onclick="openIdViewer('{{ asset('storage/' . $d->id_file_path) }}')">
+                                        <img src="{{ asset('storage/' . $d->id_file_path) }}" alt="Valid ID">
+                                    </span>
                                     @else
                                     <a href="{{ asset('storage/' . $d->id_file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary">
                                         <i class="feather-file me-1"></i> View Attached ID
@@ -203,7 +258,7 @@
                         <!-- Present Address -->
                         <div class="card mb-3">
                             <div class="card-body">
-                                <div class="section-title">Present Address</div>
+                                <div class="section-title"><i class="feather-home"></i>Present Address</div>
                                 <div class="info-row">
                                     <div class="info-item"><label>Region</label><span>{{ $d->region ?? '—' }}</span></div>
                                     <div class="info-item"><label>Province</label><span>{{ $d->province ?? '—' }}</span></div>
@@ -218,7 +273,7 @@
                         <!-- Work Info -->
                         <div class="card mb-3">
                             <div class="card-body">
-                                <div class="section-title">Work Information</div>
+                                <div class="section-title"><i class="feather-briefcase"></i>Work Information</div>
                                 <div class="info-row">
                                     <div class="info-item"><label>Employment Status</label><span>{{ ucfirst(str_replace('_', ' ', $d->employment_status ?? '—')) }}</span></div>
                                     <div class="info-item"><label>Company/Business</label><span>{{ $d->company_name ?? '—' }}</span></div>
@@ -231,7 +286,7 @@
                         <!-- Co-Maker -->
                         <div class="card mb-3">
                             <div class="card-body">
-                                <div class="section-title">Co-Maker Information</div>
+                                <div class="section-title"><i class="feather-users"></i>Co-Maker Information</div>
                                 <div class="info-row">
                                     <div class="info-item"><label>Last Name</label><span>{{ $d->co_last ?? '—' }}</span></div>
                                     <div class="info-item"><label>First Name</label><span>{{ $d->co_first ?? '—' }}</span></div>
@@ -250,20 +305,26 @@
                             <div class="card-body">
 
                                 @if($allReviews->count() > 0)
-                                <div class="mb-3">
-                                    <p class="fw-semibold mb-2" style="font-size:0.78rem; color:#8a9bb0; text-transform:uppercase;">Decisions</p>
+                                <div class="mb-4">
+                                    <p class="fw-semibold mb-3" style="font-size:0.75rem; color:#8a9bb0; text-transform:uppercase; letter-spacing:0.4px;">Decisions</p>
                                     @foreach($allReviews as $r)
-                                    <div class="decision-card {{ $r->decision === 'approved' ? 'decision-approved' : 'decision-rejected' }}">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span class="fw-bold">{{ $r->admin_name }}</span>
-                                            <span class="badge {{ $r->decision === 'approved' ? 'badge-approved' : 'badge-rejected' }} px-2 py-1">
-                                                {{ ucfirst($r->decision) }}
-                                            </span>
+                                    @php $rInitials = strtoupper(substr($r->admin_name, 0, 2)); @endphp
+                                    <div class="discussion-item">
+                                        <div class="discussion-avatar">{{ $rInitials }}</div>
+                                        <div class="discussion-body">
+                                            <div class="discussion-card {{ $r->decision === 'approved' ? 'decision-approved' : 'decision-rejected' }}">
+                                                <div class="discussion-header">
+                                                    <span class="name">{{ $r->admin_name }}</span>
+                                                    <span class="badge {{ $r->decision === 'approved' ? 'badge-approved' : 'badge-rejected' }} px-2 py-1">
+                                                        {{ ucfirst($r->decision) }}
+                                                    </span>
+                                                </div>
+                                                @if($r->remarks)
+                                                <p class="mb-0 mt-2 text-muted" style="font-size:0.82rem;">{{ $r->remarks }}</p>
+                                                @endif
+                                                <p class="mb-0 mt-1 time">{{ \Carbon\Carbon::parse($r->reviewed_at)->format('M d, Y h:i A') }}</p>
+                                            </div>
                                         </div>
-                                        @if($r->remarks)
-                                        <p class="mb-0 mt-1 text-muted" style="font-size:0.82rem;">Remarks: {{ $r->remarks }}</p>
-                                        @endif
-                                        <p class="mb-0 mt-1" style="font-size:0.75rem; color:#adb5bd;">{{ \Carbon\Carbon::parse($r->reviewed_at)->format('M d, Y h:i A') }}</p>
                                     </div>
                                     @endforeach
                                 </div>
@@ -271,14 +332,20 @@
 
                                 @if($comments->count() > 0)
                                 <div class="mb-3">
-                                    <p class="fw-semibold mb-2" style="font-size:0.78rem; color:#8a9bb0; text-transform:uppercase;">Comments</p>
+                                    <p class="fw-semibold mb-3" style="font-size:0.75rem; color:#8a9bb0; text-transform:uppercase; letter-spacing:0.4px;">Comments</p>
                                     @foreach($comments as $c)
-                                    <div class="comment-bubble {{ $c->admin_id == $adminId ? 'border-primary' : '' }}">
-                                        <div class="d-flex justify-content-between">
-                                            <span class="admin-name">{{ $c->admin_name }} {{ $c->admin_id == $adminId ? '(You)' : '' }}</span>
-                                            <span class="comment-time">{{ \Carbon\Carbon::parse($c->created_at)->format('M d, Y h:i A') }}</span>
+                                    @php $cInitials = strtoupper(substr($c->admin_name, 0, 2)); @endphp
+                                    <div class="discussion-item">
+                                        <div class="discussion-avatar {{ $c->admin_id == $adminId ? 'mine' : '' }}">{{ $cInitials }}</div>
+                                        <div class="discussion-body">
+                                            <div class="discussion-card comment">
+                                                <div class="discussion-header">
+                                                    <span class="name">{{ $c->admin_name }} {{ $c->admin_id == $adminId ? '(You)' : '' }}</span>
+                                                    <span class="time">{{ \Carbon\Carbon::parse($c->created_at)->format('M d, Y h:i A') }}</span>
+                                                </div>
+                                                <p class="mb-0 mt-2">{{ $c->comment }}</p>
+                                            </div>
                                         </div>
-                                        <p class="mb-0 mt-1">{{ $c->comment }}</p>
                                     </div>
                                     @endforeach
                                 </div>
@@ -306,7 +373,7 @@
                     <div class="col-lg-4">
                         <div class="card" style="position: sticky; top: 80px;">
                             <div class="card-header">
-                                <h6 class="card-title mb-0"><i ></i>Admin Decision</h6>
+                                <h6 class="card-title mb-0"><i class="feather-shield me-2"></i>Admin Decision</h6>
                             </div>
                             <div class="card-body">
                                 <div class="mb-3">
@@ -323,21 +390,18 @@
                                 </div>
 
                                 @if($d->status === 'rejected')
-                                <!-- FULLY REJECTED — no actions allowed -->
                                 <div class="alert alert-danger mb-0" style="font-size:0.85rem;">
                                     <i class="feather-x-circle me-2"></i>
                                     This borrower has been <strong>fully rejected</strong> by all 3 admins. No further action can be taken.
                                 </div>
 
                                 @elseif($d->status === 'approved')
-                                <!-- FULLY APPROVED — no actions allowed -->
                                 <div class="alert alert-success mb-0" style="font-size:0.85rem;">
                                     <i class="feather-check-circle me-2"></i>
                                     This borrower has been <strong>fully approved</strong>. No further action needed.
                                 </div>
 
                                 @elseif($myReview)
-                                <!-- Already reviewed — show current decision, button opens modal to change it -->
                                 <div class="alert alert-info mb-3" style="font-size:0.85rem;">
                                     <i class="feather-check-circle me-2"></i>
                                     You submitted a <strong>{{ $myReview->decision }}</strong> decision on
@@ -349,10 +413,9 @@
                                 </button>
 
                                 @else
-                                <!-- Not yet reviewed — button opens modal -->
                                 <p class="text-muted mb-3" style="font-size:0.85rem;">Review the borrower's details, then make your decision.</p>
                                 <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#decisionModal">
-                                    <i></i>Make a Decision
+                                    <i class="feather-check-square me-2"></i>Make a Decision
                                 </button>
                                 @endif
 
@@ -377,17 +440,15 @@
                     <input type="hidden" name="action" id="decisionActionInput" value="">
                     <div class="modal-header">
                         <h6 class="modal-title" id="decisionModalLabel">
-                            <i class="feather-shield me-2"></i>{{ $myReview ? 'Change Decision' : 'Make a Decision' }}
+                            {{ $myReview ? 'Change Decision' : 'Borrower Verification' }}
                         </h6>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <!-- Step 1: remarks -->
                         <div id="decisionStep1">
                             <label class="form-label fw-semibold">Remarks <span class="text-muted fw-normal">(optional)</span></label>
                             <textarea name="remarks" id="decisionRemarks" class="form-control" rows="3" placeholder="Add notes or reason...">{{ $myReview->remarks ?? '' }}</textarea>
                         </div>
-                        <!-- Step 2: confirmation -->
                         <div id="decisionStep2" class="text-center py-3" style="display:none;">
                             <i id="decisionConfirmIcon" style="font-size:40px;"></i>
                             <p id="decisionConfirmText" class="mt-3 mb-0 fw-semibold"></p>
@@ -395,10 +456,10 @@
                     </div>
                     <div class="modal-footer" id="decisionFooterStep1">
                         <button type="button" class="btn btn-success flex-fill" onclick="decisionShowConfirm('approved')">
-                            <i class="feather-check me-2"></i>Approve
+                            Approve
                         </button>
                         <button type="button" class="btn btn-danger flex-fill" onclick="decisionShowConfirm('rejected')">
-                            <i class="feather-x me-2"></i>Reject
+                            Reject
                         </button>
                     </div>
                     <div class="modal-footer" id="decisionFooterStep2" style="display:none;">
@@ -412,6 +473,20 @@
         </div>
     </div>
     @endif
+
+    {{-- ============================================
+         VALID ID FULLSCREEN VIEWER (zoom + rotate)
+    ============================================ --}}
+    <div class="id-viewer-overlay" id="idViewerOverlay">
+        <button class="id-viewer-close" onclick="closeIdViewer()"><i class="feather-x"></i></button>
+        <img src="" alt="Valid ID full view" id="idViewerImage">
+        <div class="id-viewer-toolbar">
+            <button onclick="idViewerZoom(-0.2)" title="Zoom out"><i class="feather-zoom-out"></i></button>
+            <button onclick="idViewerZoom(0.2)" title="Zoom in"><i class="feather-zoom-in"></i></button>
+            <button onclick="idViewerRotate()" title="Rotate"><i class="feather-rotate-cw"></i></button>
+            <button onclick="idViewerReset()" title="Reset"><i class="feather-refresh-ccw"></i></button>
+        </div>
+    </div>
 
    <script src="{{ asset('assets/admin/vendors/js/vendors.min.js') }}"></script>
 <script src="{{ asset('assets/admin/js/common-init.min.js') }}"></script>

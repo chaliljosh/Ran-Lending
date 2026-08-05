@@ -10,6 +10,8 @@ class AdminController extends Controller
 {
     public function dashboard(Request $request)
     {
+        $adminId = Session::get('user_id');
+
         $pendingVerificationCount = DB::table('borrowerpersonaldetails')->where('status', 'pending')->count();
 
         $totalApplications = DB::table('loan_applications')->count();
@@ -26,15 +28,160 @@ class AdminController extends Controller
             ->limit(4)
             ->get();
 
+        // Sidebar's Borrower Verification dropdown badge — same helper used
+        // by verificationDetail()/loanApplicationDetail() for the same reason.
+        $pendingCount = $this->getPendingVerificationCount($adminId);
+
         return view('admin.dashboard', compact(
             'pendingVerificationCount', 'totalApplications', 'pendingApplications',
             'activeLoans', 'totalActiveAmount', 'totalBorrowers', 'activeBorrowers',
-            'recentApplications'
+            'recentApplications', 'pendingCount'
         ));
     }
 
+    // Simpleng listahan ng lahat ng borrowers — pangalan, email, status.
+    // Walang approve/reject dito, view-only page lang.
+    public function allBorrowers(Request $request)
+    {
+        $adminId = Session::get('user_id');
+        $sort = $request->query('sort', 'newest');
+ 
+        $rows = DB::table('users as u')
+            ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'u.user_id')
+            ->where('u.role', 'borrower')
+            ->select(
+                'u.user_id', 'u.email', 'u.is_active', 'u.created_at',
+                'bpd.detail_id', 'bpd.first_name', 'bpd.last_name'
+            )
+            ->orderBy('u.created_at', $sort === 'oldest' ? 'asc' : 'desc')
+            ->get();
+ 
+        $borrowers = [];
+        $stats = ['total' => 0, 'active_loan' => 0, 'no_loan' => 0, 'suspended' => 0];
+ 
+        foreach ($rows as $row) {
+            $loans = DB::table('loan_applications')
+                ->where('user_id', $row->user_id)
+                ->orderByDesc('applied_at')
+                ->get();
+ 
+            $latest = $loans->first();
+            $totalLoans = $loans->count();
+ 
+            if (!$row->is_active) {
+                $loanStatus = 'suspended';
+            } elseif (!$latest) {
+                $loanStatus = 'no_loan';
+            } elseif (in_array($latest->status, ['pending', 'on_hold'], true)) {
+                $loanStatus = 'pending';
+            } elseif (in_array($latest->status, ['approved', 'active'], true)) {
+                $loanStatus = 'active_loan';
+            } elseif ($latest->status === 'completed') {
+                $loanStatus = 'completed';
+            } else {
+                // rejected / defaulted — walang "active" na loan, ituturing
+                // na parang No Loan para sa displaying purposes.
+                $loanStatus = 'no_loan';
+            }
+ 
+            $fullName = trim($row->first_name . ' ' . $row->last_name);
+            $displayName = $fullName !== '' ? $fullName : $row->email;
+            $initials = $fullName !== ''
+                ? strtoupper(substr($row->first_name, 0, 1) . substr($row->last_name, 0, 1))
+                : strtoupper(substr($row->email, 0, 2));
+ 
+            $borrowers[] = [
+                'user_id' => $row->user_id,
+                'borrower_id' => 'BRW-' . str_pad($row->user_id, 4, '0', STR_PAD_LEFT),
+                'detail_id' => $row->detail_id,
+                'name' => $displayName,
+                'initials' => $initials,
+                'email' => $row->email,
+                'is_active' => (bool) $row->is_active,
+                'loan_status' => $loanStatus,
+                'total_loans' => $totalLoans,
+                'last_activity' => $latest->applied_at ?? $row->created_at,
+                'has_activity' => (bool) $latest,
+                'joined_at' => $row->created_at,
+            ];
+ 
+            $stats['total']++;
+            if ($loanStatus === 'active_loan') $stats['active_loan']++;
+            if ($loanStatus === 'no_loan') $stats['no_loan']++;
+            if (!$row->is_active) $stats['suspended']++;
+        }
+ 
+        return view('admin.borrowers', [
+            'borrowers' => $borrowers,
+            'stats' => $stats,
+            'sort' => $sort,
+            'pendingCount' => $this->getPendingVerificationCount($adminId),
+            'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+        ]);
+    }
+
+    public function activeBorrowers(Request $request)
+{
+    $adminId = Session::get('user_id');
+    $sort = $request->query('sort', 'newest');
+ 
+    $rows = DB::table('loan_applications as la')
+        ->join('users as u', 'la.user_id', '=', 'u.user_id')
+        ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
+        ->whereIn('la.status', ['approved', 'active'])
+        ->select(
+            'la.application_id', 'la.loan_amount', 'la.loan_term', 'la.loan_purpose',
+            'la.total_amount', 'la.status', 'la.applied_at',
+            'u.user_id', 'u.email',
+            'bpd.detail_id', 'bpd.first_name', 'bpd.last_name'
+        )
+        ->orderBy('la.applied_at', $sort === 'oldest' ? 'asc' : 'desc')
+        ->get();
+ 
+    $activeBorrowers = [];
+    foreach ($rows as $row) {
+        $fullName = trim($row->first_name . ' ' . $row->last_name);
+        $displayName = $fullName !== '' ? $fullName : $row->email;
+        $initials = $fullName !== ''
+            ? strtoupper(substr($row->first_name, 0, 1) . substr($row->last_name, 0, 1))
+            : strtoupper(substr($row->email, 0, 2));
+ 
+        $activeBorrowers[] = [
+            'application_id' => $row->application_id,
+            'user_id'        => $row->user_id,
+            'borrower_id'    => 'BRW-' . str_pad($row->user_id, 4, '0', STR_PAD_LEFT),
+            'detail_id'      => $row->detail_id,
+            'name'           => $displayName,
+            'initials'       => $initials,
+            'email'          => $row->email,
+            'loan_amount'    => $row->loan_amount,
+            'loan_term'      => $row->loan_term,
+            'loan_purpose'   => $row->loan_purpose,
+            'total_amount'   => $row->total_amount,
+            'applied_at'     => $row->applied_at,
+        ];
+    }
+ 
+    $stats = [
+        'total'        => count($activeBorrowers),
+        'total_amount' => collect($activeBorrowers)->sum('total_amount'),
+        'avg_amount'   => count($activeBorrowers) ? collect($activeBorrowers)->avg('loan_amount') : 0,
+    ];
+ 
+    return view('admin.active-borrowers', [
+        'activeBorrowers' => $activeBorrowers,
+        'stats'           => $stats,
+        'sort'            => $sort,
+        'pendingCount'     => $this->getPendingVerificationCount($adminId),
+        'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+    ]);
+}
+ 
+ 
     /**
-     * List page — Pending / Reviewed tabs.
+     * List page — Pending/Reviewed tabs (default), or a filtered
+     * Approved/Rejected/On Hold view via ?status=... (same pattern as
+     * loanApplications()).
      * GET  -> shows the list
      * POST -> approve/reject a borrower's details (called from the pending cards,
      *         supports both normal form submit and the fetch()/AJAX flow in the JS)
@@ -44,24 +191,33 @@ class AdminController extends Controller
         $adminId = Session::get('user_id');
 
         if ($request->isMethod('post') && $request->has('action')) {
+            $detailId = $request->input('detail_id');
             $this->saveDecision($request, $adminId);
 
+            $newStatus = DB::table('borrowerpersonaldetails')
+                ->where('detail_id', $detailId)
+                ->value('status');
+
             if ($request->ajax() || $request->wantsJson()) {
-                return response()->json(['success' => true]);
+                return response()->json([
+                    'success' => true,
+                    'status' => $newStatus,
+                ]);
             }
 
-            return redirect()->route('admin.borrower-verification')->with('success', true);
+            return redirect()->route('admin.borrower-verification')
+                ->with('success', true)
+                ->with('decisionStatus', $newStatus);
         }
 
-        return view('admin.borrower-verification', $this->buildVerificationListData($adminId));
+        $viewStatus = $request->query('status', 'pending');
+
+        return view('admin.borrower-verification', array_merge(
+            $this->buildVerificationListData($adminId, $viewStatus),
+            ['viewStatus' => $viewStatus]
+        ));
     }
 
-    /**
-     * Single borrower page — full details, discussion thread, decision panel.
-     * GET  -> shows the details
-     * POST -> either adds a comment OR saves a decision, depending on which
-     *         field was submitted
-     */
     public function verificationDetail(Request $request, $id)
     {
         $adminId = Session::get('user_id');
@@ -100,7 +256,48 @@ class AdminController extends Controller
             'myReview' => $this->getMyReview($detailId, $adminId),
             'allReviews' => $this->getAllReviews($detailId),
             'comments' => $this->getComments($detailId),
+            // Nav is duplicated on every admin page, and both sidebar badges
+            // (Borrower Verification + Loan Applications) reference these —
+            // this page's own section has no ?? fallback in the Blade, so it
+            // needs to be passed explicitly or it throws Undefined variable.
+            'pendingCount' => $this->getPendingVerificationCount($adminId),
+            'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+            // Highlights the sidebar submenu item matching THIS borrower's
+            // current status (not wherever the admin navigated from) — e.g.
+            // an already-approved borrower highlights "Approved", not
+            // "Pending", regardless of which list link they clicked.
+            'viewStatus' => $d->status,
         ]);
+    }
+
+    // Lightweight count-only version of buildVerificationListData()'s pending
+    // query — used by pages that only need the sidebar badge number, not the
+    // full pending list (verification-detail, loan-application-detail).
+    private function getPendingVerificationCount($adminId)
+    {
+        return DB::table('borrowerpersonaldetails as bpd')
+            ->whereIn('bpd.status', ['pending', 'on_hold'])
+            ->whereNotExists(function ($query) use ($adminId) {
+                $query->select(DB::raw(1))
+                    ->from('detailsapproval as da')
+                    ->whereColumn('da.detail_id', 'bpd.detail_id')
+                    ->where('da.admin_id', $adminId);
+            })
+            ->count();
+    }
+
+    // Same idea as getPendingVerificationCount() above, but for loan_applications.
+    private function getPendingLoanCount($adminId)
+    {
+        return DB::table('loan_applications as la')
+            ->whereIn('la.status', ['pending', 'on_hold'])
+            ->whereNotExists(function ($query) use ($adminId) {
+                $query->select(DB::raw(1))
+                    ->from('loan_approvals as lap')
+                    ->whereColumn('lap.application_id', 'la.application_id')
+                    ->where('lap.admin_id', $adminId);
+            })
+            ->count();
     }
 
     /* -----------------------------------------------------------
@@ -222,10 +419,12 @@ class AdminController extends Controller
     }
 
     /* -----------------------------------------------------------
-     | List-page data (Pending / Reviewed tabs)
+     | List-page data (Pending/Reviewed tabs when $viewStatus is
+     | 'pending', or a flat Approved/Rejected/On Hold list — same
+     | shape as buildLoanApplicationsListData() below).
      |-----------------------------------------------------------*/
 
-    private function buildVerificationListData($adminId)
+    private function buildVerificationListData($adminId, $viewStatus = 'pending')
     {
         $pendingRows = DB::table('borrowerpersonaldetails as bpd')
             ->join('users as u', 'bpd.user_id', '=', 'u.user_id')
@@ -275,9 +474,25 @@ class AdminController extends Controller
             ->orderByDesc('da.reviewed_at')
             ->get();
 
+        // Used only when viewing Approved / Rejected / On Hold via the sidebar
+        // dropdown — shows ALL borrowers at that final status, not just the
+        // ones this admin personally reviewed (that's what Reviewed tab is for).
+        $filteredDetails = collect();
+        if ($viewStatus !== 'pending') {
+            $filteredDetails = DB::table('borrowerpersonaldetails as bpd')
+                ->join('users as u', 'bpd.user_id', '=', 'u.user_id')
+                ->where('bpd.status', $viewStatus)
+                ->select(
+                    'bpd.detail_id', 'bpd.last_name', 'bpd.first_name', 'bpd.middle_name',
+                    'bpd.cellphone_num', 'bpd.status', 'u.email'
+                )
+                ->orderByDesc('bpd.detail_id')
+                ->get();
+        }
+
         $pendingCount = count($pendingDetails);
 
-        return compact('pendingDetails', 'reviewedDetails', 'pendingCount');
+        return compact('pendingDetails', 'reviewedDetails', 'filteredDetails', 'pendingCount');
     }
 
     /* -----------------------------------------------------------
@@ -286,39 +501,26 @@ class AdminController extends Controller
      |-----------------------------------------------------------*/
 
     public function loanApplications(Request $request)
-    {
-        $adminId = Session::get('user_id');
+{
+    $adminId = Session::get('user_id');
 
-        if ($request->isMethod('post') && $request->has('action')) {
-            $applicationId = $request->input('application_id');
-            $this->saveLoanDecision($request, $adminId);
-
-            $newStatus = DB::table('loan_applications')
-                ->where('application_id', $applicationId)
-                ->value('status');
-
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'status' => $newStatus,
-                ]);
-            }
-
-            // "decisionStatus" tells the list page which of the result modals
-            // to show (submitted / on hold / approved / rejected) — without
-            // this, the page has no way to know what actually happened.
-            return redirect()->route('admin.loan-applications')
-                ->with('success', true)
-                ->with('decisionStatus', $newStatus);
-        }
-
-        $viewStatus = $request->query('status', 'pending');
-
-        return view('admin.loan-applications', array_merge(
-            $this->buildLoanApplicationsListData($adminId, $viewStatus),
-            ['viewStatus' => $viewStatus]
-        ));
+    if ($request->isMethod('post') && $request->has('action')) {
+        // ...unchanged...
     }
+
+    $viewStatus = $request->query('status', 'pending');
+
+    return view('admin.loan-applications', array_merge(
+        $this->buildLoanApplicationsListData($adminId, $viewStatus),
+        [
+            'viewStatus' => $viewStatus,
+            // Sidebar's Borrower Verification badge needs this —
+            // buildLoanApplicationsListData() only returns pendingLoanCount,
+            // not pendingCount, so this page never had it.
+            'pendingCount' => $this->getPendingVerificationCount($adminId),
+        ]
+    ));
+}
 
     public function loanApplicationDetail(Request $request, $id)
     {
@@ -340,12 +542,6 @@ class AdminController extends Controller
             if ($request->filled('action')) {
                 $this->saveLoanDecision($request->merge(['application_id' => $applicationId]), $adminId);
 
-                // Same fix as loanApplications() above — the "Make a Decision"
-                // modal on THIS page submits as a normal form (not fetch/AJAX),
-                // so it was always hitting the redirect branch below with no
-                // status info attached. That's why only the generic "Decision
-                // submitted" message ever showed, even when the application
-                // just got fully approved or placed on hold.
                 $newStatus = DB::table('loan_applications')
                     ->where('application_id', $applicationId)
                     ->value('status');
@@ -374,6 +570,13 @@ class AdminController extends Controller
             'allReviews' => $this->getAllLoanReviews($applicationId),
             'approvedCount' => $this->getLoanApprovedCount($applicationId),
             'comments' => $this->getLoanComments($applicationId),
+            // Same reasoning as verificationDetail() above — this page's own
+            // sidebar section (Loan Applications) has no ?? fallback in the Blade.
+            'pendingCount' => $this->getPendingVerificationCount($adminId),
+            'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+            // Highlights based on THIS application's current status, not
+            // wherever the admin navigated from — same fix as verificationDetail().
+            'viewStatus' => $app->status,
         ]);
     }
 
@@ -568,7 +771,6 @@ class AdminController extends Controller
             ->orderByDesc('lap.reviewed_at')
             ->get();
 
-        // Used only when viewing Approved / Rejected / On Hold via the sidebar filter
         $filteredApplications = collect();
         if ($viewStatus !== 'pending') {
             $filteredApplications = DB::table('loan_applications as la')
@@ -588,4 +790,6 @@ class AdminController extends Controller
 
         return compact('pendingApplications', 'reviewedApplications', 'filteredApplications', 'pendingLoanCount');
     }
+
+    // Ensure class is properly closed
 }

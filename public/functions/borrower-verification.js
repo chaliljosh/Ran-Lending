@@ -8,7 +8,18 @@ function showTab(tab, btn) {
     btn.classList.add('active');
 }
 
-// Approve/Reject confirmation for each pending card (replaces native confirm())
+// Search box on the Approved / Rejected / On Hold views — targets
+// .detail-card (this page's card class), NOT .app-card (that's
+// loan-applications.js's class, which is why the search wasn't matching
+// anything here before).
+function filterDetails(query) {
+    query = query.trim().toLowerCase();
+    document.querySelectorAll('.detail-card[data-search]').forEach(card => {
+        const match = card.dataset.search.includes(query);
+        card.style.display = match ? '' : 'none';
+    });
+}
+
 let cardPendingForm = null;
 
 function cardConfirmAction(btn, action) {
@@ -22,12 +33,12 @@ function cardConfirmAction(btn, action) {
         icon.className = 'feather-check-circle text-success';
         text.textContent = 'Approve this borrower?';
         confirmBtn.className = 'btn btn-success flex-fill';
-        confirmBtn.innerHTML = ' Approve';
+        confirmBtn.innerHTML = '<i class="feather-check me-1"></i> Yes, Approve';
     } else {
         icon.className = 'feather-x-circle text-danger';
         text.textContent = 'Reject this borrower?';
         confirmBtn.className = 'btn btn-danger flex-fill';
-        confirmBtn.innerHTML = 'Reject';
+        confirmBtn.innerHTML = '<i class="feather-x me-1"></i> Yes, Reject';
     }
 
     confirmBtn.onclick = function () {
@@ -38,9 +49,17 @@ function cardConfirmAction(btn, action) {
     modal.show();
 }
 
-// Submits the decision via fetch (no page reload), waits for BOTH the confirm
-// modal to fully close AND the request to finish before opening the success
-// modal — this is what fixes the "blurry / stacked backdrop" bug.
+// Picks which result modal to show based on the borrower's status
+// after this decision was recorded:
+//   approved -> finalApprovalModal (all 3 admins approved)
+//   on_hold  -> onHoldModal (mixed decisions among admins)
+//   pending / rejected -> decisionSuccessModal (generic "recorded" message)
+function resultModalIdFor(status) {
+    if (status === 'approved') return 'finalApprovalModal';
+    if (status === 'on_hold') return 'onHoldModal';
+    return 'decisionSuccessModal';
+}
+
 function submitDecision(form, action) {
     if (!form) return;
 
@@ -65,12 +84,16 @@ function submitDecision(form, action) {
         if (!modalHidden || fetchResult === null) return;
 
         if (fetchResult.success) {
-            const successModal = new bootstrap.Modal(document.getElementById('successModal'), { backdrop: 'static' });
-            successModal.show();
-            setTimeout(() => {
-                successModal.hide();
+            const resultModalId = resultModalIdFor(fetchResult.status);
+            const resultModalEl = document.getElementById(resultModalId);
+            const resultModal = new bootstrap.Modal(resultModalEl, { backdrop: 'static' });
+
+            resultModalEl.addEventListener('hidden.bs.modal', function onResultHidden() {
+                resultModalEl.removeEventListener('hidden.bs.modal', onResultHidden);
                 location.reload();
-            }, 1500);
+            }, { once: true });
+
+            resultModal.show();
         } else {
             form.classList.remove('is-submitting');
             alert('Something went wrong. Please try again.');
@@ -89,10 +112,6 @@ function submitDecision(form, action) {
 
     const formData = new FormData(form);
 
-    // IMPORTANT: use getAttribute('action'), NOT form.action.
-    // form.action gets overridden by any <input name="action"> inside the
-    // form (browser quirk — named form elements shadow form properties),
-    // which was causing "[object HTMLInputElement]" to be sent as the URL.
     fetch(form.getAttribute('action'), {
         method: 'POST',
         headers: {
@@ -103,7 +122,7 @@ function submitDecision(form, action) {
     })
     .then(res => res.json())
     .then(data => {
-        fetchResult = { success: !!data.success };
+        fetchResult = { success: !!data.success, status: data.status };
         tryShowSuccess();
     })
     .catch(() => {

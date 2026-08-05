@@ -1,0 +1,460 @@
+/* ============================================================
+   LOAN APPLICATION DETAIL — REDESIGN
+   Ginagamit ito sa: loan-application-detail.blade.php
+   Parehong white + blue design language ng ibang admin pages.
+   Layout structure at data hindi ginalaw — spacing, hierarchy,
+   at usability lang ang pinolish dito.
+   ============================================================ */
+
+:root {
+    --rs-brand: #4a7cf7;
+    --rs-brand-soft: #eef3ff;
+    --rs-ink: #0f172a;
+    --rs-body: #475569;
+    --rs-muted: #94a3b8;
+    --rs-border: #e5e7eb;
+    --rs-bg: #f8fafc;
+
+    --rs-green: #16a34a;
+    --rs-green-soft: #ecfdf5;
+    --rs-green-border: #bbf7d0;
+
+    --rs-red: #dc2626;
+    --rs-red-soft: #fef2f2;
+    --rs-red-border: #fecaca;
+
+    --rs-amber: #b45309;
+    --rs-amber-soft: #fffbeb;
+    --rs-amber-border: #fde68a;
+
+    --rs-radius: 16px;
+    --rs-radius-sm: 10px;
+    --rs-shadow: 0 1px 2px rgba(15,23,42,.04), 0 10px 24px -14px rgba(15,23,42,.12);
+}
+
+body { background: var(--rs-bg); }
+
+.page-header-title h5 { color: var(--rs-ink); font-weight: 700; }
+.breadcrumb, .breadcrumb .breadcrumb-item { font-size: 0.8rem; color: var(--rs-muted); }
+
+.main-content { padding: 8px 0 32px; }
+
+/* ── Buttons ── */
+.btn-light {
+    background: #fff;
+    border: 1px solid var(--rs-border);
+    color: var(--rs-ink);
+    font-weight: 600;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    padding: 9px 18px;
+    transition: all .15s ease;
+}
+.btn-light:hover { border-color: var(--rs-brand); color: var(--rs-brand); background: var(--rs-brand-soft); }
+
+.btn-primary {
+    background: var(--rs-brand);
+    border-color: var(--rs-brand);
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 11px 16px;
+    font-size: 0.87rem;
+}
+.btn-primary:hover { background: #3a6ae0; border-color: #3a6ae0; }
+
+/* ============================================================
+   APPLICATION TIMELINE
+   ============================================================ */
+.ld-timeline {
+    display: flex;
+    align-items: flex-start;
+    background: #fff;
+    border: 1px solid var(--rs-border);
+    border-radius: var(--rs-radius);
+    box-shadow: var(--rs-shadow);
+    padding: 24px 32px;
+    margin-bottom: 28px;
+}
+.ld-timeline-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    min-width: 96px;
+}
+.ld-timeline-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f5f9;
+    color: var(--rs-muted);
+    border: 2px solid var(--rs-border);
+    font-size: 16px;
+    flex-shrink: 0;
+}
+.ld-timeline-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--rs-muted);
+    text-align: center;
+    white-space: nowrap;
+}
+.ld-timeline-step.is-complete .ld-timeline-icon {
+    background: var(--rs-brand-soft);
+    color: var(--rs-brand);
+    border-color: var(--rs-brand);
+}
+.ld-timeline-step.is-current .ld-timeline-icon {
+    background: var(--rs-brand);
+    color: #fff;
+    border-color: var(--rs-brand);
+    box-shadow: 0 0 0 4px var(--rs-brand-soft);
+}
+.ld-timeline-step.is-rejected .ld-timeline-icon {
+    background: var(--rs-red-soft);
+    color: var(--rs-red);
+    border-color: var(--rs-red-border);
+}
+.ld-timeline-step.is-complete .ld-timeline-label,
+.ld-timeline-step.is-current .ld-timeline-label {
+    color: var(--rs-ink);
+}
+.ld-timeline-step.is-rejected .ld-timeline-label { color: var(--rs-red); }
+
+.ld-timeline-line {
+    flex: 1;
+    height: 2px;
+    background: var(--rs-border);
+    margin-top: 19px;
+}
+.ld-timeline-line.is-complete { background: var(--rs-brand); }
+
+/* ============================================================
+   SECTION CARDS
+   ============================================================ */
+.section-card {
+    background: #fff;
+    border: 1px solid var(--rs-border);
+    border-radius: var(--rs-radius);
+    box-shadow: var(--rs-shadow);
+    padding: 28px 26px;
+    margin-bottom: 24px;
+}
+.section-card:last-child { margin-bottom: 0; }
+
+.section-title {
+    display: flex;
+    align-items: center;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--rs-ink);
+    margin: 0 0 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--rs-border);
+}
+.section-title i { color: var(--rs-brand); font-size: 15px; }
+
+/* Bootstrap's .row is display:flex, so the taller right column
+   (col-lg-8, with more cards) stretches the left column
+   (col-lg-4) to match its height by default. That stretch is
+   what caused a large blank gap above the sticky sidebar — some
+   browsers miscompute the sticky element's initial offset inside
+   a stretched flex item. align-self: flex-start keeps this
+   column sized to its own content instead. */
+.ld-left-col {
+    align-self: flex-start;
+}
+
+/* Sticky left column — borrower profile + loan summary stay
+   visible while scrolling the right column content. */
+.ld-sticky-col {
+    position: sticky;
+    top: 96px; /* clears the fixed top nav — adjust if header height changes */
+}
+@media (max-width: 991.98px) {
+    .ld-sticky-col { position: static; }
+}
+
+/* ── Borrower profile card ── */
+.borrower-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    background: linear-gradient(135deg, var(--rs-brand), #7ea3ff);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.4rem;
+}
+
+/* ── Badges ── */
+.badge-pending  { background: var(--rs-amber-soft); color: var(--rs-amber); border: 1px solid var(--rs-amber-border); }
+.badge-onhold   { background: var(--rs-amber-soft); color: var(--rs-amber); border: 1px solid var(--rs-amber-border); }
+.badge-approved { background: var(--rs-green-soft); color: #15803d; border: 1px solid var(--rs-green-border); }
+.badge-rejected { background: var(--rs-red-soft); color: #b91c1c; border: 1px solid var(--rs-red-border); }
+
+.alert-danger  { background: var(--rs-red-soft); color: #b91c1c; border: 1px solid var(--rs-red-border); border-radius: 10px; }
+.alert-success { background: var(--rs-green-soft); color: #15803d; border: 1px solid var(--rs-green-border); border-radius: 10px; }
+.alert-info    { background: var(--rs-brand-soft); color: var(--rs-brand); border: 1px solid #bfdbfe; border-radius: 10px; }
+
+/* ============================================================
+   LOAN SUMMARY
+   ============================================================ */
+.table-loan-summary td {
+    padding: 13px 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.85rem;
+}
+.table-loan-summary tr:last-child td { border-bottom: none; }
+.table-loan-summary .info-label { color: var(--rs-muted); font-weight: 500; }
+.table-loan-summary .info-value { font-weight: 600; color: var(--rs-ink); }
+
+/* Emphasized figures — Loan Amount, Total Interest, Total to Pay,
+   Monthly Payment — get a subtle color-accented pill instead of
+   plain colored text, so they're easier to scan at a glance. */
+.ld-value-pill {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.85rem;
+}
+.ld-pill-primary { background: var(--rs-brand-soft); color: var(--rs-brand); }
+.ld-pill-warning { background: var(--rs-amber-soft); color: var(--rs-amber); }
+.ld-pill-danger  { background: var(--rs-red-soft); color: var(--rs-red); }
+.ld-pill-success { background: var(--rs-green-soft); color: var(--rs-green); }
+
+/* ============================================================
+   INFO FIELDS (Personal Info / Address / Work Info)
+   ============================================================ */
+.ld-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 0;
+}
+.info-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--rs-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.info-value {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--rs-ink);
+    line-height: 1.4;
+}
+
+/* ============================================================
+   SUBMITTED VALID ID
+   ============================================================ */
+.ld-id-viewer {
+    border: 1px solid var(--rs-border);
+    border-radius: var(--rs-radius-sm);
+    background: #fbfcfe;
+    padding: 20px;
+    text-align: center;
+}
+.ld-id-viewer img {
+    max-width: 100%;
+    max-height: 320px;
+    border-radius: 10px;
+    border: 1px solid var(--rs-border);
+}
+.ld-id-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+}
+.btn-id-action {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--rs-border);
+    background: #fff;
+    color: var(--rs-ink);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all .15s ease;
+}
+.btn-id-action:hover { border-color: var(--rs-brand); color: var(--rs-brand); background: var(--rs-brand-soft); }
+
+/* ============================================================
+   ADMIN REVIEW STATUS
+   ============================================================ */
+.review-box {
+    border: 1px solid var(--rs-border);
+    border-radius: var(--rs-radius-sm);
+    background: #fbfcfe;
+    padding: 20px 16px;
+    text-align: center;
+    height: 100%;
+}
+.review-box.approved { border-color: var(--rs-green-border); background: #f7fefb; }
+.review-box.rejected { border-color: var(--rs-red-border); background: #fffafa; }
+.review-box.awaiting { border-color: var(--rs-border); background: #fbfcfe; }
+
+.review-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+}
+.review-box p { margin-bottom: 6px; }
+.review-box .badge { margin-bottom: 4px; }
+
+.ld-review-remark {
+    background: #fff;
+    border: 1px solid var(--rs-border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-top: 10px;
+    font-size: 0.78rem;
+    color: var(--rs-body);
+    font-style: italic;
+    text-align: left;
+    line-height: 1.4;
+}
+.ld-review-time {
+    font-size: 0.72rem;
+    color: var(--rs-muted);
+    margin-top: 8px;
+}
+
+/* ============================================================
+   DISCUSSION (formerly plain Comments box)
+   ============================================================ */
+.ld-discussion {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-bottom: 22px;
+}
+.ld-comment { display: flex; gap: 12px; }
+.ld-comment-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--rs-brand-soft);
+    color: var(--rs-brand);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.76rem;
+}
+.ld-comment-body {
+    flex: 1;
+    background: #f8fafc;
+    border: 1px solid var(--rs-border);
+    border-radius: 12px;
+    padding: 12px 16px;
+}
+.ld-comment-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+.ld-comment-name { font-weight: 700; font-size: 0.83rem; color: var(--rs-ink); }
+.ld-comment-time { font-size: 0.72rem; color: var(--rs-muted); white-space: nowrap; }
+.ld-comment-text { margin: 0; font-size: 0.84rem; color: var(--rs-body); line-height: 1.55; }
+
+.ld-discussion-empty {
+    font-size: 0.83rem;
+    color: var(--rs-muted);
+    text-align: center;
+    padding: 22px 0;
+}
+
+.ld-comment-form textarea {
+    border-radius: 10px;
+    border: 1px solid var(--rs-border);
+    font-size: 0.85rem;
+    resize: vertical;
+    min-height: 84px;
+}
+.ld-comment-form textarea:focus {
+    border-color: var(--rs-brand);
+    box-shadow: 0 0 0 3px var(--rs-brand-soft);
+    outline: none;
+}
+.btn-post-comment {
+    margin-top: 12px;
+    padding: 9px 20px;
+    border-radius: 8px;
+    border: none;
+    background: var(--rs-brand);
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.83rem;
+    transition: background .15s ease;
+}
+.btn-post-comment:hover { background: #3a6ae0; }
+
+/* ============================================================
+   DARK MODE
+   ============================================================ */
+html.app-skin-dark body { background: #0f172a; }
+html.app-skin-dark .section-card,
+html.app-skin-dark .ld-timeline { background: #1e2a3a; border-color: #2d3f55; }
+html.app-skin-dark .section-title { color: #e2e8f0; border-color: #2d3f55; }
+html.app-skin-dark .info-value,
+html.app-skin-dark .table-loan-summary .info-value { color: #e2e8f0; }
+html.app-skin-dark .info-label,
+html.app-skin-dark .table-loan-summary .info-label { color: #94a3b8; }
+html.app-skin-dark .table-loan-summary td { border-color: #2d3f55; }
+html.app-skin-dark .btn-light { background: #16202e; border-color: #2d3f55; color: #e2e8f0; }
+html.app-skin-dark .ld-id-viewer { background: #16202e; border-color: #2d3f55; }
+html.app-skin-dark .btn-id-action { background: #16202e; border-color: #2d3f55; color: #e2e8f0; }
+html.app-skin-dark .review-box { background: #16202e; border-color: #2d3f55; }
+html.app-skin-dark .ld-review-remark { background: #1e2a3a; border-color: #2d3f55; color: #cbd5e1; }
+html.app-skin-dark .ld-comment-body { background: #16202e; border-color: #2d3f55; }
+html.app-skin-dark .ld-comment-name { color: #e2e8f0; }
+html.app-skin-dark .ld-comment-text { color: #cbd5e1; }
+html.app-skin-dark .ld-timeline-icon { background: #16202e; border-color: #2d3f55; }
+html.app-skin-dark .ld-timeline-label { color: #94a3b8; }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.nxl-container {
+    min-height: calc(100vh - 80px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+.nxl-content { flex: 1 !important; display: flex !important; flex-direction: column !important; }
+.nxl-content .main-content { flex: 1 !important; }
+.footer { flex-shrink: 0 !important; margin-top: auto !important; }
+
+/* ============================================================
+   SIDEBAR SUBMENU HIGHLIGHT
+   ============================================================ */
+.nxl-submenu li[data-current="true"] > a.nxl-link {
+    background: rgba(74, 124, 247, 0.1) !important;
+    color: var(--rs-brand) !important;
+    font-weight: 600 !important;
+    border-radius: 6px;
+}
+.nxl-submenu li[data-current="false"].active > a.nxl-link:not(:hover) {
+    background: transparent !important;
+}

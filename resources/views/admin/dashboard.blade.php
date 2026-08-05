@@ -29,27 +29,44 @@
                     </li>
 
                     <!-- Borrower Verification -->
-                    <li class="nxl-item">
-                        <a href="{{ route('admin.borrower-verification') }}" class="nxl-link">
+                     <li class="nxl-item nxl-hasmenu">
+                        <a href="javascript:void(0);" class="nxl-link">
                             <span class="nxl-micon"><i class="feather-user-check"></i></span>
                             <span class="nxl-mtext">Borrower Verification</span>
-                            @if($pendingVerificationCount > 0)
-                                <span class="badge bg-danger ms-auto">{{ $pendingVerificationCount }}</span>
+                            @if($pendingCount > 0)
+                                <span class="badge bg-danger ms-auto">{{ $pendingCount }}</span>
                             @endif
+                            <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
                         </a>
+                        <ul class="nxl-submenu">
+                            <li class="nxl-item" data-current="{{ ($viewStatus ?? 'pending') === 'pending' ? 'true' : 'false' }}">
+                                <a class="nxl-link" href="{{ route('admin.borrower-verification') }}">Pending</a>
+                            </li>
+                            <li class="nxl-item" data-current="{{ ($viewStatus ?? '') === 'approved' ? 'true' : 'false' }}">
+                                <a class="nxl-link" href="{{ route('admin.borrower-verification', ['status' => 'approved']) }}">Approved</a>
+                            </li>
+                            <li class="nxl-item" data-current="{{ ($viewStatus ?? '') === 'rejected' ? 'true' : 'false' }}">
+                                <a class="nxl-link" href="{{ route('admin.borrower-verification', ['status' => 'rejected']) }}">Rejected</a>
+                            </li>
+                            <li class="nxl-item" data-current="{{ ($viewStatus ?? '') === 'on_hold' ? 'true' : 'false' }}">
+                                <a class="nxl-link" href="{{ route('admin.borrower-verification', ['status' => 'on_hold']) }}">On Hold</a>
+                            </li>
+                        </ul>
                     </li>
-
                     <li class="nxl-item nxl-hasmenu">
                         <a href="javascript:void(0);" class="nxl-link">
                             <span class="nxl-micon"><i class="feather-file-text"></i></span>
                             <span class="nxl-mtext">Loan Applications</span>
+                            @if(($pendingLoanCount ?? 0) > 0)
+                                <span class="badge bg-danger ms-auto">{{ $pendingLoanCount }}</span>
+                            @endif
                             <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
                         </a>
                         <ul class="nxl-submenu">
                             <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.loan-applications') }}">Pending Applications</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="#">Approved</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="#">Rejected</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="#">On Hold</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'approved']) }}">Approved</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'rejected']) }}">Rejected</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'on_hold']) }}">On Hold</a></li>
                         </ul>
                     </li>
                     <li class="nxl-item nxl-hasmenu">
@@ -59,8 +76,8 @@
                             <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
                         </a>
                         <ul class="nxl-submenu">
-                            <li class="nxl-item"><a class="nxl-link" href="#">All Borrowers</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="#">Active Borrowers</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.borrowers') }}">All Borrowers</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.active-borrowers') }}">Active Borrowers</a></li>
                             <li class="nxl-item"><a class="nxl-link" href="#">Penalty Tracking</a></li>
                         </ul>
                     </li>

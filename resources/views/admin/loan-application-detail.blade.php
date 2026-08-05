@@ -9,27 +9,19 @@
     <link rel="stylesheet" href="{{ asset('assets/admin/css/bootstrap.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/admin/vendors/css/vendors.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/admin/css/theme.min.css') }}" />
-   <link rel="stylesheet" href="{{ asset('assets/admin/css/logout-modal.css') }}">
-<link rel="stylesheet" href="{{ asset('assets/admin/css/modals-modern.css') }}">
-    <style>
-        .section-card { border:1px solid #e9ecef; border-radius:12px; padding:20px; margin-bottom:16px; background:#fff; }
-        .section-title { font-size:0.78rem; font-weight:700; color:#8a9bb0; text-transform:uppercase; margin-bottom:16px; padding-bottom:10px; border-bottom:1px solid #f1f5f9; }
-        .info-label { font-size:0.72rem; color:#8a9bb0; font-weight:600; text-transform:uppercase; display:block; }
-        .info-value { font-size:0.9rem; font-weight:600; color:#1a2a3a; }
-        .borrower-avatar { width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg,#4a7cf7,#6ea8fe); display:flex; align-items:center; justify-content:center; margin:0 auto 12px; font-size:1.3rem; font-weight:700; color:#fff; }
-        .review-box { border:1px solid #e9ecef; border-radius:10px; padding:16px 12px; text-align:center; }
-        .review-box.approved { border-color:#16a34a; background:#f0fdf4; }
-        .review-box.rejected { border-color:#dc2626; background:#fef2f2; }
-        .review-box.awaiting { border-color:#e2e8f0; background:#f8fafc; }
-        .review-icon { width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 8px; }
-        .badge-pending  { background:#fff8e1; color:#f0a500; border:1px solid #f0a500; }
-        .badge-approved { background:#dcfce7; color:#16a34a; border:1px solid #16a34a; }
-        .badge-rejected { background:#fee2e2; color:#dc2626; border:1px solid #dc2626; }
-        .badge-onhold   { background:#fff3cd; color:#856404; border:1px solid #856404; }
-        .info-row { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:16px; margin-bottom:4px; }
-    </style>
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/logout-modal.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/modals-modern.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/loan-details.css') }}">
 </head>
 <body>
+    @php
+        // Dynamic origin tracking: kung saan galing ang admin (Loan
+        // Applications list o Active Borrowers list) para tama ang naka-
+        // highlight na parent menu, breadcrumb, at Back button dito.
+        // Pina-pass via ?from=loan-applications|active-borrowers sa
+        // "View Details" links.
+        $cameFrom = request()->query('from', 'loan-applications');
+    @endphp
     <nav class="nxl-navigation">
         <div class="navbar-wrapper">
             <div class="m-header">
@@ -43,16 +35,23 @@
                             <span class="nxl-mtext">Dashboard</span>
                         </a>
                     </li>
-                    <li class="nxl-item">
-                        <a href="{{ route('admin.borrower-verification') }}" class="nxl-link">
+                 <li class="nxl-item nxl-hasmenu">
+                        <a href="javascript:void(0);" class="nxl-link">
                             <span class="nxl-micon"><i class="feather-user-check"></i></span>
                             <span class="nxl-mtext">Borrower Verification</span>
-                            @if(($pendingCount ?? 0) > 0)
+                            @if($pendingCount > 0)
                                 <span class="badge bg-danger ms-auto">{{ $pendingCount }}</span>
                             @endif
+                            <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
                         </a>
+                        <ul class="nxl-submenu">
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.borrower-verification') }}">Pending</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.borrower-verification', ['status' => 'approved']) }}">Approved</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.borrower-verification', ['status' => 'rejected']) }}">Rejected</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.borrower-verification', ['status' => 'on_hold']) }}">On Hold</a></li>
+                        </ul>
                     </li>
-                    <li class="nxl-item nxl-hasmenu nxl-trigger active">
+                    <li class="nxl-item nxl-hasmenu {{ $cameFrom !== 'active-borrowers' ? 'nxl-trigger active' : '' }}">
                         <a href="javascript:void(0);" class="nxl-link">
                             <span class="nxl-micon"><i class="feather-file-text"></i></span>
                             <span class="nxl-mtext">Loan Applications</span>
@@ -62,21 +61,31 @@
                             <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
                         </a>
                         <ul class="nxl-submenu">
-                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.loan-applications') }}">Pending Applications</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'approved']) }}">Approved</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'rejected']) }}">Rejected</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'on_hold']) }}">On Hold</a></li>
+                            <li class="nxl-item" data-current="{{ $cameFrom !== 'active-borrowers' && ($viewStatus ?? 'pending') === 'pending' ? 'true' : 'false' }}">
+                                <a class="nxl-link" href="{{ route('admin.loan-applications') }}">Pending Applications</a>
+                            </li>
+                            <li class="nxl-item" data-current="{{ $cameFrom !== 'active-borrowers' && ($viewStatus ?? '') === 'approved' ? 'true' : 'false' }}">
+                                <a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'approved']) }}">Approved</a>
+                            </li>
+                            <li class="nxl-item" data-current="{{ $cameFrom !== 'active-borrowers' && ($viewStatus ?? '') === 'rejected' ? 'true' : 'false' }}">
+                                <a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'rejected']) }}">Rejected</a>
+                            </li>
+                            <li class="nxl-item" data-current="{{ $cameFrom !== 'active-borrowers' && ($viewStatus ?? '') === 'on_hold' ? 'true' : 'false' }}">
+                                <a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'on_hold']) }}">On Hold</a>
+                            </li>
                         </ul>
                     </li>
-                    <li class="nxl-item nxl-hasmenu">
+                    <li class="nxl-item nxl-hasmenu {{ $cameFrom === 'active-borrowers' ? 'nxl-trigger active' : '' }}">
                         <a href="javascript:void(0);" class="nxl-link">
                             <span class="nxl-micon"><i class="feather-users"></i></span>
                             <span class="nxl-mtext">Borrowers</span>
                             <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
                         </a>
                         <ul class="nxl-submenu">
-                            <li class="nxl-item"><a class="nxl-link" href="#">All Borrowers</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="#">Active Borrowers</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.borrowers') }}">All Borrowers</a></li>
+                            <li class="nxl-item" data-current="{{ $cameFrom === 'active-borrowers' ? 'true' : 'false' }}">
+                                <a class="nxl-link" href="{{ route('admin.active-borrowers') }}">Active Borrowers</a>
+                            </li>
                             <li class="nxl-item"><a class="nxl-link" href="#">Penalty Tracking</a></li>
                         </ul>
                     </li>
@@ -131,14 +140,24 @@
                     <div class="page-header-title"><h5 class="m-b-10">Application Detail</h5></div>
                     <ul class="breadcrumb">
                         <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Home</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('admin.loan-applications') }}">Loan Applications</a></li>
+                        @if($cameFrom === 'active-borrowers')
+                            <li class="breadcrumb-item"><a href="{{ route('admin.active-borrowers') }}">Active Borrowers</a></li>
+                        @else
+                            <li class="breadcrumb-item"><a href="{{ route('admin.loan-applications') }}">Loan Applications</a></li>
+                        @endif
                         <li class="breadcrumb-item">#{{ $applicationId }}</li>
                     </ul>
                 </div>
                 <div class="page-header-right ms-auto">
-                    <a href="{{ route('admin.loan-applications') }}" class="btn btn-light">
-                       Back
-                    </a>
+                    @if($cameFrom === 'active-borrowers')
+                        <a href="{{ route('admin.active-borrowers') }}" class="btn btn-light">
+                           Back
+                        </a>
+                    @else
+                        <a href="{{ route('admin.loan-applications', ['status' => $viewStatus]) }}" class="btn btn-light">
+                           Back
+                        </a>
+                    @endif
                 </div>
             </div>
 
@@ -159,67 +178,69 @@
                 <div class="row">
 
                     <!-- LEFT COLUMN -->
-                    <div class="col-lg-4">
-                        <div class="section-card text-center mb-3">
-                            <div class="borrower-avatar">
-                                {{ strtoupper(substr($app->first_name ?? '', 0, 1) . substr($app->last_name ?? '', 0, 1)) }}
+                    <div class="col-lg-4 ld-left-col">
+                        <div class="ld-sticky-col">
+                            <div class="section-card text-center mb-3">
+                                <div class="borrower-avatar">
+                                    {{ strtoupper(substr($app->first_name ?? '', 0, 1) . substr($app->last_name ?? '', 0, 1)) }}
+                                </div>
+                                <h6 class="fw-bold mb-1">
+                                    {{ $app->last_name }}, {{ $app->first_name }} {{ $app->middle_name }}{{ ($app->suffix ?? null) ? ', ' . $app->suffix : '' }}
+                                </h6>
+                                <p class="text-muted mb-3" style="font-size:0.83rem;">{{ $app->email }}</p>
+
+                                @php
+                                $statusClass = match($app->status) {
+                                    'approved' => 'badge-approved',
+                                    'rejected' => 'badge-rejected',
+                                    'on_hold'  => 'badge-onhold',
+                                    default    => 'badge-pending',
+                                };
+                                @endphp
+                                <span class="badge {{ $statusClass }} px-3 py-2 mb-3">
+                                    {{ ucfirst(str_replace('_', ' ', $app->status)) }}
+                                </span>
+
+                                @if($app->status === 'rejected')
+                                <div class="alert alert-danger mb-0" style="font-size:0.85rem;">
+                                    <i class="feather-x-circle me-2"></i>
+                                    Fully <strong>rejected</strong> by all 3 admins. No further action.
+                                </div>
+
+                                @elseif($app->status === 'approved')
+                                <div class="alert alert-success mb-0" style="font-size:0.85rem;">
+                                    <i class="feather-check-circle me-2"></i>
+                                    Fully <strong>approved</strong>. No further action needed.
+                                </div>
+
+                                @elseif($myReview)
+                                <div class="alert alert-info mb-0 mt-2" style="font-size:0.82rem;">
+                                    <i class="feather-check-circle me-1"></i> You have already reviewed this application.
+                                </div>
+
+                                @else
+                                <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#decisionModal">
+                                    Make a Decision
+                                </button>
+                                @endif
                             </div>
-                            <h6 class="fw-bold mb-1">
-                                {{ $app->last_name }}, {{ $app->first_name }} {{ $app->middle_name }}{{ ($app->suffix ?? null) ? ', ' . $app->suffix : '' }}
-                            </h6>
-                            <p class="text-muted mb-3" style="font-size:0.83rem;">{{ $app->email }}</p>
 
-                            @php
-                            $statusClass = match($app->status) {
-                                'approved' => 'badge-approved',
-                                'rejected' => 'badge-rejected',
-                                'on_hold'  => 'badge-onhold',
-                                default    => 'badge-pending',
-                            };
-                            @endphp
-                            <span class="badge {{ $statusClass }} px-3 py-2 mb-3">
-                                {{ ucfirst(str_replace('_', ' ', $app->status)) }}
-                            </span>
-
-                            @if($app->status === 'rejected')
-                            <div class="alert alert-danger mb-0" style="font-size:0.85rem;">
-                                <i class="feather-x-circle me-2"></i>
-                                Fully <strong>rejected</strong> by all 3 admins. No further action.
+                            <!-- Loan Summary -->
+                            <div class="section-card">
+                                <p class="section-title"><i class="feather-file-text me-2"></i>Loan Summary</p>
+                                <table class="table table-sm table-borderless table-loan-summary mb-0">
+                                    <tr><td class="info-label">Application ID</td><td class="text-end info-value">#{{ $app->application_id }}</td></tr>
+                                    <tr><td class="info-label">Loan Amount</td><td class="text-end"><span class="ld-value-pill ld-pill-primary">₱{{ number_format($app->loan_amount, 2) }}</span></td></tr>
+                                    <tr><td class="info-label">Term</td><td class="text-end info-value">{{ $app->loan_term }} months</td></tr>
+                                    <tr><td class="info-label">Interest Rate</td><td class="text-end info-value">5% / month</td></tr>
+                                    <tr><td class="info-label">Total Interest</td><td class="text-end"><span class="ld-value-pill ld-pill-warning">₱{{ number_format($app->total_interest ?? 0, 2) }}</span></td></tr>
+                                    <tr><td class="info-label">Total to Pay</td><td class="text-end"><span class="ld-value-pill ld-pill-danger">₱{{ number_format($app->total_amount ?? 0, 2) }}</span></td></tr>
+                                    <tr><td class="info-label">Monthly Payment</td><td class="text-end"><span class="ld-value-pill ld-pill-success">₱{{ number_format($app->monthly_payment ?? 0, 2) }}</span></td></tr>
+                                    <tr><td class="info-label">Purpose</td><td class="text-end info-value">{{ ucfirst(str_replace('_', ' ', $app->loan_purpose)) }}</td></tr>
+                                    <tr><td class="info-label">Referral</td><td class="text-end info-value">{{ ucfirst(str_replace('_', ' ', $app->referral_source ?? '—')) }}</td></tr>
+                                    <tr><td class="info-label">Applied</td><td class="text-end info-value">{{ date('M d, Y', strtotime($app->applied_at)) }}</td></tr>
+                                </table>
                             </div>
-
-                            @elseif($app->status === 'approved')
-                            <div class="alert alert-success mb-0" style="font-size:0.85rem;">
-                                <i class="feather-check-circle me-2"></i>
-                                Fully <strong>approved</strong>. No further action needed.
-                            </div>
-
-                            @elseif($myReview)
-                            <div class="alert alert-info mb-0 mt-2" style="font-size:0.82rem;">
-                                <i class="feather-check-circle me-1"></i> You have already reviewed this application.
-                            </div>
-
-                            @else
-                            <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#decisionModal">
-                                Make a Decision
-                            </button>
-                            @endif
-                        </div>
-
-                        <!-- Loan Summary -->
-                        <div class="section-card">
-                            <p class="section-title"><i class="feather-file-text me-2"></i>Loan Summary</p>
-                            <table class="table table-sm table-borderless mb-0">
-                                <tr><td class="info-label">Application ID</td><td class="text-end info-value">#{{ $app->application_id }}</td></tr>
-                                <tr><td class="info-label">Loan Amount</td><td class="text-end info-value text-primary">₱{{ number_format($app->loan_amount, 2) }}</td></tr>
-                                <tr><td class="info-label">Term</td><td class="text-end info-value">{{ $app->loan_term }} months</td></tr>
-                                <tr><td class="info-label">Interest Rate</td><td class="text-end info-value">5% / month</td></tr>
-                                <tr><td class="info-label">Total Interest</td><td class="text-end info-value text-warning">₱{{ number_format($app->total_interest ?? 0, 2) }}</td></tr>
-                                <tr><td class="info-label">Total to Pay</td><td class="text-end info-value text-danger">₱{{ number_format($app->total_amount ?? 0, 2) }}</td></tr>
-                                <tr><td class="info-label">Monthly Payment</td><td class="text-end info-value text-success">₱{{ number_format($app->monthly_payment ?? 0, 2) }}</td></tr>
-                                <tr><td class="info-label">Purpose</td><td class="text-end info-value">{{ ucfirst(str_replace('_', ' ', $app->loan_purpose)) }}</td></tr>
-                                <tr><td class="info-label">Referral</td><td class="text-end info-value">{{ ucfirst(str_replace('_', ' ', $app->referral_source ?? '—')) }}</td></tr>
-                                <tr><td class="info-label">Applied</td><td class="text-end info-value">{{ date('M d, Y', strtotime($app->applied_at)) }}</td></tr>
-                            </table>
                         </div>
                     </div>
 
@@ -248,10 +269,10 @@
                                                 <span class="badge {{ $review->decision === 'approved' ? 'badge-approved' : 'badge-rejected' }} px-2 py-1">
                                                     {{ ucfirst($review->decision) }}
                                                 </span>
+                                                <p class="ld-review-time mb-0">{{ \Carbon\Carbon::parse($review->reviewed_at)->format('M d, Y g:i A') }}</p>
                                                 @if($review->remarks)
-                                                <p class="text-muted mt-2 mb-0" style="font-size:0.75rem;">"{{ $review->remarks }}"</p>
+                                                <p class="ld-review-remark mb-0">&ldquo;{{ $review->remarks }}&rdquo;</p>
                                                 @endif
-                                                <p class="text-muted mt-1 mb-0" style="font-size:0.72rem;">{{ \Carbon\Carbon::parse($review->reviewed_at)->format('M d, Y g:i A') }}</p>
                                             @else
                                                 <p class="fw-bold mb-1" style="font-size:0.85rem;">Admin {{ $i + 1 }}</p>
                                                 <span class="badge badge-pending px-2 py-1">Awaiting</span>
@@ -266,14 +287,14 @@
                         <div class="section-card mb-3">
                             <p class="section-title"><i class="feather-user me-2"></i>Personal Information</p>
                             <div class="row g-3">
-                                <div class="col-md-6"><span class="info-label">Full Name</span><span class="info-value">{{ $app->first_name }} {{ $app->middle_name }} {{ $app->last_name }}{{ ($app->suffix ?? null) ? ', ' . $app->suffix : '' }}</span></div>
-                                <div class="col-md-6"><span class="info-label">Birthday</span><span class="info-value">{{ ($app->birthday ?? null) ? \Carbon\Carbon::parse($app->birthday)->format('F d, Y') : '—' }}</span></div>
-                                <div class="col-md-6"><span class="info-label">Gender</span><span class="info-value">{{ ucfirst($app->gender ?? '—') }}</span></div>
-                                <div class="col-md-6"><span class="info-label">Civil Status</span><span class="info-value">{{ ucfirst($app->civil_status ?? '—') }}</span></div>
-                                <div class="col-md-6"><span class="info-label">Citizenship</span><span class="info-value">{{ $app->citizenship ?? '—' }}</span></div>
-                                <div class="col-md-6"><span class="info-label">Cellphone</span><span class="info-value">{{ $app->cellphone_num ?? '—' }}</span></div>
-                                <div class="col-md-6"><span class="info-label">Email</span><span class="info-value">{{ $app->email }}</span></div>
-                                <div class="col-md-6"><span class="info-label">Monthly Income</span><span class="info-value text-success">{{ ($app->monthly_income ?? null) ? '₱' . number_format($app->monthly_income, 2) : '—' }}</span></div>
+                                <div class="col-md-6"><div class="ld-field"><span class="info-label">Full Name</span><span class="info-value">{{ $app->first_name }} {{ $app->middle_name }} {{ $app->last_name }}{{ ($app->suffix ?? null) ? ', ' . $app->suffix : '' }}</span></div></div>
+                                <div class="col-md-6"><div class="ld-field"><span class="info-label">Birthday</span><span class="info-value">{{ ($app->birthday ?? null) ? \Carbon\Carbon::parse($app->birthday)->format('F d, Y') : '—' }}</span></div></div>
+                                <div class="col-md-6"><div class="ld-field"><span class="info-label">Gender</span><span class="info-value">{{ ucfirst($app->gender ?? '—') }}</span></div></div>
+                                <div class="col-md-6"><div class="ld-field"><span class="info-label">Civil Status</span><span class="info-value">{{ ucfirst($app->civil_status ?? '—') }}</span></div></div>
+                                <div class="col-md-6"><div class="ld-field"><span class="info-label">Citizenship</span><span class="info-value">{{ $app->citizenship ?? '—' }}</span></div></div>
+                                <div class="col-md-6"><div class="ld-field"><span class="info-label">Cellphone</span><span class="info-value">{{ $app->cellphone_num ?? '—' }}</span></div></div>
+                                <div class="col-md-6"><div class="ld-field"><span class="info-label">Email</span><span class="info-value">{{ $app->email }}</span></div></div>
+                                <div class="col-md-6"><div class="ld-field"><span class="info-label">Monthly Income</span><span class="info-value text-success">{{ ($app->monthly_income ?? null) ? '₱' . number_format($app->monthly_income, 2) : '—' }}</span></div></div>
                             </div>
                         </div>
 
@@ -281,11 +302,11 @@
                         <div class="section-card mb-3">
                             <p class="section-title"><i class="feather-map-pin me-2"></i>Present Address</p>
                             <div class="row g-3">
-                                <div class="col-md-6"><span class="info-label">Region</span><span class="info-value">{{ $address->region ?? '—' }}</span></div>
-                                <div class="col-md-6"><span class="info-label">Province</span><span class="info-value">{{ $address->province ?? '—' }}</span></div>
-                                <div class="col-md-6"><span class="info-label">City / Municipality</span><span class="info-value">{{ $address->city ?? '—' }}</span></div>
-                                <div class="col-md-6"><span class="info-label">Barangay</span><span class="info-value">{{ $address->barangay ?? '—' }}</span></div>
-                                <div class="col-12"><span class="info-label">Home Address</span><span class="info-value">{{ $address->home_address ?? '—' }}</span></div>
+                                <div class="col-md-6"><div class="ld-field"><span class="info-label">Region</span><span class="info-value">{{ $address->region ?? '—' }}</span></div></div>
+                                <div class="col-md-6"><div class="ld-field"><span class="info-label">Province</span><span class="info-value">{{ $address->province ?? '—' }}</span></div></div>
+                                <div class="col-md-6"><div class="ld-field"><span class="info-label">City / Municipality</span><span class="info-value">{{ $address->city ?? '—' }}</span></div></div>
+                                <div class="col-md-6"><div class="ld-field"><span class="info-label">Barangay</span><span class="info-value">{{ $address->barangay ?? '—' }}</span></div></div>
+                                <div class="col-12"><div class="ld-field"><span class="info-label">Home Address</span><span class="info-value">{{ $address->home_address ?? '—' }}</span></div></div>
                             </div>
                         </div>
 
@@ -293,10 +314,10 @@
                         <div class="section-card mb-3">
                             <p class="section-title"><i class="feather-briefcase me-2"></i>Work Information</p>
                             <div class="row g-3">
-                                <div class="col-md-6"><span class="info-label">Employment Status</span><span class="info-value">{{ ucfirst(str_replace('_', ' ', $work->employment_status ?? '—')) }}</span></div>
-                                <div class="col-md-6"><span class="info-label">Company / School</span><span class="info-value">{{ $work->company_name ?? '—' }}</span></div>
-                                <div class="col-md-6"><span class="info-label">Position</span><span class="info-value">{{ $work->position ?? '—' }}</span></div>
-                                <div class="col-md-6"><span class="info-label">Years in Company</span><span class="info-value">{{ $work->years_in_company ?? '—' }} years</span></div>
+                                <div class="col-md-6"><div class="ld-field"><span class="info-label">Employment Status</span><span class="info-value">{{ ucfirst(str_replace('_', ' ', $work->employment_status ?? '—')) }}</span></div></div>
+                                <div class="col-md-6"><div class="ld-field"><span class="info-label">Company / School</span><span class="info-value">{{ $work->company_name ?? '—' }}</span></div></div>
+                                <div class="col-md-6"><div class="ld-field"><span class="info-label">Position</span><span class="info-value">{{ $work->position ?? '—' }}</span></div></div>
+                                <div class="col-md-6"><div class="ld-field"><span class="info-label">Years in Company</span><span class="info-value">{{ $work->years_in_company ?? '—' }} years</span></div></div>
                             </div>
                         </div>
 
@@ -305,33 +326,68 @@
                         <div class="section-card mb-3">
                             <p class="section-title"><i class="feather-credit-card me-2"></i>Submitted Valid ID</p>
                             <div class="row g-3">
-                                <div class="col-md-6"><span class="info-label">ID Type</span><span class="info-value">{{ ucfirst(str_replace('_', ' ', $app->id_type ?? '—')) }}</span></div>
-                                <div class="col-md-6"><span class="info-label">ID Number</span><span class="info-value">{{ $app->id_number ?? '—' }}</span></div>
+                                <div class="col-md-6"><div class="ld-field"><span class="info-label">ID Type</span><span class="info-value">{{ ucfirst(str_replace('_', ' ', $app->id_type ?? '—')) }}</span></div></div>
+                                <div class="col-md-6"><div class="ld-field"><span class="info-label">ID Number</span><span class="info-value">{{ $app->id_number ?? '—' }}</span></div></div>
                                 <div class="col-12">
                                     @php $ext = strtolower(pathinfo($app->id_file_path, PATHINFO_EXTENSION)); @endphp
                                     @if(in_array($ext, ['jpg','jpeg','png','gif','webp']))
-                                        <img src="{{ asset('storage/' . $app->id_file_path) }}" alt="Valid ID" style="max-width:100%;max-height:300px;border-radius:8px;border:1px solid #e2e8f0;">
+                                        <div class="ld-id-viewer">
+                                            <img src="{{ asset('storage/' . $app->id_file_path) }}" alt="Valid ID">
+                                        </div>
+                                        <div class="ld-id-actions">
+                                            <a href="{{ asset('storage/' . $app->id_file_path) }}" target="_blank" class="btn-id-action">
+                                                <i class="feather-maximize-2"></i> View Full Size
+                                            </a>
+                                            <a href="{{ asset('storage/' . $app->id_file_path) }}" download class="btn-id-action">
+                                                <i class="feather-download"></i> Download
+                                            </a>
+                                        </div>
                                     @elseif($ext === 'pdf')
-                                        <a href="{{ asset('storage/' . $app->id_file_path) }}" target="_blank" class="btn btn-outline-primary">
-                                            <i class="feather-file me-2"></i>View PDF
-                                        </a>
+                                        <div class="ld-id-viewer">
+                                            <i class="feather-file-text" style="font-size:44px;color:#94a3b8;"></i>
+                                            <p class="text-muted mt-2 mb-0" style="font-size:0.82rem;">PDF document</p>
+                                        </div>
+                                        <div class="ld-id-actions">
+                                            <a href="{{ asset('storage/' . $app->id_file_path) }}" target="_blank" class="btn-id-action">
+                                                <i class="feather-external-link"></i> View Full Size
+                                            </a>
+                                            <a href="{{ asset('storage/' . $app->id_file_path) }}" download class="btn-id-action">
+                                                <i class="feather-download"></i> Download
+                                            </a>
+                                        </div>
                                     @endif
                                 </div>
                             </div>
                         </div>
                         @endif
 
-                        <!-- Comments -->
+                        <!-- Discussion -->
                         <div class="section-card">
-                            <p class="section-title"><i class="feather-message-square me-2"></i>Comments</p>
-                            @foreach($comments as $c)
-                            <p style="font-size:0.85rem;"><strong>{{ $c->admin_name }}:</strong> {{ $c->comment }}</p>
-                            @endforeach
+                            <p class="section-title"><i class="feather-message-square me-2"></i>Discussion</p>
 
-                            <form method="POST" action="{{ route('admin.loan-application-detail', $applicationId) }}" class="mt-2">
+                            <div class="ld-discussion">
+                                @forelse($comments as $c)
+                                <div class="ld-comment">
+                                    <div class="ld-comment-avatar">{{ strtoupper(substr($c->admin_name ?? '?', 0, 1)) }}</div>
+                                    <div class="ld-comment-body">
+                                        <div class="ld-comment-head">
+                                            <span class="ld-comment-name">{{ $c->admin_name }}</span>
+                                            @isset($c->created_at)
+                                            <span class="ld-comment-time">{{ \Carbon\Carbon::parse($c->created_at)->diffForHumans() }}</span>
+                                            @endisset
+                                        </div>
+                                        <p class="ld-comment-text">{{ $c->comment }}</p>
+                                    </div>
+                                </div>
+                                @empty
+                                <p class="ld-discussion-empty">No comments yet. Be the first to add one.</p>
+                                @endforelse
+                            </div>
+
+                            <form method="POST" action="{{ route('admin.loan-application-detail', $applicationId) }}" class="ld-comment-form">
                                 @csrf
-                                <textarea name="comment" class="form-control mb-2" placeholder="Add a comment..."></textarea>
-                                <button type="submit" class="btn btn-outline-primary btn-sm">Post Comment</button>
+                                <textarea name="comment" class="form-control" placeholder="Add a comment..."></textarea>
+                                <button type="submit" class="btn-post-comment">Post Comment</button>
                             </form>
                         </div>
 

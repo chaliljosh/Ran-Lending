@@ -1,0 +1,272 @@
+  /* ============================================
+           BASE STYLES (existing — unchanged)
+        ============================================ */
+        .section-title {
+            font-size: 0.78rem; font-weight: 700; color: #4a7cf7;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            margin-bottom: 16px; padding-bottom: 8px;
+            border-bottom: 2px solid #e8f0fe;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .section-title i { font-size: 0.95rem; }
+        .info-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 18px; margin-bottom: 22px; }
+        .info-item label { font-size: 0.7rem; font-weight: 600; color: #8a9bb0; text-transform: uppercase; letter-spacing: 0.4px; display: block; margin-bottom: 4px; }
+        .info-item span { font-size: 0.88rem; color: #1a2a3a; font-weight: 500; }
+        .info-item.highlight span { color: #4a7cf7; font-weight: 700; font-size: 0.95rem; }
+
+        .badge-approved { background: #dcfce7; color: #16a34a; border: 1px solid #16a34a; }
+        .badge-rejected { background: #fee2e2; color: #dc2626; border: 1px solid #dc2626; }
+        .badge-pending  { background: #fff8e1; color: #f0a500; border: 1px solid #f0a500; }
+        .badge-onhold   { background: #fff3cd; color: #856404; border: 1px solid #856404; }
+
+        /* ============================================
+           CARD POLISH
+        ============================================ */
+        .main-content .card {
+            border: 1px solid #eef1f6;
+            border-radius: 14px;
+            box-shadow: 0 2px 10px rgba(20, 30, 60, 0.04);
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+        .main-content .card:hover {
+            box-shadow: 0 6px 18px rgba(20, 30, 60, 0.07);
+        }
+        .main-content .card-body { padding: 24px 26px; }
+        .main-content .card-header {
+            background: #fff;
+            border-bottom: 1px solid #f1f3f8;
+            padding: 16px 26px;
+        }
+        .main-content .card-title { font-size: 0.95rem; font-weight: 700; color: #1a2a3a; display: flex; align-items: center; }
+        .main-content .card-title i { color: #4a7cf7; }
+
+        /* ============================================
+           BORROWER PROFILE SUMMARY HEADER
+        ============================================ */
+        .borrower-summary-card {
+            border-radius: 16px;
+            padding: 24px 28px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #f7f9ff 0%, #ffffff 60%);
+            border: 1px solid #eef1f6;
+            box-shadow: 0 2px 10px rgba(20, 30, 60, 0.04);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .borrower-avatar {
+            width: 64px; height: 64px; border-radius: 50%;
+            background: linear-gradient(135deg, #4a7cf7, #6c5ce7);
+            color: #fff; font-weight: 700; font-size: 1.4rem;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 14px rgba(74, 124, 247, 0.35);
+        }
+        .borrower-summary-info { flex: 1; min-width: 220px; }
+        .borrower-summary-info h5 { margin: 0 0 4px; font-weight: 700; color: #1a2a3a; }
+        .borrower-summary-meta {
+            display: flex; flex-wrap: wrap; gap: 18px;
+            font-size: 0.82rem; color: #8a9bb0;
+        }
+        .borrower-summary-meta strong { color: #4a5b73; font-weight: 600; }
+        .borrower-summary-status { flex-shrink: 0; }
+        .borrower-summary-status .badge { font-size: 0.78rem; padding: 8px 16px; border-radius: 20px; }
+
+        /* ============================================
+           PROGRESS TIMELINE
+        ============================================ */
+        .verify-timeline {
+            display: flex; align-items: flex-start; justify-content: space-between;
+            margin: 6px 4px 4px;
+        }
+        .verify-timeline .tl-step {
+            flex: 1; text-align: center; position: relative;
+        }
+        .verify-timeline .tl-step:not(:last-child)::after {
+            content: '';
+            position: absolute; top: 17px; left: 50%; width: 100%; height: 2px;
+            background: #e6eaf2; z-index: 0;
+        }
+        .verify-timeline .tl-step.done:not(:last-child)::after { background: #4a7cf7; }
+        .verify-timeline .tl-dot {
+            width: 34px; height: 34px; border-radius: 50%;
+            background: #f1f3f8; border: 2px solid #e6eaf2;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 8px; position: relative; z-index: 1;
+            color: #adb5bd; font-size: 0.85rem;
+        }
+        .verify-timeline .tl-step.done .tl-dot { background: #4a7cf7; border-color: #4a7cf7; color: #fff; }
+        .verify-timeline .tl-step.active .tl-dot { background: #fff; border-color: #4a7cf7; color: #4a7cf7; }
+        .verify-timeline .tl-step.rejected .tl-dot { background: #dc2626; border-color: #dc2626; color: #fff; }
+        .verify-timeline .tl-step.onhold .tl-dot { background: #856404; border-color: #856404; color: #fff; }
+        .verify-timeline .tl-label { font-size: 0.74rem; font-weight: 600; color: #8a9bb0; }
+        .verify-timeline .tl-step.done .tl-label,
+        .verify-timeline .tl-step.active .tl-label { color: #1a2a3a; }
+
+        /* ============================================
+           VALID ID — CLICKABLE THUMBNAIL + VIEWER
+        ============================================ */
+        .id-thumb-wrap { display: inline-block; cursor: zoom-in; }
+        .id-thumb-wrap img {
+            max-width: 300px; border-radius: 10px; border: 1px solid #e9ecef;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .id-thumb-wrap:hover img {
+            transform: scale(1.02);
+            box-shadow: 0 6px 18px rgba(20, 30, 60, 0.12);
+        }
+        .id-viewer-overlay {
+            display: none; position: fixed; inset: 0; z-index: 2000;
+            background: rgba(10, 14, 25, 0.92);
+            align-items: center; justify-content: center;
+        }
+        .id-viewer-overlay.show { display: flex; }
+        .id-viewer-overlay img {
+            max-width: 85vw; max-height: 75vh;
+            transition: transform 0.15s ease;
+            user-select: none;
+        }
+        .id-viewer-toolbar {
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 10px; background: rgba(255,255,255,0.08);
+            padding: 10px 14px; border-radius: 40px; backdrop-filter: blur(6px);
+        }
+        .id-viewer-toolbar button {
+            width: 40px; height: 40px; border-radius: 50%; border: none;
+            background: rgba(255,255,255,0.12); color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.15s ease;
+        }
+        .id-viewer-toolbar button:hover { background: rgba(255,255,255,0.25); }
+        .id-viewer-close {
+            position: absolute; top: 22px; right: 26px;
+            width: 42px; height: 42px; border-radius: 50%; border: none;
+            background: rgba(255,255,255,0.12); color: #fff; font-size: 1.1rem;
+        }
+        .id-viewer-close:hover { background: rgba(255,255,255,0.25); }
+
+        /* ============================================
+           ADMIN DISCUSSION — CHAT STYLE
+        ============================================ */
+        .discussion-item { display: flex; gap: 12px; margin-bottom: 16px; }
+        .discussion-avatar {
+            width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+            background: #eef1f6; color: #4a7cf7; font-weight: 700; font-size: 0.8rem;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .discussion-avatar.mine { background: #4a7cf7; color: #fff; }
+        .discussion-body { flex: 1; min-width: 0; }
+        .discussion-card {
+            border-radius: 12px; padding: 12px 16px; font-size: 0.85rem;
+            background: #f8f9fb;
+        }
+        .discussion-card.decision-approved { background: #f0fbf3; border-left: 4px solid #16a34a; }
+        .discussion-card.decision-rejected { background: #fef2f2; border-left: 4px solid #dc2626; }
+        .discussion-card.comment { background: #f8f9fa; border-left: 4px solid #4a7cf7; }
+        .discussion-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .discussion-header .name { font-weight: 700; color: #1a2a3a; font-size: 0.8rem; }
+        .discussion-header .time { color: #adb5bd; font-size: 0.72rem; }
+
+        /* ============================================
+           NAV ACTIVE STATE (existing — unchanged)
+        ============================================ */
+        .nxl-submenu li[data-current="true"] > a.nxl-link {
+            background: rgba(74, 124, 247, 0.1) !important;
+            color: #4a7cf7 !important;
+            font-weight: 600 !important;
+            border-radius: 6px;
+        }
+        .nxl-submenu li[data-current="false"].active > a.nxl-link:not(:hover) {
+            background: transparent !important;
+        }
+
+        /* ============================================
+           RESPONSIVE
+        ============================================ */
+        @media (max-width: 991px) {
+            .borrower-summary-card { flex-direction: column; align-items: flex-start; }
+            .borrower-summary-status { align-self: flex-start; }
+        }
+        @media (max-width: 767px) {
+            .main-content .card-body { padding: 18px; }
+            .verify-timeline .tl-label { font-size: 0.66rem; }
+            .id-thumb-wrap img { max-width: 100%; }
+        }
+        /* ============================================
+   BACK BUTTON — matched from loan-details.css
+============================================ */
+.btn-light {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    color: #0f172a;
+    font-weight: 600;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    padding: 9px 18px;
+    transition: all 0.15s ease;
+}
+.btn-light:hover {
+    border-color: #4a7cf7;
+    color: #4a7cf7;
+    background: #eef3ff;
+}
+
+/* ============================================
+   DARK MODE
+============================================ */
+html.app-skin-dark .main-content .card {
+    background: #1e2a3a;
+    border-color: #2d3f55;
+}
+html.app-skin-dark .main-content .card-header {
+    background: #1e2a3a;
+    border-color: #2d3f55;
+}
+html.app-skin-dark .card-title { color: #e2e8f0; }
+
+html.app-skin-dark .section-title {
+    color: #6c9bff;
+    border-color: #2d3f55;
+}
+html.app-skin-dark .info-item label { color: #94a3b8; }
+html.app-skin-dark .info-item span { color: #e2e8f0; }
+html.app-skin-dark .info-item.highlight span { color: #6c9bff; }
+
+html.app-skin-dark .borrower-summary-card {
+    background: linear-gradient(135deg, #1e2a3a 0%, #16202e 60%);
+    border-color: #2d3f55;
+}
+html.app-skin-dark .borrower-summary-info h5 { color: #e2e8f0; }
+html.app-skin-dark .borrower-summary-meta { color: #94a3b8; }
+html.app-skin-dark .borrower-summary-meta strong { color: #cbd5e1; }
+
+html.app-skin-dark .id-thumb-wrap img { border-color: #2d3f55; }
+
+html.app-skin-dark .discussion-card { background: #16202e; }
+html.app-skin-dark .discussion-card.comment { background: #16202e; }
+html.app-skin-dark .discussion-card.decision-approved { background: #12251c; }
+html.app-skin-dark .discussion-card.decision-rejected { background: #2a1616; }
+html.app-skin-dark .discussion-header .name { color: #e2e8f0; }
+html.app-skin-dark .discussion-header .time,
+html.app-skin-dark .discussion-card .time { color: #94a3b8; }
+html.app-skin-dark .discussion-card p.text-muted { color: #94a3b8 !important; }
+html.app-skin-dark .discussion-avatar { background: #2d3f55; color: #9db8ff; }
+html.app-skin-dark .discussion-avatar.mine { background: #4a7cf7; color: #fff; }
+
+html.app-skin-dark .form-control {
+    background: #16202e;
+    border-color: #2d3f55;
+    color: #e2e8f0;
+}
+html.app-skin-dark .form-control::placeholder { color: #64748b; }
+html.app-skin-dark .form-control:focus {
+    background: #16202e;
+    color: #e2e8f0;
+    border-color: #4a7cf7;
+}
+
+html.app-skin-dark .alert-danger  { background: #2a1616; color: #fca5a5; border-color: #4a2020; }
+html.app-skin-dark .alert-success { background: #12251c; color: #86efac; border-color: #1e3a2a; }
+html.app-skin-dark .alert-info    { background: #16233a; color: #93c5fd; border-color: #22345a; }
+html.app-skin-dark .text-muted    { color: #94a3b8 !important; }

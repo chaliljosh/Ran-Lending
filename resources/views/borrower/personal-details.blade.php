@@ -338,7 +338,6 @@
 
     <div id="submissionOverlay">
         <div class="modal-box">
-            <div class="accent-bar"></div>
             <div class="modal-inner">
                 <div class="icon-wrap"><i class="feather-check-circle"></i></div>
                 <h5>Submitted Successfully!</h5>

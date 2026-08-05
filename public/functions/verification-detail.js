@@ -17,12 +17,12 @@ function decisionShowConfirm(action) {
         icon.className = 'feather-check-circle text-success';
         text.textContent = "Approve this borrower's personal details?";
         confirmBtn.className = 'btn btn-success flex-fill';
-        confirmBtn.innerHTML = '<i class="feather-check me-1"></i> Yes, Approve';
+        confirmBtn.innerHTML = ' Yes, Approve';
     } else {
         icon.className = 'feather-x-circle text-danger';
         text.textContent = "Reject this borrower's personal details?";
         confirmBtn.className = 'btn btn-danger flex-fill';
-        confirmBtn.innerHTML = '<i class="feather-x me-1"></i> Yes, Reject';
+        confirmBtn.innerHTML = ' Yes, Reject';
     }
 }
 
@@ -35,17 +35,69 @@ function decisionBackToStep1() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    // Reset back to step 1 every time the modal is opened or closed
     const decisionModalEl = document.getElementById('decisionModal');
     if (decisionModalEl) {
         decisionModalEl.addEventListener('hidden.bs.modal', decisionBackToStep1);
     }
 
-    // Auto-show the success modal (if a decision was just saved/changed), auto-closes after 2s
     const successModalEl = document.getElementById('successModal');
     if (successModalEl) {
         const successModal = new bootstrap.Modal(successModalEl, { backdrop: 'static' });
         successModal.show();
         setTimeout(() => successModal.hide(), 2000);
     }
-}); 
+});
+
+/* ============================================
+   VALID ID VIEWER — zoom + rotate + fullscreen
+============================================ */
+let idViewerScale = 1;
+let idViewerRotation = 0;
+
+function openIdViewer(imageUrl) {
+    const overlay = document.getElementById('idViewerOverlay');
+    const img = document.getElementById('idViewerImage');
+    img.src = imageUrl;
+    idViewerScale = 1;
+    idViewerRotation = 0;
+    img.style.transform = 'scale(1) rotate(0deg)';
+    overlay.classList.add('show');
+}
+
+function closeIdViewer() {
+    document.getElementById('idViewerOverlay').classList.remove('show');
+}
+
+function idViewerZoom(delta) {
+    idViewerScale = Math.min(Math.max(idViewerScale + delta, 0.4), 3);
+    applyIdViewerTransform();
+}
+
+function idViewerRotate() {
+    idViewerRotation = (idViewerRotation + 90) % 360;
+    applyIdViewerTransform();
+}
+
+function idViewerReset() {
+    idViewerScale = 1;
+    idViewerRotation = 0;
+    applyIdViewerTransform();
+}
+
+function applyIdViewerTransform() {
+    const img = document.getElementById('idViewerImage');
+    img.style.transform = `scale(${idViewerScale}) rotate(${idViewerRotation}deg)`;
+}
+
+// close viewer by clicking the dark backdrop (but not the image/toolbar itself)
+document.addEventListener('DOMContentLoaded', function () {
+    const overlay = document.getElementById('idViewerOverlay');
+    if (overlay) {
+        overlay.addEventListener('click', function (e) {
+            if (e.target === overlay) closeIdViewer();
+        });
+    }
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeIdViewer();
+    });
+});
