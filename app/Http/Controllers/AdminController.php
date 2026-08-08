@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use App\Services\PenaltyHelper;
+use App\Services\LoanActivationService;
 
 class AdminController extends Controller
 {
@@ -25,18 +27,223 @@ class AdminController extends Controller
             ->join('users as u', 'la.user_id', '=', 'u.user_id')
             ->select('la.*', 'u.name as borrower_name')
             ->orderByDesc('la.applied_at')
-            ->limit(4)
+            ->limit(5)
             ->get();
 
         // Sidebar's Borrower Verification dropdown badge — same helper used
         // by verificationDetail()/loanApplicationDetail() for the same reason.
         $pendingCount = $this->getPendingVerificationCount($adminId);
+        $pendingLoanCount = $this->getPendingLoanCount($adminId);
+
+        // -----------------------------------------------------------------
+        // Attention Required — built purely from counts already computable
+        // from existing tables. Items only appear when their count is > 0,
+        // per the "no fake alerts" requirement.
+        // -----------------------------------------------------------------
+        $overdueApplicationsCount = DB::table('loan_payment_schedules as sch')
+            ->join('loan_applications as la', 'sch.application_id', '=', 'la.application_id')
+            ->where('la.status', 'active')
+            ->whereNull('sch.paid_at')
+            ->where('sch.due_date', '<', now())
+            ->distinct()
+            ->count('la.application_id');
+
+        // Always shown as a fixed 3-item list (Overdue / Pending Applications /
+        // Pending Verification), counts included even when 0 — counts still
+        // come straight from the DB queries above, never hardcoded.
+        $attentionItems = [
+            [
+                'icon' => 'feather-alert-triangle',
+                'color' => 'danger',
+                'label' => 'Overdue Payments',
+                'count' => $overdueApplicationsCount,
+                'action' => 'View',
+                'url' => route('admin.overdue-payments'),
+            ],
+            [
+                'icon' => 'feather-file-text',
+                'color' => 'primary',
+                'label' => 'Pending Applications',
+                'count' => $pendingApplications,
+                'action' => 'Review',
+                'url' => route('admin.loan-applications'),
+            ],
+            [
+                'icon' => 'feather-user-check',
+                'color' => 'warning',
+                'label' => 'Pending Verification',
+                'count' => $pendingVerificationCount,
+                'action' => 'Review',
+                'url' => route('admin.borrower-verification'),
+            ],
+        ];
+
+        // -----------------------------------------------------------------
+        // Upcoming Payments — next unpaid installments on active loans,
+        // due today or later, soonest first.
+        // -----------------------------------------------------------------
+        $upcomingPaymentsRaw = DB::table('loan_payment_schedules as sch')
+            ->join('loan_applications as la', 'sch.application_id', '=', 'la.application_id')
+            ->join('users as u', 'la.user_id', '=', 'u.user_id')
+            ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
+            ->where('la.status', 'active')
+            ->whereNull('sch.paid_at')
+            ->where('sch.due_date', '>=', now()->startOfDay())
+            ->select('sch.due_date', 'sch.amount_due', 'u.name as fallback_name', 'bpd.first_name', 'bpd.last_name')
+            ->orderBy('sch.due_date', 'asc')
+            ->limit(5)
+            ->get();
+
+        $upcomingPayments = $upcomingPaymentsRaw->map(function ($row) {
+            $name = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? ''));
+            $row->borrower_name = $name !== '' ? $name : $row->fallback_name;
+            return $row;
+        });
+
+        // -----------------------------------------------------------------
+        // Recent Activity — merged from real admin actions already recorded
+        // in the system (loan approvals, borrower verification decisions,
+        // waived penalties, paid penalties), sorted by most recent.
+        // -----------------------------------------------------------------
+        $recentActivity = $this->buildRecentActivity(5);
+
+        // -----------------------------------------------------------------
+        // Sidebar admin profile — logged-in admin's actual name/role.
+        // -----------------------------------------------------------------
+        $admin = DB::table('users')->where('user_id', $adminId)->first();
+        $adminName = $admin->name ?? 'Admin';
+        $adminRole = $admin && !empty($admin->role) ? ucfirst($admin->role) : 'Administrator';
+        $adminInitials = $this->getInitials($adminName);
 
         return view('admin.dashboard', compact(
             'pendingVerificationCount', 'totalApplications', 'pendingApplications',
             'activeLoans', 'totalActiveAmount', 'totalBorrowers', 'activeBorrowers',
-            'recentApplications', 'pendingCount'
+            'recentApplications', 'pendingCount', 'pendingLoanCount',
+            'attentionItems', 'upcomingPayments', 'recentActivity',
+            'adminName', 'adminRole', 'adminInitials'
         ));
+    }
+
+    /**
+     * Recent Activity feed — pulls the most recent rows from every table
+     * that already records "who did what, when":
+     *   - loan_approvals      -> loan application approved/rejected
+     *   - detailsapproval      -> borrower verification approved/rejected
+     *   - loan_penalties       -> penalty waived (has waived_by, so the
+     *                             admin can be named) or marked paid (no
+     *                             admin column exists for this action in
+     *                             the current schema, so it's shown without
+     *                             an admin name rather than guessing one)
+     * All sources are merged and sorted by timestamp, newest first.
+     */
+    private function buildRecentActivity($limit = 5)
+    {
+        $activities = collect();
+
+        $loanDecisions = DB::table('loan_approvals as lap')
+            ->join('users as admin', 'lap.admin_id', '=', 'admin.user_id')
+            ->join('loan_applications as la', 'lap.application_id', '=', 'la.application_id')
+            ->join('users as bu', 'la.user_id', '=', 'bu.user_id')
+            ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
+            ->select('lap.decision', 'lap.reviewed_at as ts', 'admin.name as admin_name', 'bpd.first_name', 'bpd.last_name', 'bu.name as borrower_fallback')
+            ->orderByDesc('lap.reviewed_at')
+            ->limit($limit)
+            ->get()
+            ->map(function ($row) {
+                $borrower = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? '')) ?: $row->borrower_fallback;
+                $approved = $row->decision === 'approved';
+                return [
+                    'icon' => $approved ? 'feather-check-circle' : 'feather-x-circle',
+                    'color' => $approved ? 'success' : 'danger',
+                    'text' => ($row->admin_name ?? 'Admin') . ' ' . ($approved ? 'approved a loan application' : 'rejected a loan application'),
+                    'meta' => $borrower,
+                    'ts' => $row->ts,
+                ];
+            });
+
+        $verifyDecisions = DB::table('detailsapproval as da')
+            ->join('users as admin', 'da.admin_id', '=', 'admin.user_id')
+            ->join('borrowerpersonaldetails as bpd', 'da.detail_id', '=', 'bpd.detail_id')
+            ->select('da.decision', 'da.reviewed_at as ts', 'admin.name as admin_name', 'bpd.first_name', 'bpd.last_name')
+            ->orderByDesc('da.reviewed_at')
+            ->limit($limit)
+            ->get()
+            ->map(function ($row) {
+                $borrower = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? ''));
+                $approved = $row->decision === 'approved';
+                return [
+                    'icon' => 'feather-user-check',
+                    'color' => $approved ? 'success' : 'danger',
+                    'text' => ($row->admin_name ?? 'Admin') . ' ' . ($approved ? 'verified a borrower' : 'rejected a borrower verification'),
+                    'meta' => $borrower,
+                    'ts' => $row->ts,
+                ];
+            });
+
+        $waivedPenalties = DB::table('loan_penalties as lp')
+            ->join('users as admin', 'lp.waived_by', '=', 'admin.user_id')
+            ->join('loan_applications as la', 'lp.application_id', '=', 'la.application_id')
+            ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
+            ->where('lp.status', 'waived')
+            ->select('lp.updated_at as ts', 'admin.name as admin_name', 'bpd.first_name', 'bpd.last_name')
+            ->orderByDesc('lp.updated_at')
+            ->limit($limit)
+            ->get()
+            ->map(function ($row) {
+                $borrower = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? ''));
+                return [
+                    'icon' => 'feather-slash',
+                    'color' => 'secondary',
+                    'text' => ($row->admin_name ?? 'Admin') . ' waived a penalty',
+                    'meta' => $borrower,
+                    'ts' => $row->ts,
+                ];
+            });
+
+        $paidPenalties = DB::table('loan_penalties as lp')
+            ->join('loan_applications as la', 'lp.application_id', '=', 'la.application_id')
+            ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
+            ->where('lp.status', 'paid')
+            ->select('lp.updated_at as ts', 'bpd.first_name', 'bpd.last_name')
+            ->orderByDesc('lp.updated_at')
+            ->limit($limit)
+            ->get()
+            ->map(function ($row) {
+                $borrower = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? ''));
+                return [
+                    'icon' => 'feather-check-circle',
+                    'color' => 'success',
+                    'text' => 'Penalty marked as Paid',
+                    'meta' => $borrower,
+                    'ts' => $row->ts,
+                ];
+            });
+
+        return $activities
+            ->concat($loanDecisions)
+            ->concat($verifyDecisions)
+            ->concat($waivedPenalties)
+            ->concat($paidPenalties)
+            ->filter(fn ($a) => !empty($a['ts']))
+            ->sortByDesc('ts')
+            ->values()
+            ->take($limit);
+    }
+
+    /**
+     * "Chalil Joshua David" -> "CD", "Admin" -> "A". Used for the sidebar
+     * profile avatar initials.
+     */
+    private function getInitials($name)
+    {
+        $parts = preg_split('/\s+/', trim((string) $name));
+        $initials = '';
+        foreach (array_slice($parts, 0, 2) as $p) {
+            if ($p !== '') {
+                $initials .= strtoupper(substr($p, 0, 1));
+            }
+        }
+        return $initials !== '' ? $initials : 'A';
     }
 
     // Simpleng listahan ng lahat ng borrowers — pangalan, email, status.
@@ -176,6 +383,182 @@ class AdminController extends Controller
         'pendingLoanCount' => $this->getPendingLoanCount($adminId),
     ]);
 }
+
+    /**
+     * Active Loans > Ongoing Loans — mga loan na status = 'active' AT walang
+     * overdue unpaid installment (paid_at null + due_date < today). Yung mga
+     * may overdue installment, sa "Overdue Payments" tab na lang lalabas
+     * (hiwalay na page/method mamaya).
+     */
+    public function ongoingLoans(Request $request)
+    {
+        $adminId = Session::get('user_id');
+        $sort = $request->query('sort', 'newest');
+
+        $apps = DB::table('loan_applications as la')
+            ->join('users as u', 'la.user_id', '=', 'u.user_id')
+            ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
+            ->where('la.status', 'active')
+            ->select(
+                'la.application_id', 'la.loan_amount', 'la.loan_term', 'la.loan_purpose',
+                'la.total_amount', 'la.applied_at',
+                'u.user_id', 'u.email',
+                'bpd.detail_id', 'bpd.first_name', 'bpd.last_name'
+            )
+            ->orderBy('la.applied_at', $sort === 'oldest' ? 'asc' : 'desc')
+            ->get();
+
+        $ongoingLoans = [];
+        $stats = ['total' => 0, 'total_amount' => 0, 'total_collected' => 0];
+
+        foreach ($apps as $row) {
+            $schedules = DB::table('loan_payment_schedules')
+                ->where('application_id', $row->application_id)
+                ->orderBy('installment_no')
+                ->get();
+
+            if ($schedules->isEmpty()) continue;
+
+            $hasOverdue = $schedules->contains(function ($s) {
+                return is_null($s->paid_at) && \Carbon\Carbon::parse($s->due_date)->isPast();
+            });
+
+            // Kung may overdue installment, hindi na ito "ongoing" — sa
+            // Overdue Payments tab na lang lalabas ito.
+            if ($hasOverdue) continue;
+
+            $paidCount = $schedules->filter(fn($s) => !is_null($s->paid_at))->count();
+            $totalCount = $schedules->count();
+            $nextUnpaid = $schedules->first(fn($s) => is_null($s->paid_at));
+            $amountCollected = $schedules->sum('amount_paid');
+
+            $fullName = trim($row->first_name . ' ' . $row->last_name);
+            $displayName = $fullName !== '' ? $fullName : $row->email;
+            $initials = $fullName !== ''
+                ? strtoupper(substr($row->first_name, 0, 1) . substr($row->last_name, 0, 1))
+                : strtoupper(substr($row->email, 0, 2));
+
+            $ongoingLoans[] = [
+                'application_id'   => $row->application_id,
+                'user_id'          => $row->user_id,
+                'borrower_id'      => 'BRW-' . str_pad($row->user_id, 4, '0', STR_PAD_LEFT),
+                'name'             => $displayName,
+                'initials'         => $initials,
+                'email'            => $row->email,
+                'loan_amount'      => $row->loan_amount,
+                'total_amount'     => $row->total_amount,
+                'loan_term'        => $row->loan_term,
+                'applied_at'       => $row->applied_at,
+                'paid_count'       => $paidCount,
+                'total_count'      => $totalCount,
+                'next_due_date'    => $nextUnpaid->due_date ?? null,
+                'next_due_amount'  => $nextUnpaid->amount_due ?? null,
+                'amount_collected' => $amountCollected,
+            ];
+
+            $stats['total']++;
+            $stats['total_amount'] += $row->total_amount;
+            $stats['total_collected'] += $amountCollected;
+        }
+
+        return view('admin.ongoing-loans', [
+            'ongoingLoans'     => $ongoingLoans,
+            'stats'            => $stats,
+            'sort'             => $sort,
+            'pendingCount'     => $this->getPendingVerificationCount($adminId),
+            'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+        ]);
+    }
+
+    /**
+     * Active Loans > Overdue Payments — kabaligtaran ng ongoingLoans():
+     * mga loan na status = 'active' AT may kahit isang unpaid installment
+     * na lagpas na sa due_date (paid_at null). Ito yung mga na-exclude sa
+     * Ongoing Loans dahil dito na sila dapat lumabas.
+     */
+    public function overduePayments(Request $request)
+    {
+        $adminId = Session::get('user_id');
+        $sort = $request->query('sort', 'most_late');
+
+        $apps = DB::table('loan_applications as la')
+            ->join('users as u', 'la.user_id', '=', 'u.user_id')
+            ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
+            ->where('la.status', 'active')
+            ->select(
+                'la.application_id', 'la.loan_amount', 'la.loan_term', 'la.loan_purpose',
+                'la.total_amount', 'la.applied_at',
+                'u.user_id', 'u.email',
+                'bpd.detail_id', 'bpd.first_name', 'bpd.last_name'
+            )
+            ->get();
+
+        $overdueLoans = [];
+        $stats = ['total' => 0, 'total_overdue_amount' => 0, 'total_overdue_installments' => 0];
+
+        foreach ($apps as $row) {
+            $schedules = DB::table('loan_payment_schedules')
+                ->where('application_id', $row->application_id)
+                ->orderBy('installment_no')
+                ->get();
+
+            $overdueSchedules = $schedules->filter(function ($s) {
+                return is_null($s->paid_at) && \Carbon\Carbon::parse($s->due_date)->isPast();
+            })->sortBy('due_date')->values();
+
+            // Ongoing Loans lang ang bahala sa mga walang overdue —
+            // dito, kailangan may kahit isa.
+            if ($overdueSchedules->isEmpty()) continue;
+
+            $oldestOverdue = $overdueSchedules->first();
+            $daysLate = \Carbon\Carbon::parse($oldestOverdue->due_date)->diffInDays(now());
+            $overdueAmount = $overdueSchedules->sum(fn($s) => $s->amount_due - $s->amount_paid);
+
+            $fullName = trim($row->first_name . ' ' . $row->last_name);
+            $displayName = $fullName !== '' ? $fullName : $row->email;
+            $initials = $fullName !== ''
+                ? strtoupper(substr($row->first_name, 0, 1) . substr($row->last_name, 0, 1))
+                : strtoupper(substr($row->email, 0, 2));
+
+            $overdueLoans[] = [
+                'application_id'      => $row->application_id,
+                'user_id'             => $row->user_id,
+                'borrower_id'         => 'BRW-' . str_pad($row->user_id, 4, '0', STR_PAD_LEFT),
+                'name'                => $displayName,
+                'initials'            => $initials,
+                'email'               => $row->email,
+                'loan_amount'         => $row->loan_amount,
+                'total_amount'        => $row->total_amount,
+                'applied_at'          => $row->applied_at,
+                'overdue_count'       => $overdueSchedules->count(),
+                'total_count'         => $schedules->count(),
+                'oldest_due_date'     => $oldestOverdue->due_date,
+                'days_late'           => $daysLate,
+                'overdue_amount'      => $overdueAmount,
+            ];
+
+            $stats['total']++;
+            $stats['total_overdue_amount'] += $overdueAmount;
+            $stats['total_overdue_installments'] += $overdueSchedules->count();
+        }
+
+        // "Most days late" default — pinaka-apurahan makikita muna.
+        // "Newest"/"Oldest" gumagamit ng applied_at, tulad ng ibang pages.
+        $overdueLoans = collect($overdueLoans)->sortBy(function ($loan) use ($sort) {
+            if ($sort === 'newest') return -strtotime($loan['applied_at']);
+            if ($sort === 'oldest') return strtotime($loan['applied_at']);
+            // most_late (default) — pinakamatagal na overdue muna
+            return -$loan['days_late'];
+        })->values()->all();
+
+        return view('admin.overdue-payments', [
+            'overdueLoans'     => $overdueLoans,
+            'stats'            => $stats,
+            'sort'             => $sort,
+            'pendingCount'     => $this->getPendingVerificationCount($adminId),
+            'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+        ]);
+    }
  
  
     /**
@@ -570,6 +953,11 @@ class AdminController extends Controller
             'allReviews' => $this->getAllLoanReviews($applicationId),
             'approvedCount' => $this->getLoanApprovedCount($applicationId),
             'comments' => $this->getLoanComments($applicationId),
+            // Payment Schedule section — may laman lang kung 'active' na o
+            // 'completed' na yung loan (yun lang may na-generate na schedule
+            // via LoanActivationService). Wala nito ang mga pending/approved-
+            // pero-di-pa-active/rejected/on_hold applications.
+            'paymentSchedule' => $this->getPaymentSchedule($applicationId),
             // Same reasoning as verificationDetail() above — this page's own
             // sidebar section (Loan Applications) has no ?? fallback in the Blade.
             'pendingCount' => $this->getPendingVerificationCount($adminId),
@@ -578,6 +966,57 @@ class AdminController extends Controller
             // wherever the admin navigated from — same fix as verificationDetail().
             'viewStatus' => $app->status,
         ]);
+    }
+
+    /**
+     * Overdue Payments > View Details — a focused, read-only view showing
+     * just the borrower card, an overdue overview, Loan Summary, and the
+     * Payment Schedule. Deliberately kept separate from
+     * loanApplicationDetail() (Personal Info / Address / Work / Discussion /
+     * Admin Review / decision modal) so that page's approve/reject flow
+     * never has to be touched just to adjust this simpler overdue view.
+     */
+    public function overduePaymentDetail(Request $request, $id)
+    {
+        $adminId = Session::get('user_id');
+        $applicationId = (int) $id;
+
+        $app = $this->getLoanApplication($applicationId);
+
+        if (!$app) {
+            return redirect()->route('admin.overdue-payments');
+        }
+
+        $schedule = $this->getPaymentSchedule($applicationId);
+
+        $overdueSchedules = $schedule->filter(function ($s) {
+            return is_null($s->paid_at) && \Carbon\Carbon::parse($s->due_date)->isPast();
+        })->sortBy('due_date')->values();
+
+        $oldestOverdue = $overdueSchedules->first();
+
+        return view('admin.overdue-payment-detail', [
+            'app' => $app,
+            'applicationId' => $applicationId,
+            'paymentSchedule' => $schedule,
+            'overdueCount' => $overdueSchedules->count(),
+            'daysLate' => $oldestOverdue ? \Carbon\Carbon::parse($oldestOverdue->due_date)->diffInDays(now()) : 0,
+            'overdueAmount' => $overdueSchedules->sum(fn($s) => $s->amount_due - $s->amount_paid),
+            'pendingCount' => $this->getPendingVerificationCount($adminId),
+            'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+        ]);
+    }
+
+    // Buong payment schedule ng isang loan application — installment #, due
+    // date, amount, at status (paid/late/pending). Ginagamit ng Payment
+    // Schedule section sa loan-application-detail.blade.php at
+    // overdue-payment-detail.blade.php.
+    private function getPaymentSchedule($applicationId)
+    {
+        return DB::table('loan_payment_schedules')
+            ->where('application_id', $applicationId)
+            ->orderBy('installment_no')
+            ->get();
     }
 
     private function saveLoanComment($applicationId, $adminId, $comment)
@@ -634,7 +1073,7 @@ class AdminController extends Controller
         $this->refreshLoanApplicationStatus($applicationId);
     }
 
-    private function refreshLoanApplicationStatus($applicationId)
+   private function refreshLoanApplicationStatus($applicationId)
     {
         $counts = DB::table('loan_approvals')
             ->where('application_id', $applicationId)
@@ -652,6 +1091,13 @@ class AdminController extends Controller
         }
 
         DB::table('loan_applications')->where('application_id', $applicationId)->update(['status' => $status]);
+
+        // Pag umabot sa 3 approvals, i-generate na yung buong payment
+        // schedule, tapos i-flip yung status papuntang "active"
+        // (LoanActivationService mismo ang nag-o-overwrite ng status).
+        if ($status === 'approved') {
+            LoanActivationService::activate($applicationId);
+        }
     }
 
     private function getLoanApplication($applicationId)
@@ -773,10 +1219,18 @@ class AdminController extends Controller
 
         $filteredApplications = collect();
         if ($viewStatus !== 'pending') {
+            // "Approved" ay dapat kasama rin ang 'active' — dahil automatic
+            // na nagfli-flip ang status papuntang 'active' pagkatapos
+            // ma-generate ang payment schedule (LoanActivationService), wala
+            // nang application na permanenteng nakatigil sa eksaktong
+            // status='approved'. Kung hindi ito pagsasamahin, laging
+            // magiging empty ang Approved tab.
+            $statusFilter = $viewStatus === 'approved' ? ['approved', 'active'] : [$viewStatus];
+
             $filteredApplications = DB::table('loan_applications as la')
                 ->join('users as u', 'la.user_id', '=', 'u.user_id')
                 ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
-                ->where('la.status', $viewStatus)
+                ->whereIn('la.status', $statusFilter)
                 ->select(
                     'la.application_id', 'la.loan_amount', 'la.loan_term', 'la.loan_purpose',
                     'la.status', 'la.applied_at', 'u.email',
@@ -791,5 +1245,274 @@ class AdminController extends Controller
         return compact('pendingApplications', 'reviewedApplications', 'filteredApplications', 'pendingLoanCount');
     }
 
+    /* -----------------------------------------------------------
+     | Penalty Tracking — Kanban board (unpaid/paid/waived all at
+     | once), matching the shape penalty-tracking.blade.php expects.
+     | Uses the same raw table/column names already confirmed working
+     | here: loan_penalties.schedule_id -> loan_payment_schedules.id,
+     | loan_penalties.application_id -> loan_applications.application_id.
+     |-----------------------------------------------------------*/
+
+    public function penaltyTracking(Request $request)
+    {
+        $adminId = Session::get('user_id');
+
+        $penalties = DB::table('loan_penalties as lp')
+            ->join('loan_payment_schedules as sch', 'lp.schedule_id', '=', 'sch.id')
+            ->join('loan_applications as la', 'lp.application_id', '=', 'la.application_id')
+            ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
+            ->select(
+                'lp.*',
+                'sch.installment_no', 'sch.due_date', 'sch.amount_due',
+                'bpd.first_name', 'bpd.last_name'
+            )
+            ->orderByDesc('lp.created_at')
+            ->get();
+
+        $unpaid = $penalties->where('status', 'unpaid')->values();
+        $paid   = $penalties->where('status', 'paid')->values();
+        $waived = $penalties->where('status', 'waived')->values();
+
+        return view('admin.penalty-tracking', [
+            'unpaid' => $unpaid,
+            'paid'   => $paid,
+            'waived' => $waived,
+
+            'totalPenaltiesCount' => $penalties->count(),
+            'outstandingAmount'   => $unpaid->sum('penalty_amount'),
+            'totalPaidAmount'     => $paid->sum('penalty_amount'),
+            'totalWaivedAmount'   => $waived->sum('penalty_amount'),
+
+            'pendingCount'     => $this->getPendingVerificationCount($adminId),
+            'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+        ]);
+    }
+
+    /**
+     * Active Loans > Completed Loans — mga loan na status = 'completed'
+     * (lahat ng installments bayad na, LoanActivationService/payment flow
+     * na ang nag-flip nito papuntang 'completed').
+     */
+    public function completedLoans(Request $request)
+    {
+        $adminId = Session::get('user_id');
+        $sort = $request->query('sort', 'newest');
+
+        $apps = DB::table('loan_applications as la')
+            ->join('users as u', 'la.user_id', '=', 'u.user_id')
+            ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
+            ->where('la.status', 'completed')
+            ->select(
+                'la.application_id', 'la.loan_amount', 'la.loan_term', 'la.loan_purpose',
+                'la.total_amount', 'la.applied_at',
+                'u.user_id', 'u.email',
+                'bpd.detail_id', 'bpd.first_name', 'bpd.last_name'
+            )
+            ->orderBy('la.applied_at', $sort === 'oldest' ? 'asc' : 'desc')
+            ->get();
+
+        $completedLoans = [];
+        $stats = ['total' => 0, 'total_amount' => 0, 'total_interest' => 0];
+
+        foreach ($apps as $row) {
+            $schedules = DB::table('loan_payment_schedules')
+                ->where('application_id', $row->application_id)
+                ->orderBy('installment_no')
+                ->get();
+
+            $fullName = trim($row->first_name . ' ' . $row->last_name);
+            $displayName = $fullName !== '' ? $fullName : $row->email;
+            $initials = $fullName !== ''
+                ? strtoupper(substr($row->first_name, 0, 1) . substr($row->last_name, 0, 1))
+                : strtoupper(substr($row->email, 0, 2));
+
+            $interestEarned = max(0, $row->total_amount - $row->loan_amount);
+
+            $completedLoans[] = [
+                'application_id'   => $row->application_id,
+                'user_id'          => $row->user_id,
+                'borrower_id'      => 'BRW-' . str_pad($row->user_id, 4, '0', STR_PAD_LEFT),
+                'name'             => $displayName,
+                'initials'         => $initials,
+                'email'            => $row->email,
+                'loan_amount'      => $row->loan_amount,
+                'total_amount'     => $row->total_amount,
+                'loan_term'        => $row->loan_term,
+                'applied_at'       => $row->applied_at,
+                // Huling binayaran na installment — ginagamit bilang
+                // "Completed On" date sa listahan.
+                'completed_at'     => $schedules->max('paid_at'),
+                'amount_collected' => $schedules->sum('amount_paid'),
+            ];
+
+            $stats['total']++;
+            $stats['total_amount'] += $row->total_amount;
+            $stats['total_interest'] += $interestEarned;
+        }
+
+        // "Recently Completed" gumagamit ng completed_at (huling bayad);
+        // "Newest"/"Oldest" gumagamit pa rin ng applied_at, tulad ng ibang pages.
+        if (in_array($sort, ['completed_newest', 'completed_oldest'], true)) {
+            $completedLoans = collect($completedLoans)->sortBy(function ($loan) use ($sort) {
+                $t = $loan['completed_at'] ? strtotime($loan['completed_at']) : 0;
+                return $sort === 'completed_oldest' ? $t : -$t;
+            })->values()->all();
+        }
+
+        return view('admin.completed-loans', [
+            'completedLoans'   => $completedLoans,
+            'stats'            => $stats,
+            'sort'             => $sort,
+            'pendingCount'     => $this->getPendingVerificationCount($adminId),
+            'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+        ]);
+    }
+
+    /**
+     * Completed Loans > View Details — same focused pattern as
+     * overduePaymentDetail(): borrower card + Loan Summary + Payment
+     * Schedule lang, hiwalay pa rin sa loanApplicationDetail()'s
+     * approve/reject flow.
+     */
+    public function completedLoanDetail(Request $request, $id)
+{
+    $adminId = Session::get('user_id');
+    $applicationId = (int) $id;
+
+    $app = $this->getLoanApplication($applicationId);
+
+    if (!$app) {
+        return redirect()->route('admin.completed-loans');
+    }
+
+    $schedule = $this->getPaymentSchedule($applicationId);
+
+    return view('admin.completed-loan-detail', [
+        'app' => $app,
+        'applicationId' => $applicationId,
+        'paymentSchedule' => $schedule,
+        'completedAt' => $schedule->max('paid_at'),
+        'amountCollected' => $schedule->sum('amount_paid'),
+        // Borrower Performance section — computed lang, walang bagong
+        // table/column na kailangan (gamit lang ang existing schedule +
+        // loan_penalties data).
+        'borrowerPerformance' => $this->computeBorrowerPerformance($applicationId, $schedule),
+        'pendingCount' => $this->getPendingVerificationCount($adminId),
+        'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+    ]);
+}
+
+/**
+ * Borrower Performance (Completed Loan Detail) — kinukwenta base sa
+ * aktwal na payment schedule ng loan na ito:
+ *   - total_payments: bilang ng installments (dapat lahat bayad na
+ *     dahil 'completed' na ang loan)
+ *   - late_payments: bilang ng installments na ang paid_at ay lagpas
+ *     na sa due_date (o walang paid_at pero naka-mark na 'late' na
+ *     status bilang fallback)
+ *   - total_penalties: kabuuang penalty_amount mula sa loan_penalties
+ *     para sa application na ito (lahat ng status — unpaid/paid/waived
+ *     — dahil history ng aktwal na na-incur, hindi lang ng nabayaran)
+ *
+ * Rating thresholds — base lang sa bilang ng late payments
+ * (simpleng rule, hindi na ratio-based):
+ *   Excellent — 0 late payments
+ *   Good      — 1 late payment
+ *   Fair      — 2 late payments
+ *   Poor      — 3 o higit pang late payments
+ *
+ * Ang description ay dynamic — inilalarawan yung aktwal na payment
+ * behavior (hal. "all installments were paid late" kung talagang
+ * lahat late, hindi lang generic na text).
+ */
+private function computeBorrowerPerformance($applicationId, $schedule)
+{
+    $totalPayments = $schedule->count();
+
+    $latePayments = $schedule->filter(function ($s) {
+        if (!is_null($s->paid_at) && !is_null($s->due_date)) {
+            return \Carbon\Carbon::parse($s->paid_at)->gt(\Carbon\Carbon::parse($s->due_date));
+        }
+        // Fallback: kung walang paid_at pa rin pero naka-mark na 'late'
+        // ang status (edge case, hindi dapat mangyari sa completed loan).
+        return ($s->status ?? null) === 'late';
+    })->count();
+
+    $totalPenalties = (float) DB::table('loan_penalties')
+        ->where('application_id', $applicationId)
+        ->sum('penalty_amount');
+
+    if ($latePayments === 0) {
+        $rating = 'excellent';
+        $label = 'Excellent Repayment History';
+        $description = 'All installments were paid on or before their due dates.';
+    } elseif ($latePayments === 1) {
+        $rating = 'good';
+        $label = 'Good Repayment History';
+        $description = 'Loan was completed with a mostly on-time repayment history — 1 installment was paid late.';
+    } elseif ($latePayments === 2) {
+        $rating = 'fair';
+        $label = 'Fair Repayment History';
+        $description = "Loan was completed with some delayed payments — {$latePayments} of {$totalPayments} installments were paid late.";
+    } else {
+        $rating = 'poor';
+        $label = 'Poor Repayment History';
+
+        if ($latePayments === $totalPayments) {
+            $description = 'Loan was fully completed, but all installments were paid late.';
+        } else {
+            $description = "Loan was fully completed, but multiple installments were paid late ({$latePayments} of {$totalPayments}).";
+        }
+    }
+
+    return [
+        'rating' => $rating,
+        'label' => $label,
+        'description' => $description,
+        'total_payments' => $totalPayments,
+        'late_payments' => $latePayments,
+        'total_penalties' => $totalPenalties,
+    ];
+}
+
+    public function markPenaltyPaid(Request $request, $id)
+{
+    DB::table('loan_penalties')->where('id', $id)->update([
+        'status' => 'paid',
+        'updated_at' => now(),
+    ]);
+
+    if ($request->ajax() || $request->wantsJson()) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Penalty marked as paid.',
+        ]);
+    }
+
+    return back()->with('success', 'Penalty marked as paid.');
+}
+
+public function waivePenalty(Request $request, $id)
+{
+    $request->validate(['waived_reason' => 'required|string|max:255']);
+    $adminId = Session::get('user_id');
+
+    DB::table('loan_penalties')->where('id', $id)->update([
+        'status' => 'waived',
+        'waived_by' => $adminId,
+        'waived_reason' => $request->waived_reason,
+        'updated_at' => now(),
+    ]);
+
+    if ($request->ajax() || $request->wantsJson()) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Penalty waived.',
+            'waived_reason' => $request->waived_reason,
+        ]);
+    }
+
+    return back()->with('success', 'Penalty waived.');
+}
     // Ensure class is properly closed
 }

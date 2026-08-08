@@ -1,0 +1,89 @@
+ /* ============================================================
+           Additive only — does not touch existing theme classes.
+           Sidebar footer (admin profile) + the three new dashboard
+           cards (Attention Required, Upcoming Payments, Recent Activity).
+           Uses the same light-gray/white/blue/status-color language as
+           the rest of the theme; no new rounded/decorative treatments.
+        ============================================================ */
+
+        /* ---------- Sidebar bottom admin profile ---------- */
+        .nxl-navigation .navbar-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .nxl-navigation .navbar-content {
+            flex: 1 1 auto;
+            overflow-y: auto;
+        }
+        .nxl-sidebar-footer {
+            flex-shrink: 0;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            padding: 12px;
+        }
+        .nxl-sidebar-footer .dropdown-toggle::after { display: none; }
+        .nxl-admin-trigger {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            text-align: left;
+            transition: background .15s ease;
+        }
+        .nxl-admin-trigger:hover { background: rgba(0, 0, 0, 0.04); }
+        .nxl-admin-avatar {
+            width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.78rem; font-weight: 700;
+            color: #fff; background: var(--bs-primary, #2563EB);
+        }
+        .nxl-admin-info { min-width: 0; flex: 1 1 auto; }
+        .nxl-admin-name {
+            font-size: 0.83rem; font-weight: 600; color: var(--bs-dark, #0F172A);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .nxl-admin-role {
+            font-size: 0.72rem; color: var(--bs-secondary, #64748B);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .nxl-admin-menu-icon { color: var(--bs-secondary, #64748B); font-size: 0.9rem; flex-shrink: 0; }
+        .nxl-admin-dropdown-menu { min-width: 200px; font-size: 0.85rem; }
+
+        /* ---------- Attention Required ---------- */
+        .attn-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 0; border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        }
+        .attn-item:last-child { border-bottom: none; }
+        .attn-icon {
+            width: 34px; height: 34px; border-radius: 8px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; font-size: 0.9rem;
+        }
+        .attn-text { min-width: 0; }
+        .attn-label { font-size: 0.85rem; font-weight: 600; color: var(--bs-dark, #0F172A); }
+        .attn-count { font-size: 0.74rem; color: var(--bs-secondary, #64748B); margin-top: 1px; }
+        .attn-action { font-size: 0.78rem; font-weight: 600; white-space: nowrap; margin-left: auto; }
+
+        /* ---------- Upcoming Payments ---------- */
+        .upcoming-row {
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            padding: 11px 0; border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        }
+        .upcoming-row:last-child { border-bottom: none; }
+        .upcoming-name { font-size: 0.84rem; font-weight: 600; color: var(--bs-dark, #0F172A); }
+        .upcoming-due { font-size: 0.76rem; color: var(--bs-secondary, #64748B); }
+        .upcoming-amount { font-size: 0.86rem; font-weight: 700; color: var(--bs-dark, #0F172A); white-space: nowrap; }
+
+        /* ---------- Recent Activity ---------- */
+        .activity-row { display: flex; align-items: flex-start; gap: 12px; padding: 11px 0; border-bottom: 1px solid rgba(0, 0, 0, 0.06); }
+        .activity-row:last-child { border-bottom: none; }
+        .activity-dot {
+            width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; margin-top: 1px;
+            display: flex; align-items: center; justify-content: center; font-size: 0.8rem;
+        }
+        .activity-text { font-size: 0.83rem; color: var(--bs-dark, #0F172A); line-height: 1.4; }
+        .activity-meta { font-size: 0.74rem; color: var(--bs-secondary, #64748B); margin-top: 2px; }

@@ -16,10 +16,10 @@
 <body>
     @php
         // Dynamic origin tracking: kung saan galing ang admin (Loan
-        // Applications list o Active Borrowers list) para tama ang naka-
-        // highlight na parent menu, breadcrumb, at Back button dito.
-        // Pina-pass via ?from=loan-applications|active-borrowers sa
-        // "View Details" links.
+        // Applications list, Active Borrowers, Ongoing Loans, o Overdue
+        // Payments) para tama ang naka-highlight na parent menu, breadcrumb,
+        // at Back button dito. Pina-pass via ?from=... sa "View Details"
+        // links.
         $cameFrom = request()->query('from', 'loan-applications');
     @endphp
     <nav class="nxl-navigation">
@@ -51,7 +51,7 @@
                             <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.borrower-verification', ['status' => 'on_hold']) }}">On Hold</a></li>
                         </ul>
                     </li>
-                    <li class="nxl-item nxl-hasmenu {{ $cameFrom !== 'active-borrowers' ? 'nxl-trigger active' : '' }}">
+                    <li class="nxl-item nxl-hasmenu {{ !in_array($cameFrom, ['active-borrowers', 'ongoing-loans', 'overdue-payments']) ? 'nxl-trigger active' : '' }}">
                         <a href="javascript:void(0);" class="nxl-link">
                             <span class="nxl-micon"><i class="feather-file-text"></i></span>
                             <span class="nxl-mtext">Loan Applications</span>
@@ -61,16 +61,16 @@
                             <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
                         </a>
                         <ul class="nxl-submenu">
-                            <li class="nxl-item" data-current="{{ $cameFrom !== 'active-borrowers' && ($viewStatus ?? 'pending') === 'pending' ? 'true' : 'false' }}">
+                            <li class="nxl-item" data-current="{{ !in_array($cameFrom, ['active-borrowers', 'ongoing-loans', 'overdue-payments']) && ($viewStatus ?? 'pending') === 'pending' ? 'true' : 'false' }}">
                                 <a class="nxl-link" href="{{ route('admin.loan-applications') }}">Pending Applications</a>
                             </li>
-                            <li class="nxl-item" data-current="{{ $cameFrom !== 'active-borrowers' && ($viewStatus ?? '') === 'approved' ? 'true' : 'false' }}">
+                            <li class="nxl-item" data-current="{{ !in_array($cameFrom, ['active-borrowers', 'ongoing-loans', 'overdue-payments']) && ($viewStatus ?? '') === 'approved' ? 'true' : 'false' }}">
                                 <a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'approved']) }}">Approved</a>
                             </li>
-                            <li class="nxl-item" data-current="{{ $cameFrom !== 'active-borrowers' && ($viewStatus ?? '') === 'rejected' ? 'true' : 'false' }}">
+                            <li class="nxl-item" data-current="{{ !in_array($cameFrom, ['active-borrowers', 'ongoing-loans', 'overdue-payments']) && ($viewStatus ?? '') === 'rejected' ? 'true' : 'false' }}">
                                 <a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'rejected']) }}">Rejected</a>
                             </li>
-                            <li class="nxl-item" data-current="{{ $cameFrom !== 'active-borrowers' && ($viewStatus ?? '') === 'on_hold' ? 'true' : 'false' }}">
+                            <li class="nxl-item" data-current="{{ !in_array($cameFrom, ['active-borrowers', 'ongoing-loans', 'overdue-payments']) && ($viewStatus ?? '') === 'on_hold' ? 'true' : 'false' }}">
                                 <a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'on_hold']) }}">On Hold</a>
                             </li>
                         </ul>
@@ -86,18 +86,22 @@
                             <li class="nxl-item" data-current="{{ $cameFrom === 'active-borrowers' ? 'true' : 'false' }}">
                                 <a class="nxl-link" href="{{ route('admin.active-borrowers') }}">Active Borrowers</a>
                             </li>
-                            <li class="nxl-item"><a class="nxl-link" href="#">Penalty Tracking</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.penalty-tracking') }}">Penalty Tracking</a></li>
                         </ul>
                     </li>
-                    <li class="nxl-item nxl-hasmenu">
+                    <li class="nxl-item nxl-hasmenu {{ in_array($cameFrom, ['ongoing-loans', 'overdue-payments']) ? 'nxl-trigger active' : '' }}">
                         <a href="javascript:void(0);" class="nxl-link">
                             <span class="nxl-micon"><i class="feather-dollar-sign"></i></span>
                             <span class="nxl-mtext">Active Loans</span>
                             <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
                         </a>
                         <ul class="nxl-submenu">
-                            <li class="nxl-item"><a class="nxl-link" href="#">Ongoing Loans</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="#">Overdue Payments</a></li>
+                            <li class="nxl-item" data-current="{{ $cameFrom === 'ongoing-loans' ? 'true' : 'false' }}">
+                                <a class="nxl-link" href="{{ route('admin.ongoing-loans') }}">Ongoing Loans</a>
+                            </li>
+                            <li class="nxl-item" data-current="{{ $cameFrom === 'overdue-payments' ? 'true' : 'false' }}">
+                                <a class="nxl-link" href="{{ route('admin.overdue-payments') }}">Overdue Payments</a>
+                            </li>
                             <li class="nxl-item"><a class="nxl-link" href="#">Completed Loans</a></li>
                             <li class="nxl-item"><a class="nxl-link" href="#">Defaulted</a></li>
                         </ul>
@@ -142,6 +146,10 @@
                         <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Home</a></li>
                         @if($cameFrom === 'active-borrowers')
                             <li class="breadcrumb-item"><a href="{{ route('admin.active-borrowers') }}">Active Borrowers</a></li>
+                        @elseif($cameFrom === 'ongoing-loans')
+                            <li class="breadcrumb-item"><a href="{{ route('admin.ongoing-loans') }}">Ongoing Loans</a></li>
+                        @elseif($cameFrom === 'overdue-payments')
+                            <li class="breadcrumb-item"><a href="{{ route('admin.overdue-payments') }}">Overdue Payments</a></li>
                         @else
                             <li class="breadcrumb-item"><a href="{{ route('admin.loan-applications') }}">Loan Applications</a></li>
                         @endif
@@ -150,13 +158,13 @@
                 </div>
                 <div class="page-header-right ms-auto">
                     @if($cameFrom === 'active-borrowers')
-                        <a href="{{ route('admin.active-borrowers') }}" class="btn btn-light">
-                           Back
-                        </a>
+                        <a href="{{ route('admin.active-borrowers') }}" class="btn btn-light">Back</a>
+                    @elseif($cameFrom === 'ongoing-loans')
+                        <a href="{{ route('admin.ongoing-loans') }}" class="btn btn-light">Back</a>
+                    @elseif($cameFrom === 'overdue-payments')
+                        <a href="{{ route('admin.overdue-payments') }}" class="btn btn-light">Back</a>
                     @else
-                        <a href="{{ route('admin.loan-applications', ['status' => $viewStatus]) }}" class="btn btn-light">
-                           Back
-                        </a>
+                        <a href="{{ route('admin.loan-applications', ['status' => $viewStatus]) }}" class="btn btn-light">Back</a>
                     @endif
                 </div>
             </div>
@@ -192,6 +200,7 @@
                                 @php
                                 $statusClass = match($app->status) {
                                     'approved' => 'badge-approved',
+                                    'active'   => 'badge-approved',
                                     'rejected' => 'badge-rejected',
                                     'on_hold'  => 'badge-onhold',
                                     default    => 'badge-pending',
@@ -207,7 +216,7 @@
                                     Fully <strong>rejected</strong> by all 3 admins. No further action.
                                 </div>
 
-                                @elseif($app->status === 'approved')
+                                @elseif($app->status === 'approved' || $app->status === 'active')
                                 <div class="alert alert-success mb-0" style="font-size:0.85rem;">
                                     <i class="feather-check-circle me-2"></i>
                                     Fully <strong>approved</strong>. No further action needed.
@@ -282,6 +291,48 @@
                                 @endfor
                             </div>
                         </div>
+
+                        <!-- Payment Schedule — lumalabas lang kapag may na-generate
+                             na schedule (active/completed loan lang, galing sa
+                             LoanActivationService). Wala nito ang pending/approved-
+                             pero-di-pa-active/rejected/on_hold applications. -->
+                        @if($paymentSchedule->isNotEmpty())
+                        <div class="section-card mb-3">
+                            <p class="section-title"><i class="feather-calendar me-2"></i>Payment Schedule</p>
+                            <div class="table-responsive">
+                                <table class="table table-sm ld-schedule-table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Due Date</th>
+                                            <th>Amount Due</th>
+                                            <th>Amount Paid</th>
+                                            <th>Paid On</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($paymentSchedule as $s)
+                                        @php
+                                            $isOverdue = is_null($s->paid_at) && \Carbon\Carbon::parse($s->due_date)->isPast();
+                                            $isPaid = !is_null($s->paid_at);
+                                            $scheduleBadge = $isPaid ? 'ld-schedule-paid' : ($isOverdue ? 'ld-schedule-late' : 'ld-schedule-pending');
+                                            $scheduleLabel = $isPaid ? 'Paid' : ($isOverdue ? 'Late' : 'Pending');
+                                        @endphp
+                                        <tr>
+                                            <td>{{ $s->installment_no }}</td>
+                                            <td>{{ \Carbon\Carbon::parse($s->due_date)->format('M d, Y') }}</td>
+                                            <td>₱{{ number_format($s->amount_due, 2) }}</td>
+                                            <td>₱{{ number_format($s->amount_paid, 2) }}</td>
+                                            <td>{{ $s->paid_at ? \Carbon\Carbon::parse($s->paid_at)->format('M d, Y') : '—' }}</td>
+                                            <td><span class="ld-schedule-badge {{ $scheduleBadge }}">{{ $scheduleLabel }}</span></td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        @endif
 
                         <!-- Personal Information -->
                         <div class="section-card mb-3">
@@ -401,7 +452,7 @@
     </main>
 
    <!-- Decision Modal -->
-@if($app->status !== 'rejected' && $app->status !== 'approved' && !$myReview)
+@if($app->status !== 'rejected' && $app->status !== 'approved' && $app->status !== 'active' && !$myReview)
 <div class="modal fade modal-modern" id="decisionModal" tabindex="-1" aria-labelledby="decisionModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">

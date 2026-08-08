@@ -1,0 +1,107 @@
+/* ============================================================
+   COMPLETED LOAN DETAIL — page-specific layout overrides.
+   Hindi ginagalaw ang shared loan-details.css classes (section-card,
+   ld-value-pill, ld-schedule-table, atbp.) — dito lang nakalagay
+   ang mga bagong container/grid rules para sa page na ito.
+============================================================ */
+
+/* ---------- Wider, left-aligned container ---------- */
+.cld-content {
+    max-width: 1220px;
+    margin: 0;
+    width: 100%;
+}
+
+@media (max-width: 1300px) {
+    .cld-content { max-width: 100%; }
+}
+
+/* ---------- Borrower Header — horizontal layout ---------- */
+.cld-borrower-header {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    text-align: left;
+    padding: 22px 26px;
+}
+
+.cld-borrower-header .borrower-avatar {
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.cld-borrower-right {
+    flex: 1;
+    min-width: 0;
+}
+
+.cld-borrower-right h6 {
+    font-size: 1.02rem;
+}
+
+.cld-borrower-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+
+.cld-completed-date {
+    font-size: 0.78rem;
+    color: #64748B;
+}
+
+@media (max-width: 575.98px) {
+    .cld-borrower-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 14px;
+    }
+    .cld-borrower-right {
+        text-align: center;
+    }
+    .cld-borrower-meta {
+        justify-content: center;
+    }
+}
+
+/* ---------- Loan Summary — two-column label/value grid ---------- */
+.cld-summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 32px;
+    row-gap: 4px;
+}
+
+.cld-summary-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 0;
+    border-bottom: 1px solid #F1F4F8;
+}
+
+.cld-summary-item:nth-last-child(-n+2) {
+    border-bottom: none;
+}
+
+@media (max-width: 767.98px) {
+    .cld-summary-grid {
+        grid-template-columns: 1fr;
+    }
+    .cld-summary-item:nth-last-child(-n+2) {
+        border-bottom: 1px solid #F1F4F8;
+    }
+    .cld-summary-item:last-child {
+        border-bottom: none;
+    }
+}
+
+/* ---------- Dark mode ---------- */
+html.app-skin-dark .cld-summary-item {
+    border-bottom-color: #212C3D;
+}
+html.app-skin-dark .cld-completed-date {
+    color: #94A3B8;
+}

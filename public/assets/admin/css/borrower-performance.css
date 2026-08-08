@@ -1,0 +1,167 @@
+/* ============================================================
+   BORROWER PERFORMANCE SECTION
+   Sariling isolated CSS — hindi umaasa/gumagamit ng loan-details.css.
+   Prefix: bp- (borrower-performance) para walang collision sa ibang
+   pages/components. Static/always-visible card — walang collapse.
+============================================================ */
+
+.bp-card {
+    background: #FFFFFF;
+    border: 1px solid #EAECF0;
+    border-radius: 14px;
+    padding: 18px 22px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
+    font-family: inherit;
+}
+
+.bp-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #0F172A;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+}
+
+/* ---------- Status row ---------- */
+.bp-status-row {
+    margin-bottom: 16px;
+}
+
+.bp-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 20px;
+    margin-bottom: 8px;
+    white-space: nowrap;
+}
+
+.bp-status-pill.is-excellent {
+    background: #F0FDF4;
+    color: #16A34A;
+}
+.bp-status-pill.is-good {
+    background: #EFF6FF;
+    color: #2563EB;
+}
+.bp-status-pill.is-fair {
+    background: #FFF7ED;
+    color: #F97316;
+}
+.bp-status-pill.is-poor {
+    background: #FEF2F2;
+    color: #DC2626;
+}
+
+.bp-description {
+    font-size: 0.82rem;
+    color: #64748B;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* ---------- Stats row ---------- */
+.bp-stats-row {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    padding-top: 14px;
+    border-top: 1px solid #EEF1F5;
+}
+
+.bp-stat {
+    flex: 1;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 2px 8px;
+}
+
+.bp-stat-value {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #0F172A;
+    letter-spacing: -0.01em;
+}
+
+.bp-stat-value.is-warning-value {
+    color: #DC2626;
+}
+
+.bp-stat-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.bp-stat-divider {
+    width: 1px;
+    background: #EEF1F5;
+    margin: 2px 0;
+}
+
+/* ============================================================
+   RESPONSIVE — stack cleanly on small screens, walang horizontal
+   scroll
+============================================================ */
+@media (max-width: 575.98px) {
+    .bp-stats-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .bp-stat {
+        flex-direction: row;
+        justify-content: space-between;
+        text-align: left;
+        padding: 0;
+    }
+    .bp-stat-divider {
+        width: 100%;
+        height: 1px;
+        margin: 0;
+    }
+}
+
+/* ============================================================
+   DARK MODE OVERRIDES — html.app-skin-dark (confirmed selector
+   sa buong system)
+============================================================ */
+html.app-skin-dark .bp-card {
+    background: #17202F;
+    border-color: #2A3648;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+html.app-skin-dark .bp-title {
+    color: #E5E9F0;
+}
+html.app-skin-dark .bp-description {
+    color: #94A3B8;
+}
+html.app-skin-dark .bp-stats-row {
+    border-top-color: #212C3D;
+}
+html.app-skin-dark .bp-stat-value {
+    color: #E5E9F0;
+}
+html.app-skin-dark .bp-stat-value.is-warning-value {
+    color: #F87171;
+}
+html.app-skin-dark .bp-stat-label {
+    color: #64748B;
+}
+html.app-skin-dark .bp-stat-divider {
+    background: #212C3D;
+}
+html.app-skin-dark .bp-status-pill.is-excellent { background: rgba(22, 163, 74, 0.16); color: #4ADE80; }
+html.app-skin-dark .bp-status-pill.is-good      { background: rgba(37, 99, 235, 0.16); color: #60A5FA; }
+html.app-skin-dark .bp-status-pill.is-fair      { background: rgba(249, 115, 22, 0.16); color: #FB923C; }
+html.app-skin-dark .bp-status-pill.is-poor      { background: rgba(220, 38, 38, 0.16); color: #F87171; }

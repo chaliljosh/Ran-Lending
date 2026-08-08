@@ -64,4 +64,30 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
     // Bagong route para sa All Borrowers page — list lang, walang approve/reject
     Route::get('/borrowers', [AdminController::class, 'allBorrowers'])->name('borrowers');
     Route::get('/borrowers/active', [AdminController::class, 'activeBorrowers'])->name('active-borrowers');
+
+    // Penalty Tracking
+    Route::get('/penalty-tracking', [AdminController::class, 'penaltyTracking'])->name('penalty-tracking');
+    Route::post('/penalty-tracking/{id}/mark-paid', [AdminController::class, 'markPenaltyPaid'])->name('penalty-mark-paid');
+    Route::post('/penalty-tracking/{id}/waive', [AdminController::class, 'waivePenalty'])->name('penalty-waive');
+
+    // Active Loans > Ongoing Loans
+    Route::get('/active-loans/ongoing', [AdminController::class, 'ongoingLoans'])->name('ongoing-loans');
+
+    // Active Loans > Overdue Payments
+    Route::get('/active-loans/overdue', [AdminController::class, 'overduePayments'])->name('overdue-payments');
+
+    // Overdue Payments > View Details (focused view — borrower card + overview
+    // + Loan Summary + Payment Schedule only). The group() above already adds
+    // the "/admin" URL prefix and "admin." name prefix, so neither is repeated
+    // here — doing so would have produced "/admin/admin/..." and
+    // "admin.admin.overdue-payment-detail", breaking every route()/href call
+    // that expects the plain "admin.overdue-payment-detail" name.
+    Route::get('/overdue-payment-detail/{id}', [AdminController::class, 'overduePaymentDetail'])
+        ->name('overdue-payment-detail');
+
+    // Active Loans > Completed Loans
+    Route::get('/active-loans/completed', [AdminController::class, 'completedLoans'])->name('completed-loans');
+    Route::get('/completed-loan-detail/{id}', [AdminController::class, 'completedLoanDetail'])
+        ->name('completed-loan-detail');
+
 });

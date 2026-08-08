@@ -458,3 +458,56 @@ html.app-skin-dark .ld-timeline-label { color: #94a3b8; }
 .nxl-submenu li[data-current="false"].active > a.nxl-link:not(:hover) {
     background: transparent !important;
 }
+
+/* ========================================
+   PAYMENT SCHEDULE TABLE
+   Idinagdag para sa Payment Schedule section sa
+   loan-application-detail.blade.php. I-dagdag ito sa
+   DULO ng loan-details.css — hindi ito palit sa buong file.
+   ======================================== */
+
+.ld-schedule-table thead th {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #8a9bb0;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    border-bottom: 1px solid #e9ecef;
+    padding: 10px 12px;
+    white-space: nowrap;
+}
+
+.ld-schedule-table tbody td {
+    padding: 12px;
+    font-size: 0.84rem;
+    color: #1a2a3a;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f3f5;
+}
+
+.ld-schedule-table tbody tr:last-child td { border-bottom: none; }
+
+.ld-schedule-badge {
+    display: inline-block;
+    padding: 3px 11px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.ld-schedule-paid    { background: #dcfce7; color: #16a34a; }
+.ld-schedule-late    { background: #fee2e2; color: #dc2626; }
+.ld-schedule-pending { background: #f1f5f9; color: #64748b; }
+
+/* ── Dark mode ── */
+html.app-skin-dark .ld-schedule-table thead th {
+    color: #94a3b8;
+    border-color: #2d3f55;
+}
+html.app-skin-dark .ld-schedule-table tbody td {
+    color: #e2e8f0;
+    border-color: #2d3f55;
+}
+html.app-skin-dark .ld-schedule-paid    { background: rgba(22,163,74,.15); color: #6ee7a4; }
+html.app-skin-dark .ld-schedule-late    { background: rgba(220,38,38,.15); color: #f87171; }
+html.app-skin-dark .ld-schedule-pending { background: rgba(148,163,184,.15); color: #cbd5e1; }

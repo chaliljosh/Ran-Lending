@@ -1,0 +1,199 @@
+/* ========================================================
+           ONGOING LOANS
+           Parehong design tokens/language ng Active Borrowers
+           redesign natin — blue + white, premium SaaS look. Hindi
+           ginalaw ang sidebar/navigation, ito lang main-content.
+           ======================================================== */
+
+        :root {
+            --rs-brand: #4a7cf7;
+            --rs-brand-soft: #eef3ff;
+            --rs-ink: #0f172a;
+            --rs-body: #475569;
+            --rs-muted: #94a3b8;
+            --rs-border: #e7eaf0;
+            --rs-bg: #f8fafc;
+
+            --rs-green: #16a34a;
+            --rs-green-soft: #ecfdf5;
+            --rs-green-border: #bbf7d0;
+
+            --rs-amber: #b45309;
+            --rs-amber-soft: #fffbeb;
+            --rs-amber-border: #fde68a;
+
+            --rs-radius: 16px;
+            --rs-radius-sm: 10px;
+            --rs-shadow: 0 1px 2px rgba(15,23,42,.04), 0 10px 24px -14px rgba(15,23,42,.12);
+        }
+
+        body { background: var(--rs-bg); }
+
+        .page-header .page-header-title h5 { color: var(--rs-ink); font-weight: 700; }
+
+        .rs-card {
+            background: #fff;
+            border: 1px solid var(--rs-border);
+            border-radius: var(--rs-radius);
+            box-shadow: var(--rs-shadow);
+        }
+
+        /* ── Stat cards ── */
+        .stats-grid-v2 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .stat-card-v2 {
+            display: flex; align-items: center; gap: 16px;
+            padding: 22px 24px;
+        }
+        .stat-icon-v2 {
+            width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 19px;
+        }
+        .stat-icon-v2.total  { background: var(--rs-brand-soft); color: var(--rs-brand); }
+        .stat-icon-v2.amount { background: var(--rs-green-soft); color: var(--rs-green); }
+        .stat-icon-v2.avg    { background: var(--rs-amber-soft); color: var(--rs-amber); }
+        .stat-label-v2 {
+            font-size: 0.72rem; font-weight: 600; color: var(--rs-muted);
+            text-transform: uppercase; letter-spacing: .4px; margin-bottom: 4px;
+        }
+        .stat-value-v2 {
+            font-size: 1.4rem; font-weight: 700; color: var(--rs-ink);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ── Filter bar ── */
+        .filter-bar-v2 {
+            display: flex; align-items: center; gap: 14px;
+            margin-bottom: 20px; flex-wrap: wrap;
+        }
+        .search-wrap-v2 {
+            flex: 1; min-width: 260px;
+            display: flex; align-items: center; gap: 10px;
+            background: #fff; border: 1px solid var(--rs-border);
+            border-radius: var(--rs-radius-sm); padding: 0 16px;
+        }
+        .search-wrap-v2 i, .search-wrap-v2 svg {
+            color: var(--rs-muted); font-size: 15px; width: 15px; height: 15px;
+            flex-shrink: 0; pointer-events: none;
+        }
+        .search-wrap-v2 input {
+            flex: 1; height: 46px; border: none; box-shadow: none;
+            background: transparent; font-size: 0.86rem;
+        }
+        .search-wrap-v2 input:focus { outline: none; box-shadow: none; }
+
+        .sort-select-v2 {
+            height: 46px; border: 1px solid var(--rs-border); border-radius: var(--rs-radius-sm);
+            font-size: 0.83rem; font-weight: 500; color: var(--rs-ink);
+            padding: 0 16px; background: #fff;
+        }
+        .sort-select-v2:focus { border-color: var(--rs-brand); box-shadow: 0 0 0 3px var(--rs-brand-soft); }
+
+        /* ── Table ── */
+        .rs-table-card { overflow: hidden; }
+        .rs-table thead th {
+            background: #fbfcfe; color: var(--rs-muted);
+            font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: .4px; border-bottom: 1px solid var(--rs-border);
+            padding: 14px 20px; white-space: nowrap;
+        }
+        .rs-table tbody td {
+            padding: 16px 20px; border-bottom: 1px solid var(--rs-border);
+            vertical-align: middle; font-size: 0.85rem;
+        }
+        .rs-table tbody tr:last-child td { border-bottom: none; }
+        .rs-table tbody tr:hover { background: #fafbfd; }
+
+        .borrower-cell-v2 { display: flex; align-items: center; gap: 12px; }
+        .borrower-avatar-v2 {
+            width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+            background: linear-gradient(135deg, var(--rs-brand), #7ea3ff);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-weight: 700; font-size: 0.78rem;
+        }
+        .borrower-name-v2 { font-weight: 700; color: var(--rs-ink); font-size: 0.87rem; }
+        .borrower-id-v2 { font-size: 0.7rem; color: var(--rs-brand); font-weight: 600; margin: 1px 0; }
+        .borrower-email-v2 { font-size: 0.76rem; color: var(--rs-muted); }
+
+        .loan-amount-v2 { font-weight: 700; color: var(--rs-ink); font-variant-numeric: tabular-nums; }
+        .loan-meta-v2 { color: var(--rs-body); }
+
+        .purpose-pill {
+            display: inline-block; padding: 4px 12px; border-radius: 20px;
+            background: var(--rs-green-soft); color: var(--rs-green);
+            font-size: 0.74rem; font-weight: 600;
+        }
+
+        /* ── Progress bar (installments paid) ── */
+        .progress-cell-v2 { min-width: 140px; }
+        .progress-bar-track-v2 {
+            width: 100%; height: 6px; border-radius: 6px;
+            background: var(--rs-border); overflow: hidden; margin-bottom: 6px;
+        }
+        .progress-bar-fill-v2 {
+            height: 100%; border-radius: 6px;
+            background: linear-gradient(90deg, var(--rs-brand), #7ea3ff);
+        }
+        .progress-label-v2 { font-size: 0.74rem; color: var(--rs-muted); font-weight: 600; }
+        .next-due-amount-v2 { font-size: 0.74rem; color: var(--rs-muted); }
+
+        .btn-view-v2 {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 16px; border-radius: 20px;
+            border: 1px solid var(--rs-border); background: #fff;
+            font-size: 0.78rem; font-weight: 600; color: var(--rs-ink);
+            transition: all .15s ease;
+        }
+        .btn-view-v2:hover { border-color: var(--rs-brand); color: var(--rs-brand); background: var(--rs-brand-soft); }
+
+        /* ── Empty / no-results state ── */
+        .empty-state-v2 { text-align: center; padding: 64px 20px; }
+        .empty-state-v2 i { font-size: 42px; color: var(--rs-muted); }
+        .empty-state-v2 h6 { margin-top: 14px; font-weight: 700; color: var(--rs-ink); }
+        .empty-state-v2 p { color: var(--rs-muted); font-size: 0.85rem; margin: 0; }
+
+        /* ── Dark mode ── */
+        html.app-skin-dark body { background: #0f172a; }
+        html.app-skin-dark .rs-card { background: #1e2a3a; border-color: #2d3f55; }
+        html.app-skin-dark .stat-value-v2,
+        html.app-skin-dark .borrower-name-v2,
+        html.app-skin-dark .loan-amount-v2,
+        html.app-skin-dark .btn-view-v2,
+        html.app-skin-dark .empty-state-v2 h6 { color: #e2e8f0; }
+        html.app-skin-dark .stat-label-v2,
+        html.app-skin-dark .borrower-email-v2,
+        html.app-skin-dark .loan-meta-v2,
+        html.app-skin-dark .next-due-amount-v2,
+        html.app-skin-dark .empty-state-v2 p { color: #94a3b8; }
+        html.app-skin-dark .search-wrap-v2,
+        html.app-skin-dark .sort-select-v2 { background: #16202e; border-color: #2d3f55; color: #e2e8f0; }
+        html.app-skin-dark .rs-table thead th { background: #16202e; border-color: #2d3f55; color: #94a3b8; }
+        html.app-skin-dark .rs-table tbody td { border-color: #2d3f55; }
+        html.app-skin-dark .rs-table tbody tr:hover { background: #16202e; }
+        html.app-skin-dark .btn-view-v2 { background: #16202e; border-color: #2d3f55; }
+        html.app-skin-dark .purpose-pill { background: rgba(22,163,74,.15); color: #6ee7a4; }
+        html.app-skin-dark .progress-bar-track-v2 { background: #2d3f55; }
+
+        /* ── Responsive ── */
+        @media (max-width: 767.98px) {
+            .stats-grid-v2 { grid-template-columns: 1fr; }
+        }
+
+        /* ── Footer sa ibaba (parehong fix gaya ng loan-applications.css) ── */
+        .nxl-container {
+            min-height: calc(100vh - 80px) !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+        .nxl-content {
+            flex: 1 !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+        .nxl-content .main-content { flex: 1 !important; }
+        .footer { flex-shrink: 0 !important; margin-top: auto !important; }

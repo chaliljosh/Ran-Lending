@@ -10,6 +10,7 @@
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/vendors/css/vendors.min.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/theme.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/admin/css/logout-modal.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/admin-dashboard.css') }}" />
 </head>
 <body>
     <nav class="nxl-navigation">
@@ -78,19 +79,20 @@
                         <ul class="nxl-submenu">
                             <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.borrowers') }}">All Borrowers</a></li>
                             <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.active-borrowers') }}">Active Borrowers</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="#">Penalty Tracking</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.penalty-tracking') }}">Penalty Tracking</a></li>
                         </ul>
                     </li>
-                    <li class="nxl-item nxl-hasmenu">
+                    <li class="nxl-item nxl-hasmenu"> 
                         <a href="javascript:void(0);" class="nxl-link">
                             <span class="nxl-micon"><i class="feather-dollar-sign"></i></span>
                             <span class="nxl-mtext">Active Loans</span>
                             <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
                         </a>
                         <ul class="nxl-submenu">
-                            <li class="nxl-item"><a class="nxl-link" href="#">Ongoing Loans</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="#">Overdue Payments</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="#">Completed Loans</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.ongoing-loans') }}">Ongoing Loans</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.overdue-payments') }}">Overdue Payments</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.completed-loans') }}">Completed Loans</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="#">Defaulted</a></li>
                         </ul>
                     </li>
                     <li class="nxl-item">
@@ -100,6 +102,36 @@
                         </a>
                     </li>
                 </ul>
+            </div>
+
+            {{-- ============ SIDEBAR BOTTOM — ADMIN PROFILE ============
+                 Stays pinned under the scrollable menu via the flex-column
+                 layout on .navbar-wrapper above. Dropup so it opens upward
+                 (it's at the bottom of the screen). --}}
+            <div class="nxl-sidebar-footer">
+                <div class="dropdown dropup">
+                    <button type="button" class="nxl-admin-trigger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="nxl-admin-avatar">{{ $adminInitials }}</div>
+                        <div class="nxl-admin-info">
+                            <div class="nxl-admin-name">{{ $adminName }}</div>
+                            <div class="nxl-admin-role">{{ $adminRole }}</div>
+                        </div>
+                        <i class="feather-settings nxl-admin-menu-icon"></i>
+                    </button>
+                    <ul class="dropdown-menu nxl-admin-dropdown-menu">
+                        <li><a class="dropdown-item" href="#"><i class="feather-user me-2"></i> My Profile</a></li>
+                        {{-- Activity Log / Account Settings only linked if those routes already exist in the app --}}
+                        @if(\Illuminate\Support\Facades\Route::has('admin.account-settings'))
+                            <li><a class="dropdown-item" href="{{ route('admin.account-settings') }}"><i class="feather-settings me-2"></i> Account Settings</a></li>
+                        @endif
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="javascript:void(0);" onclick="confirmLogout()">
+                                <i class="feather-log-out me-2"></i> Logout
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
     </nav>
@@ -142,6 +174,7 @@
 
             <div class="main-content">
                 <div class="row">
+                    {{-- ============ TOP: SUMMARY CARDS (unchanged) ============ --}}
                     <div class="col-xxl-3 col-md-6">
                         <div class="card stretch stretch-full">
                             <div class="card-body">
@@ -252,10 +285,14 @@
                         </div>
                     </div>
 
+                    {{-- ============ MIDDLE: Recent Loan Applications | Attention Required ============ --}}
                     <div class="col-lg-8">
                         <div class="card stretch stretch-full">
-                            <div class="card-header">
+                            <div class="card-header d-flex align-items-center justify-content-between">
                                 <h5 class="card-title">Recent Loan Applications</h5>
+                                <a href="{{ route('admin.loan-applications') }}" class="fs-12 fw-semibold text-primary">
+                                    View All <i class="feather-arrow-right"></i>
+                                </a>
                             </div>
                             <div class="card-body custom-card-action p-0">
                                 <div class="table-responsive">
@@ -302,30 +339,81 @@
 
                     <div class="col-lg-4">
                         <div class="card stretch stretch-full">
-                            <div class="card-header"><h5 class="card-title">Quick Actions</h5></div>
+                            <div class="card-header">
+                                <h5 class="card-title">Attention Required</h5>
+                            </div>
                             <div class="card-body">
-                                <div class="d-flex flex-column gap-3">
-                                    @if($pendingVerificationCount > 0)
-                                        <a href="{{ route('admin.borrower-verification') }}" class="btn btn-light-brand w-100 justify-content-start">
-                                            <i class="feather-user-check me-2"></i>
-                                            Review Borrower Verifications
-                                            <span class="badge bg-danger ms-auto">{{ $pendingVerificationCount }}</span>
+                                @foreach($attentionItems as $item)
+                                    <div class="attn-item">
+                                        <div class="attn-icon bg-soft-{{ $item['color'] }} text-{{ $item['color'] }}">
+                                            <i class="{{ $item['icon'] }}"></i>
+                                        </div>
+                                        <div class="attn-text">
+                                            <div class="attn-label">{{ $item['label'] }}</div>
+                                            <div class="attn-count">{{ $item['count'] }} {{ $item['count'] == 1 ? 'item' : 'items' }}</div>
+                                        </div>
+                                        <a href="{{ $item['url'] }}" class="attn-action text-{{ $item['color'] }}">
+                                            {{ $item['action'] }} <i class="feather-arrow-right"></i>
                                         </a>
-                                    @endif
-                                    <a href="#" class="btn btn-light-brand w-100 justify-content-start">
-                                        <i class="feather-file-text me-2"></i>
-                                        Review Pending Applications
-                                        <span class="badge bg-warning ms-auto">{{ $pendingApplications }}</span>
-                                    </a>
-                                    <a href="#" class="btn btn-light-brand w-100 justify-content-start">
-                                        <i class="feather-users me-2"></i>
-                                        Manage Borrowers
-                                    </a>
-                                    <a href="#" class="btn btn-light-brand w-100 justify-content-start">
-                                        <i class="feather-dollar-sign me-2"></i>
-                                        View Active Loans
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- ============ BOTTOM: Upcoming Payments | Recent Activity ============ --}}
+                    <div class="col-lg-6">
+                        <div class="card stretch stretch-full">
+                            <div class="card-header d-flex align-items-center justify-content-between">
+                                <h5 class="card-title">Upcoming Payments</h5>
+                            </div>
+                            <div class="card-body">
+                                @forelse($upcomingPayments as $payment)
+                                    <div class="upcoming-row">
+                                        <div>
+                                            <div class="upcoming-name">{{ $payment->borrower_name }}</div>
+                                            <div class="upcoming-due">{{ \Carbon\Carbon::parse($payment->due_date)->format('M d, Y') }}</div>
+                                        </div>
+                                        <div class="upcoming-amount">&#8369;{{ number_format($payment->amount_due, 2) }}</div>
+                                    </div>
+                                @empty
+                                    <div class="text-center text-muted py-4 fs-13">No upcoming payments</div>
+                                @endforelse
+                            </div>
+                            @if($upcomingPayments->isNotEmpty())
+                                <div class="card-footer text-center border-top py-3">
+                                    <a href="{{ route('admin.ongoing-loans') }}" class="fs-12 fw-semibold text-primary">
+                                        View Active Loans <i class="feather-arrow-right"></i>
                                     </a>
                                 </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <div class="card stretch stretch-full">
+                            <div class="card-header">
+                                <h5 class="card-title">Recent Activity</h5>
+                            </div>
+                            <div class="card-body">
+                                @forelse($recentActivity as $activity)
+                                    <div class="activity-row">
+                                        <div class="activity-dot bg-soft-{{ $activity['color'] }} text-{{ $activity['color'] }}">
+                                            <i class="{{ $activity['icon'] }}"></i>
+                                        </div>
+                                        <div>
+                                            <div class="activity-text">{{ $activity['text'] }}</div>
+                                            <div class="activity-meta">
+                                                @if(!empty($activity['meta']))
+                                                    {{ $activity['meta'] }} &middot;
+                                                @endif
+                                                {{ \Carbon\Carbon::parse($activity['ts'])->diffForHumans() }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="text-center text-muted py-4 fs-13">No recent activity yet.</div>
+                                @endforelse
                             </div>
                         </div>
                     </div>

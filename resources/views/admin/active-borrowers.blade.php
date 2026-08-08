@@ -70,7 +70,7 @@
                         <ul class="nxl-submenu">
                             <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.borrowers') }}">All Borrowers</a></li>
                             <li class="nxl-item" data-current="true"><a class="nxl-link" href="{{ route('admin.active-borrowers') }}">Active Borrowers</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="#">Penalty Tracking</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.penalty-tracking') }}">Penalty Tracking</a></li>
                         </ul>
                     </li>
                     <li class="nxl-item nxl-hasmenu">
@@ -80,9 +80,9 @@
                             <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
                         </a>
                         <ul class="nxl-submenu">
-                            <li class="nxl-item"><a class="nxl-link" href="#">Ongoing Loans</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="#">Overdue Payments</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="#">Completed Loans</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.ongoing-loans') }}">Ongoing Loans</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.overdue-payments') }}">Overdue Payments</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.completed-loans') }}">Completed Loans</a></li>
                             <li class="nxl-item"><a class="nxl-link" href="#">Defaulted</a></li>
                         </ul>
                     </li>
@@ -176,7 +176,7 @@
                     <div class="empty-state-v2">
                         <i class="feather-users"></i>
                         <h6>No active borrowers yet</h6>
-                        <p>Wala pang borrower na may approved o active na loan.</p>
+                        <p>There are currently no borrowers with approved or active loans.</p>
                     </div>
                 </div>
                 @else
