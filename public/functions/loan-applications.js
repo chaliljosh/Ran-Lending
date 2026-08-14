@@ -8,123 +8,199 @@ function showLoanTab(tab, btn) {
     btn.classList.add('active');
 }
 
-function filterApplications(query) {
-    query = query.trim().toLowerCase();
-    document.querySelectorAll('.app-card[data-search]').forEach(card => {
-        const match = card.dataset.search.includes(query);
-        card.style.display = match ? '' : 'none';
+// ========================================
+// REVIEWED TAB — search + decision filter + pagination
+// Table rows (<tr data-search data-decision>) inside #loanReviewedList.
+// loanReviewedMatchingCards holds the current filtered set (before paging).
+// filterLoanReviewed() re-runs on every search/decision-filter change and
+// resets back to page 1.
+// ========================================
+let loanReviewedMatchingCards = [];
+let loanReviewedCurrentPage = 1;
+let loanReviewedRowsPerPage = 10;
+
+function filterLoanReviewed() {
+    const searchInput = document.getElementById('loanReviewedSearchInput');
+    const decisionSelect = document.getElementById('loanReviewedDecisionFilter');
+    const list = document.getElementById('loanReviewedList');
+    if (!list) return;
+
+    const query = (searchInput?.value || '').trim().toLowerCase();
+    const decision = decisionSelect?.value || '';
+
+    const allRows = Array.from(list.querySelectorAll('tr[data-search]'));
+
+    loanReviewedMatchingCards = allRows.filter(row => {
+        const matchesSearch = !query || row.dataset.search.includes(query);
+        const matchesDecision = !decision || row.dataset.decision === decision;
+        return matchesSearch && matchesDecision;
     });
+
+    allRows.forEach(row => row.style.display = 'none');
+
+    loanReviewedCurrentPage = 1;
+    loanReviewedRenderPage();
 }
 
-let loanCardPendingForm = null;
+function loanReviewedChangeRowsPerPage(select) {
+    loanReviewedRowsPerPage = parseInt(select.value, 10) || 10;
+    loanReviewedCurrentPage = 1;
+    loanReviewedRenderPage();
+}
 
-function loanCardConfirmAction(btn, action) {
-    loanCardPendingForm = btn.closest('form.decision-card-form');
+function loanReviewedGoToPage(direction) {
+    loanReviewedCurrentPage += direction;
+    loanReviewedRenderPage();
+}
 
-    const icon = document.getElementById('loanCardConfirmIcon');
-    const text = document.getElementById('loanCardConfirmText');
-    const confirmBtn = document.getElementById('loanCardConfirmBtn');
+function loanReviewedRenderPage() {
+    const emptyState = document.getElementById('loanReviewedEmptyState');
+    const totalCards = loanReviewedMatchingCards.length;
+    const totalPages = Math.max(1, Math.ceil(totalCards / loanReviewedRowsPerPage));
 
-    if (action === 'approved') {
-        icon.className = 'feather-check-circle text-success';
-        text.textContent = 'Approve this application?';
-        confirmBtn.className = 'btn btn-success flex-fill';
-        confirmBtn.innerHTML = ' Approve Application';
-    } else {
-        icon.className = 'feather-x-circle text-danger';
-        text.textContent = 'Reject this application?';
-        confirmBtn.className = 'btn btn-danger flex-fill';
-        confirmBtn.innerHTML = ' Reject Application';
+    if (loanReviewedCurrentPage > totalPages) loanReviewedCurrentPage = totalPages;
+    if (loanReviewedCurrentPage < 1) loanReviewedCurrentPage = 1;
+
+    loanReviewedMatchingCards.forEach(row => row.style.display = 'none');
+
+    const start = (loanReviewedCurrentPage - 1) * loanReviewedRowsPerPage;
+    const end = start + loanReviewedRowsPerPage;
+    loanReviewedMatchingCards.slice(start, end).forEach(row => row.style.display = '');
+
+    if (emptyState) {
+        emptyState.style.display = totalCards === 0 ? 'block' : 'none';
     }
 
-    confirmBtn.onclick = function () {
-        submitLoanDecision(loanCardPendingForm, action);
-    };
-
-    const modal = new bootstrap.Modal(document.getElementById('loanCardConfirmModal'));
-    modal.show();
+    loanReviewedUpdatePaginationControls(totalCards, totalPages, start, end);
 }
 
-// Picks which result modal to show based on the application's status
-// after this decision was recorded:
-//   approved -> finalApprovalModal (all 3 admins approved)
-//   rejected -> finalRejectionModal (all 3 admins rejected)
-//   on_hold  -> onHoldModal (mixed decisions among admins)
-//   pending  -> decisionSuccessModal (generic "recorded" message)
-function resultModalIdFor(status) {
-    if (status === 'approved') return 'finalApprovalModal';
-    if (status === 'rejected') return 'finalRejectionModal';
-    if (status === 'on_hold') return 'onHoldModal';
-    return 'decisionSuccessModal';
-}
+function loanReviewedUpdatePaginationControls(totalCards, totalPages, start, end) {
+    const infoEl = document.getElementById('loanReviewedPaginationInfo');
+    const pageIndicator = document.getElementById('loanReviewedPageIndicator');
+    const prevBtn = document.getElementById('loanReviewedPrevPage');
+    const nextBtn = document.getElementById('loanReviewedNextPage');
+    const paginationWrap = document.getElementById('loanReviewedPagination');
 
-function submitLoanDecision(form, action) {
-    if (!form) return;
-
-    let actionInput = form.querySelector('input[name="action"]');
-    if (!actionInput) {
-        actionInput = document.createElement('input');
-        actionInput.type = 'hidden';
-        actionInput.name = 'action';
-        form.appendChild(actionInput);
-    }
-    actionInput.value = action;
-
-    const confirmModalEl = document.getElementById('loanCardConfirmModal');
-    const confirmModalInstance = bootstrap.Modal.getInstance(confirmModalEl);
-
-    form.classList.add('is-submitting');
-
-    let modalHidden = false;
-    let fetchResult = null;
-
-    function tryShowSuccess() {
-        if (!modalHidden || fetchResult === null) return;
-
-        if (fetchResult.success) {
-            const resultModalId = resultModalIdFor(fetchResult.status);
-            const resultModalEl = document.getElementById(resultModalId);
-            const resultModal = new bootstrap.Modal(resultModalEl, { backdrop: 'static' });
-
-            resultModalEl.addEventListener('hidden.bs.modal', function onResultHidden() {
-                resultModalEl.removeEventListener('hidden.bs.modal', onResultHidden);
-                location.reload();
-            }, { once: true });
-
-            resultModal.show();
+    if (infoEl) {
+        if (totalCards === 0) {
+            infoEl.textContent = 'Showing 0 of 0';
         } else {
-            form.classList.remove('is-submitting');
-            alert('Something went wrong. Please try again.');
+            const shownStart = start + 1;
+            const shownEnd = Math.min(end, totalCards);
+            infoEl.textContent = `Showing ${shownStart}–${shownEnd} of ${totalCards}`;
         }
     }
 
-    if (confirmModalEl) {
-        confirmModalEl.addEventListener('hidden.bs.modal', function onHidden() {
-            confirmModalEl.removeEventListener('hidden.bs.modal', onHidden);
-            modalHidden = true;
-            tryShowSuccess();
-        }, { once: true });
+    if (pageIndicator) {
+        pageIndicator.textContent = `Page ${loanReviewedCurrentPage} of ${totalPages}`;
     }
 
-    confirmModalInstance?.hide();
+    if (prevBtn) prevBtn.disabled = loanReviewedCurrentPage <= 1;
+    if (nextBtn) nextBtn.disabled = loanReviewedCurrentPage >= totalPages;
 
-    const formData = new FormData(form);
-
-    fetch(form.getAttribute('action'), {
-        method: 'POST',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-        },
-        body: formData,
-    })
-    .then(res => res.json())
-    .then(data => {
-        fetchResult = { success: !!data.success, status: data.status };
-        tryShowSuccess();
-    })
-    .catch(() => {
-        form.classList.remove('is-submitting');
-        alert('Something went wrong. Please check your connection and try again.');
-    });
+    if (paginationWrap) {
+        const hasActiveFilter = document.getElementById('loanReviewedSearchInput')?.value
+            || document.getElementById('loanReviewedDecisionFilter')?.value;
+        paginationWrap.style.display = (totalCards === 0 && !hasActiveFilter) ? 'none' : 'flex';
+    }
 }
+
+// ========================================
+// FILTERED VIEW (Approved / Rejected / On Hold) — search + rows-per-page
+// + pagination. Same pattern as the Reviewed tab above, just without a
+// decision filter (the whole table is already one decision, driven by
+// which sidebar link/tab the admin is on).
+// Table rows (<tr data-search>) inside #filteredLoanList.
+// ========================================
+let filteredMatchingRows = [];
+let filteredCurrentPage = 1;
+let filteredRowsPerPage = 10;
+
+function filterLoanFiltered() {
+    const searchInput = document.getElementById('filteredSearchInput');
+    const list = document.getElementById('filteredLoanList');
+    if (!list) return;
+
+    const query = (searchInput?.value || '').trim().toLowerCase();
+    const allRows = Array.from(list.querySelectorAll('tr[data-search]'));
+
+    filteredMatchingRows = allRows.filter(row => !query || row.dataset.search.includes(query));
+
+    allRows.forEach(row => row.style.display = 'none');
+
+    filteredCurrentPage = 1;
+    filteredRenderPage();
+}
+
+function filteredChangeRowsPerPage(select) {
+    filteredRowsPerPage = parseInt(select.value, 10) || 10;
+    filteredCurrentPage = 1;
+    filteredRenderPage();
+}
+
+function filteredGoToPage(direction) {
+    filteredCurrentPage += direction;
+    filteredRenderPage();
+}
+
+function filteredRenderPage() {
+    const emptyState = document.getElementById('filteredEmptyState');
+    const totalRows = filteredMatchingRows.length;
+    const totalPages = Math.max(1, Math.ceil(totalRows / filteredRowsPerPage));
+
+    if (filteredCurrentPage > totalPages) filteredCurrentPage = totalPages;
+    if (filteredCurrentPage < 1) filteredCurrentPage = 1;
+
+    filteredMatchingRows.forEach(row => row.style.display = 'none');
+
+    const start = (filteredCurrentPage - 1) * filteredRowsPerPage;
+    const end = start + filteredRowsPerPage;
+    filteredMatchingRows.slice(start, end).forEach(row => row.style.display = '');
+
+    if (emptyState) {
+        emptyState.style.display = totalRows === 0 ? 'block' : 'none';
+    }
+
+    filteredUpdatePaginationControls(totalRows, totalPages, start, end);
+}
+
+function filteredUpdatePaginationControls(totalRows, totalPages, start, end) {
+    const infoEl = document.getElementById('filteredPaginationInfo');
+    const pageIndicator = document.getElementById('filteredPageIndicator');
+    const prevBtn = document.getElementById('filteredPrevPage');
+    const nextBtn = document.getElementById('filteredNextPage');
+    const paginationWrap = document.getElementById('filteredPagination');
+
+    if (infoEl) {
+        if (totalRows === 0) {
+            infoEl.textContent = 'Showing 0 of 0';
+        } else {
+            const shownStart = start + 1;
+            const shownEnd = Math.min(end, totalRows);
+            infoEl.textContent = `Showing ${shownStart}–${shownEnd} of ${totalRows}`;
+        }
+    }
+
+    if (pageIndicator) {
+        pageIndicator.textContent = `Page ${filteredCurrentPage} of ${totalPages}`;
+    }
+
+    if (prevBtn) prevBtn.disabled = filteredCurrentPage <= 1;
+    if (nextBtn) nextBtn.disabled = filteredCurrentPage >= totalPages;
+
+    if (paginationWrap) {
+        const hasActiveFilter = document.getElementById('filteredSearchInput')?.value;
+        paginationWrap.style.display = (totalRows === 0 && !hasActiveFilter) ? 'none' : 'flex';
+    }
+}
+
+// Run pagination once on load for both tables so they're already sliced
+// to page 1 even before the user types anything.
+document.addEventListener('DOMContentLoaded', function () {
+    if (document.getElementById('loanReviewedList')) {
+        filterLoanReviewed();
+    }
+    if (document.getElementById('filteredLoanList')) {
+        filterLoanFiltered();
+    }
+});

@@ -223,7 +223,11 @@
                                     </td>
                                     <td class="loan-meta-v2">{{ \Carbon\Carbon::parse($b['applied_at'])->format('M d, Y') }}</td>
                                     <td class="text-end">
-                                        <a href="{{ route('admin.loan-application-detail', $b['application_id']) }}?from=active-borrowers" class="btn-view-v2">
+                                        {{-- Points to the new, focused Active Borrower Detail page
+                                             (profile + standing, Loan Summary, Payment Progress,
+                                             Payment Schedule) instead of loan-application-detail,
+                                             so that page's approve/reject review flow stays untouched. --}}
+                                        <a href="{{ route('admin.active-borrower-detail', $b['application_id']) }}" class="btn-view-v2">
                                             <i class="feather-eye"></i> View Details
                                         </a>
                                     </td>
@@ -247,8 +251,6 @@
     <script src="{{ asset('assets/admin/js/theme-customizer-init.min.js') }}"></script>
     <script src="{{ asset('functions/logout-modal.js') }}"></script>
     <script>
-        // Search-only filter — pareho pa rin ang logic, IDs/element names
-        // hindi ginalaw kaya hindi na kailangan galawin ito.
         function filterActiveBorrowers() {
             const query = document.getElementById('filterSearchInput').value.trim().toLowerCase();
             const rows = document.querySelectorAll('tbody tr[data-search]');

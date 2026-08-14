@@ -510,3 +510,127 @@ html.app-skin-dark .pt-dropdown-menu .dropdown-item {
 html.app-skin-dark .pt-dropdown-menu .dropdown-item:hover {
     background: var(--pt-bg);
 }
+
+/* ============================================================
+   PENALTY DETAILS MODAL — bagong section styles
+
+============================================================ */
+
+/* Maliit na header bago ang bawat bahagi ng modal
+   (Borrower & Loan Information / Penalty Summary / atbp.) */
+.pt-detail-section-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--pt-text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin: 18px 0 8px;
+}
+.pt-detail-section-title:first-of-type {
+    margin-top: 8px;
+}
+
+/* ---------- Penalty Summary box ---------- */
+.pt-penalty-summary {
+    background: var(--pt-bg);
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius-md);
+    padding: 14px 16px;
+    margin-bottom: 16px;
+}
+.pt-penalty-summary-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.pt-penalty-summary-item .pt-info-label { margin-bottom: 2px; }
+
+/* Total Penalty — bahagyang mas malaki lang kaysa sa iba,
+   hindi sobrang laki (per design guideline: "do not oversize") */
+.pt-penalty-total-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px dashed var(--pt-border);
+    padding-top: 10px;
+}
+.pt-penalty-total-label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--pt-text);
+}
+.pt-penalty-total-value {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--pt-red);
+}
+
+/* Munting linya ng calculation sa ilalim (hal. "2 points x ₱50 = ₱100") */
+.pt-calc-line {
+    font-size: 0.76rem;
+    color: var(--pt-text-muted);
+    margin-top: 6px;
+    text-align: right;
+}
+
+/* ---------- Penalty Breakdown table ---------- */
+.pt-breakdown-table-wrap {
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius-md);
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+.pt-breakdown-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+}
+.pt-breakdown-table thead th {
+    background: var(--pt-bg);
+    text-align: left;
+    font-weight: 700;
+    color: var(--pt-text-muted);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--pt-border);
+    white-space: nowrap;
+}
+.pt-breakdown-table tbody td {
+    padding: 8px 12px;
+    color: var(--pt-text);
+    border-bottom: 1px solid var(--pt-border-soft);
+}
+.pt-breakdown-table tbody tr:last-child td { border-bottom: none; }
+.pt-breakdown-table tfoot td {
+    padding: 8px 12px;
+    font-weight: 700;
+    color: var(--pt-text);
+    background: var(--pt-bg);
+    border-top: 1px solid var(--pt-border);
+}
+.pt-breakdown-table .text-end { text-align: right; }
+
+/* ---------- Status card (Pending / Paid / Waived) ---------- */
+.pt-status-card { margin-bottom: 16px; }
+
+/* Mark as Paid / Waive Penalty buttons sa loob ng View Details
+   modal (Pending status lang ito lumalabas) */
+.pt-view-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+}
+.pt-view-actions .pt-btn-confirm-paid,
+.pt-view-actions .pt-btn-confirm-waive {
+    flex: 1;
+}
+
+/* ---------- Dark mode ---------- */
+html.app-skin-dark .pt-penalty-summary {
+    background: var(--pt-bg);
+    border-color: var(--pt-border);
+}
+html.app-skin-dark .pt-breakdown-table thead th,
+html.app-skin-dark .pt-breakdown-table tfoot td {
+    background: var(--pt-bg);
+}

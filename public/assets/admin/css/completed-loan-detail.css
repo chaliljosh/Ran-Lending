@@ -1,13 +1,10 @@
 /* ============================================================
-   COMPLETED LOAN DETAIL — page-specific layout overrides.
-   Hindi ginagalaw ang shared loan-details.css classes (section-card,
-   ld-value-pill, ld-schedule-table, atbp.) — dito lang nakalagay
-   ang mga bagong container/grid rules para sa page na ito.
+    COMPLETED LOAN DETAIL PAGE — bagong section styles
 ============================================================ */
 
 /* ---------- Wider, left-aligned container ---------- */
 .cld-content {
-    max-width: 1220px;
+    max-width: 100%;
     margin: 0;
     width: 100%;
 }

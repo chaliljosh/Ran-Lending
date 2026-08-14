@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="{{ asset('assets/admin/css/logout-modal.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/admin/css/modals-modern.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/admin/css/verification-detail.css') }}" />
-    
+
 </head>
 <body>
     @php
@@ -170,43 +170,73 @@
                 @endif
 
                 {{-- ============================================
-                     BORROWER PROFILE SUMMARY HEADER
+                     COMPACT BORROWER HEADER
+                     (Profile + Overview combined into one card)
+                     Layout: left = avatar/name/id/email/badges (stacked)
+                             right = View Active Loan button (top) + stats row (bottom)
                 ============================================ --}}
                 @php
                     $initials = strtoupper(substr($d->first_name ?? 'B', 0, 1) . substr($d->last_name ?? 'R', 0, 1));
+                    // Optional loan-overview stats — populated by the controller via getBorrowerLoanStats().
+                    $loanStats = $loanStats ?? [];
                 @endphp
                 <div class="borrower-summary-card">
-                    <div class="borrower-avatar">{{ $initials }}</div>
-                    <div class="borrower-summary-info">
-                        <h5>{{ $d->first_name }} {{ $d->last_name }}</h5>
-                        <div class="borrower-summary-meta">
-                            <span><strong>Borrower ID:</strong> #{{ $detailId }}</span>
-                            <span><strong>Submitted:</strong> {{ isset($d->created_at) ? \Carbon\Carbon::parse($d->created_at)->format('M d, Y') : '—' }}</span>
-                            <span><strong>Email:</strong> {{ $d->reg_email }}</span>
+                    <div class="bsc-left">
+                        <div class="borrower-avatar">{{ $initials }}</div>
+                        <div class="borrower-summary-info">
+                            <h5>{{ $d->first_name }} {{ $d->last_name }}</h5>
+                            <div class="borrower-summary-meta">
+                                <span><strong>Borrower ID:</strong> #{{ $detailId }}</span>
+                                <span><strong>Email:</strong> {{ $d->reg_email }}</span>
+                            </div>
+                            <div class="bsc-badges">
+                                @if($d->status === 'approved')
+                                    <span class="badge badge-approved">Approved</span>
+                                @elseif($d->status === 'rejected')
+                                    <span class="badge badge-rejected">Rejected</span>
+                                @elseif($d->status === 'on_hold')
+                                    <span class="badge badge-onhold">On Hold</span>
+                                @else
+                                    <span class="badge badge-pending">Pending</span>
+                                @endif
+
+                                @if(!empty($standingLabel))
+                                    <span class="abd-standing is-{{ $standing ?? 'good' }}">{{ $standingLabel }}</span>
+                                @endif
+                            </div>
                         </div>
                     </div>
-                    <div class="borrower-summary-status">
-                        @if($d->status === 'approved')
-                            <span class="badge badge-approved">Approved</span>
-                        @elseif($d->status === 'rejected')
-                            <span class="badge badge-rejected">Rejected</span>
-                        @elseif($d->status === 'on_hold')
-                            <span class="badge badge-onhold">On Hold</span>
-                        @else
-                            <span class="badge badge-pending">Pending</span>
+                    <div class="bsc-right">
+                        @if(($loanStats['active'] ?? 0) > 0 && !empty($loanStats['active_application_id']))
+                            <a href="{{ route('admin.active-borrower-detail', $loanStats['active_application_id']) }}" class="btn-view-active-loan">
+                                View Active Loan <i class="feather-arrow-right"></i>
+                            </a>
                         @endif
+                        <div class="bsc-stats">
+                            <div class="bsc-stat">
+                                <span class="bsc-stat-value">{{ $loanStats['total'] ?? '—' }}</span>
+                                <span class="bsc-stat-label">Total Loans</span>
+                            </div>
+                            <div class="bsc-stat">
+                                <span class="bsc-stat-value">{{ $loanStats['active'] ?? '—' }}</span>
+                                <span class="bsc-stat-label">Active</span>
+                            </div>
+                            <div class="bsc-stat">
+                                <span class="bsc-stat-value">{{ $loanStats['completed'] ?? '—' }}</span>
+                                <span class="bsc-stat-label">Completed</span>
+                            </div>
+                            <div class="bsc-stat">
+                                <span class="bsc-stat-value">{{ $loanStats['overdue'] ?? '—' }}</span>
+                                <span class="bsc-stat-label">Overdue</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                {{-- ============================================
-                     PROGRESS TIMELINE
-                ============================================ --}}
-                
-
                 <div class="row">
-                    <div class="col-lg-8">
+                    <div class="col-lg-12">
 
-                        <!-- Personal Info -->
+                        <!-- Personal Information -->
                         <div class="card mb-3">
                             <div class="card-body">
                                 <div class="section-title"><i class="feather-user"></i>Personal Information</div>
@@ -224,34 +254,18 @@
                                     <div class="info-item"><label>Email</label><span>{{ $d->reg_email }}</span></div>
                                     <div class="info-item highlight"><label>Monthly Income</label><span>₱{{ number_format($d->monthly_income ?? 0, 2) }}</span></div>
                                 </div>
+                            </div>
+                        </div>
 
-                                <div class="section-title mt-2"><i class="feather-map-pin"></i>Birth Place</div>
+                        <!-- Birth Place -->
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="section-title"><i class="feather-map-pin"></i>Birth Place</div>
                                 <div class="info-row">
                                     <div class="info-item"><label>Country</label><span>{{ $d->birth_country ?? '—' }}</span></div>
                                     <div class="info-item"><label>Province</label><span>{{ $d->birth_province ?? '—' }}</span></div>
                                     <div class="info-item"><label>City</label><span>{{ $d->birth_city ?? '—' }}</span></div>
                                 </div>
-
-                                <div class="section-title mt-2"><i class="feather-credit-card"></i>Valid ID</div>
-                                <div class="info-row">
-                                    <div class="info-item"><label>ID Type</label><span>{{ $d->id_type ?? '—' }}</span></div>
-                                    <div class="info-item"><label>ID Number</label><span>{{ $d->id_number ?? '—' }}</span></div>
-                                </div>
-                                @if(!empty($d->id_file_path))
-                                <div class="mb-2">
-                                    <label class="form-label fw-semibold" style="font-size:0.75rem; color:#8a9bb0; text-transform:uppercase;">Attached ID</label><br>
-                                    @php $ext = strtolower(pathinfo($d->id_file_path, PATHINFO_EXTENSION)); @endphp
-                                    @if(in_array($ext, ['jpg','jpeg','png','gif','webp']))
-                                    <span class="id-thumb-wrap" onclick="openIdViewer('{{ asset('storage/' . $d->id_file_path) }}')">
-                                        <img src="{{ asset('storage/' . $d->id_file_path) }}" alt="Valid ID">
-                                    </span>
-                                    @else
-                                    <a href="{{ asset('storage/' . $d->id_file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                        <i class="feather-file me-1"></i> View Attached ID
-                                    </a>
-                                    @endif
-                                </div>
-                                @endif
                             </div>
                         </div>
 
@@ -270,7 +284,7 @@
                             </div>
                         </div>
 
-                        <!-- Work Info -->
+                        <!-- Work Information -->
                         <div class="card mb-3">
                             <div class="card-body">
                                 <div class="section-title"><i class="feather-briefcase"></i>Work Information</div>
@@ -283,7 +297,7 @@
                             </div>
                         </div>
 
-                        <!-- Co-Maker -->
+                        <!-- Co-Maker Information -->
                         <div class="card mb-3">
                             <div class="card-body">
                                 <div class="section-title"><i class="feather-users"></i>Co-Maker Information</div>
@@ -297,10 +311,36 @@
                             </div>
                         </div>
 
-                        <!-- Discussion Thread -->
+                        <!-- Valid ID / Attached ID -->
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="section-title"><i class="feather-credit-card"></i>Valid ID</div>
+                                <div class="info-row">
+                                    <div class="info-item"><label>ID Type</label><span>{{ $d->id_type ?? '—' }}</span></div>
+                                    <div class="info-item"><label>ID Number</label><span>{{ $d->id_number ?? '—' }}</span></div>
+                                </div>
+                                @if(!empty($d->id_file_path))
+                                <div class="mt-1">
+                                    <label class="form-label fw-semibold" style="font-size:0.7rem; color:#8a9bb0; text-transform:uppercase; letter-spacing:0.4px;">Attached ID</label><br>
+                                    @php $ext = strtolower(pathinfo($d->id_file_path, PATHINFO_EXTENSION)); @endphp
+                                    @if(in_array($ext, ['jpg','jpeg','png','gif','webp']))
+                                    <span class="id-thumb-wrap" onclick="openIdViewer('{{ asset('storage/' . $d->id_file_path) }}')">
+                                        <img src="{{ asset('storage/' . $d->id_file_path) }}" alt="Valid ID">
+                                    </span>
+                                    @else
+                                    <a href="{{ asset('storage/' . $d->id_file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="feather-file me-1"></i> View Attached ID
+                                    </a>
+                                    @endif
+                                </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Admin Review History (was: Admin Discussion) -->
                         <div class="card mb-3">
                             <div class="card-header">
-                                <h6 class="card-title mb-0"><i class="feather-message-square me-2"></i>Admin Discussion</h6>
+                                <h6 class="card-title mb-0"><i class="feather-message-square me-2"></i>Admin Review History</h6>
                             </div>
                             <div class="card-body">
 
@@ -369,59 +409,7 @@
 
                     </div>
 
-                    <!-- Decision Panel -->
-                    <div class="col-lg-4">
-                        <div class="card" style="position: sticky; top: 80px;">
-                            <div class="card-header">
-                                <h6 class="card-title mb-0"><i class="feather-shield me-2"></i>Admin Decision</h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="mb-3">
-                                    <label class="form-label fw-semibold" style="font-size:0.75rem; color:#8a9bb0; text-transform:uppercase;">Current Status</label><br>
-                                    @if($d->status === 'approved')
-                                    <span class="badge badge-approved px-3 py-2">Approved</span>
-                                    @elseif($d->status === 'rejected')
-                                    <span class="badge badge-rejected px-3 py-2">Rejected</span>
-                                    @elseif($d->status === 'on_hold')
-                                    <span class="badge badge-onhold px-3 py-2">On Hold</span>
-                                    @else
-                                    <span class="badge badge-pending px-3 py-2">Pending</span>
-                                    @endif
-                                </div>
-
-                                @if($d->status === 'rejected')
-                                <div class="alert alert-danger mb-0" style="font-size:0.85rem;">
-                                    <i class="feather-x-circle me-2"></i>
-                                    This borrower has been <strong>fully rejected</strong> by all 3 admins. No further action can be taken.
-                                </div>
-
-                                @elseif($d->status === 'approved')
-                                <div class="alert alert-success mb-0" style="font-size:0.85rem;">
-                                    <i class="feather-check-circle me-2"></i>
-                                    This borrower has been <strong>fully approved</strong>. No further action needed.
-                                </div>
-
-                                @elseif($myReview)
-                                <div class="alert alert-info mb-3" style="font-size:0.85rem;">
-                                    <i class="feather-check-circle me-2"></i>
-                                    You submitted a <strong>{{ $myReview->decision }}</strong> decision on
-                                    {{ \Carbon\Carbon::parse($myReview->reviewed_at)->format('M d, Y') }}.
-                                </div>
-                                <p class="text-muted mb-3" style="font-size:0.82rem;">Remarks: {{ $myReview->remarks ?: 'None' }}</p>
-                                <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#decisionModal">
-                                    <i class="feather-edit-2 me-2"></i>Change Decision
-                                </button>
-
-                                @else
-                                <p class="text-muted mb-3" style="font-size:0.85rem;">Review the borrower's details, then make your decision.</p>
-                                <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#decisionModal">
-                                    <i class="feather-check-square me-2"></i>Make a Decision
-                                </button>
-                                @endif
-
-                            </div>
-                        </div>
-                    </div>
+                  
                 </div>
             </div>
         </div>

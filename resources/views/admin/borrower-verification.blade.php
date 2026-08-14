@@ -217,45 +217,98 @@
                         </div>
                     </div>
                     @else
-                    <div class="card stretch stretch-full">
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-hover mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th>Borrower</th>
-                                            <th>Email</th>
-                                            <th>Decision</th>
-                                            <th>Remarks</th>
-                                            <th>Reviewed At</th>
-                                            <th class="text-end">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($reviewedDetails as $r)
-                                        <tr>
-                                            <td class="fw-bold">{{ $r->last_name }}, {{ $r->first_name }}</td>
-                                            <td class="text-muted">{{ $r->email ?? '—' }}</td>
-                                            <td>
-                                                @if($r->decision === 'approved')
-                                                    <span class="badge badge-approved px-3 py-2">Approved</span>
-                                                @elseif($r->decision === 'rejected')
-                                                    <span class="badge badge-rejected px-3 py-2">Rejected</span>
-                                                @else
-                                                    <span class="badge badge-pending px-3 py-2">Pending</span>
-                                                @endif
-                                            </td>
-                                            <td class="text-muted">{{ $r->remarks ?? '—' }}</td>
-                                            <td class="text-muted">{{ $r->reviewed_at ? \Carbon\Carbon::parse($r->reviewed_at)->format('M d, Y h:i A') : '—' }}</td>
-                                            <td class="text-end">
-                                                <a href="{{ route('admin.verification-detail', $r->detail_id) }}?from=verification" class="btn btn-sm btn-light">
-                                                    <i class="feather-eye me-1"></i> View
-                                                </a>
-                                            </td>
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
+                    <div class="reviewed-card">
+                       
+
+                        {{-- Search + decision filter + rows-per-page --}}
+                        <div class="reviewed-toolbar">
+                            <div class="search-bar-wrap reviewed-search-wrap">
+                                <i class="feather-search"></i>
+                                <input type="text" id="reviewedSearchInput"
+                                       placeholder="Search borrower name or email..."
+                                       onkeyup="filterReviewedTable()">
+                            </div>
+                            <select id="reviewedDecisionFilter" class="reviewed-decision-filter" onchange="filterReviewedTable()">
+                                <option value="">All Decisions</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                                <option value="on_hold">On Hold</option>
+                            </select>
+                            <div class="reviewed-rpp-wrap">
+                                <label for="reviewedRowsPerPage" class="reviewed-rpp-label">Rows per page</label>
+                                <select id="reviewedRowsPerPage" class="reviewed-rpp-select" onchange="reviewedChangeRowsPerPage(this)">
+                                    <option value="10" selected>10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table reviewed-table mb-0" id="reviewedTable">
+                                <thead>
+                                    <tr>
+                                        <th>Borrower</th>
+                                        <th>Decision</th>
+                                        <th>Reviewed At</th>
+                                        <th>Remarks</th>
+                                        <th class="text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($reviewedDetails as $r)
+                                    @php
+                                        $decisionKey = in_array($r->decision, ['approved', 'rejected']) ? $r->decision : 'on_hold';
+                                    @endphp
+                                    <tr data-search="{{ strtolower($r->last_name . ' ' . $r->first_name . ' ' . $r->email) }}" data-decision="{{ $decisionKey }}">
+                                        <td>
+                                            <div class="rt-name">{{ $r->last_name }}, {{ $r->first_name }}</div>
+                                            <div class="rt-email">{{ $r->email ?? '—' }}</div>
+                                        </td>
+                                        <td>
+                                            @if($r->decision === 'approved')
+                                                <span class="badge badge-approved px-3 py-2">Approved</span>
+                                            @elseif($r->decision === 'rejected')
+                                                <span class="badge badge-rejected px-3 py-2">Rejected</span>
+                                            @else
+                                                <span class="badge badge-onhold px-3 py-2">On Hold</span>
+                                            @endif
+                                        </td>
+                                        <td class="rt-date">
+                                            {{ $r->reviewed_at ? \Carbon\Carbon::parse($r->reviewed_at)->format('M d, Y h:i A') : '—' }}
+                                        </td>
+                                        <td class="rt-remarks" title="{{ $r->remarks }}">
+                                            {{ $r->remarks ? \Illuminate\Support\Str::limit($r->remarks, 70) : 'No remarks' }}
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="{{ route('admin.verification-detail', $r->detail_id) }}?from=verification" class="btn btn-sm btn-light">
+                                                <i class="feather-eye me-1"></i> View Details
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                            <div id="reviewedEmptyState" class="reviewed-empty" style="display:none;">
+                                No reviewed applications match your search.
+                            </div>
+                        </div>
+
+                        {{-- Pagination bar: info text (left) + Prev/Next controls (right).
+                             JS (reviewedRenderPage / reviewedUpdatePaginationControls) fills
+                             these in on load and after every search/filter/rows-per-page change. --}}
+                        <div class="reviewed-pagination" id="reviewedPagination">
+                            <span class="reviewed-pagination-info" id="reviewedPaginationInfo">
+                                Showing 1&ndash;{{ min(10, count($reviewedDetails)) }} of {{ count($reviewedDetails) }}
+                            </span>
+                            <div class="reviewed-pagination-controls">
+                                <button type="button" class="btn-page" id="reviewedPrevPage" onclick="reviewedGoToPage(-1)">
+                                    <i class="feather-chevron-left"></i> Prev
+                                </button>
+                                <span class="reviewed-page-indicator" id="reviewedPageIndicator">Page 1 of 1</span>
+                                <button type="button" class="btn-page" id="reviewedNextPage" onclick="reviewedGoToPage(1)">
+                                    Next <i class="feather-chevron-right"></i>
+                                </button>
                             </div>
                         </div>
                     </div>

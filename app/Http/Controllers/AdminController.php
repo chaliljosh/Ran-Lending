@@ -30,16 +30,9 @@ class AdminController extends Controller
             ->limit(5)
             ->get();
 
-        // Sidebar's Borrower Verification dropdown badge — same helper used
-        // by verificationDetail()/loanApplicationDetail() for the same reason.
         $pendingCount = $this->getPendingVerificationCount($adminId);
         $pendingLoanCount = $this->getPendingLoanCount($adminId);
 
-        // -----------------------------------------------------------------
-        // Attention Required — built purely from counts already computable
-        // from existing tables. Items only appear when their count is > 0,
-        // per the "no fake alerts" requirement.
-        // -----------------------------------------------------------------
         $overdueApplicationsCount = DB::table('loan_payment_schedules as sch')
             ->join('loan_applications as la', 'sch.application_id', '=', 'la.application_id')
             ->where('la.status', 'active')
@@ -48,9 +41,6 @@ class AdminController extends Controller
             ->distinct()
             ->count('la.application_id');
 
-        // Always shown as a fixed 3-item list (Overdue / Pending Applications /
-        // Pending Verification), counts included even when 0 — counts still
-        // come straight from the DB queries above, never hardcoded.
         $attentionItems = [
             [
                 'icon' => 'feather-alert-triangle',
@@ -78,10 +68,6 @@ class AdminController extends Controller
             ],
         ];
 
-        // -----------------------------------------------------------------
-        // Upcoming Payments — next unpaid installments on active loans,
-        // due today or later, soonest first.
-        // -----------------------------------------------------------------
         $upcomingPaymentsRaw = DB::table('loan_payment_schedules as sch')
             ->join('loan_applications as la', 'sch.application_id', '=', 'la.application_id')
             ->join('users as u', 'la.user_id', '=', 'u.user_id')
@@ -100,16 +86,8 @@ class AdminController extends Controller
             return $row;
         });
 
-        // -----------------------------------------------------------------
-        // Recent Activity — merged from real admin actions already recorded
-        // in the system (loan approvals, borrower verification decisions,
-        // waived penalties, paid penalties), sorted by most recent.
-        // -----------------------------------------------------------------
         $recentActivity = $this->buildRecentActivity(5);
 
-        // -----------------------------------------------------------------
-        // Sidebar admin profile — logged-in admin's actual name/role.
-        // -----------------------------------------------------------------
         $admin = DB::table('users')->where('user_id', $adminId)->first();
         $adminName = $admin->name ?? 'Admin';
         $adminRole = $admin && !empty($admin->role) ? ucfirst($admin->role) : 'Administrator';
@@ -124,18 +102,6 @@ class AdminController extends Controller
         ));
     }
 
-    /**
-     * Recent Activity feed — pulls the most recent rows from every table
-     * that already records "who did what, when":
-     *   - loan_approvals      -> loan application approved/rejected
-     *   - detailsapproval      -> borrower verification approved/rejected
-     *   - loan_penalties       -> penalty waived (has waived_by, so the
-     *                             admin can be named) or marked paid (no
-     *                             admin column exists for this action in
-     *                             the current schema, so it's shown without
-     *                             an admin name rather than guessing one)
-     * All sources are merged and sorted by timestamp, newest first.
-     */
     private function buildRecentActivity($limit = 5)
     {
         $activities = collect();
@@ -230,10 +196,6 @@ class AdminController extends Controller
             ->take($limit);
     }
 
-    /**
-     * "Chalil Joshua David" -> "CD", "Admin" -> "A". Used for the sidebar
-     * profile avatar initials.
-     */
     private function getInitials($name)
     {
         $parts = preg_split('/\s+/', trim((string) $name));
@@ -246,8 +208,6 @@ class AdminController extends Controller
         return $initials !== '' ? $initials : 'A';
     }
 
-    // Simpleng listahan ng lahat ng borrowers — pangalan, email, status.
-    // Walang approve/reject dito, view-only page lang.
     public function allBorrowers(Request $request)
     {
         $adminId = Session::get('user_id');
@@ -286,8 +246,6 @@ class AdminController extends Controller
             } elseif ($latest->status === 'completed') {
                 $loanStatus = 'completed';
             } else {
-                // rejected / defaulted — walang "active" na loan, ituturing
-                // na parang No Loan para sa displaying purposes.
                 $loanStatus = 'no_loan';
             }
  
@@ -384,12 +342,6 @@ class AdminController extends Controller
     ]);
 }
 
-    /**
-     * Active Loans > Ongoing Loans — mga loan na status = 'active' AT walang
-     * overdue unpaid installment (paid_at null + due_date < today). Yung mga
-     * may overdue installment, sa "Overdue Payments" tab na lang lalabas
-     * (hiwalay na page/method mamaya).
-     */
     public function ongoingLoans(Request $request)
     {
         $adminId = Session::get('user_id');
@@ -423,8 +375,6 @@ class AdminController extends Controller
                 return is_null($s->paid_at) && \Carbon\Carbon::parse($s->due_date)->isPast();
             });
 
-            // Kung may overdue installment, hindi na ito "ongoing" — sa
-            // Overdue Payments tab na lang lalabas ito.
             if ($hasOverdue) continue;
 
             $paidCount = $schedules->filter(fn($s) => !is_null($s->paid_at))->count();
@@ -471,11 +421,65 @@ class AdminController extends Controller
     }
 
     /**
-     * Active Loans > Overdue Payments — kabaligtaran ng ongoingLoans():
-     * mga loan na status = 'active' AT may kahit isang unpaid installment
-     * na lagpas na sa due_date (paid_at null). Ito yung mga na-exclude sa
-     * Ongoing Loans dahil dito na sila dapat lumabas.
+     * Ongoing Loans > View Details — a LOAN-FOCUSED, read-only view.
+     * Deliberately does NOT repeat borrower profile info (Personal Info,
+     * Birth Place, Address, Work, Co-Maker) since that already lives on
+     * All Borrowers / Active Borrowers / Active Borrower Detail. This page
+     * only cares about: the loan numbers, the 3-admin approval history for
+     * this application, and the payment schedule. Kept fully separate from
+     * activeBorrowerDetail() and loanApplicationDetail() — does not touch
+     * either of those views or methods.
      */
+    public function ongoingLoanDetail(Request $request, $id)
+    {
+        $adminId = Session::get('user_id');
+        $applicationId = (int) $id;
+
+        $app = $this->getLoanApplication($applicationId);
+
+        if (!$app) {
+            return redirect()->route('admin.ongoing-loans');
+        }
+
+        $schedule = $this->getPaymentSchedule($applicationId);
+
+        $totalCount = $schedule->count();
+        $paidCount = $schedule->filter(fn($s) => !is_null($s->paid_at))->count();
+        $amountCollected = $schedule->sum('amount_paid');
+
+        // Monthly payment — total repayable spread evenly across the
+        // installment count actually on the schedule (matches what the
+        // borrower is billed per period, rather than assuming loan_term
+        // and schedule count always match 1:1).
+        $monthlyPayment = $totalCount > 0 ? ($app->total_amount / $totalCount) : 0;
+
+        // Total interest — total repayable minus principal.
+        $totalInterest = max(0, $app->total_amount - $app->loan_amount);
+
+        // Effective interest rate, derived from principal + total interest
+        // (loan_applications has no dedicated interest_rate column).
+        $interestRate = $app->loan_amount > 0
+            ? round(($totalInterest / $app->loan_amount) * 100, 2)
+            : 0;
+
+        return view('admin.ongoing-loan-detail', [
+            'app' => $app,
+            'applicationId' => $applicationId,
+            'adminId' => $adminId,
+            'allReviews' => $this->getAllLoanReviews($applicationId),
+            'comments' => $this->getLoanComments($applicationId),
+            'paymentSchedule' => $schedule,
+            'totalCount' => $totalCount,
+            'paidCount' => $paidCount,
+            'amountCollected' => $amountCollected,
+            'monthlyPayment' => $monthlyPayment,
+            'totalInterest' => $totalInterest,
+            'interestRate' => $interestRate,
+            'pendingCount' => $this->getPendingVerificationCount($adminId),
+            'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+        ]);
+    }
+
     public function overduePayments(Request $request)
     {
         $adminId = Session::get('user_id');
@@ -506,8 +510,6 @@ class AdminController extends Controller
                 return is_null($s->paid_at) && \Carbon\Carbon::parse($s->due_date)->isPast();
             })->sortBy('due_date')->values();
 
-            // Ongoing Loans lang ang bahala sa mga walang overdue —
-            // dito, kailangan may kahit isa.
             if ($overdueSchedules->isEmpty()) continue;
 
             $oldestOverdue = $overdueSchedules->first();
@@ -542,12 +544,9 @@ class AdminController extends Controller
             $stats['total_overdue_installments'] += $overdueSchedules->count();
         }
 
-        // "Most days late" default — pinaka-apurahan makikita muna.
-        // "Newest"/"Oldest" gumagamit ng applied_at, tulad ng ibang pages.
         $overdueLoans = collect($overdueLoans)->sortBy(function ($loan) use ($sort) {
             if ($sort === 'newest') return -strtotime($loan['applied_at']);
             if ($sort === 'oldest') return strtotime($loan['applied_at']);
-            // most_late (default) — pinakamatagal na overdue muna
             return -$loan['days_late'];
         })->values()->all();
 
@@ -559,16 +558,7 @@ class AdminController extends Controller
             'pendingLoanCount' => $this->getPendingLoanCount($adminId),
         ]);
     }
- 
- 
-    /**
-     * List page — Pending/Reviewed tabs (default), or a filtered
-     * Approved/Rejected/On Hold view via ?status=... (same pattern as
-     * loanApplications()).
-     * GET  -> shows the list
-     * POST -> approve/reject a borrower's details (called from the pending cards,
-     *         supports both normal form submit and the fetch()/AJAX flow in the JS)
-     */
+
     public function borrowerVerification(Request $request)
     {
         $adminId = Session::get('user_id');
@@ -639,23 +629,60 @@ class AdminController extends Controller
             'myReview' => $this->getMyReview($detailId, $adminId),
             'allReviews' => $this->getAllReviews($detailId),
             'comments' => $this->getComments($detailId),
-            // Nav is duplicated on every admin page, and both sidebar badges
-            // (Borrower Verification + Loan Applications) reference these —
-            // this page's own section has no ?? fallback in the Blade, so it
-            // needs to be passed explicitly or it throws Undefined variable.
+            'loanStats' => $this->getBorrowerLoanStats($d->user_id),
             'pendingCount' => $this->getPendingVerificationCount($adminId),
             'pendingLoanCount' => $this->getPendingLoanCount($adminId),
-            // Highlights the sidebar submenu item matching THIS borrower's
-            // current status (not wherever the admin navigated from) — e.g.
-            // an already-approved borrower highlights "Approved", not
-            // "Pending", regardless of which list link they clicked.
             'viewStatus' => $d->status,
         ]);
     }
 
-    // Lightweight count-only version of buildVerificationListData()'s pending
-    // query — used by pages that only need the sidebar badge number, not the
-    // full pending list (verification-detail, loan-application-detail).
+    /**
+     * Loan Stats for the compact borrower header card (Total / Active /
+     * Completed / Overdue) on the Borrower Verification detail page.
+     * Overdue is derived from loan_payment_schedules the same way it is
+     * everywhere else in this controller (unpaid + due_date in the past) —
+     * there is no separate "overdue" status on loan_applications.
+     */
+    private function getBorrowerLoanStats($userId)
+    {
+        if (!$userId) {
+            return ['total' => 0, 'active' => 0, 'completed' => 0, 'overdue' => 0, 'active_application_id' => null];
+        }
+
+        $loans = DB::table('loan_applications')
+            ->where('user_id', $userId)
+            ->select('application_id', 'status')
+            ->get();
+
+        $total = $loans->count();
+        $activeLoans = $loans->whereIn('status', ['approved', 'active']);
+        $active = $activeLoans->count();
+        $completed = $loans->where('status', 'completed')->count();
+
+        $activeAppIds = $activeLoans->pluck('application_id');
+
+        $overdue = 0;
+        if ($activeAppIds->isNotEmpty()) {
+            $overdue = DB::table('loan_payment_schedules')
+                ->whereIn('application_id', $activeAppIds)
+                ->whereNull('paid_at')
+                ->where('due_date', '<', now())
+                ->distinct()
+                ->count('application_id');
+        }
+
+        return [
+            'total' => $total,
+            'active' => $active,
+            'completed' => $completed,
+            'overdue' => $overdue,
+            // Used by the "View Active Loan" button on the verification-detail
+            // page. If a borrower somehow has more than one active loan, this
+            // just points to the first one found.
+            'active_application_id' => $activeAppIds->first(),
+        ];
+    }
+
     private function getPendingVerificationCount($adminId)
     {
         return DB::table('borrowerpersonaldetails as bpd')
@@ -669,7 +696,6 @@ class AdminController extends Controller
             ->count();
     }
 
-    // Same idea as getPendingVerificationCount() above, but for loan_applications.
     private function getPendingLoanCount($adminId)
     {
         return DB::table('loan_applications as la')
@@ -682,12 +708,6 @@ class AdminController extends Controller
             })
             ->count();
     }
-
-    /* -----------------------------------------------------------
-     | Shared helpers — used by both borrowerVerification() and
-     | verificationDetail() so the approve/reject logic lives in
-     | one place only.
-     |-----------------------------------------------------------*/
 
     private function saveDecision(Request $request, $adminId)
     {
@@ -801,12 +821,6 @@ class AdminController extends Controller
             ->get();
     }
 
-    /* -----------------------------------------------------------
-     | List-page data (Pending/Reviewed tabs when $viewStatus is
-     | 'pending', or a flat Approved/Rejected/On Hold list — same
-     | shape as buildLoanApplicationsListData() below).
-     |-----------------------------------------------------------*/
-
     private function buildVerificationListData($adminId, $viewStatus = 'pending')
     {
         $pendingRows = DB::table('borrowerpersonaldetails as bpd')
@@ -857,9 +871,6 @@ class AdminController extends Controller
             ->orderByDesc('da.reviewed_at')
             ->get();
 
-        // Used only when viewing Approved / Rejected / On Hold via the sidebar
-        // dropdown — shows ALL borrowers at that final status, not just the
-        // ones this admin personally reviewed (that's what Reviewed tab is for).
         $filteredDetails = collect();
         if ($viewStatus !== 'pending') {
             $filteredDetails = DB::table('borrowerpersonaldetails as bpd')
@@ -878,11 +889,6 @@ class AdminController extends Controller
         return compact('pendingDetails', 'reviewedDetails', 'filteredDetails', 'pendingCount');
     }
 
-    /* -----------------------------------------------------------
-     | Loan Applications — same 3-admin approval pattern as the
-     | personal-details verification above, but for loan_applications.
-     |-----------------------------------------------------------*/
-
     public function loanApplications(Request $request)
 {
     $adminId = Session::get('user_id');
@@ -897,9 +903,6 @@ class AdminController extends Controller
         $this->buildLoanApplicationsListData($adminId, $viewStatus),
         [
             'viewStatus' => $viewStatus,
-            // Sidebar's Borrower Verification badge needs this —
-            // buildLoanApplicationsListData() only returns pendingLoanCount,
-            // not pendingCount, so this page never had it.
             'pendingCount' => $this->getPendingVerificationCount($adminId),
         ]
     ));
@@ -953,29 +956,78 @@ class AdminController extends Controller
             'allReviews' => $this->getAllLoanReviews($applicationId),
             'approvedCount' => $this->getLoanApprovedCount($applicationId),
             'comments' => $this->getLoanComments($applicationId),
-            // Payment Schedule section — may laman lang kung 'active' na o
-            // 'completed' na yung loan (yun lang may na-generate na schedule
-            // via LoanActivationService). Wala nito ang mga pending/approved-
-            // pero-di-pa-active/rejected/on_hold applications.
             'paymentSchedule' => $this->getPaymentSchedule($applicationId),
-            // Same reasoning as verificationDetail() above — this page's own
-            // sidebar section (Loan Applications) has no ?? fallback in the Blade.
             'pendingCount' => $this->getPendingVerificationCount($adminId),
             'pendingLoanCount' => $this->getPendingLoanCount($adminId),
-            // Highlights based on THIS application's current status, not
-            // wherever the admin navigated from — same fix as verificationDetail().
             'viewStatus' => $app->status,
         ]);
     }
 
     /**
-     * Overdue Payments > View Details — a focused, read-only view showing
-     * just the borrower card, an overdue overview, Loan Summary, and the
-     * Payment Schedule. Deliberately kept separate from
-     * loanApplicationDetail() (Personal Info / Address / Work / Discussion /
-     * Admin Review / decision modal) so that page's approve/reject flow
-     * never has to be touched just to adjust this simpler overdue view.
+     * Active Borrowers > View Details — a focused, read-only view for
+     * monitoring an ACTIVE borrower's current loan (profile + standing,
+     * compact Loan Summary, Payment Progress, Payment Schedule). Kept
+     * completely separate from loanApplicationDetail() (Admin Review /
+     * Personal Info / Address / Work / Discussion / decision modal), which
+     * stays exactly as-is for the loan-application review flow. This page
+     * never touches that controller method or its view.
      */
+    public function activeBorrowerDetail(Request $request, $id)
+    {
+        $adminId = Session::get('user_id');
+        $applicationId = (int) $id;
+
+        $app = $this->getLoanApplication($applicationId);
+
+        if (!$app) {
+            return redirect()->route('admin.active-borrowers');
+        }
+
+        $schedule = $this->getPaymentSchedule($applicationId);
+
+        $totalCount = $schedule->count();
+        $paidCount = $schedule->filter(fn($s) => !is_null($s->paid_at))->count();
+        $progressPct = $totalCount > 0 ? (int) round(($paidCount / $totalCount) * 100) : 0;
+
+        $overdueSchedules = $schedule->filter(function ($s) {
+            return is_null($s->paid_at) && \Carbon\Carbon::parse($s->due_date)->isPast();
+        });
+
+        $maxDaysLate = $overdueSchedules->isNotEmpty()
+            ? $overdueSchedules->max(fn($s) => \Carbon\Carbon::parse($s->due_date)->diffInDays(now()))
+            : 0;
+
+        // Borrower Standing — derived purely from the actual payment
+        // schedule, no separate rating table needed.
+        //   Good Standing   — no overdue installments
+        //   Payment Delayed — 1 overdue installment, not yet severely late
+        //   At Risk         — 2+ overdue installments, or a single
+        //                     installment 30+ days late
+        if ($overdueSchedules->count() === 0) {
+            $standing = 'good';
+            $standingLabel = 'Good Standing';
+        } elseif ($overdueSchedules->count() === 1 && $maxDaysLate < 30) {
+            $standing = 'delayed';
+            $standingLabel = 'Payment Delayed';
+        } else {
+            $standing = 'risk';
+            $standingLabel = 'At Risk';
+        }
+
+        return view('admin.active-borrower-detail', [
+            'app' => $app,
+            'applicationId' => $applicationId,
+            'paymentSchedule' => $schedule,
+            'totalCount' => $totalCount,
+            'paidCount' => $paidCount,
+            'progressPct' => $progressPct,
+            'standing' => $standing,
+            'standingLabel' => $standingLabel,
+            'pendingCount' => $this->getPendingVerificationCount($adminId),
+            'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+        ]);
+    }
+
     public function overduePaymentDetail(Request $request, $id)
     {
         $adminId = Session::get('user_id');
@@ -995,6 +1047,23 @@ class AdminController extends Controller
 
         $oldestOverdue = $overdueSchedules->first();
 
+        $currentPenalty = 0.0;
+        $penaltyId = null;
+        if ($oldestOverdue) {
+            $penaltyRow = DB::table('loan_penalties')
+                ->where('schedule_id', $oldestOverdue->id)
+                ->where('status', 'unpaid')
+                ->first();
+
+            if ($penaltyRow) {
+                $currentPenalty = (float) $penaltyRow->penalty_amount;
+                $penaltyId = $penaltyRow->id;
+            }
+        }
+
+        $amountDue = $oldestOverdue ? ((float) $oldestOverdue->amount_due - (float) $oldestOverdue->amount_paid) : 0.0;
+        $totalOutstanding = $amountDue + $currentPenalty;
+
         return view('admin.overdue-payment-detail', [
             'app' => $app,
             'applicationId' => $applicationId,
@@ -1002,15 +1071,45 @@ class AdminController extends Controller
             'overdueCount' => $overdueSchedules->count(),
             'daysLate' => $oldestOverdue ? \Carbon\Carbon::parse($oldestOverdue->due_date)->diffInDays(now()) : 0,
             'overdueAmount' => $overdueSchedules->sum(fn($s) => $s->amount_due - $s->amount_paid),
+            'oldestOverdue' => $oldestOverdue,
+            'currentPenalty' => $currentPenalty,
+            'penaltyId' => $penaltyId,
+            'amountDue' => $amountDue,
+            'totalOutstanding' => $totalOutstanding,
             'pendingCount' => $this->getPendingVerificationCount($adminId),
             'pendingLoanCount' => $this->getPendingLoanCount($adminId),
         ]);
     }
 
-    // Buong payment schedule ng isang loan application — installment #, due
-    // date, amount, at status (paid/late/pending). Ginagamit ng Payment
-    // Schedule section sa loan-application-detail.blade.php at
-    // overdue-payment-detail.blade.php.
+    public function markInstallmentPaid(Request $request, $id)
+    {
+        $schedule = DB::table('loan_payment_schedules')->where('id', $id)->first();
+
+        if ($schedule) {
+            DB::table('loan_payment_schedules')->where('id', $id)->update([
+                'paid_at' => now(),
+                'amount_paid' => $schedule->amount_due,
+            ]);
+
+            DB::table('loan_penalties')
+                ->where('schedule_id', $id)
+                ->where('status', 'unpaid')
+                ->update([
+                    'status' => 'paid',
+                    'updated_at' => now(),
+                ]);
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment marked as paid.',
+            ]);
+        }
+
+        return back()->with('success', 'Payment marked as paid.');
+    }
+
     private function getPaymentSchedule($applicationId)
     {
         return DB::table('loan_payment_schedules')
@@ -1092,9 +1191,6 @@ class AdminController extends Controller
 
         DB::table('loan_applications')->where('application_id', $applicationId)->update(['status' => $status]);
 
-        // Pag umabot sa 3 approvals, i-generate na yung buong payment
-        // schedule, tapos i-flip yung status papuntang "active"
-        // (LoanActivationService mismo ang nag-o-overwrite ng status).
         if ($status === 'approved') {
             LoanActivationService::activate($applicationId);
         }
@@ -1158,8 +1254,6 @@ class AdminController extends Controller
             ->get();
     }
 
-    // Same shape as buildVerificationListData() above — excludes applications this
-    // admin already reviewed from Pending (they move to Reviewed instead).
     private function buildLoanApplicationsListData($adminId, $viewStatus = 'pending')
     {
         $pendingRows = DB::table('loan_applications as la')
@@ -1204,27 +1298,22 @@ class AdminController extends Controller
             ];
         }
 
-        $reviewedApplications = DB::table('loan_approvals as lap')
-            ->join('loan_applications as la', 'lap.application_id', '=', 'la.application_id')
-            ->join('users as u', 'la.user_id', '=', 'u.user_id')
-            ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
-            ->where('lap.admin_id', $adminId)
-            ->select(
-                'lap.application_id', 'lap.decision', 'lap.remarks', 'lap.reviewed_at',
-                'bpd.last_name', 'bpd.first_name', 'u.email', 'la.loan_amount',
-                DB::raw('(SELECT COUNT(*) FROM loan_approvals WHERE application_id = la.application_id) as total_reviewed')
-            )
-            ->orderByDesc('lap.reviewed_at')
-            ->get();
+      $reviewedApplications = DB::table('loan_approvals as lap')
+    ->join('loan_applications as la', 'lap.application_id', '=', 'la.application_id')
+    ->join('users as u', 'la.user_id', '=', 'u.user_id')
+    ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
+    ->where('lap.admin_id', $adminId)
+    ->select(
+        'lap.application_id', 'lap.decision', 'lap.remarks', 'lap.reviewed_at',
+        'bpd.last_name', 'bpd.first_name', 'u.email', 'la.loan_amount',
+        'la.loan_term', 'la.loan_purpose', 'la.applied_at',
+        DB::raw('(SELECT COUNT(*) FROM loan_approvals WHERE application_id = la.application_id) as total_reviewed')
+    )
+    ->orderByDesc('lap.reviewed_at')
+    ->get();
 
         $filteredApplications = collect();
         if ($viewStatus !== 'pending') {
-            // "Approved" ay dapat kasama rin ang 'active' — dahil automatic
-            // na nagfli-flip ang status papuntang 'active' pagkatapos
-            // ma-generate ang payment schedule (LoanActivationService), wala
-            // nang application na permanenteng nakatigil sa eksaktong
-            // status='approved'. Kung hindi ito pagsasamahin, laging
-            // magiging empty ang Approved tab.
             $statusFilter = $viewStatus === 'approved' ? ['approved', 'active'] : [$viewStatus];
 
             $filteredApplications = DB::table('loan_applications as la')
@@ -1245,14 +1334,6 @@ class AdminController extends Controller
         return compact('pendingApplications', 'reviewedApplications', 'filteredApplications', 'pendingLoanCount');
     }
 
-    /* -----------------------------------------------------------
-     | Penalty Tracking — Kanban board (unpaid/paid/waived all at
-     | once), matching the shape penalty-tracking.blade.php expects.
-     | Uses the same raw table/column names already confirmed working
-     | here: loan_penalties.schedule_id -> loan_payment_schedules.id,
-     | loan_penalties.application_id -> loan_applications.application_id.
-     |-----------------------------------------------------------*/
-
     public function penaltyTracking(Request $request)
     {
         $adminId = Session::get('user_id');
@@ -1261,13 +1342,52 @@ class AdminController extends Controller
             ->join('loan_payment_schedules as sch', 'lp.schedule_id', '=', 'sch.id')
             ->join('loan_applications as la', 'lp.application_id', '=', 'la.application_id')
             ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
+            ->leftJoin('users as waiver', 'lp.waived_by', '=', 'waiver.user_id')
             ->select(
                 'lp.*',
-                'sch.installment_no', 'sch.due_date', 'sch.amount_due',
-                'bpd.first_name', 'bpd.last_name'
+                'sch.installment_no', 'sch.due_date', 'sch.amount_due', 'sch.paid_at as schedule_paid_at',
+                'bpd.first_name', 'bpd.last_name',
+                'waiver.name as waived_by_name'
             )
             ->orderByDesc('lp.created_at')
             ->get();
+
+        $applicationIds = $penalties->pluck('application_id')->unique();
+        $pointLogsByApp = DB::table('borrower_penalty_point_logs')
+            ->whereIn('application_id', $applicationIds)
+            ->orderBy('created_at')
+            ->get()
+            ->groupBy('application_id');
+
+        $penalties = $penalties->map(function ($p) use ($pointLogsByApp) {
+            $periods = (int) $p->late_fee_periods;
+            $rate = $periods > 0 ? round($p->penalty_amount / $periods, 2) : 0;
+
+            $logsForApp = $pointLogsByApp->get($p->application_id, collect())->values();
+
+            $useRealLogs = $periods > 0 && $logsForApp->count() === $periods;
+
+            $breakdown = [];
+            for ($i = 1; $i <= $periods; $i++) {
+                $log = $useRealLogs ? $logsForApp[$i - 1] : null;
+                $breakdown[] = [
+                    'date'         => $log->created_at ?? \Carbon\Carbon::parse($p->due_date)->addDays($i * 7),
+                    'reason'       => $log->reason ?? ($i * 7) . ' days overdue',
+                    'days_overdue' => $i * 7,
+                    'points'       => 1,
+                    'amount'       => $rate,
+                ];
+            }
+
+            $p->rate = $rate;
+            $p->breakdown = $breakdown;
+            $p->payment_status = $p->schedule_paid_at
+                ? 'Paid'
+                : (\Carbon\Carbon::parse($p->due_date)->isPast() ? 'Overdue' : 'Pending');
+            $p->loan_id_display = 'LN-' . str_pad($p->application_id, 5, '0', STR_PAD_LEFT);
+
+            return $p;
+        });
 
         $unpaid = $penalties->where('status', 'unpaid')->values();
         $paid   = $penalties->where('status', 'paid')->values();
@@ -1288,11 +1408,6 @@ class AdminController extends Controller
         ]);
     }
 
-    /**
-     * Active Loans > Completed Loans — mga loan na status = 'completed'
-     * (lahat ng installments bayad na, LoanActivationService/payment flow
-     * na ang nag-flip nito papuntang 'completed').
-     */
     public function completedLoans(Request $request)
     {
         $adminId = Session::get('user_id');
@@ -1339,8 +1454,6 @@ class AdminController extends Controller
                 'total_amount'     => $row->total_amount,
                 'loan_term'        => $row->loan_term,
                 'applied_at'       => $row->applied_at,
-                // Huling binayaran na installment — ginagamit bilang
-                // "Completed On" date sa listahan.
                 'completed_at'     => $schedules->max('paid_at'),
                 'amount_collected' => $schedules->sum('amount_paid'),
             ];
@@ -1350,8 +1463,6 @@ class AdminController extends Controller
             $stats['total_interest'] += $interestEarned;
         }
 
-        // "Recently Completed" gumagamit ng completed_at (huling bayad);
-        // "Newest"/"Oldest" gumagamit pa rin ng applied_at, tulad ng ibang pages.
         if (in_array($sort, ['completed_newest', 'completed_oldest'], true)) {
             $completedLoans = collect($completedLoans)->sortBy(function ($loan) use ($sort) {
                 $t = $loan['completed_at'] ? strtotime($loan['completed_at']) : 0;
@@ -1368,12 +1479,6 @@ class AdminController extends Controller
         ]);
     }
 
-    /**
-     * Completed Loans > View Details — same focused pattern as
-     * overduePaymentDetail(): borrower card + Loan Summary + Payment
-     * Schedule lang, hiwalay pa rin sa loanApplicationDetail()'s
-     * approve/reject flow.
-     */
     public function completedLoanDetail(Request $request, $id)
 {
     $adminId = Session::get('user_id');
@@ -1393,38 +1498,12 @@ class AdminController extends Controller
         'paymentSchedule' => $schedule,
         'completedAt' => $schedule->max('paid_at'),
         'amountCollected' => $schedule->sum('amount_paid'),
-        // Borrower Performance section — computed lang, walang bagong
-        // table/column na kailangan (gamit lang ang existing schedule +
-        // loan_penalties data).
         'borrowerPerformance' => $this->computeBorrowerPerformance($applicationId, $schedule),
         'pendingCount' => $this->getPendingVerificationCount($adminId),
         'pendingLoanCount' => $this->getPendingLoanCount($adminId),
     ]);
 }
 
-/**
- * Borrower Performance (Completed Loan Detail) — kinukwenta base sa
- * aktwal na payment schedule ng loan na ito:
- *   - total_payments: bilang ng installments (dapat lahat bayad na
- *     dahil 'completed' na ang loan)
- *   - late_payments: bilang ng installments na ang paid_at ay lagpas
- *     na sa due_date (o walang paid_at pero naka-mark na 'late' na
- *     status bilang fallback)
- *   - total_penalties: kabuuang penalty_amount mula sa loan_penalties
- *     para sa application na ito (lahat ng status — unpaid/paid/waived
- *     — dahil history ng aktwal na na-incur, hindi lang ng nabayaran)
- *
- * Rating thresholds — base lang sa bilang ng late payments
- * (simpleng rule, hindi na ratio-based):
- *   Excellent — 0 late payments
- *   Good      — 1 late payment
- *   Fair      — 2 late payments
- *   Poor      — 3 o higit pang late payments
- *
- * Ang description ay dynamic — inilalarawan yung aktwal na payment
- * behavior (hal. "all installments were paid late" kung talagang
- * lahat late, hindi lang generic na text).
- */
 private function computeBorrowerPerformance($applicationId, $schedule)
 {
     $totalPayments = $schedule->count();
@@ -1433,8 +1512,6 @@ private function computeBorrowerPerformance($applicationId, $schedule)
         if (!is_null($s->paid_at) && !is_null($s->due_date)) {
             return \Carbon\Carbon::parse($s->paid_at)->gt(\Carbon\Carbon::parse($s->due_date));
         }
-        // Fallback: kung walang paid_at pa rin pero naka-mark na 'late'
-        // ang status (edge case, hindi dapat mangyari sa completed loan).
         return ($s->status ?? null) === 'late';
     })->count();
 

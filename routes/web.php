@@ -73,21 +73,31 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
     // Active Loans > Ongoing Loans
     Route::get('/active-loans/ongoing', [AdminController::class, 'ongoingLoans'])->name('ongoing-loans');
 
+    // Active Loans > Ongoing Loans > View Details (loan-focused — NOT the
+    // same as Active Borrower Detail. No borrower profile info here, just
+    // Loan Summary, Admin Review Status, and Payment Schedule.)
+    Route::get('/ongoing-loan-detail/{id}', [AdminController::class, 'ongoingLoanDetail'])
+        ->name('ongoing-loan-detail');
+
     // Active Loans > Overdue Payments
     Route::get('/active-loans/overdue', [AdminController::class, 'overduePayments'])->name('overdue-payments');
 
+    // Active Borrowers > View Details (focused view — borrower profile +
+    // overview of loans, payments, and penalties)
+    Route::get('/active-borrower-detail/{id}', [AdminController::class, 'activeBorrowerDetail'])
+        ->name('active-borrower-detail');
+
     // Overdue Payments > View Details (focused view — borrower card + overview
-    // + Loan Summary + Payment Schedule only). The group() above already adds
-    // the "/admin" URL prefix and "admin." name prefix, so neither is repeated
-    // here — doing so would have produced "/admin/admin/..." and
-    // "admin.admin.overdue-payment-detail", breaking every route()/href call
-    // that expects the plain "admin.overdue-payment-detail" name.
+    
     Route::get('/overdue-payment-detail/{id}', [AdminController::class, 'overduePaymentDetail'])
         ->name('overdue-payment-detail');
+
+    
+    Route::post('/installments/{id}/mark-paid', [AdminController::class, 'markInstallmentPaid'])
+        ->name('installment-mark-paid');
 
     // Active Loans > Completed Loans
     Route::get('/active-loans/completed', [AdminController::class, 'completedLoans'])->name('completed-loans');
     Route::get('/completed-loan-detail/{id}', [AdminController::class, 'completedLoanDetail'])
         ->name('completed-loan-detail');
-
 });

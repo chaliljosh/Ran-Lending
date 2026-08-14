@@ -231,7 +231,7 @@
                                     </td>
                                     <td class="loan-amount-v2">₱{{ number_format($loan['amount_collected'], 2) }}</td>
                                     <td class="text-end">
-                                        <a href="{{ route('admin.loan-application-detail', $loan['application_id']) }}?from=ongoing-loans" class="btn-view-v2">
+                                        <a href="{{ route('admin.ongoing-loan-detail', $loan['application_id']) }}?from=ongoing-loans" class="btn-view-v2">
                                             <i class="feather-eye"></i> View Details
                                         </a>
                                     </td>

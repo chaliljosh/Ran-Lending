@@ -257,7 +257,7 @@
                                                     <i class="feather-eye"></i> View Details
                                                 </a>
                                             @else
-                                                <button class="btn-view disabled" disabled title="Walang naisumiteng personal details">
+                                                <button class="btn-view disabled" disabled title="No verification details available">
                                                     <i class="feather-eye"></i> View Details
                                                 </button>
                                             @endif

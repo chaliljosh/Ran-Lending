@@ -149,7 +149,8 @@
                     DATA CONTRACT expected from AdminController::penaltyTracking():
                     $unpaid / $paid / $waived -> collections of penalty rows, each exposing:
                     id, first_name, last_name, application_id, installment_no, due_date,
-                    days_late, amount_due, penalty_amount, status, waived_reason (nullable)
+                    days_late, amount_due, penalty_amount, status, waived_reason (nullable),
+                    late_fee_periods, rate, breakdown[], payment_status, loan_id_display
 
                     $totalPenaltiesCount, $outstandingAmount, $totalPaidAmount, $totalWaivedAmount
                 --}}
@@ -495,6 +496,15 @@
         </div>
         @endif
 
+        {{-- ================================================================
+             VIEW DETAILS MODAL — Penalty Details
+             Buong impormasyon ng ISANG penalty record: borrower/loan info,
+             penalty summary (Days Late / Points / Rate / Total), Penalty
+             Breakdown history table, at status section (Pending -> mga
+             action button; Paid -> resolved date; Waived -> waived info).
+             Reused lang ang existing .pt-* classes — walang bagong design
+             system, sundan lang yung look ng ibang modal sa page na ito.
+        ================================================================= --}}
         <div class="modal fade pt-modal" id="viewModal{{ $p->id }}" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
@@ -502,14 +512,19 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body pb-4">
-                        <div class="pt-view-avatar">{{ strtoupper(substr($p->first_name ?? '?', 0, 1) . substr($p->last_name ?? '', 0, 1)) }}</div>
-                        <div class="pt-modal-title">{{ $p->first_name ?? '—' }} {{ $p->last_name ?? '' }}</div>
-                        <div class="pt-modal-subtitle">Penalty details for installment #{{ $p->installment_no }}</div>
+                        <div class="pt-modal-title">Penalty Details</div>
+                        <div class="pt-modal-subtitle">Penalty information for this installment</div>
 
+                        {{-- ---- Borrower / Loan Information ---- --}}
+                        <div class="pt-detail-section-title">Borrower &amp; Loan Information</div>
                         <div class="pt-info-card">
                             <div class="pt-info-item">
-                                <div class="pt-info-label">Status</div>
-                                <div class="pt-info-value">{{ ucfirst($status) }}</div>
+                                <div class="pt-info-label">Borrower</div>
+                                <div class="pt-info-value">{{ $p->first_name ?? '—' }} {{ $p->last_name ?? '' }}</div>
+                            </div>
+                            <div class="pt-info-item">
+                                <div class="pt-info-label">Loan ID</div>
+                                <div class="pt-info-value">{{ $p->loan_id_display ?? ('LN-' . str_pad($p->application_id ?? 0, 5, '0', STR_PAD_LEFT)) }}</div>
                             </div>
                             <div class="pt-info-item">
                                 <div class="pt-info-label">Installment</div>
@@ -517,27 +532,131 @@
                             </div>
                             <div class="pt-info-item">
                                 <div class="pt-info-label">Due Date</div>
-                                <div class="pt-info-value">{{ \Carbon\Carbon::parse($p->due_date)->format('M d, Y') }}</div>
+                                <div class="pt-info-value">{{ \Carbon\Carbon::parse($p->due_date)->format('F d, Y') }}</div>
                             </div>
+                            <div class="pt-info-item is-full">
+                                <div class="pt-info-label">Payment Status</div>
+                                <div class="pt-info-value">{{ $p->payment_status ?? 'Overdue' }}</div>
+                            </div>
+                        </div>
+
+                        {{-- ---- Penalty Summary ---- --}}
+                        <div class="pt-detail-section-title">Penalty Summary</div>
+                        <div class="pt-penalty-summary">
+                            <div class="pt-penalty-summary-row">
+                                <div class="pt-penalty-summary-item">
+                                    <div class="pt-info-label">Days Late</div>
+                                    <div class="pt-info-value">{{ $p->days_late }} days</div>
+                                </div>
+                                <div class="pt-penalty-summary-item">
+                                    <div class="pt-info-label">Penalty Points</div>
+                                    <div class="pt-info-value">{{ $p->late_fee_periods }} {{ Str::plural('point', $p->late_fee_periods) }}</div>
+                                </div>
+                                <div class="pt-penalty-summary-item">
+                                    <div class="pt-info-label">Penalty Rate</div>
+                                    <div class="pt-info-value">₱{{ number_format($p->rate ?? 0, 2) }} per point</div>
+                                </div>
+                            </div>
+                            <div class="pt-penalty-total-row">
+                                <span class="pt-penalty-total-label">Total Penalty</span>
+                                <span class="pt-penalty-total-value">₱{{ number_format($p->penalty_amount, 2) }}</span>
+                            </div>
+                            <div class="pt-calc-line">
+                                {{ $p->late_fee_periods }} {{ Str::plural('penalty point', $p->late_fee_periods) }} × ₱{{ number_format($p->rate ?? 0, 2) }} = ₱{{ number_format($p->penalty_amount, 2) }}
+                            </div>
+                        </div>
+
+                        {{-- ---- Penalty Breakdown ---- --}}
+                        @if(!empty($p->breakdown))
+                        <div class="pt-detail-section-title">Penalty Breakdown</div>
+                        <div class="pt-breakdown-table-wrap">
+                            <table class="pt-breakdown-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date Applied</th>
+                                        <th>Reason</th>
+                                        <th>Days Overdue</th>
+                                        <th>Points</th>
+                                        <th class="text-end">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($p->breakdown as $row)
+                                    <tr>
+                                        <td>{{ \Carbon\Carbon::parse($row['date'])->format('M d, Y') }}</td>
+                                        <td>{{ ucfirst($row['reason']) }}</td>
+                                        <td>{{ $row['days_overdue'] }} days</td>
+                                        <td>+{{ $row['points'] }}</td>
+                                        <td class="text-end">₱{{ number_format($row['amount'], 2) }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="4">Total Penalty</td>
+                                        <td class="text-end">₱{{ number_format($p->penalty_amount, 2) }}</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        @endif
+
+                        {{-- ---- Penalty Status ----
+                             Laging may .pt-info-card dito (kahit Pending pa
+                             lang), dahil ito ang tinitignan ng existing
+                             updateRowToWaived() JS function (unang
+                             .pt-info-value nito ang binabago papuntang
+                             "Waived" — kaya kailangan laging present ito
+                             para hindi masira ang live update pagkatapos
+                             mag-waive/mag-mark-paid nang walang reload). --}}
+                        <div class="pt-detail-section-title">Penalty Status</div>
+                        <div class="pt-info-card pt-status-card">
                             <div class="pt-info-item">
-                                <div class="pt-info-label">Days Late</div>
-                                <div class="pt-info-value">{{ $p->days_late }} Days</div>
+                                <div class="pt-info-label">Status</div>
+                                <div class="pt-info-value">{{ ucfirst($status) }}</div>
                             </div>
-                            <div class="pt-info-item">
-                                <div class="pt-info-label">Amount Due</div>
-                                <div class="pt-info-value">₱{{ number_format($p->amount_due, 2) }}</div>
-                            </div>
-                            <div class="pt-info-item">
-                                <div class="pt-info-label">Late Fee</div>
-                                <div class="pt-info-value is-late-fee">₱{{ number_format($p->penalty_amount, 2) }}</div>
-                            </div>
-                            @if(!empty($p->waived_reason))
+                            @if($status === 'paid')
+                                <div class="pt-info-item">
+                                    <div class="pt-info-label">Resolved Date</div>
+                                    <div class="pt-info-value">{{ \Carbon\Carbon::parse($p->updated_at)->format('M d, Y') }}</div>
+                                </div>
+                            @elseif($status === 'waived')
+                                <div class="pt-info-item">
+                                    <div class="pt-info-label">Waived Date</div>
+                                    <div class="pt-info-value">{{ \Carbon\Carbon::parse($p->updated_at)->format('M d, Y') }}</div>
+                                </div>
+                                <div class="pt-info-item">
+                                    <div class="pt-info-label">Waived By</div>
+                                    <div class="pt-info-value">{{ $p->waived_by_name ?? '—' }}</div>
+                                </div>
+                                @if(!empty($p->waived_reason))
                                 <div class="pt-info-item is-full is-waived-reason">
                                     <div class="pt-info-label">Waived Reason</div>
                                     <div class="pt-info-value">{{ $p->waived_reason }}</div>
                                 </div>
+                                @endif
                             @endif
                         </div>
+
+                        {{-- ---- Action buttons — Pending lang ---- --}}
+                        @if($status === 'unpaid')
+                        <div class="pt-view-actions">
+                            <button type="button"
+                                    class="pt-btn-confirm-paid"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#paidConfirmModal{{ $p->id }}"
+                                    data-bs-dismiss="modal">
+                                <i class="bi bi-check-lg"></i> Mark as Paid
+                            </button>
+                            <button type="button"
+                                    class="pt-btn-confirm-waive"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#waiveModal{{ $p->id }}"
+                                    data-bs-dismiss="modal">
+                                <i class="bi bi-slash-circle"></i> Waive Penalty
+                            </button>
+                        </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -548,6 +667,6 @@
     <script src="{{ asset('assets/admin/js/common-init.min.js') }}"></script>
     <script src="{{ asset('assets/admin/js/theme-customizer-init.min.js') }}"></script>
     <script src="{{ asset('functions/logout-modal.js') }}"></script>
-    <script src="{{ asset('functions/penalty-tracking.js') }}?v=4"></script>
+    <script src="{{ asset('functions/penalty-tracking.js') }}?v=5"></script>
 </body>
 </html>

@@ -1,0 +1,142 @@
+
+
+/* ---------- Borrower profile — compact horizontal layout ---------- */
+.abd-profile-card {
+    text-align: left;
+    padding: 20px 22px;
+}
+.abd-profile-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.abd-profile-avatar {
+    margin: 0 !important;
+    flex-shrink: 0;
+    width: 52px;
+    height: 52px;
+    font-size: 1.02rem;
+}
+.abd-profile-info { min-width: 0; }
+.abd-profile-name {
+    font-weight: 700;
+    font-size: 0.98rem;
+    color: #0f172a;
+    line-height: 1.3;
+}
+.abd-profile-email {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 2px;
+}
+.abd-profile-badges {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+.abd-profile-badges .badge { margin: 0; }
+
+/* ---------- Borrower standing badge ---------- */
+.abd-standing {
+    display: inline-block;
+    font-size: 0.76rem;
+    font-weight: 700;
+    padding: 5px 14px;
+    border-radius: 20px;
+    margin: 0;
+}
+.abd-standing.is-good    { background: #ecfdf5; color: #15803d; border: 1px solid #bbf7d0; }
+.abd-standing.is-delayed { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+.abd-standing.is-risk    { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+/* ---------- Loan Summary — emphasize key figures only ---------- */
+.ld-value-pill.abd-pill-emphasis {
+    font-size: 0.92rem;
+    padding: 6px 14px;
+}
+
+/* ---------- Payment progress ---------- */
+.abd-progress-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.abd-progress-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #0f172a;
+}
+.abd-progress-count {
+    font-size: 0.8rem;
+    color: #64748b;
+}
+.abd-progress-track {
+    width: 100%;
+    height: 6px;
+    border-radius: 20px;
+    background: #f1f5f9;
+    overflow: hidden;
+}
+.abd-progress-fill {
+    height: 100%;
+    border-radius: 20px;
+    background: #4a7cf7;
+    transition: width .3s ease;
+}
+.abd-progress-fill.is-complete { background: #16a34a; }
+
+/* ---------- Next Payment row ---------- */
+.abd-next-payment {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid #f1f5f9;
+    flex-wrap: wrap;
+}
+.abd-next-payment-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 3px;
+}
+.abd-next-payment-date {
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: #0f172a;
+}
+.abd-next-payment-amount {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+/* ---------- Payment Schedule — slightly more prominent as the main section ---------- */
+.abd-schedule-card .section-title { margin-bottom: 16px; }
+.abd-schedule-card .ld-schedule-table thead th { padding: 11px 14px; }
+.abd-schedule-card .ld-schedule-table tbody td { padding: 14px; font-size: 0.86rem; }
+.abd-schedule-card .ld-schedule-table tbody td:first-child { font-weight: 600; color: #0f172a; }
+
+/* ---------- Dark mode ---------- */
+html.app-skin-dark .abd-profile-name { color: #e2e8f0; }
+html.app-skin-dark .abd-profile-email { color: #94a3b8; }
+html.app-skin-dark .abd-standing.is-good    { background: rgba(22,163,74,.15); color: #6ee7a4; border-color: rgba(22,163,74,.3); }
+html.app-skin-dark .abd-standing.is-delayed { background: rgba(180,83,9,.18); color: #fbbf24; border-color: rgba(180,83,9,.35); }
+html.app-skin-dark .abd-standing.is-risk    { background: rgba(220,38,38,.15); color: #f87171; border-color: rgba(220,38,38,.3); }
+html.app-skin-dark .abd-progress-label { color: #e2e8f0; }
+html.app-skin-dark .abd-progress-count { color: #94a3b8; }
+html.app-skin-dark .abd-progress-track { background: #16202e; }
+html.app-skin-dark .abd-next-payment { border-color: #2d3f55; }
+html.app-skin-dark .abd-next-payment-date,
+html.app-skin-dark .abd-next-payment-amount { color: #e2e8f0; }
+html.app-skin-dark .abd-next-payment-label { color: #94a3b8; }
+

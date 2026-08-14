@@ -1,4 +1,16 @@
+// ============================================================
+// PENALTY TRACKING PAGE — JavaScript
+// Ginagamit sa: penalty-tracking.blade.php
+//
+// Ang file na ito ay may 4 na pangunahing parte:
+//   1. Search / Filter / Sort / Pagination ng table
+//   2. Export to CSV
+//   3. "Mark as Paid" flow (AJAX)
+//   4. "Waive Penalty" flow (AJAX)
+// ============================================================
+
 (function () {
+    // ---- Mga elemento na madalas gamitin, kinuha lang minsan ----
     const searchInput = document.getElementById('ptSearchInput');
     const monthFilter = document.getElementById('ptMonthFilter');
     const statusFilter = document.getElementById('ptStatusFilter');
@@ -16,13 +28,17 @@
     const csrfMeta = document.querySelector('meta[name="csrf-token"]');
     const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
 
+    // Lahat ng row sa table, kinuha isang beses lang sa simula
     const allRows = Array.from(tbody.querySelectorAll('tr.pt-tr'));
     let currentPage = 1;
 
     /* ============================================================
-       SEARCH / FILTER / SORT / PAGINATE
+       1. SEARCH / FILTER / SORT / PAGINATE
     ============================================================ */
 
+    // Sinasala at inaayos ang mga row base sa search box, dropdown
+    // filters, at sort option. Hindi ito nagde-delete ng row —
+    // ginagamit lang ito para malaman kung alin ang ipapakita.
     function getFilteredSortedRows() {
         const term = (searchInput.value || '').trim().toLowerCase();
         const month = monthFilter.value;
@@ -49,6 +65,7 @@
         return rows;
     }
 
+    // Gumagawa ng "Previous / 1 2 3 / Next" na buttons sa ilalim ng table
     function renderPagination(totalPages) {
         pagination.innerHTML = '';
 
@@ -83,6 +100,8 @@
         pagination.appendChild(nextBtn);
     }
 
+    // Ang pangunahing function na tumatawag sa lahat ng nasa itaas —
+    // ito ang nagpapakita/nagtatago ng tamang mga row bawat page.
     function render() {
         const rows = getFilteredSortedRows();
         const rowsPerPage = parseInt(rowsPerPageSelect.value, 10);
@@ -96,6 +115,8 @@
         const endIdx = Math.min(startIdx + rowsPerPage, total);
         const pageRows = rows.slice(startIdx, endIdx);
 
+        // Munaing itago lahat, tapos ipakita lang yung mga nasa
+        // kasalukuyang page.
         allRows.forEach(function (row) { row.style.display = 'none'; });
         pageRows.forEach(function (row) {
             row.style.display = '';
@@ -111,6 +132,10 @@
 
         renderPagination(totalPages);
     }
+
+    /* ============================================================
+       2. EXPORT TO CSV
+    ============================================================ */
 
     function exportCsv() {
         const rows = getFilteredSortedRows();
@@ -141,6 +166,7 @@
         URL.revokeObjectURL(url);
     }
 
+    // ---- I-connect lahat ng filter/sort controls sa render() ----
     [searchInput, monthFilter, statusFilter, sortSelect].forEach(function (el) {
         el.addEventListener('input', function () { currentPage = 1; render(); });
         el.addEventListener('change', function () { currentPage = 1; render(); });
@@ -149,8 +175,8 @@
     exportBtn.addEventListener('click', exportCsv);
     refreshBtn.addEventListener('click', function () { window.location.reload(); });
 
-    // Whole-row click opens the View Details modal — except clicks
-    // landing on the actions cell (View/Paid/Waive buttons).
+    // Pag na-click ang buong row (hindi yung Actions column), buksan
+    // ang View Details modal ng row na yun.
     allRows.forEach(function (row) {
         row.addEventListener('click', function (e) {
             if (e.target.closest('.pt-cell-actions')) return;
@@ -172,7 +198,8 @@
     render();
 
     /* ============================================================
-       SUCCESS MODAL HELPER
+       SUCCESS MODAL HELPER — maikling "Success" popup na
+       nawawala mismo pagkalipas ng 2.5 segundo
     ============================================================ */
 
     function showSuccessModal(message) {
@@ -188,9 +215,12 @@
     }
 
     /* ============================================================
-       ROW UPDATE HELPERS (after Mark Paid / Waive succeeds)
+       ROW / MODAL UPDATE HELPERS
+       (tinatawag pagkatapos mag-success ang Mark Paid o Waive)
     ============================================================ */
 
+    // Tinatanggal ang "Paid" at "Waive" buttons sa Actions column ng
+    // row, dahil hindi na kailangan pagkatapos ma-resolve ang penalty.
     function removeRowActionButtons(row) {
         const group = row.querySelector('.pt-actions-group');
         if (!group) return;
@@ -200,58 +230,106 @@
         if (waiveBtn) waiveBtn.remove();
     }
 
+    // Hinahanap ang View Details modal na kaugnay ng row na ito,
+    // gamit ang data-view-target attribute nito.
+    function getViewModalForRow(row) {
+        const targetSel = row.getAttribute('data-view-target');
+        return targetSel ? document.querySelector(targetSel) : null;
+    }
+
+    // Sa loob ng View Details modal, "Status" na .pt-info-card ang
+    // may Mark as Paid / Waive Penalty buttons — ito ang tinatanggal
+    // pagkatapos ma-resolve ang penalty (Pending -> Paid/Waived na).
+    function removeViewModalActions(viewModal) {
+        if (!viewModal) return;
+        const actions = viewModal.querySelector('.pt-view-actions');
+        if (actions) actions.remove();
+    }
+
     function updateRowToPaid(row) {
         row.dataset.status = 'paid';
 
+        // 1. I-update ang "Days Late" pill sa row papuntang "Paid"
         const pill = row.querySelector('.pt-cell-days .pt-pill');
         if (pill) {
             pill.className = 'pt-pill is-green';
             pill.textContent = 'Paid';
         }
 
+        // 2. I-update ang status badge sa row
         const badge = row.querySelector('.pt-status-badge');
         if (badge) {
             badge.className = 'pt-status-badge is-paid';
             badge.textContent = 'PAID';
         }
 
+        // 3. Tanggalin ang Paid/Waive buttons sa row mismo
         removeRowActionButtons(row);
+
+        // 4. I-update din ang View Details modal ng row na ito, para
+        //    tama agad ang makikita kahit hindi mag-reload ang page.
+        const viewModal = getViewModalForRow(row);
+        if (viewModal) {
+            const statusCard = viewModal.querySelector('.pt-status-card');
+            const statusValue = statusCard ? statusCard.querySelector('.pt-info-value') : null;
+            if (statusValue) statusValue.textContent = 'Paid';
+
+            // Idagdag ang "Resolved Date" kung wala pa
+            if (statusCard && !statusCard.querySelector('.is-resolved-date')) {
+                const today = new Date();
+                const formatted = today.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' });
+
+                const resolvedItem = document.createElement('div');
+                resolvedItem.className = 'pt-info-item is-resolved-date';
+                resolvedItem.innerHTML =
+                    '<div class="pt-info-label">Resolved Date</div>' +
+                    '<div class="pt-info-value">' + formatted + '</div>';
+                statusCard.appendChild(resolvedItem);
+            }
+
+            removeViewModalActions(viewModal);
+        }
     }
 
     function updateRowToWaived(row, waivedReason, penaltyId) {
         row.dataset.status = 'waived';
 
+        // 1. I-update ang "Days Late" pill sa row papuntang "Waived"
         const pill = row.querySelector('.pt-cell-days .pt-pill');
         if (pill) {
             pill.className = 'pt-pill is-gray';
             pill.textContent = 'Waived';
         }
 
+        // 2. I-update ang status badge sa row
         const badge = row.querySelector('.pt-status-badge');
         if (badge) {
             badge.className = 'pt-status-badge is-waived';
             badge.textContent = 'WAIVED';
         }
 
+        // 3. Tanggalin ang Paid/Waive buttons sa row mismo
         removeRowActionButtons(row);
 
-        const targetSel = row.getAttribute('data-view-target');
-        const viewModal = targetSel ? document.querySelector(targetSel) : null;
+        // 4. I-update din ang View Details modal
+        const viewModal = getViewModalForRow(row);
         if (viewModal) {
-            const infoCard = viewModal.querySelector('.pt-info-card');
-            const statusValue = infoCard ? infoCard.querySelector('.pt-info-value') : null;
+            const statusCard = viewModal.querySelector('.pt-status-card');
+            const statusValue = statusCard ? statusCard.querySelector('.pt-info-value') : null;
             if (statusValue) statusValue.textContent = 'Waived';
 
-            let waivedItem = viewModal.querySelector('.pt-info-item.is-waived-reason');
-            if (!waivedItem && infoCard) {
-                waivedItem = document.createElement('div');
-                waivedItem.className = 'pt-info-item is-full is-waived-reason';
-                waivedItem.innerHTML = '<div class="pt-info-label">Waived Reason</div><div class="pt-info-value"></div>';
-                infoCard.appendChild(waivedItem);
+            if (statusCard && waivedReason) {
+                let waivedItem = statusCard.querySelector('.is-waived-reason');
+                if (!waivedItem) {
+                    waivedItem = document.createElement('div');
+                    waivedItem.className = 'pt-info-item is-full is-waived-reason';
+                    waivedItem.innerHTML = '<div class="pt-info-label">Waived Reason</div><div class="pt-info-value"></div>';
+                    statusCard.appendChild(waivedItem);
+                }
+                waivedItem.querySelector('.pt-info-value').textContent = waivedReason;
             }
-            if (waivedItem) {
-                waivedItem.querySelector('.pt-info-value').textContent = waivedReason || '';
-            }
+
+            removeViewModalActions(viewModal);
         }
 
         // Wala nang dahilan para buksan pa ang paid-confirm / waive modal ulit.
@@ -263,8 +341,8 @@
     }
 
     /* ============================================================
-       MARK PAID — click ng "Paid" button sa row lang nagbubukas ng
-       confirm modal (data-bs-toggle na sa Blade). Yung actual AJAX
+       3. MARK PAID — click ng "Paid" button sa row lang nagbubukas
+       ng confirm modal (data-bs-toggle na sa Blade). Yung actual AJAX
        call ay nangyayari lang pag na-click yung "Yes, Mark as Paid"
        button sa loob ng confirm modal.
     ============================================================ */
@@ -278,6 +356,9 @@
         const row = document.querySelector('tr.pt-tr[data-penalty-id="' + penaltyId + '"]');
         const paidConfirmModalEl = document.getElementById('paidConfirmModal' + penaltyId);
 
+        // Kung walang penaltyId/url, ibig sabihin galing ito sa View
+        // Details modal (button doon walang data-mark-paid-url) — dun
+        // lang yun nagbubukas ng confirm modal, hindi diretsong nagsu-submit.
         if (!url || !row) return;
 
         confirmBtn.disabled = true;
@@ -312,7 +393,7 @@
     });
 
     /* ============================================================
-       WAIVE PENALTY — AJAX, walang page reload
+       4. WAIVE PENALTY — AJAX, walang page reload
     ============================================================ */
 
     document.querySelectorAll('.pt-waive-form').forEach(function (form) {

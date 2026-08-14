@@ -1,0 +1,337 @@
+/* ============================================
+   SIDEBAR ACTIVE-STATE OVERRIDE
+   Forces the blue highlight on the current submenu item
+   (data-current="true") independent of whatever the theme's
+   own minified CSS/JS does — since that's unreliable/unknown
+   to us, we guarantee the visual result directly here.
+============================================ */
+.nxl-navigation .nxl-submenu .nxl-item[data-current="true"] > .nxl-link,
+.nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
+    color: #4a7cf7 !important;
+    font-weight: 600;
+    background: rgba(74, 124, 247, 0.08);
+    border-radius: 8px;
+}
+html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item[data-current="true"] > .nxl-link,
+html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
+    color: #6c9bff !important;
+    background: rgba(108, 155, 255, 0.12);
+}
+
+/* ============================================
+   PANEL — replaces bootstrap .card. Flat, thin
+   border, near-zero shadow, clear header/footer.
+============================================ */
+.panel {
+    background: #ffffff;
+    border: 1px solid #eef1f6;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(20, 30, 60, 0.03);
+    overflow: hidden;
+}
+.panel-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 24px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #1a2a3a;
+    border-bottom: 1px solid #eef1f6;
+}
+.panel-header i { color: #4a7cf7; font-size: 0.95rem; }
+.panel-body { padding: 22px 24px; }
+.panel-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 13px 24px;
+    border-top: 1px solid #eef1f6;
+    font-size: 0.76rem;
+    color: #8a9bb0;
+    background: #fafbfd;
+}
+.panel-footer i { margin-right: 6px; }
+
+.btn-light {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    color: #0f172a;
+    font-weight: 600;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    padding: 9px 18px;
+    transition: all 0.15s ease;
+}
+.btn-light:hover { border-color: #4a7cf7; color: #4a7cf7; background: #eef3ff; }
+
+.badge-approved { background: #dcfce7; color: #16a34a; border: 1px solid #16a34a; }
+.badge-rejected { background: #fee2e2; color: #dc2626; border: 1px solid #dc2626; }
+.badge-active   { background: #eaf1ff; color: #4a7cf7; border: 1px solid #4a7cf7; }
+
+.empty-note { font-size: 0.85rem; margin-bottom: 0; }
+.text-muted { color: #8a9bb0 !important; }
+
+/* ============================================
+   BORROWER STRIP — flat identity row
+============================================ */
+.borrower-strip {
+    border-radius: 14px;
+    padding: 26px 28px;
+    margin-bottom: 20px;
+    background: #ffffff;
+    border: 1px solid #eef1f6;
+    box-shadow: 0 1px 3px rgba(20, 30, 60, 0.03);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+.bs-left { display: flex; align-items: center; gap: 18px; min-width: 240px; }
+.loan-avatar {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: linear-gradient(135deg, #4a7cf7, #6c5ce7);
+    color: #fff; font-weight: 700; font-size: 1.3rem;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.bs-info h5 { margin: 0 0 6px; font-weight: 700; font-size: 1.3rem; color: #1a2a3a; }
+.bs-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 0.88rem; color: #8a9bb0; }
+.bs-meta strong { color: #4a5b73; font-weight: 600; }
+.bs-dot { color: #cdd6e3; }
+.bs-right .badge { font-size: 0.82rem; padding: 7px 18px; border-radius: 20px; font-weight: 700; }
+
+/* ============================================
+   MAIN GRID — Loan Summary (left) / Admin Review Status (right)
+============================================ */
+.loan-detail-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 18px;
+    align-items: start;
+    margin-bottom: 18px;
+}
+@media (max-width: 991px) {
+    .loan-detail-grid { grid-template-columns: 1fr; }
+}
+
+/* ============================================
+   LOAN SUMMARY — unboxed info grid (label over value)
+============================================ */
+.loan-info-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px 16px;
+    margin-bottom: 24px;
+}
+.loan-info-grid.secondary { margin-bottom: 0; }
+.info-item2 { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.info-item2 label {
+    font-size: 0.66rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #8a9bb0;
+}
+.info-item2 span {
+    font-size: 0.98rem;
+    font-weight: 400;
+    color: #1a2a3a;
+    overflow-wrap: anywhere;
+}
+.info-item2.is-primary span { color: #4a7cf7; }
+
+@media (max-width: 767px) {
+    .loan-info-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ============================================
+   PAYMENT PROGRESS — same unboxed grid + slim bar
+============================================ */
+.lsc-progress {
+    padding-top: 20px;
+    margin-top: 4px;
+    border-top: 1px solid #f1f3f8;
+}
+.lsc-progress-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #8a9bb0;
+    margin-bottom: 14px;
+}
+.loan-info-grid.progress-row {
+    grid-template-columns: repeat(3, 1fr);
+    margin-bottom: 14px;
+}
+.of-total { font-size: 0.8rem; font-weight: 600; color: #adb5bd; }
+.lsc-progress-bar {
+    width: 100%; height: 8px; border-radius: 20px;
+    background: #eef1f6; overflow: hidden;
+}
+.lsc-progress-fill {
+    height: 100%; border-radius: 20px;
+    background: linear-gradient(90deg, #4a7cf7, #6c9bff);
+    transition: width 0.3s ease;
+}
+
+@media (max-width: 767px) {
+    .loan-info-grid.progress-row { grid-template-columns: repeat(3, 1fr); gap: 14px 10px; }
+}
+
+/* ============================================
+   ADMIN REVIEW — flat list rows, tinted by decision
+============================================ */
+.review-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 16px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    background: #f8f9fb;
+}
+.review-item:last-child { margin-bottom: 0; }
+.review-item.is-approved { background: #f0fbf3; }
+.review-item.is-rejected { background: #fef2f2; }
+.review-item.is-comment { background: #f5f8ff; align-items: flex-start; }
+
+.review-avatar {
+    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+    background: #e6ecff; color: #4a7cf7; font-weight: 700; font-size: 0.76rem;
+    display: flex; align-items: center; justify-content: center;
+}
+.review-avatar.mine { background: #4a7cf7; color: #fff; }
+
+.review-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.review-name { font-weight: 700; color: #1a2a3a; font-size: 0.85rem; }
+.review-remark {
+    font-size: 0.8rem;
+    color: #5b6b82;
+    font-style: italic;
+    overflow-wrap: anywhere;
+}
+.review-time { font-size: 0.72rem; color: #adb5bd; }
+
+.review-item .badge {
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 5px 14px;
+    border-radius: 20px;
+}
+
+.comments-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #8a9bb0;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin: 18px 0 10px;
+}
+
+/* ============================================
+   PAYMENT SCHEDULE TABLE
+============================================ */
+.loan-schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+.loan-schedule-table thead th {
+    text-align: left;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #8a9bb0;
+    padding: 10px 14px;
+    border-bottom: 2px solid #eef1f6;
+}
+.loan-schedule-table tbody td {
+    padding: 13px 14px;
+    color: #1a2a3a;
+    border-bottom: 1px solid #f1f3f8;
+}
+.loan-schedule-table tbody tr:last-child td { border-bottom: none; }
+.loan-schedule-table tbody tr:hover { background: #f8faff; }
+
+.sched-status {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 16px;
+}
+.sched-status.is-paid     { background: #dcfce7; color: #16a34a; }
+.sched-status.is-overdue  { background: #fee2e2; color: #dc2626; }
+.sched-status.is-upcoming { background: #fff8e1; color: #b45309; }
+
+/* ============================================
+   RESPONSIVE
+============================================ */
+@media (max-width: 991px) {
+    .borrower-strip { flex-direction: column; align-items: flex-start; }
+}
+@media (max-width: 767px) {
+    .panel-body { padding: 18px; }
+    .panel-header { padding: 14px 18px; }
+    .panel-footer { padding: 12px 18px; flex-direction: column; align-items: flex-start; gap: 6px; }
+    .loan-schedule-table { font-size: 0.78rem; }
+    .loan-schedule-table thead th,
+    .loan-schedule-table tbody td { padding: 8px 10px; }
+    .review-item { flex-wrap: wrap; }
+}
+
+/* ============================================
+   DARK MODE
+============================================ */
+html.app-skin-dark .panel { background: #1e2a3a; border-color: #2d3f55; }
+html.app-skin-dark .panel-header { color: #e2e8f0; border-color: #2d3f55; }
+html.app-skin-dark .panel-footer { background: #16202e; border-color: #2d3f55; color: #94a3b8; }
+
+html.app-skin-dark .borrower-strip { background: #1e2a3a; border-color: #2d3f55; }
+html.app-skin-dark .bs-info h5 { color: #e2e8f0; }
+html.app-skin-dark .bs-meta { color: #94a3b8; }
+html.app-skin-dark .bs-meta strong { color: #cbd5e1; }
+html.app-skin-dark .bs-dot { color: #3a4a63; }
+
+html.app-skin-dark .info-item2 label { color: #94a3b8; }
+html.app-skin-dark .info-item2 span { color: #e2e8f0; }
+html.app-skin-dark .info-item2.is-primary span { color: #6c9bff; }
+
+html.app-skin-dark .lsc-progress { border-color: #2d3f55; }
+html.app-skin-dark .lsc-progress-title { color: #94a3b8; }
+html.app-skin-dark .lsc-progress-bar { background: #2d3f55; }
+html.app-skin-dark .of-total { color: #64748b; }
+
+html.app-skin-dark .review-item { background: #16202e; }
+html.app-skin-dark .review-item.is-approved { background: #12251c; }
+html.app-skin-dark .review-item.is-rejected { background: #2a1616; }
+html.app-skin-dark .review-item.is-comment { background: #142033; }
+html.app-skin-dark .review-avatar { background: #2d3f55; color: #9db8ff; }
+html.app-skin-dark .review-avatar.mine { background: #4a7cf7; color: #fff; }
+html.app-skin-dark .review-name { color: #e2e8f0; }
+html.app-skin-dark .review-remark { color: #b8c4d6; }
+html.app-skin-dark .review-time { color: #94a3b8; }
+html.app-skin-dark .comments-label { color: #94a3b8; }
+
+html.app-skin-dark .loan-schedule-table thead th { color: #94a3b8; border-color: #2d3f55; }
+html.app-skin-dark .loan-schedule-table tbody td { color: #e2e8f0; border-color: #2d3f55; }
+html.app-skin-dark .loan-schedule-table tbody tr:hover { background: #16202e; }
+
+html.app-skin-dark .btn-light { background: #1e2a3a; border-color: #2d3f55; color: #e2e8f0; }
+html.app-skin-dark .btn-light:hover { border-color: #4a7cf7; color: #6c9bff; background: #16233a; }
+
+html.app-skin-dark .text-muted { color: #94a3b8 !important; }
