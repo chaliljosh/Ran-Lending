@@ -683,23 +683,30 @@ class AdminController extends Controller
         ];
     }
 
-    private function getPendingVerificationCount($adminId)
-    {
-        return DB::table('borrowerpersonaldetails as bpd')
-            ->whereIn('bpd.status', ['pending', 'on_hold'])
-            ->whereNotExists(function ($query) use ($adminId) {
-                $query->select(DB::raw(1))
-                    ->from('detailsapproval as da')
-                    ->whereColumn('da.detail_id', 'bpd.detail_id')
-                    ->where('da.admin_id', $adminId);
-            })
-            ->count();
-    }
+   private function getPendingVerificationCount($adminId)
+{
+    return DB::table('borrowerpersonaldetails as bpd')
+        ->where('bpd.status', 'pending')
+        ->whereNotExists(function ($query) use ($adminId) {
+            $query->select(DB::raw(1))
+                ->from('detailsapproval as da')
+                ->whereColumn('da.detail_id', 'bpd.detail_id')
+                ->where('da.admin_id', $adminId);
+        })
+        ->count();
+}
 
+    /**
+     * "Pending" here means literally that — status = 'pending' only.
+     * on_hold applications already have their own dedicated filter
+     * (sidebar > Loan Applications > On Hold) and their own badge context,
+     * so they no longer get folded into this count/list. This is what
+     * feeds the "Loan Applications" sidebar badge everywhere it appears.
+     */
     private function getPendingLoanCount($adminId)
     {
         return DB::table('loan_applications as la')
-            ->whereIn('la.status', ['pending', 'on_hold'])
+            ->where('la.status', 'pending')
             ->whereNotExists(function ($query) use ($adminId) {
                 $query->select(DB::raw(1))
                     ->from('loan_approvals as lap')
@@ -871,18 +878,15 @@ class AdminController extends Controller
             ->orderByDesc('da.reviewed_at')
             ->get();
 
-        $filteredDetails = collect();
-        if ($viewStatus !== 'pending') {
-            $filteredDetails = DB::table('borrowerpersonaldetails as bpd')
-                ->join('users as u', 'bpd.user_id', '=', 'u.user_id')
-                ->where('bpd.status', $viewStatus)
-                ->select(
-                    'bpd.detail_id', 'bpd.last_name', 'bpd.first_name', 'bpd.middle_name',
-                    'bpd.cellphone_num', 'bpd.status', 'u.email'
-                )
-                ->orderByDesc('bpd.detail_id')
-                ->get();
-        }
+      $filteredDetails = DB::table('borrowerpersonaldetails as bpd')
+    ->join('users as u', 'bpd.user_id', '=', 'u.user_id')
+    ->where('bpd.status', $viewStatus)
+    ->select(
+        'bpd.detail_id', 'u.user_id', 'bpd.last_name', 'bpd.first_name', 'bpd.middle_name',
+        'bpd.cellphone_num', 'bpd.status', 'u.email'
+    )
+    ->orderByDesc('bpd.detail_id')
+    ->get();
 
         $pendingCount = count($pendingDetails);
 
@@ -1256,10 +1260,14 @@ class AdminController extends Controller
 
     private function buildLoanApplicationsListData($adminId, $viewStatus = 'pending')
     {
+        // Same rule as getPendingLoanCount(): status = 'pending' only.
+        // on_hold applications belong to the dedicated "On Hold" filter,
+        // not the Pending tab — this keeps the tab list and the count
+        // ($pendingLoanCount below) from disagreeing with each other.
         $pendingRows = DB::table('loan_applications as la')
             ->join('users as u', 'la.user_id', '=', 'u.user_id')
             ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
-            ->whereIn('la.status', ['pending', 'on_hold'])
+            ->where('la.status', 'pending')
             ->whereNotExists(function ($query) use ($adminId) {
                 $query->select(DB::raw(1))
                     ->from('loan_approvals as lap')
@@ -1567,6 +1575,65 @@ private function computeBorrowerPerformance($applicationId, $schedule)
     }
 
     return back()->with('success', 'Penalty marked as paid.');
+}
+
+public function penaltyTrackingDetail($id)
+{
+    $adminId = Session::get('user_id');
+
+    $p = DB::table('loan_penalties as lp')
+        ->join('loan_payment_schedules as sch', 'lp.schedule_id', '=', 'sch.id')
+        ->join('loan_applications as la', 'lp.application_id', '=', 'la.application_id')
+        ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
+        ->leftJoin('users as waiver', 'lp.waived_by', '=', 'waiver.user_id')
+        ->where('lp.id', $id)
+        ->select(
+            'lp.*',
+            'sch.installment_no', 'sch.due_date', 'sch.amount_due', 'sch.paid_at as schedule_paid_at',
+            'bpd.first_name', 'bpd.last_name',
+            'waiver.name as waived_by_name'
+        )
+        ->first();
+
+    if (!$p) {
+        return redirect()->route('admin.penalty-tracking');
+    }
+
+    // Build rate + breakdown (same logic as penaltyTracking())
+    $periods = (int) $p->late_fee_periods;
+    $rate = $periods > 0 ? round($p->penalty_amount / $periods, 2) : 0;
+
+    $logsForApp = DB::table('borrower_penalty_point_logs')
+        ->where('application_id', $p->application_id)
+        ->orderBy('created_at')
+        ->get();
+
+    $useRealLogs = $periods > 0 && $logsForApp->count() === $periods;
+
+    $breakdown = [];
+    for ($i = 1; $i <= $periods; $i++) {
+        $log = $useRealLogs ? $logsForApp[$i - 1] : null;
+        $breakdown[] = [
+            'date'         => $log->created_at ?? \Carbon\Carbon::parse($p->due_date)->addDays($i * 7),
+            'reason'       => $log->reason ?? ($i * 7) . ' days overdue',
+            'days_overdue' => $i * 7,
+            'points'       => 1,
+            'amount'       => $rate,
+        ];
+    }
+
+    $p->rate = $rate;
+    $p->breakdown = $breakdown;
+    $p->payment_status = $p->schedule_paid_at
+        ? 'Paid'
+        : (\Carbon\Carbon::parse($p->due_date)->isPast() ? 'Overdue' : 'Pending');
+    $p->loan_id_display = 'LN-' . str_pad($p->application_id, 5, '0', STR_PAD_LEFT);
+
+    return view('admin.penalty-tracking-detail', [
+        'p' => $p,
+        'pendingCount' => $this->getPendingVerificationCount($adminId),
+        'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+    ]);
 }
 
 public function waivePenalty(Request $request, $id)

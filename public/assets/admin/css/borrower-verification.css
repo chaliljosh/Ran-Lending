@@ -258,11 +258,19 @@
     white-space: nowrap;
 }
 
+/* Action column — a bit narrower and shifted slightly off the
+   right edge, rather than the button sitting flush against it. */
+.reviewed-table th:last-child,
+.reviewed-table td:last-child {
+    padding-right: 32px;
+}
+
 .reviewed-table .btn-light {
-    font-size: 0.8rem;
-    padding: 6px 14px;
+    font-size: 0.78rem;
+    padding: 5px 10px;
     border-radius: 8px;
     border: 1px solid #e9ecef;
+    white-space: nowrap;
 }
 
 .reviewed-table .btn-light:hover {

@@ -144,6 +144,50 @@
         .empty-state-v2 h6 { margin-top: 14px; font-weight: 700; color: var(--rs-ink); }
         .empty-state-v2 p { color: var(--rs-muted); font-size: 0.85rem; margin: 0; }
 
+        /* ── Pagination footer ── */
+        .rs-pagination-bar {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 14px; flex-wrap: wrap;
+            padding: 14px 20px;
+            border-top: 1px solid var(--rs-border);
+        }
+        .rs-pagination-info {
+            font-size: 0.78rem; color: var(--rs-muted);
+        }
+        .rs-pagination-info strong { color: var(--rs-ink); font-weight: 700; }
+        .rs-pagination-right {
+            display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+            margin-left: auto;
+        }
+        .rs-per-page {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.78rem; color: var(--rs-body);
+        }
+        .rs-per-page select {
+            height: 34px; border: 1px solid var(--rs-border); border-radius: var(--rs-radius-sm);
+            font-size: 0.78rem; font-weight: 500; color: var(--rs-ink);
+            padding: 0 10px; background: #fff;
+        }
+        .rs-per-page select:focus { border-color: var(--rs-brand); box-shadow: 0 0 0 3px var(--rs-brand-soft); }
+        .rs-pagination-controls {
+            display: flex; align-items: center; gap: 4px;
+        }
+        .rs-page-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 32px; height: 32px; padding: 0 8px;
+            border: 1px solid var(--rs-border); border-radius: var(--rs-radius-sm);
+            background: #fff; color: var(--rs-ink);
+            font-size: 0.78rem; font-weight: 600;
+            transition: all .15s ease;
+        }
+        .rs-page-btn:hover:not(:disabled):not(.active) { border-color: var(--rs-brand); color: var(--rs-brand); background: var(--rs-brand-soft); }
+        .rs-page-btn.active { background: var(--rs-brand); border-color: var(--rs-brand); color: #fff; }
+        .rs-page-btn:disabled { opacity: .4; cursor: not-allowed; }
+        .rs-page-ellipsis {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 24px; height: 32px; color: var(--rs-muted); font-size: 0.78rem;
+        }
+
         /* ── Dark mode ── */
         html.app-skin-dark body { background: #0f172a; }
         html.app-skin-dark .rs-card { background: #1e2a3a; border-color: #2d3f55; }
@@ -163,8 +207,18 @@
         html.app-skin-dark .rs-table tbody tr:hover { background: #16202e; }
         html.app-skin-dark .btn-view-v2 { background: #16202e; border-color: #2d3f55; }
         html.app-skin-dark .purpose-pill { background: rgba(74,124,247,.15); color: #93c5fd; }
+        html.app-skin-dark .rs-pagination-bar { border-color: #2d3f55; }
+        html.app-skin-dark .rs-pagination-info,
+        html.app-skin-dark .rs-per-page { color: #94a3b8; }
+        html.app-skin-dark .rs-pagination-info strong { color: #e2e8f0; }
+        html.app-skin-dark .rs-per-page select,
+        html.app-skin-dark .rs-page-btn { background: #16202e; border-color: #2d3f55; color: #e2e8f0; }
+        html.app-skin-dark .rs-page-btn.active { background: var(--rs-brand); border-color: var(--rs-brand); color: #fff; }
 
         /* ── Responsive ── */
         @media (max-width: 767.98px) {
             .stats-grid-v2 { grid-template-columns: 1fr; }
+            .rs-pagination-bar { flex-direction: column; align-items: stretch; text-align: center; }
+            .rs-pagination-right { margin-left: 0; justify-content: center; }
+            .rs-pagination-controls { justify-content: center; }
         }

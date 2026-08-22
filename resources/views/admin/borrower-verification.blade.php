@@ -160,7 +160,8 @@
                     </button>
                 </div>
 
-                <!-- PENDING TAB -->
+                <!-- PENDING TAB — table, same pattern as Reviewed/Filtered
+                     (search + status filter + rows-per-page + pagination). -->
                 <div id="tab-pending">
                     @if(count($pendingDetails) === 0)
                     <div class="card">
@@ -171,40 +172,93 @@
                         </div>
                     </div>
                     @else
-                    @foreach($pendingDetails as $d)
-                    <div class="detail-card">
-                        <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
-                            <div>
-                                <div class="bname">{{ $d['last_name'] }}, {{ $d['first_name'] }} {{ $d['middle_name'] }}</div>
-                                <div class="bemail">{{ $d['email'] }}</div>
+                    <div class="reviewed-card">
+
+                        <div class="reviewed-toolbar">
+                            <div class="search-bar-wrap reviewed-search-wrap">
+                                <i class="feather-search"></i>
+                                <input type="text" id="pendingSearchInput"
+                                       placeholder="Search borrower name or email..."
+                                       onkeyup="filterPendingTable()">
                             </div>
-                            <div class="d-flex align-items-center gap-2 flex-wrap">
-                                @if($d['status'] === 'on_hold')
-                                    <span class="badge badge-onhold px-3 py-2">On Hold</span>
-                                @else
-                                    <span class="badge badge-pending px-3 py-2">Pending</span>
-                                @endif
-                                <span class="approval-status">
-                                    <span class="approved">&#9989; {{ $d['approved_count'] }} approved</span>
-                                    &nbsp;|&nbsp;
-                                    <span class="rejected">&#10060; {{ $d['rejected_count'] }} rejected</span>
-                                </span>
-                                <a href="{{ route('admin.verification-detail', $d['detail_id']) }}?from=verification" class="btn btn-sm btn-outline-primary">
-                                    <i class="feather-eye me-1"></i> View Full Details
-                                </a>
+                            <select id="pendingStatusFilter" class="reviewed-decision-filter" onchange="filterPendingTable()">
+                                <option value="">All</option>
+                                <option value="pending">Pending</option>
+                                <option value="on_hold">On Hold</option>
+                            </select>
+                            <div class="reviewed-rpp-wrap">
+                                <label for="pendingRowsPerPage" class="reviewed-rpp-label">Rows per page</label>
+                                <select id="pendingRowsPerPage" class="reviewed-rpp-select" onchange="pendingChangeRowsPerPage(this)">
+                                    <option value="10" selected>10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                </select>
                             </div>
                         </div>
-                        <div class="info-grid">
-                            <div class="info-item"><label>Contact</label><span>{{ $d['cellphone_num'] ?? '—' }}</span></div>
-                            <div class="info-item"><label>Detail ID</label><span>#{{ $d['detail_id'] }}</span></div>
+
+                        <div class="table-responsive">
+                            <table class="table reviewed-table mb-0" id="pendingDetailsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Borrower</th>
+                                        <th>Contact</th>
+                                        <th>Detail ID</th>
+                                        <th>Status</th>
+                                        <th>Approvals</th>
+                                        <th class="text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($pendingDetails as $d)
+                                    <tr data-search="{{ strtolower($d['last_name'] . ' ' . $d['first_name'] . ' ' . $d['email']) }}" data-status="{{ $d['status'] }}">
+                                        <td>
+                                            <div class="rt-name">{{ $d['last_name'] }}, {{ $d['first_name'] }} {{ $d['middle_name'] }}</div>
+                                            <div class="rt-email">{{ $d['email'] }}</div>
+                                            @if($d['already_reviewed'])
+                                            <div class="rt-email text-success"><i class="feather-check-circle me-1"></i>Reviewed by you</div>
+                                            @endif
+                                        </td>
+                                        <td class="rt-date">{{ $d['cellphone_num'] ?? '—' }}</td>
+                                        <td class="rt-date">#{{ $d['detail_id'] }}</td>
+                                        <td>
+                                            @if($d['status'] === 'on_hold')
+                                                <span class="badge badge-onhold px-3 py-2">On Hold</span>
+                                            @else
+                                                <span class="badge badge-pending px-3 py-2">Pending</span>
+                                            @endif
+                                        </td>
+                                        <td class="rt-date">
+                                            {{ $d['approved_count'] }}/3 approved &middot; {{ $d['rejected_count'] }}/3 rejected
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="{{ route('admin.verification-detail', $d['detail_id']) }}?from=verification" class="btn btn-sm btn-light">
+                                                <i class="feather-eye me-1"></i> View Full Details
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                            <div id="pendingEmptyState" class="reviewed-empty" style="display:none;">
+                                No pending borrowers match your search.
+                            </div>
                         </div>
-                        @if($d['already_reviewed'])
-                        <div class="reviewed-badge">
-                            <i class="feather-check-circle"></i> You have already reviewed this — decision recorded.
+
+                        <div class="reviewed-pagination" id="pendingPagination">
+                            <span class="reviewed-pagination-info" id="pendingPaginationInfo">
+                                Showing 1&ndash;{{ min(10, count($pendingDetails)) }} of {{ count($pendingDetails) }}
+                            </span>
+                            <div class="reviewed-pagination-controls">
+                                <button type="button" class="btn-page" id="pendingPrevPage" onclick="pendingGoToPage(-1)">
+                                    <i class="feather-chevron-left"></i> Prev
+                                </button>
+                                <span class="reviewed-page-indicator" id="pendingPageIndicator">Page 1 of 1</span>
+                                <button type="button" class="btn-page" id="pendingNextPage" onclick="pendingGoToPage(1)">
+                                    Next <i class="feather-chevron-right"></i>
+                                </button>
+                            </div>
                         </div>
-                        @endif
                     </div>
-                    @endforeach
                     @endif
                 </div>
 
@@ -317,13 +371,9 @@
 
                 @else
                 {{-- ================= FILTERED VIEW: Approved / Rejected / On Hold ================= --}}
-
-                    <div class="search-bar-wrap">
-                        <i class="feather-search"></i>
-                        <input type="text" class="form-control" id="filterSearchInput"
-                               placeholder="Search by name or email..."
-                               onkeyup="filterDetails(this.value)">
-                    </div>
+                {{-- Same structure as the Reviewed tab: toolbar (search + rows-per-page)
+                     / table / pagination, all inside one .reviewed-card.
+                     Columns: Borrower | User ID | Contact | Status | Action --}}
 
                     @if(count($filteredDetails) === 0)
                     <div class="card">
@@ -333,32 +383,84 @@
                         </div>
                     </div>
                     @else
-                        @foreach($filteredDetails as $d)
-                        <div class="detail-card" data-search="{{ strtolower($d->last_name . ' ' . $d->first_name . ' ' . $d->email) }}">
-                            <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
-                                <div>
-                                    <div class="bname">{{ $d->last_name }}, {{ $d->first_name }} {{ $d->middle_name }}</div>
-                                    <div class="bemail">{{ $d->email }}</div>
-                                </div>
-                                <div class="d-flex align-items-center gap-2 flex-wrap">
-                                    @if($viewStatus === 'approved')
-                                        <span class="badge badge-approved px-3 py-2">Approved</span>
-                                    @elseif($viewStatus === 'rejected')
-                                        <span class="badge badge-rejected px-3 py-2">Rejected</span>
-                                    @else
-                                        <span class="badge badge-onhold px-3 py-2">On Hold</span>
-                                    @endif
-                                    <a href="{{ route('admin.verification-detail', $d->detail_id) }}?from=verification" class="btn btn-sm btn-outline-primary">
-                                        <i class="feather-eye me-1"></i> View Full Details
-                                    </a>
-                                </div>
+                    <div class="reviewed-card">
+
+                        <div class="reviewed-toolbar">
+                            <div class="search-bar-wrap reviewed-search-wrap">
+                                <i class="feather-search"></i>
+                                <input type="text" id="filteredSearchInput"
+                                       placeholder="Search by name or email..."
+                                       onkeyup="filterDetailsTable()">
                             </div>
-                            <div class="info-grid">
-                                <div class="info-item"><label>Contact</label><span>{{ $d->cellphone_num ?? '—' }}</span></div>
-                                <div class="info-item"><label>Detail ID</label><span>#{{ $d->detail_id }}</span></div>
+                            <div class="reviewed-rpp-wrap">
+                                <label for="filteredRowsPerPage" class="reviewed-rpp-label">Rows per page</label>
+                                <select id="filteredRowsPerPage" class="reviewed-rpp-select" onchange="filteredChangeRowsPerPage(this)">
+                                    <option value="10" selected>10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                </select>
                             </div>
                         </div>
-                        @endforeach
+
+                        <div class="table-responsive">
+                            <table class="table reviewed-table mb-0" id="filteredDetailsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Borrower</th>
+                                        <th>User ID</th>
+                                        <th>Contact</th>
+                                        <th>Status</th>
+                                        <th class="text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($filteredDetails as $d)
+                                    <tr data-search="{{ strtolower($d->last_name . ' ' . $d->first_name . ' ' . $d->email) }}">
+                                        <td>
+                                            <div class="rt-name">{{ $d->last_name }}, {{ $d->first_name }} {{ $d->middle_name }}</div>
+                                            <div class="rt-email">{{ $d->email }}</div>
+                                        </td>
+                                        <td class="rt-date">BRW-{{ str_pad($d->user_id, 4, '0', STR_PAD_LEFT) }}</td>
+                                        <td class="rt-date">{{ $d->cellphone_num ?? '—' }}</td>
+                                        <td>
+                                            @if($viewStatus === 'approved')
+                                                <span class="badge badge-approved px-3 py-2">Approved</span>
+                                            @elseif($viewStatus === 'rejected')
+                                                <span class="badge badge-rejected px-3 py-2">Rejected</span>
+                                            @else
+                                                <span class="badge badge-onhold px-3 py-2">On Hold</span>
+                                            @endif
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="{{ route('admin.verification-detail', $d->detail_id) }}?from=verification" class="btn btn-sm btn-light">
+                                                <i class="feather-eye me-1"></i> View Full Details
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                            <div id="filteredEmptyState" class="reviewed-empty" style="display:none;">
+                                No borrowers match your search.
+                            </div>
+                        </div>
+
+                        {{-- Pagination bar --}}
+                        <div class="reviewed-pagination" id="filteredPagination">
+                            <span class="reviewed-pagination-info" id="filteredPaginationInfo">
+                                Showing 1&ndash;{{ min(10, count($filteredDetails)) }} of {{ count($filteredDetails) }}
+                            </span>
+                            <div class="reviewed-pagination-controls">
+                                <button type="button" class="btn-page" id="filteredPrevPage" onclick="filteredGoToPage(-1)">
+                                    <i class="feather-chevron-left"></i> Prev
+                                </button>
+                                <span class="reviewed-page-indicator" id="filteredPageIndicator">Page 1 of 1</span>
+                                <button type="button" class="btn-page" id="filteredNextPage" onclick="filteredGoToPage(1)">
+                                    Next <i class="feather-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                     @endif
 
                 @endif

@@ -172,9 +172,7 @@
         el.addEventListener('change', function () { currentPage = 1; render(); });
     });
     rowsPerPageSelect.addEventListener('change', function () { currentPage = 1; render(); });
-    exportBtn.addEventListener('click', exportCsv);
-    refreshBtn.addEventListener('click', function () { window.location.reload(); });
-
+   
     // Pag na-click ang buong row (hindi yung Actions column), buksan
     // ang View Details modal ng row na yun.
     allRows.forEach(function (row) {

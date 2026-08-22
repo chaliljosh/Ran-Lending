@@ -160,7 +160,10 @@
                     </button>
                 </div>
 
-                <!-- PENDING TAB -->
+                <!-- PENDING TAB — same .reviewed-card structure as the Reviewed
+                     tab: toolbar (search + rows-per-page) / table / pagination,
+                     all inside one continuous card. Votes + Status are shown as
+                     table columns instead of the old card header/mini-badges. -->
                 <div id="loantab-pending">
                     @if(count($pendingApplications) === 0)
                     <div class="la-empty-large">
@@ -171,45 +174,100 @@
                         <p class="la-empty-desc">No pending loan applications to review.</p>
                     </div>
                     @else
-                        @foreach($pendingApplications as $app)
-                        <div class="app-card">
-                            <div class="la-card-head">
-                                <div class="la-identity">
-                                    <div class="la-name">{{ $app['last_name'] }}, {{ $app['first_name'] }}</div>
-                                    <div class="la-email">{{ $app['email'] }}</div>
-                                </div>
-                                <div class="la-head-actions">
-                                    @if($app['status'] === 'on_hold')
-                                        <span class="status-subtle is-onhold"><span class="dot"></span>On Hold &mdash; Needs Review</span>
-                                    @else
-                                        <span class="status-subtle"><span class="dot"></span>Pending Your Review</span>
-                                    @endif
-                                    <a href="{{ route('admin.loan-application-detail', $app['application_id']) }}" class="btn-la btn-la-outline">
-                                        View Details
-                                    </a>
-                                </div>
-                            </div>
+                    <div class="reviewed-card">
 
-                            {{-- Vote progress so far — lets the admin see at a glance
-                                 whether other admins already leaned approve/reject
-                                 before making their own call. Only shown once at
-                                 least one admin has voted. --}}
-                            @if($app['approved_count'] > 0 || $app['rejected_count'] > 0)
-                            <div class="progress-mini">
-                                <span class="pm-item is-approved">{{ $app['approved_count'] }}/3 Approved</span>
-                                <span class="pm-item is-rejected">{{ $app['rejected_count'] }}/3 Rejected</span>
+                        {{-- Search + rows-per-page --}}
+                        <div class="reviewed-toolbar">
+                            <div class="search-bar-wrap reviewed-search-wrap">
+                                <i class="feather-search"></i>
+                                <input type="text" id="pendingSearchInput"
+                                       placeholder="Search borrower name or email..."
+                                       onkeyup="filterLoanPending()">
                             </div>
-                            @endif
-
-                            <div class="info-grid">
-                                <div class="info-item"><label>Application ID</label><span>#{{ $app['application_id'] }}</span></div>
-                                <div class="info-item"><label>Loan Amount</label><span>&#8369;{{ number_format($app['loan_amount'], 2) }}</span></div>
-                                <div class="info-item"><label>Term</label><span>{{ $app['loan_term'] }} months</span></div>
-                                <div class="info-item"><label>Purpose</label><span>{{ ucfirst(str_replace('_', ' ', $app['loan_purpose'])) }}</span></div>
-                                <div class="info-item"><label>Applied</label><span>{{ date('M d, Y', strtotime($app['applied_at'])) }}</span></div>
+                            <div class="reviewed-rpp-wrap">
+                                <label for="pendingRowsPerPage" class="reviewed-rpp-label">Rows per page</label>
+                                <select id="pendingRowsPerPage" class="reviewed-rpp-select" onchange="pendingChangeRowsPerPage(this)">
+                                    <option value="10" selected>10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                </select>
                             </div>
                         </div>
-                        @endforeach
+
+                        <div class="table-responsive">
+                            <table class="reviewed-table mb-0" id="pendingLoanTable">
+                                <thead>
+                                    <tr>
+                                        <th>Borrower</th>
+                                        <th class="text-end">Loan Amount</th>
+                                        <th>Term</th>
+                                        <th>Purpose</th>
+                                        <th>Applied Date</th>
+                                        <th>Votes</th>
+                                        <th>Status</th>
+                                        <th class="text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="loanPendingList">
+                                    @foreach($pendingApplications as $app)
+                                    <tr data-search="{{ strtolower($app['last_name'] . ' ' . $app['first_name'] . ' ' . $app['email']) }}">
+                                        <td>
+                                            <div class="rt-name">{{ $app['last_name'] }}, {{ $app['first_name'] }}</div>
+                                            <div class="rt-email">{{ $app['email'] }}</div>
+                                        </td>
+                                        <td class="text-end rt-date">&#8369;{{ number_format($app['loan_amount'], 2) }}</td>
+                                        <td class="rt-date">{{ $app['loan_term'] }} months</td>
+                                        <td class="rt-remarks" title="{{ ucfirst(str_replace('_', ' ', $app['loan_purpose'])) }}">
+                                            {{ ucfirst(str_replace('_', ' ', $app['loan_purpose'])) }}
+                                        </td>
+                                        <td class="rt-date">{{ date('M d, Y', strtotime($app['applied_at'])) }}</td>
+                                        <td>
+                                            @if($app['approved_count'] > 0 || $app['rejected_count'] > 0)
+                                            <div class="progress-mini-table">
+                                                <span class="pm-item is-approved">{{ $app['approved_count'] }}/3</span>
+                                                <span class="pm-item is-rejected">{{ $app['rejected_count'] }}/3</span>
+                                            </div>
+                                            @else
+                                            <span class="rt-date">&mdash;</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if($app['status'] === 'on_hold')
+                                                <span class="status-subtle is-onhold"><span class="dot"></span>On Hold</span>
+                                            @else
+                                                <span class="status-subtle"><span class="dot"></span>Pending</span>
+                                            @endif
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="{{ route('admin.loan-application-detail', $app['application_id']) }}" class="btn-light">
+                                                <i class="feather-eye me-1"></i> View Details
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                            <div id="pendingEmptyState" class="reviewed-empty" style="display:none;">
+                                No applications match your search.
+                            </div>
+                        </div>
+
+                        {{-- Pagination bar --}}
+                        <div class="reviewed-pagination" id="pendingPagination">
+                            <span class="reviewed-pagination-info" id="pendingPaginationInfo">
+                                Showing 1&ndash;{{ min(10, count($pendingApplications)) }} of {{ count($pendingApplications) }}
+                            </span>
+                            <div class="reviewed-pagination-controls">
+                                <button type="button" class="btn-page" id="pendingPrevPage" onclick="pendingGoToPage(-1)">
+                                    <i class="feather-chevron-left"></i> Prev
+                                </button>
+                                <span class="reviewed-page-indicator" id="pendingPageIndicator">Page 1 of 1</span>
+                                <button type="button" class="btn-page" id="pendingNextPage" onclick="pendingGoToPage(1)">
+                                    Next <i class="feather-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                     @endif
                 </div>
 

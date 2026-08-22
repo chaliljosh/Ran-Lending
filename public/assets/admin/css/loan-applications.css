@@ -89,6 +89,18 @@
 .pm-item.is-approved { background: #eefbf3; color: #16a34a; }
 .pm-item.is-rejected { background: #fdefef; color: #dc2626; }
 
+/* ---------- Votes column inside the Pending table (compact version
+   of .pm-item, since the card version is too tall for a table cell) ---------- */
+.progress-mini-table {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.progress-mini-table .pm-item {
+    font-size: 0.68rem;
+    padding: 2px 8px;
+}
+
 /* ---------- Badges ---------- */
 .badge-pending  { background: #fff8e1; color: #a3760a; border: 1px solid #eecf8b; }
 .badge-onhold   { background: #fff8e1; color: #b45309; border: 1px solid #f3d99c; }
@@ -285,7 +297,7 @@ html.app-skin-dark .tab-count.is-muted { background: #324962; color: #dbe4f0; }
 }
 
 /* ========================================
-   REVIEWED TAB — single continuous card
+   REVIEWED / PENDING TAB — single continuous card
    (toolbar / table / pagination, divided by borders
    instead of separate margin-gapped boxes). Matches
    the Borrower Verification Reviewed table exactly.
@@ -447,7 +459,7 @@ html.app-skin-dark .tab-count.is-muted { background: #324962; color: #dbe4f0; }
 }
 
 /* ========================================
-   REVIEWED TAB — Rows-per-page + Pagination
+   REVIEWED / PENDING TAB — Rows-per-page + Pagination
    (border-top, part of the same .reviewed-card,
    not a separate margin-gapped box)
    ======================================== */

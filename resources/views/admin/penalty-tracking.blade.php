@@ -48,7 +48,7 @@
                         <a href="javascript:void(0);" class="nxl-link">
                             <span class="nxl-micon"><i class="feather-user-check"></i></span>
                             <span class="nxl-mtext">Borrower Verification</span>
-                            @if($pendingCount ?? 0 > 0)
+                            @if(($pendingCount ?? 0) > 0)
                                 <span class="badge bg-danger ms-auto">{{ $pendingCount }}</span>
                             @endif
                             <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
@@ -215,8 +215,6 @@
                         <option value="due_asc">Sort: Due date (oldest)</option>
                     </select>
                     <div class="pt-toolbar-spacer"></div>
-                    <button type="button" id="ptExportBtn" class="pt-btn-tool"><i class="bi bi-download"></i> Export</button>
-                    <button type="button" id="ptRefreshBtn" class="pt-btn-tool is-primary"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
                 </div>
 
                 {{-- ============ TABLE ============ --}}
@@ -267,7 +265,7 @@
 
                                         <td>
                                             <div class="pt-cell-borrower">
-                                                <div class="pt-avatar">{{ $initials }}</div>
+                                               
                                                 <div>
                                                     <div class="pt-borrower-name">{{ $fullName !== '' ? $fullName : '—' }}</div>
                                                     <div class="pt-borrower-sub">Loan #{{ str_pad($p->application_id ?? 0, 5, '0', STR_PAD_LEFT) }}</div>
@@ -305,13 +303,11 @@
                                         {{-- ===== DIRECT ACTION BUTTONS ===== --}}
                                         <td class="pt-cell-actions">
                                             <div class="pt-actions-group">
-                                                <button type="button"
-                                                        class="pt-action-btn is-view"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#viewModal{{ $p->id }}"
-                                                        title="View Details">
-                                                    <i class="bi bi-eye"></i>
-                                                </button>
+                                             <a href="{{ route('admin.penalty-tracking-detail', $p->id) }}"
+   class="pt-action-btn is-view"
+   title="View Details">
+    <i class="bi bi-eye me-1"></i> View Details
+</a>
 
                                                 @if($status === 'unpaid')
                                                     <button type="button"

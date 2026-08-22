@@ -142,7 +142,7 @@
                         <li class="breadcrumb-item">Details #{{ $detailId }}</li>
                     </ul>
                 </div>
-                <div class="page-header-right ms-auto">
+                <div class="page-header-right ms-auto d-flex align-items-center gap-2">
                     @if($cameFrom === 'verification')
                         <a href="{{ route('admin.borrower-verification', ($viewStatus ?? 'pending') !== 'pending' ? ['status' => $viewStatus] : []) }}" class="btn btn-light">
                             Back
@@ -230,6 +230,16 @@
                                 <span class="bsc-stat-label">Overdue</span>
                             </div>
                         </div>
+
+                        {{-- Opens the Review Borrower Verification modal. Compact,
+                             outline-style trigger — matches the muted button
+                             style used elsewhere in the admin (e.g. btn-la-outline
+                             on Loan Applications) rather than a large filled CTA. --}}
+                        @if($d->status !== 'rejected' && $d->status !== 'approved')
+                        <button type="button" class="btn-review-decision" data-bs-toggle="modal" data-bs-target="#decisionModal">
+                            Make Decision
+                        </button>
+                        @endif
                     </div>
                 </div>
 
@@ -418,45 +428,53 @@
         </footer>
     </main>
 
-    <!-- Decision Modal -->
+    <!-- Review Borrower Verification Modal -->
     @if($d->status !== 'rejected' && $d->status !== 'approved')
     <div class="modal fade" id="decisionModal" tabindex="-1" aria-labelledby="decisionModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered modal-review-decision">
             <div class="modal-content">
                 <form method="POST" action="{{ route('admin.verification-detail', $detailId) }}" id="decisionForm">
                     @csrf
                     <input type="hidden" name="action" id="decisionActionInput" value="">
                     <div class="modal-header">
-                        <h6 class="modal-title" id="decisionModalLabel">
-                            {{ $myReview ? 'Change Decision' : 'Borrower Verification' }}
-                        </h6>
+                        <div>
+                            <h6 class="modal-title" id="decisionModalLabel">Review Borrower Verification</h6>
+                            <p class="modal-subtitle">Confirm whether this borrower's submitted details meet verification requirements.</p>
+                        </div>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <div id="decisionStep1">
-                            <label class="form-label fw-semibold">Remarks <span class="text-muted fw-normal">(optional)</span></label>
-                            <textarea name="remarks" id="decisionRemarks" class="form-control" rows="3" placeholder="Add notes or reason...">{{ $myReview->remarks ?? '' }}</textarea>
-                        </div>
-                        <div id="decisionStep2" class="text-center py-3" style="display:none;">
-                            <i id="decisionConfirmIcon" style="font-size:40px;"></i>
-                            <p id="decisionConfirmText" class="mt-3 mb-0 fw-semibold"></p>
-                        </div>
+                       
+
+                        <label class="form-label fw-semibold" for="decisionRemarks">Remarks <span class="text-muted fw-normal">(optional)</span></label>
+                        <textarea name="remarks" id="decisionRemarks" class="form-control" rows="3" placeholder="Add notes or reason...">{{ $myReview->remarks ?? '' }}</textarea>
                     </div>
-                    <div class="modal-footer" id="decisionFooterStep1">
-                        <button type="button" class="btn btn-success flex-fill" onclick="decisionShowConfirm('approved')">
-                            Approve
-                        </button>
-                        <button type="button" class="btn btn-danger flex-fill" onclick="decisionShowConfirm('rejected')">
-                            Reject
-                        </button>
-                    </div>
-                    <div class="modal-footer" id="decisionFooterStep2" style="display:none;">
-                        <button type="submit" class="btn flex-fill" id="decisionConfirmBtn"></button>
-                        <button type="button" class="btn btn-light flex-fill" onclick="decisionBackToStep1()">
-                            <i></i>Back
-                        </button>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-decision btn-decision-cancel" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn-decision btn-decision-reject" onclick="submitDecision('rejected')">Reject</button>
+                        <button type="button" class="btn-decision btn-decision-approve" onclick="submitDecision('approved')">Approve</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- Small styled confirmation modal — replaces the native browser
+         confirm() alert. Shown after Reject/Approve is clicked in the
+         review modal above; the review modal hides itself first so only
+         one modal is ever visible at a time. Cancel brings the review
+         modal back (remarks are preserved since the DOM isn't destroyed,
+         just hidden). --}}
+    <div class="modal fade" id="decisionConfirmModal" tabindex="-1" aria-labelledby="decisionConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-confirm-decision">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <p class="confirm-decision-text" id="confirmDecisionText"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-decision btn-decision-cancel" id="confirmDecisionCancelBtn">Cancel</button>
+                    <button type="button" class="btn-decision" id="confirmDecisionOkBtn"></button>
+                </div>
             </div>
         </div>
     </div>

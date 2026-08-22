@@ -319,6 +319,147 @@ body {
     pointer-events: none;
 }
 
+/* ── Table footer (rows-per-page + pagination) ──
+   Structure expected in the Blade, placed right after .table-responsive
+   inside the same .card that wraps .borrower-table:
+
+   <div class="table-footer">
+     <div class="rows-per-page">
+       <span>Rows per page</span>
+       <select class="per-page-select">
+         <option value="10">10</option>
+         <option value="25" selected>25</option>
+         <option value="50">50</option>
+         <option value="100">100</option>
+       </select>
+     </div>
+
+     <div class="table-footer-info">
+       Showing <strong>1–25</strong> of <strong>248</strong>
+     </div>
+
+     <div class="pagination-controls">
+       <button class="page-btn" data-action="first" disabled><i class="feather-chevrons-left"></i></button>
+       <button class="page-btn" data-action="prev" disabled><i class="feather-chevron-left"></i></button>
+       <button class="page-btn active">1</button>
+       <button class="page-btn">2</button>
+       <button class="page-btn">3</button>
+       <span class="page-ellipsis">…</span>
+       <button class="page-btn">10</button>
+       <button class="page-btn" data-action="next"><i class="feather-chevron-right"></i></button>
+       <button class="page-btn" data-action="last"><i class="feather-chevrons-right"></i></button>
+     </div>
+   </div>
+*/
+.table-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 16px 20px;
+    border-top: 1px solid var(--rs-border);
+    background: var(--rs-card);
+}
+
+.rows-per-page {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.8rem;
+    color: var(--rs-muted);
+    font-weight: 500;
+    flex-shrink: 0;
+}
+
+.rows-per-page .per-page-select {
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid var(--rs-border);
+    background-color: var(--rs-card);
+    color: var(--rs-text);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0 28px 0 12px;
+    box-shadow: none;
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.rows-per-page .per-page-select:focus {
+    outline: none;
+    border-color: var(--rs-primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.table-footer-info {
+    font-size: 0.8rem;
+    color: var(--rs-muted);
+    font-weight: 500;
+    white-space: nowrap;
+}
+.table-footer-info strong {
+    color: var(--rs-text);
+    font-weight: 700;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.pagination-controls .page-btn {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--rs-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.pagination-controls .page-btn:hover:not(:disabled) {
+    background: #eff6ff;
+    color: var(--rs-primary);
+    border-color: #bfdbfe;
+}
+.pagination-controls .page-btn.active {
+    background: var(--rs-primary);
+    color: #fff;
+    border-color: var(--rs-primary);
+}
+.pagination-controls .page-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+.pagination-controls .page-ellipsis {
+    padding: 0 4px;
+    color: var(--rs-muted);
+    font-size: 0.8rem;
+}
+
+@media (max-width: 768px) {
+    .table-footer {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    .table-footer-info {
+        order: 3;
+        text-align: center;
+    }
+    .pagination-controls {
+        justify-content: center;
+    }
+}
+
 /* Dark mode */
 html.app-skin-dark body { background: #0f172a; }
 html.app-skin-dark .search-bar-wrap {
@@ -364,6 +505,20 @@ html.app-skin-dark .borrower-table .btn-view {
     background: #16202e;
     border-color: #2d3f55;
     color: #e2e8f0;
+}
+html.app-skin-dark .table-footer {
+    background: #1e2a3a;
+    border-top-color: #2d3f55;
+}
+html.app-skin-dark .rows-per-page .per-page-select {
+    background-color: #16202e;
+    border-color: #2d3f55;
+    color: #e2e8f0;
+}
+html.app-skin-dark .table-footer-info strong { color: #e2e8f0; }
+html.app-skin-dark .pagination-controls .page-btn:hover:not(:disabled) {
+    background: #24334a;
+    border-color: #2d3f55;
 }
 
 /* Footer sa ibaba, kahit konti lang laman ng page */

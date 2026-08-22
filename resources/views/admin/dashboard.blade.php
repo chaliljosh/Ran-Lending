@@ -103,36 +103,6 @@
                     </li>
                 </ul>
             </div>
-
-            {{-- ============ SIDEBAR BOTTOM — ADMIN PROFILE ============
-                 Stays pinned under the scrollable menu via the flex-column
-                 layout on .navbar-wrapper above. Dropup so it opens upward
-                 (it's at the bottom of the screen). --}}
-            <div class="nxl-sidebar-footer">
-                <div class="dropdown dropup">
-                    <button type="button" class="nxl-admin-trigger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                        <div class="nxl-admin-avatar">{{ $adminInitials }}</div>
-                        <div class="nxl-admin-info">
-                            <div class="nxl-admin-name">{{ $adminName }}</div>
-                            <div class="nxl-admin-role">{{ $adminRole }}</div>
-                        </div>
-                        <i class="feather-settings nxl-admin-menu-icon"></i>
-                    </button>
-                    <ul class="dropdown-menu nxl-admin-dropdown-menu">
-                        <li><a class="dropdown-item" href="#"><i class="feather-user me-2"></i> My Profile</a></li>
-                        {{-- Activity Log / Account Settings only linked if those routes already exist in the app --}}
-                        @if(\Illuminate\Support\Facades\Route::has('admin.account-settings'))
-                            <li><a class="dropdown-item" href="{{ route('admin.account-settings') }}"><i class="feather-settings me-2"></i> Account Settings</a></li>
-                        @endif
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item text-danger" href="javascript:void(0);" onclick="confirmLogout()">
-                                <i class="feather-log-out me-2"></i> Logout
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
         </div>
     </nav>
 
@@ -149,12 +119,45 @@
                     <a href="javascript:void(0);" id="menu-expend-button" style="display: none"><i class="feather-arrow-right"></i></a>
                 </div>
             </div>
-            <div class="header-right ms-auto">
-                <div class="d-flex align-items-center">
+                       <div class="header-right ms-auto">
+                <div class="d-flex align-items-center gap-2">
                     <div class="nxl-h-item dark-light-theme">
                         <a href="javascript:void(0);" class="nxl-head-link me-0 dark-button"><i class="feather-moon"></i></a>
                         <a href="javascript:void(0);" class="nxl-head-link me-0 light-button" style="display: none"><i class="feather-sun"></i></a>
                     </div>
+
+                    <div class="nxl-h-item">
+                        <a href="javascript:void(0);" class="nxl-head-link">
+                            <i class="feather-bell"></i>
+                        </a>
+                    </div>
+
+                    {{-- ============ HEADER — ADMIN PROFILE ============
+                         Native <details>/<summary> — no JS dependency at all,
+                         no Bootstrap dropdown JS/CSS conflicts. Hidden by
+                         default in every browser, toggled purely by the
+                         browser's built-in click handling. --}}
+                    <details class="nxl-header-admin">
+                        <summary class="nxl-admin-trigger-header">
+                            <span class="nxl-admin-avatar-header">{{ $adminInitials }}</span>
+                            <i class="feather-chevron-down nxl-admin-caret-header"></i>
+                        </summary>
+                        <div class="nxl-admin-dropdown-menu">
+                            <div class="nxl-admin-dropdown-head">
+                                <div class="nxl-admin-name">{{ $adminName }}</div>
+                                <div class="nxl-admin-role">{{ $adminRole }}</div>
+                            </div>
+                            <div class="nxl-admin-dropdown-divider"></div>
+                            <a class="nxl-admin-dropdown-item" href="#"><i class="feather-user me-2"></i> My Profile</a>
+                            @if(\Illuminate\Support\Facades\Route::has('admin.account-settings'))
+                                <a class="nxl-admin-dropdown-item" href="{{ route('admin.account-settings') }}"><i class="feather-settings me-2"></i> Account Settings</a>
+                            @endif
+                            <div class="nxl-admin-dropdown-divider"></div>
+                            <a class="nxl-admin-dropdown-item text-danger" href="javascript:void(0);" onclick="confirmLogout()">
+                                <i class="feather-log-out me-2"></i> Logout
+                            </a>
+                        </div>
+                    </details>
                 </div>
             </div>
         </div>

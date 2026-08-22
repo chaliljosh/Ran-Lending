@@ -151,6 +151,96 @@ body { background: var(--rs-bg); }
 .empty-state-v2 h6 { margin-top: 14px; font-weight: 700; color: var(--rs-ink); }
 .empty-state-v2 p { color: var(--rs-muted); font-size: 0.85rem; margin: 0; }
 
+/* ── Rows per page (label + small select) ── */
+.rows-per-page-v2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+}
+.rows-per-page-label-v2 {
+    font-size: 0.83rem;
+    font-weight: 500;
+    color: var(--rs-body);
+}
+.rows-per-page-select-v2 {
+    height: 46px;
+    width: 72px;
+    border: 1px solid var(--rs-border);
+    border-radius: var(--rs-radius-sm);
+    font-size: 0.83rem;
+    font-weight: 500;
+    color: var(--rs-ink);
+    padding: 0 10px;
+    background: #fff;
+    text-align: center;
+}
+.rows-per-page-select-v2:focus {
+    border-color: var(--rs-brand);
+    box-shadow: 0 0 0 3px var(--rs-brand-soft);
+}
+
+/* ── Pagination bar ── */
+.pagination-wrap-v2 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 16px 20px;
+    border-top: 1px solid var(--rs-border);
+}
+.pagination-info-v2 {
+    font-size: 0.82rem;
+    color: var(--rs-muted);
+    font-weight: 500;
+}
+.pagination-buttons-v2 {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+.page-status-v2 {
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: var(--rs-ink);
+}
+.prev-next-btn-v2 {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 38px;
+    padding: 0 16px;
+    border: 1px solid var(--rs-border);
+    background: #fff;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--rs-ink);
+    transition: all .15s ease;
+}
+.prev-next-btn-v2:hover:not(:disabled) {
+    border-color: var(--rs-brand);
+    color: var(--rs-brand);
+    background: var(--rs-brand-soft);
+}
+.prev-next-btn-v2:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+}
+
+/* ── Dark mode additions ── */
+html.app-skin-dark .rows-per-page-label-v2 { color: #94a3b8; }
+html.app-skin-dark .rows-per-page-select-v2 { background: #16202e; border-color: #2d3f55; color: #e2e8f0; }
+html.app-skin-dark .pagination-wrap-v2 { border-color: #2d3f55; }
+html.app-skin-dark .pagination-info-v2 { color: #94a3b8; }
+html.app-skin-dark .page-status-v2 { color: #e2e8f0; }
+html.app-skin-dark .prev-next-btn-v2 { background: #16202e; border-color: #2d3f55; color: #e2e8f0; }
+
+/* ── Responsive ── */
+@media (max-width: 575.98px) {
+    .pagination-wrap-v2 { justify-content: center; text-align: center; }
+}
 /* ── Dark mode ── */
 html.app-skin-dark body { background: #0f172a; }
 html.app-skin-dark .rs-card { background: #1e2a3a; border-color: #2d3f55; }
@@ -170,10 +260,17 @@ html.app-skin-dark .rs-table tbody td { border-color: #2d3f55; }
 html.app-skin-dark .rs-table tbody tr:hover { background: #16202e; }
 html.app-skin-dark .btn-view-v2 { background: #16202e; border-color: #2d3f55; }
 html.app-skin-dark .completed-badge { background: rgba(22,163,74,.15); color: #6ee7a4; }
+html.app-skin-dark .pagination-wrap-v2 { border-color: #2d3f55; }
+html.app-skin-dark .pagination-info-v2 { color: #94a3b8; }
+html.app-skin-dark .page-btn-v2 { background: #16202e; border-color: #2d3f55; color: #e2e8f0; }
+html.app-skin-dark .page-btn-v2.active { background: var(--rs-brand); border-color: var(--rs-brand); color: #fff; }
 
 /* ── Responsive ── */
 @media (max-width: 767.98px) {
     .stats-grid-v2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 575.98px) {
+    .pagination-wrap-v2 { justify-content: center; text-align: center; }
 }
 
 /* ── Footer sa ibaba ── */

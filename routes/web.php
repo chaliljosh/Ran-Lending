@@ -69,6 +69,7 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/penalty-tracking', [AdminController::class, 'penaltyTracking'])->name('penalty-tracking');
     Route::post('/penalty-tracking/{id}/mark-paid', [AdminController::class, 'markPenaltyPaid'])->name('penalty-mark-paid');
     Route::post('/penalty-tracking/{id}/waive', [AdminController::class, 'waivePenalty'])->name('penalty-waive');
+    Route::get('/penalty-tracking-detail/{id}', [AdminController::class, 'penaltyTrackingDetail'])->name('penalty-tracking-detail');
 
     // Active Loans > Ongoing Loans
     Route::get('/active-loans/ongoing', [AdminController::class, 'ongoingLoans'])->name('ongoing-loans');
@@ -88,11 +89,11 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
         ->name('active-borrower-detail');
 
     // Overdue Payments > View Details (focused view — borrower card + overview
-    
+
     Route::get('/overdue-payment-detail/{id}', [AdminController::class, 'overduePaymentDetail'])
         ->name('overdue-payment-detail');
 
-    
+
     Route::post('/installments/{id}/mark-paid', [AdminController::class, 'markInstallmentPaid'])
         ->name('installment-mark-paid');
 

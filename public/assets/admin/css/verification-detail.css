@@ -170,6 +170,148 @@
         }
 
         /* ============================================
+           DECISION TRIGGER BUTTON — compact, outline
+           style (not a large filled CTA). Sits below
+           the stats row (under "Overdue").
+        ============================================ */
+        .btn-review-decision {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 7px 16px;
+            border-radius: 8px;
+            border: 1px solid #d7dce3;
+            background: #fff;
+            color: #4a5b73;
+            margin-top: 2px;
+            cursor: pointer;
+            transition: border-color 0.15s ease, color 0.15s ease;
+        }
+        .btn-review-decision:hover {
+            border-color: #4a7cf7;
+            color: #4a7cf7;
+        }
+
+        /* ============================================
+           REVIEW BORROWER VERIFICATION MODAL
+           500–550px, single step, minimal chrome.
+        ============================================ */
+        .modal-review-decision {
+            max-width: 520px;
+        }
+        .modal-review-decision .modal-content {
+            border: 1px solid #eef1f6;
+            border-radius: 12px;
+            box-shadow: 0 8px 28px rgba(20, 30, 60, 0.12);
+        }
+        .modal-review-decision .modal-header {
+            align-items: flex-start;
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid #f1f3f8;
+        }
+        .modal-review-decision .modal-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1a2a3a;
+        }
+        .modal-review-decision .modal-subtitle {
+            font-size: 0.82rem;
+            color: #8a9bb0;
+            margin: 4px 0 0;
+            line-height: 1.4;
+        }
+        .modal-review-decision .modal-body {
+            padding: 20px 24px;
+        }
+        .modal-review-decision .modal-footer {
+            padding: 16px 24px 20px;
+            border-top: 1px solid #f1f3f8;
+            gap: 8px;
+        }
+
+        .review-borrower-context {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border: 1px solid #eef1f6;
+            border-radius: 10px;
+            background: #f8f9fb;
+            margin-bottom: 18px;
+        }
+        .rbc-avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: linear-gradient(135deg, #4a7cf7, #6c5ce7);
+            color: #fff; font-weight: 700; font-size: 0.8rem;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .rbc-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .rbc-name { font-size: 0.86rem; font-weight: 700; color: #1a2a3a; }
+        .rbc-meta { font-size: 0.76rem; color: #8a9bb0; }
+
+        .btn-decision {
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+        }
+        .btn-decision-cancel {
+            background: #fff;
+            border-color: #e2e5ea;
+            color: #4a5b73;
+        }
+        .btn-decision-cancel:hover { border-color: #c7ccd4; }
+        .btn-decision-reject {
+            background: #fff;
+            border-color: #f3c7c7;
+            color: #dc2626;
+        }
+        .btn-decision-reject:hover { background: #fef2f2; }
+        .btn-decision-approve {
+            background: #4a7cf7;
+            border-color: #4a7cf7;
+            color: #fff;
+        }
+        .btn-decision-approve:hover { background: #3866e0; }
+
+        /* ============================================
+           CONFIRMATION MODAL — small, centered text,
+           shown after Reject/Approve in the review modal.
+           Same visual language (radius, shadow, borders)
+           as the review modal, just compact.
+        ============================================ */
+        .modal-confirm-decision {
+            max-width: 380px;
+        }
+        .modal-confirm-decision .modal-content {
+            border: 1px solid #eef1f6;
+            border-radius: 12px;
+            box-shadow: 0 8px 28px rgba(20, 30, 60, 0.12);
+        }
+        .modal-confirm-decision .modal-body {
+            padding: 28px 24px 8px;
+            text-align: center;
+        }
+        .modal-confirm-decision .confirm-decision-text {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #1a2a3a;
+            margin: 0;
+            line-height: 1.4;
+        }
+        .modal-confirm-decision .modal-footer {
+            padding: 18px 24px 22px;
+            border-top: none;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        /* ============================================
            PROGRESS TIMELINE
         ============================================ */
         .verify-timeline {
@@ -292,6 +434,8 @@
             .bsc-badges { width: 100%; }
             .bsc-stats { flex-wrap: wrap; gap: 10px 0; }
             .bsc-stat { min-width: 45%; flex: 1 1 45%; border-right: none !important; padding: 6px 0; }
+            .btn-review-decision { width: 100%; text-align: center; }
+            .modal-review-decision { max-width: calc(100vw - 24px); }
         }
         /* ============================================
    BACK BUTTON — matched from loan-details.css
@@ -379,3 +523,49 @@ html.app-skin-dark .alert-danger  { background: #2a1616; color: #fca5a5; border-
 html.app-skin-dark .alert-success { background: #12251c; color: #86efac; border-color: #1e3a2a; }
 html.app-skin-dark .alert-info    { background: #16233a; color: #93c5fd; border-color: #22345a; }
 html.app-skin-dark .text-muted    { color: #94a3b8 !important; }
+
+html.app-skin-dark .btn-review-decision {
+    background: #1e2a3a;
+    border-color: #2d3f55;
+    color: #cbd5e1;
+}
+html.app-skin-dark .btn-review-decision:hover { border-color: #4a7cf7; color: #6c9bff; }
+
+html.app-skin-dark .modal-review-decision .modal-content {
+    background: #1e2a3a;
+    border-color: #2d3f55;
+}
+html.app-skin-dark .modal-review-decision .modal-header,
+html.app-skin-dark .modal-review-decision .modal-footer {
+    border-color: #2d3f55;
+}
+html.app-skin-dark .modal-review-decision .modal-title { color: #e2e8f0; }
+html.app-skin-dark .modal-review-decision .modal-subtitle { color: #94a3b8; }
+
+html.app-skin-dark .review-borrower-context {
+    background: #16202e;
+    border-color: #2d3f55;
+}
+html.app-skin-dark .rbc-name { color: #e2e8f0; }
+html.app-skin-dark .rbc-meta { color: #94a3b8; }
+
+html.app-skin-dark .btn-decision-cancel {
+    background: #1e2a3a;
+    border-color: #2d3f55;
+    color: #cbd5e1;
+}
+html.app-skin-dark .btn-decision-cancel:hover { border-color: #3d5170; }
+html.app-skin-dark .btn-decision-reject {
+    background: #1e2a3a;
+    border-color: #4a2020;
+    color: #f87171;
+}
+html.app-skin-dark .btn-decision-reject:hover { background: #2a1616; }
+html.app-skin-dark .btn-decision-approve { background: #4a7cf7; color: #fff; }
+html.app-skin-dark .btn-decision-approve:hover { background: #6c9bff; }
+
+html.app-skin-dark .modal-confirm-decision .modal-content {
+    background: #1e2a3a;
+    border-color: #2d3f55;
+}
+html.app-skin-dark .modal-confirm-decision .confirm-decision-text { color: #e2e8f0; }

@@ -157,20 +157,34 @@
                 </div>
 
                 <!-- Filter toolbar -->
-                <div class="filter-bar-v2">
-                    <div class="search-wrap-v2">
-                        <i class="feather-search"></i>
-                        <input type="text" id="filterSearchInput"
-                               placeholder="Search borrowers by name, email, or Borrower ID..."
-                               onkeyup="filterCompletedLoans()">
-                    </div>
-                    <select class="sort-select-v2" id="sortFilter" onchange="location.href='{{ route('admin.completed-loans') }}?sort=' + this.value">
-                        <option value="newest" {{ $sort === 'newest' ? 'selected' : '' }}>Newest First</option>
-                        <option value="oldest" {{ $sort === 'oldest' ? 'selected' : '' }}>Oldest First</option>
-                        <option value="completed_newest" {{ $sort === 'completed_newest' ? 'selected' : '' }}>Recently Completed</option>
-                        <option value="completed_oldest" {{ $sort === 'completed_oldest' ? 'selected' : '' }}>Completed (Oldest)</option>
-                    </select>
-                </div>
+                <!-- Filter toolbar -->
+<div class="filter-bar-v2">
+    <div class="search-wrap-v2">
+        <i class="feather-search"></i>
+        <input type="text" id="filterSearchInput"
+               placeholder="Search borrowers by name, email, or Borrower ID..."
+               onkeyup="onSearchChanged()">
+    </div>
+
+    <select class="sort-select-v2" id="sortFilter" onchange="location.href='{{ route('admin.completed-loans') }}?sort=' + this.value">
+        <option value="newest" {{ $sort === 'newest' ? 'selected' : '' }}>Newest First</option>
+        <option value="oldest" {{ $sort === 'oldest' ? 'selected' : '' }}>Oldest First</option>
+        <option value="completed_newest" {{ $sort === 'completed_newest' ? 'selected' : '' }}>Recently Completed</option>
+        <option value="completed_oldest" {{ $sort === 'completed_oldest' ? 'selected' : '' }}>Completed (Oldest)</option>
+    </select>
+
+    <!-- Rows per page: label + small dropdown, like the Overdue Payments page -->
+    <div class="rows-per-page-v2">
+        <span class="rows-per-page-label-v2">Rows per page</span>
+        <select class="rows-per-page-select-v2" id="rowsPerPageSelect" onchange="onRowsPerPageChanged()">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="all">All</option>
+        </select>
+    </div>
+</div>
 
                 @if(count($completedLoans) === 0)
                 <div class="rs-card">
@@ -199,12 +213,12 @@
                                     <th class="text-end">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="loanTableBody">
                                 @foreach($completedLoans as $loan)
                                 <tr data-search="{{ strtolower($loan['name'] . ' ' . $loan['email'] . ' ' . $loan['borrower_id']) }}">
                                     <td>
                                         <div class="borrower-cell-v2">
-                                            <div class="borrower-avatar-v2">{{ $loan['initials'] }}</div>
+                                      
                                             <div>
                                                 <div class="borrower-name-v2">{{ $loan['name'] }}</div>
                                                 <div class="borrower-id-v2">{{ $loan['borrower_id'] }}</div>
@@ -232,6 +246,21 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Pagination bar (filled in by JS) -->
+                    <!-- Pagination bar (filled in by JS) -->
+<div class="pagination-wrap-v2" id="paginationWrap">
+    <div class="pagination-info-v2" id="paginationInfo"></div>
+    <div class="pagination-buttons-v2" id="paginationButtons">
+        <button type="button" class="prev-next-btn-v2" id="prevPageBtn" onclick="goToPreviousPage()">
+            <i class="feather-chevron-left"></i> Prev
+        </button>
+        <span class="page-status-v2" id="pageStatusText">Page 1 of 1</span>
+        <button type="button" class="prev-next-btn-v2" id="nextPageBtn" onclick="goToNextPage()">
+            Next <i class="feather-chevron-right"></i>
+        </button>
+    </div>
+</div>
                 </div>
                 @endif
 
@@ -246,28 +275,6 @@
     <script src="{{ asset('assets/admin/js/common-init.min.js') }}"></script>
     <script src="{{ asset('assets/admin/js/theme-customizer-init.min.js') }}"></script>
     <script src="{{ asset('functions/logout-modal.js') }}"></script>
-    <script>
-        // Client-side search lang — yung sort ay server-side (page reload
-        // via ?sort=...) dahil "Recently Completed"/"Completed (Oldest)"
-        // ay kailangan ng completed_at, na kino-compute lang sa controller.
-        function filterCompletedLoans() {
-            const query = document.getElementById('filterSearchInput').value.trim().toLowerCase();
-            const rows = document.querySelectorAll('tbody tr[data-search]');
-            const noResults = document.getElementById('filteredNoResults');
-            const tableWrap = document.getElementById('loanTableWrap');
-            let visibleCount = 0;
-
-            rows.forEach(function (row) {
-                const visible = row.dataset.search.includes(query);
-                row.style.display = visible ? '' : 'none';
-                if (visible) visibleCount++;
-            });
-
-            if (noResults && tableWrap) {
-                noResults.style.display = visibleCount === 0 ? 'block' : 'none';
-                tableWrap.style.display = visibleCount === 0 ? 'none' : '';
-            }
-        }
-    </script>
+    <script src="{{ asset('functions/completed-loans.js') }}"></script>
 </body>
 </html>

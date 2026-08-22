@@ -170,6 +170,14 @@
                         <option value="newest" {{ $sort === 'newest' ? 'selected' : '' }}>Newest First</option>
                         <option value="oldest" {{ $sort === 'oldest' ? 'selected' : '' }}>Oldest First</option>
                     </select>
+                    <div class="rows-per-page-v2">
+                        <label for="opRowsPerPage" class="rows-per-page-label-v2">Rows per page</label>
+                        <select id="opRowsPerPage" class="rows-per-page-select-v2" onchange="opChangeRowsPerPage(this)">
+                            <option value="10" selected>10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                        </select>
+                    </div>
                 </div>
 
                 @if(count($overdueLoans) === 0)
@@ -206,7 +214,7 @@
                                     data-days-late="{{ $loan['days_late'] }}">
                                     <td>
                                         <div class="borrower-cell-v2">
-                                            <div class="borrower-avatar-v2">{{ $loan['initials'] }}</div>
+                                           
                                             <div>
                                                 <div class="borrower-name-v2">{{ $loan['name'] }}</div>
                                                 <div class="borrower-id-v2">{{ $loan['borrower_id'] }}</div>
@@ -236,6 +244,22 @@
                             </tbody>
                         </table>
                     </div>
+
+                    {{-- Pagination bar: info text (left) + Prev/Next controls (right). --}}
+                    <div class="pagination-bar-v2" id="opPagination">
+                        <span class="pagination-info-v2" id="opPaginationInfo">
+                            Showing 1&ndash;{{ min(10, count($overdueLoans)) }} of {{ count($overdueLoans) }}
+                        </span>
+                        <div class="pagination-controls-v2">
+                            <button type="button" class="btn-page-v2" id="opPrevPage" onclick="opGoToPage(-1)">
+                                <i class="feather-chevron-left"></i> Prev
+                            </button>
+                            <span class="page-indicator-v2" id="opPageIndicator">Page 1 of 1</span>
+                            <button type="button" class="btn-page-v2" id="opNextPage" onclick="opGoToPage(1)">
+                                Next <i class="feather-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 @endif
 
@@ -250,47 +274,6 @@
     <script src="{{ asset('assets/admin/js/common-init.min.js') }}"></script>
     <script src="{{ asset('assets/admin/js/theme-customizer-init.min.js') }}"></script>
     <script src="{{ asset('functions/logout-modal.js') }}"></script>
-    <script>
-        function filterOverdueLoans() {
-            const query = document.getElementById('filterSearchInput').value.trim().toLowerCase();
-            const rows = document.querySelectorAll('tbody tr[data-search]');
-            const noResults = document.getElementById('filteredNoResults');
-            const tableWrap = document.getElementById('loanTableWrap');
-            let visibleCount = 0;
-
-            rows.forEach(function (row) {
-                const visible = row.dataset.search.includes(query);
-                row.style.display = visible ? '' : 'none';
-                if (visible) visibleCount++;
-            });
-
-            if (noResults && tableWrap) {
-                noResults.style.display = visibleCount === 0 ? 'block' : 'none';
-                tableWrap.style.display = visibleCount === 0 ? 'none' : '';
-            }
-        }
-
-        function sortOverdueLoans() {
-            const order = document.getElementById('sortFilter').value;
-            const tbody = document.querySelector('#loanTableWrap table tbody');
-            if (!tbody) return;
-
-            const rows = Array.from(tbody.querySelectorAll('tr[data-search]'));
-            rows.sort(function (a, b) {
-                if (order === 'most_late') {
-                    const aLate = parseInt(a.dataset.daysLate, 10) || 0;
-                    const bLate = parseInt(b.dataset.daysLate, 10) || 0;
-                    return bLate - aLate;
-                }
-                const aApplied = parseInt(a.dataset.applied, 10) || 0;
-                const bApplied = parseInt(b.dataset.applied, 10) || 0;
-                return order === 'oldest' ? aApplied - bApplied : bApplied - aApplied;
-            });
-
-            rows.forEach(function (row) {
-                tbody.appendChild(row);
-            });
-        }
-    </script>
+    <script src="{{ asset('functions/overdue-payments.js') }}"></script>
 </body>
 </html>

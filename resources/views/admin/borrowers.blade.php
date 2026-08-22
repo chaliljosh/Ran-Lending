@@ -232,7 +232,7 @@
                                         data-joined="{{ \Carbon\Carbon::parse($b['joined_at'])->timestamp }}">
                                         <td>
                                             <div class="borrower-cell">
-                                                <div class="borrower-avatar">{{ $b['initials'] }}</div>
+                                              
                                                 <div>
                                                     <div class="borrower-name">{{ $b['name'] }}</div>
                                                     <div class="borrower-id-text">{{ $b['borrower_id'] }}</div>
@@ -267,6 +267,28 @@
                                 </tbody>
                             </table>
                         </div>
+                      <div class="table-footer">
+  <div class="rows-per-page">
+    <span>Rows per page</span>
+    <select class="per-page-select">
+      <option value="10">10</option>
+      <option value="25" selected>25</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
+    </select>
+  </div>
+
+  <div class="table-footer-info">
+  </div>
+
+  <div class="pagination-controls">
+    <button class="page-btn" data-action="prev" disabled><i class="feather-chevron-left"></i></button>
+    <button class="page-btn active">1</button>
+    <button class="page-btn">2</button>
+    <button class="page-btn">3</button>
+    <button class="page-btn" data-action="next"><i class="feather-chevron-right"></i></button>
+  </div>
+</div>
                     </div>
                 </div>
                 @endif
@@ -282,52 +304,7 @@
     <script src="{{ asset('assets/admin/js/common-init.min.js') }}"></script>
     <script src="{{ asset('assets/admin/js/theme-customizer-init.min.js') }}"></script>
     <script src="{{ asset('functions/logout-modal.js') }}"></script>
-    <script>
-        // Client-side search + status filter — parehong pattern na ginamit sa
-        // loan-applications (Approved/Rejected/On Hold search), pinagsama
-        // lang dito ang dalawang criteria (text query + status dropdown).
-        function filterBorrowers() {
-            const query  = document.getElementById('filterSearchInput').value.trim().toLowerCase();
-            const status = document.getElementById('statusFilter').value;
-            const rows   = document.querySelectorAll('tbody tr[data-search]');
-            const noResults = document.getElementById('filteredNoResults');
-            const tableWrap = document.getElementById('borrowerTableWrap');
-            let visibleCount = 0;
-
-            rows.forEach(function (row) {
-                const matchesQuery  = row.dataset.search.includes(query);
-                const matchesStatus = !status || row.dataset.status === status;
-                const visible = matchesQuery && matchesStatus;
-                row.style.display = visible ? '' : 'none';
-                if (visible) visibleCount++;
-            });
-
-            if (noResults && tableWrap) {
-                noResults.style.display = visibleCount === 0 ? 'block' : 'none';
-                tableWrap.style.display = visibleCount === 0 ? 'none' : '';
-            }
-        }
-
-        // Client-side sort — lahat ng rows nasa DOM na (walang pagination sa
-        // page na 'to), kaya pwedeng i-reorder lang sa JS instead na mag-
-        // navigate sa bagong URL/full page reload. Filter state (display
-        // style) stays intact dahil naka-attach yun sa mismong <tr> node.
-        function sortBorrowers() {
-            const order = document.getElementById('sortFilter').value;
-            const tbody = document.querySelector('#borrowerTableWrap table tbody');
-            if (!tbody) return;
-
-            const rows = Array.from(tbody.querySelectorAll('tr[data-search]'));
-            rows.sort(function (a, b) {
-                const aJoined = parseInt(a.dataset.joined, 10) || 0;
-                const bJoined = parseInt(b.dataset.joined, 10) || 0;
-                return order === 'oldest' ? aJoined - bJoined : bJoined - aJoined;
-            });
-
-            rows.forEach(function (row) {
-                tbody.appendChild(row);
-            });
-        }
-    </script>
+    <script src="{{ asset('functions/all-borrowers.js') }}"></script>
+    
 </body>
 </html>

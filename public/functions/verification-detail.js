@@ -1,45 +1,65 @@
 // public/functions/verification-detail.js
 // Used by: resources/views/admin/verification-detail.blade.php
 
-function decisionShowConfirm(action) {
-    document.getElementById('decisionActionInput').value = action;
+/**
+ * Review Borrower Verification modal is a single step (Cancel / Reject /
+ * Approve). Clicking Reject or Approve hides that modal and shows a small
+ * styled confirmation modal (not the native browser confirm()) — Cancel
+ * there brings the review modal back with remarks intact; the confirm
+ * button submits the form.
+ */
+let pendingDecisionAction = null;
 
-    document.getElementById('decisionStep1').style.display = 'none';
-    document.getElementById('decisionStep2').style.display = 'block';
-    document.getElementById('decisionFooterStep1').style.display = 'none';
-    document.getElementById('decisionFooterStep2').style.display = 'flex';
+function submitDecision(action) {
+    pendingDecisionAction = action;
 
-    const icon = document.getElementById('decisionConfirmIcon');
-    const text = document.getElementById('decisionConfirmText');
-    const confirmBtn = document.getElementById('decisionConfirmBtn');
+    const label = action === 'approved' ? 'approve' : 'reject';
+    document.getElementById('confirmDecisionText').textContent =
+        `Are you sure you want to ${label} this borrower's verification?`;
 
-    if (action === 'approved') {
-        icon.className = 'feather-check-circle text-success';
-        text.textContent = "Approve this borrower's personal details?";
-        confirmBtn.className = 'btn btn-success flex-fill';
-        confirmBtn.innerHTML = ' Yes, Approve';
-    } else {
-        icon.className = 'feather-x-circle text-danger';
-        text.textContent = "Reject this borrower's personal details?";
-        confirmBtn.className = 'btn btn-danger flex-fill';
-        confirmBtn.innerHTML = ' Yes, Reject';
-    }
-}
+    const okBtn = document.getElementById('confirmDecisionOkBtn');
+    okBtn.textContent = action === 'approved' ? 'Yes, Approve' : 'Yes, Reject';
+    okBtn.className = 'btn-decision ' + (action === 'approved' ? 'btn-decision-approve' : 'btn-decision-reject');
 
-function decisionBackToStep1() {
-    document.getElementById('decisionStep1').style.display = 'block';
-    document.getElementById('decisionStep2').style.display = 'none';
-    document.getElementById('decisionFooterStep1').style.display = 'flex';
-    document.getElementById('decisionFooterStep2').style.display = 'none';
-    document.getElementById('decisionActionInput').value = '';
+    const decisionModalEl = document.getElementById('decisionModal');
+    const decisionModal = bootstrap.Modal.getInstance(decisionModalEl);
+
+    decisionModalEl.addEventListener('hidden.bs.modal', function onHidden() {
+        decisionModalEl.removeEventListener('hidden.bs.modal', onHidden);
+        const confirmModal = new bootstrap.Modal(document.getElementById('decisionConfirmModal'));
+        confirmModal.show();
+    }, { once: true });
+
+    decisionModal.hide();
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    const decisionModalEl = document.getElementById('decisionModal');
-    if (decisionModalEl) {
-        decisionModalEl.addEventListener('hidden.bs.modal', decisionBackToStep1);
+    const confirmOkBtn = document.getElementById('confirmDecisionOkBtn');
+    if (confirmOkBtn) {
+        confirmOkBtn.addEventListener('click', function () {
+            document.getElementById('decisionActionInput').value = pendingDecisionAction;
+            document.getElementById('decisionForm').submit();
+        });
     }
 
+    const confirmCancelBtn = document.getElementById('confirmDecisionCancelBtn');
+    if (confirmCancelBtn) {
+        confirmCancelBtn.addEventListener('click', function () {
+            const confirmModalEl = document.getElementById('decisionConfirmModal');
+            const confirmModal = bootstrap.Modal.getInstance(confirmModalEl);
+
+            confirmModalEl.addEventListener('hidden.bs.modal', function onHidden() {
+                confirmModalEl.removeEventListener('hidden.bs.modal', onHidden);
+                const decisionModal = new bootstrap.Modal(document.getElementById('decisionModal'));
+                decisionModal.show();
+            }, { once: true });
+
+            confirmModal.hide();
+        });
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function () {
     const successModalEl = document.getElementById('successModal');
     if (successModalEl) {
         const successModal = new bootstrap.Modal(successModalEl, { backdrop: 'static' });

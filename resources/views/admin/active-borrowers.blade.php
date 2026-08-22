@@ -201,7 +201,8 @@
                             <tbody>
                                 @foreach($activeBorrowers as $b)
                                 <tr data-search="{{ strtolower($b['name'] . ' ' . $b['email'] . ' ' . $b['borrower_id']) }}"
-                                    data-applied="{{ \Carbon\Carbon::parse($b['applied_at'])->timestamp }}">
+                                    data-applied="{{ \Carbon\Carbon::parse($b['applied_at'])->timestamp }}"
+                                    data-match="true">
                                     <td>
                                         <div class="borrower-cell-v2">
                                             <div class="borrower-avatar-v2">{{ $b['initials'] }}</div>
@@ -236,6 +237,24 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Pagination -->
+                    <div class="rs-pagination-bar" id="rsPaginationBar">
+                        <div class="rs-pagination-info" id="rsPaginationInfo"></div>
+                        <div class="rs-pagination-right">
+                            <div class="rs-per-page">
+                                <label for="rowsPerPageSelect">Rows per page</label>
+                                <select id="rowsPerPageSelect" onchange="changeRowsPerPage()">
+                                    <option value="10" selected>10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                    <option value="all">All</option>
+                                </select>
+                            </div>
+                            <div class="rs-pagination-controls" id="rsPaginationControls"></div>
+                        </div>
+                    </div>
                 </div>
                 @endif
 
@@ -250,42 +269,6 @@
     <script src="{{ asset('assets/admin/js/common-init.min.js') }}"></script>
     <script src="{{ asset('assets/admin/js/theme-customizer-init.min.js') }}"></script>
     <script src="{{ asset('functions/logout-modal.js') }}"></script>
-    <script>
-        function filterActiveBorrowers() {
-            const query = document.getElementById('filterSearchInput').value.trim().toLowerCase();
-            const rows = document.querySelectorAll('tbody tr[data-search]');
-            const noResults = document.getElementById('filteredNoResults');
-            const tableWrap = document.getElementById('borrowerTableWrap');
-            let visibleCount = 0;
-
-            rows.forEach(function (row) {
-                const visible = row.dataset.search.includes(query);
-                row.style.display = visible ? '' : 'none';
-                if (visible) visibleCount++;
-            });
-
-            if (noResults && tableWrap) {
-                noResults.style.display = visibleCount === 0 ? 'block' : 'none';
-                tableWrap.style.display = visibleCount === 0 ? 'none' : '';
-            }
-        }
-
-        function sortActiveBorrowers() {
-            const order = document.getElementById('sortFilter').value;
-            const tbody = document.querySelector('#borrowerTableWrap table tbody');
-            if (!tbody) return;
-
-            const rows = Array.from(tbody.querySelectorAll('tr[data-search]'));
-            rows.sort(function (a, b) {
-                const aApplied = parseInt(a.dataset.applied, 10) || 0;
-                const bApplied = parseInt(b.dataset.applied, 10) || 0;
-                return order === 'oldest' ? aApplied - bApplied : bApplied - aApplied;
-            });
-
-            rows.forEach(function (row) {
-                tbody.appendChild(row);
-            });
-        }
-    </script>
+    <script src="{{ asset('functions/active-borrowers.js') }}"></script>
 </body>
 </html>

@@ -372,9 +372,13 @@
 }
 .pt-action-btn:hover { background: var(--pt-bg); }
 .pt-action-btn.is-view {
-    width: 32px;
-    padding: 0;
-    justify-content: center;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
 }
 .pt-action-btn.is-paid {
     color: var(--pt-green);

@@ -342,13 +342,8 @@
                 <div class="icon-wrap"><i class="feather-check-circle"></i></div>
                 <h5>Submitted Successfully!</h5>
                 <p class="sub-text">Your personal details have been submitted.<br>Please wait for the admin to review your information.</p>
-                <div class="waiting-badge">
-                    <i class="feather-clock"></i>
-                    <span class="muted">Waiting for admin approval</span>
-                    <span class="count">0 / 3</span>
-                </div>
                 <a href="{{ route('borrower.dashboard') }}" class="btn-go">
-                    <i class="feather-home" style="margin-right:6px;"></i>Go to Dashboard
+                  Go to Dashboard
                 </a>
             </div>
         </div>

@@ -1,0 +1,541 @@
+/* ══════════════════════════════════════════
+   PENALTY TRACKING DETAIL — CSS (CONSOLIDATED)
+   Ito na lang ang isang CSS file na kailangan mong i-link —
+   pinagsama na ang lahat: card shell (.pd-card, .pd-table,
+   .pd-info-grid, modal reuse) + bagong design (header card,
+   summary grid, status boxes, footer links).
+
+   NOTE: .pd-table ngayon ay ginayahan (copied) mula sa
+   .opd-table (overdue-payment-detail.css) — parehong font
+   size, colors, padding, at badge/pill style. Kaya kahit
+   magkaibang page sila, pareho na ang tingnan ng tables.
+   ══════════════════════════════════════════ */
+
+/* ── Page header row (title+breadcrumb kaliwa, back button kanan)
+   Same split pattern as overdue-payment-detail: page-header-left
+   and page-header-right are separate flex children of .page-header,
+   so the ms-auto on the RIGHT side pushes the back button away
+   naturally instead of everything sitting cramped in one row. ── */
+.page-header-right {
+    display: flex;
+    align-items: center;
+}
+
+/* ── Back Button ── */
+.pd-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    color: #1e293b;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-decoration: none;
+    padding: 9px 18px;
+    white-space: nowrap;
+    box-shadow: 0 1px 2px rgba(15,23,42,.04);
+    transition: all 0.2s ease;
+}
+.pd-back-btn:hover {
+    border-color: #4a7cf7;
+    color: #4a7cf7;
+    background: #eef3ff;
+}
+
+/* ── Avatar (used inside pd-header-card) ── */
+.pd-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #4a7cf7;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.pd-borrower-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+.pd-borrower-sub {
+    font-size: 0.78rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+/* ── Status Badges ── */
+.pd-status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 12px;
+    border-radius: 30px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+.pd-badge-paid    { background: #dcfce7; color: #16a34a; }
+.pd-badge-waived  { background: #f1f5f9; color: #64748b; }
+.pd-badge-unpaid  { background: #fef2f2; color: #dc2626; }
+
+/* ── Section Cards (.pd-card shell — dito gumagana ang lahat ng
+   card headers gaya ng Penalty Summary / Breakdown / Status) ── */
+.pd-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    overflow: hidden;
+}
+.pd-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid #f1f5f9;
+}
+.pd-card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+.pd-card-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+.pd-card-body {
+    padding: 20px;
+}
+
+/* ── Info Grid (ginagamit ng ibang pahina, at ng waived-reason box) ── */
+.pd-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+.pd-full { grid-column: 1 / -1; }
+.pd-info-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #94a3b8;
+    margin-bottom: 4px;
+}
+.pd-info-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+.pd-waived-reason {
+    font-style: italic;
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* ══════════════════════════════════════════
+   BREAKDOWN TABLE — copied to match .opd-table
+   (overdue-payment-detail.css) design tokens exactly:
+   same header uppercase/letter-spacing/color, same
+   cell padding/font-size/text color, same border tones.
+   ══════════════════════════════════════════ */
+.pd-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.84rem;
+}
+.pd-table thead th {
+    text-align: left;
+    background: transparent;
+    color: #64748b;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 10px 12px;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+}
+.pd-table tbody td {
+    padding: 11px 12px;
+    color: #0f172a;
+    border-bottom: 1px solid #f1f5f9;
+    white-space: nowrap;
+}
+.pd-table tbody tr:last-child td { border-bottom: none; }
+.pd-table tfoot td {
+    padding: 11px 12px;
+    font-weight: 700;
+    color: #0f172a;
+    background: #f8faff;
+    border-top: 1.5px solid #e2e8f0;
+}
+
+/* Penalty points pill — restyled to match .opd-badge pill look
+   (rounded, uppercase, soft-tint background) instead of the old
+   solid-blue rectangle badge. */
+.pd-point-badge {
+    display: inline-block;
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.fw-600 { font-weight: 600; }
+.fw-700 { font-weight: 700; }
+
+/* Table horizontal scroll wrapper — same pattern as opd-table-scroll,
+   in case the breakdown table has many columns on small screens. */
+.pd-table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ── Action Buttons ── */
+.pd-action-row {
+    display: flex;
+    gap: 12px;
+}
+.pd-btn-paid {
+    display: inline-flex;
+    align-items: center;
+    background: #16a34a;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 11px 24px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.pd-btn-paid:hover { background: #15803d; }
+.pd-btn-waive {
+    display: inline-flex;
+    align-items: center;
+    background: #f59e0b;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 11px 24px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.pd-btn-waive:hover { background: #d97706; }
+
+/* ── Modal Styles (reused from penalty-tracking) ── */
+.pt-modal .modal-content {
+    border: none;
+    border-radius: 18px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+}
+.pt-modal .modal-header { border: none; padding: 16px 20px 0; }
+.pt-modal .modal-footer { border: none; padding: 0 20px 20px; gap: 10px; }
+.pt-modal-icon {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: #fff8e1;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; color: #f59e0b;
+    margin: 0 auto 14px;
+}
+.pt-modal-icon.is-confirm { background: #e8f0fe; color: #4a7cf7; }
+.pt-modal-title { font-size: 1.1rem; font-weight: 700; color: #1e293b; text-align: center; margin-bottom: 6px; }
+.pt-modal-subtitle { font-size: 0.85rem; color: #64748b; text-align: center; margin-bottom: 18px; }
+.pt-info-card {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    background: #f8faff;
+    border: 1px solid #e8f0fe;
+    border-radius: 14px;
+    padding: 18px 20px;
+}
+.pt-info-label {
+    font-size: 0.72rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    color: #94a3b8; margin-bottom: 4px;
+}
+.pt-info-value { font-size: 0.9rem; font-weight: 600; color: #1e293b; }
+.pt-form-label { font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 6px; }
+.pt-form-label .req { color: #dc2626; }
+.pt-textarea {
+    width: 100%; border: 1.5px solid #e2e8f0; border-radius: 10px;
+    padding: 10px 14px; font-size: 0.875rem; resize: vertical;
+    transition: border-color 0.2s;
+}
+.pt-textarea:focus { border-color: #4a7cf7; outline: none; }
+.pt-warning-line {
+    display: flex; align-items: center; gap: 8px;
+    background: #fef2f2; border: 1px solid #fecaca;
+    border-radius: 8px; padding: 10px 14px;
+    font-size: 0.8rem; color: #dc2626; font-weight: 500;
+    margin-top: 12px;
+}
+.pt-btn-confirm-paid {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: #16a34a; color: #fff;
+    border: none; border-radius: 10px;
+    padding: 10px 22px; font-size: 0.875rem; font-weight: 600;
+    cursor: pointer; transition: background 0.2s;
+}
+.pt-btn-confirm-paid:hover { background: #15803d; }
+.pt-btn-confirm-waive {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: #f59e0b; color: #fff;
+    border: none; border-radius: 10px;
+    padding: 10px 22px; font-size: 0.875rem; font-weight: 600;
+    cursor: pointer; transition: background 0.2s;
+}
+.pt-btn-confirm-waive:hover { background: #d97706; }
+.pt-btn-cancel {
+    background: #f1f5f9; color: #64748b;
+    border: none; border-radius: 10px;
+    padding: 10px 22px; font-size: 0.875rem; font-weight: 600;
+    cursor: pointer;
+}
+
+/* ══════════════════════════════════════════
+   BAHAGING V2 — bagong layout (header card,
+   summary grid, status boxes, footer links)
+   ══════════════════════════════════════════ */
+
+/* ── Unified header card (identity + info grid sa iisang card) ── */
+.pd-header-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 24px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 22px 26px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.pd-header-block-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    flex: 0 0 auto;
+}
+.pd-name-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 2px;
+}
+.pd-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: #64748b;
+    font-weight: 500;
+    flex-wrap: wrap;
+}
+.pd-meta-row i { color: #94a3b8; margin-right: 4px; }
+
+.pd-header-block-right {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+    gap: 18px 40px;
+    flex: 1 1 380px;
+    max-width: 480px;
+}
+.pd-mini-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.pd-mini-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: #eef2ff;
+    color: #4a7cf7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+}
+.pd-mini-label {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+.pd-mini-value {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+.pd-mini-value.is-paid { color: #16a34a; }
+.pd-mini-value.is-waived { color: #64748b; }
+.pd-mini-value.is-unpaid { color: #dc2626; }
+
+@media (max-width: 767.98px) {
+    .pd-header-card { flex-direction: column; align-items: flex-start; }
+    .pd-header-block-right { max-width: 100%; }
+}
+
+/* ── Penalty Summary — 4-column icon boxes + calc line ── */
+.pd-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 14px;
+}
+@media (max-width: 991.98px) { .pd-summary-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .pd-summary-grid { grid-template-columns: 1fr; } }
+
+.pd-summary-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #f8faff;
+    border: 1px solid #eef2ff;
+    border-radius: 12px;
+    padding: 14px 16px;
+}
+.pd-summary-box.is-total {
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+.pd-summary-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+    background: #e8f0fe;
+    color: #4a7cf7;
+}
+.pd-summary-box.is-total .pd-summary-icon {
+    background: #fee2e2;
+    color: #dc2626;
+}
+.pd-summary-label {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+.pd-summary-value {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+.pd-summary-box.is-total .pd-summary-value { color: #dc2626; }
+
+.pd-calc-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f8faff;
+    border: 1px solid #eef2ff;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.82rem;
+    color: #475569;
+    font-weight: 500;
+}
+.pd-calc-line i { color: #4a7cf7; }
+
+/* ── Penalty Status — side-by-side icon boxes ── */
+.pd-status-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+.pd-status-grid.is-single { grid-template-columns: 1fr; }
+@media (max-width: 575.98px) { .pd-status-grid { grid-template-columns: 1fr; } }
+
+.pd-status-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px 18px;
+}
+.pd-status-box-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+.pd-status-box-icon.is-green { background: #dcfce7; color: #16a34a; }
+.pd-status-box-icon.is-blue  { background: #e8f0fe; color: #4a7cf7; }
+.pd-status-box-icon.is-gray  { background: #f1f5f9; color: #64748b; }
+.pd-status-box-icon.is-red   { background: #fef2f2; color: #dc2626; }
+
+.pd-status-box-label { font-size: 0.76rem; color: #64748b; font-weight: 600; margin-bottom: 2px; }
+.pd-status-box-value { font-size: 0.95rem; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+.pd-status-box-value.is-green { color: #16a34a; }
+.pd-status-box-value.is-gray { color: #64748b; }
+.pd-status-box-value.is-red { color: #dc2626; }
+.pd-status-box-desc { font-size: 0.78rem; color: #94a3b8; }
+
+/* ── Footer with policy links ── */
+.pd-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 18px 4px;
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+.pd-footer-links a {
+    color: #94a3b8;
+    text-decoration: none;
+    margin-left: 16px;
+}
+.pd-footer-links a:hover { color: #4a7cf7; text-decoration: underline; }
+
+/* ── Footer stick-to-bottom (parehong pattern sa ibang pages) ── */
+.nxl-container {
+    min-height: calc(100vh - 80px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+.nxl-content {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+.nxl-content .main-content {
+    flex: 1 !important;
+}
+.footer {
+    flex-shrink: 0 !important;
+    margin-top: auto !important;
+}
