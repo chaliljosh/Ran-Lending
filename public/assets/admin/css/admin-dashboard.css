@@ -1,117 +1,13 @@
 /* ============================================================
-   Additive only — does not touch existing theme classes.
-   Header admin profile (native <details>/<summary>, no JS
-   framework dependency) + the three dashboard cards (Attention
-   Required, Upcoming Payments, Recent Activity). Uses the same
-   light-gray/white/blue/status-color language as the rest of
-   the theme; no new rounded/decorative treatments.
+   admin-dashboard.css
+   DASHBOARD-ONLY — Attention Required, Upcoming Payments,
+   Recent Activity cards. Wala nang header dropdown / modal CSS
+   dito; lumipat na sila sa admin-shared-modals.css.
+
+   Palaging i-link BAGO ang admin-shared-modals.css sa
+   dashboard.blade.php, o kahit anong order — hindi sila
+   nagtutunggali dahil magkaibang class names.
 ============================================================ */
-
-/* ---------- Header admin profile ---------- */
-.nxl-header-admin {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-/* <summary> has a default disclosure triangle in some browsers —
-   remove it so only our own chevron icon shows. */
-.nxl-admin-trigger-header {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 8px;
-    border-radius: 8px;
-    cursor: pointer;
-    list-style: none;
-    transition: background .15s ease;
-    user-select: none;
-}
-.nxl-admin-trigger-header::-webkit-details-marker { display: none; }
-.nxl-admin-trigger-header::marker { content: ""; }
-.nxl-header-admin:hover .nxl-admin-trigger-header,
-.nxl-header-admin[open] .nxl-admin-trigger-header {
-    background: rgba(0, 0, 0, 0.05);
-}
-
-.nxl-admin-avatar-header {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: #fff;
-    background: var(--bs-primary, #2563EB);
-}
-
-.nxl-admin-caret-header {
-    font-size: 0.75rem;
-    color: var(--bs-secondary, #64748B);
-    transition: transform .15s ease;
-}
-.nxl-header-admin[open] .nxl-admin-caret-header {
-    transform: rotate(180deg);
-}
-
-/* Hidden by default — <details> handles show/hide natively via the
-   [open] attribute, no JS or Bootstrap ".show" class needed. */
-.nxl-admin-dropdown-menu {
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    left: auto;
-    min-width: 210px;
-    background: #fff;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 10px;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
-    padding: 8px 0;
-    font-size: 0.85rem;
-    z-index: 1050;
-}
-
-.nxl-admin-dropdown-head { padding: 6px 16px 8px; }
-.nxl-admin-dropdown-head .nxl-admin-name {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: var(--bs-dark, #0F172A);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.nxl-admin-dropdown-head .nxl-admin-role {
-    font-size: 0.74rem;
-    color: var(--bs-secondary, #64748B);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.nxl-admin-dropdown-divider {
-    height: 1px;
-    background: rgba(0, 0, 0, 0.08);
-    margin: 6px 0;
-}
-
-.nxl-admin-dropdown-item {
-    display: flex;
-    align-items: center;
-    padding: 8px 16px;
-    color: var(--bs-dark, #0F172A);
-    text-decoration: none;
-    transition: background .12s ease;
-}
-.nxl-admin-dropdown-item:hover {
-    background: rgba(0, 0, 0, 0.04);
-    color: var(--bs-dark, #0F172A);
-}
-.nxl-admin-dropdown-item.text-danger:hover {
-    background: rgba(220, 38, 38, 0.08);
-}
 
 /* ---------- Attention Required ---------- */
 .attn-item {
@@ -147,3 +43,23 @@
 }
 .activity-text { font-size: 0.83rem; color: var(--bs-dark, #0F172A); line-height: 1.4; }
 .activity-meta { font-size: 0.74rem; color: var(--bs-secondary, #64748B); margin-top: 2px; }
+
+/* ============================================================
+   DARK MODE — dashboard cards lang
+============================================================ */
+html.app-skin-dark .attn-item,
+html.app-skin-dark .upcoming-row,
+html.app-skin-dark .activity-row {
+    border-color: rgba(255, 255, 255, 0.06);
+}
+html.app-skin-dark .attn-label,
+html.app-skin-dark .upcoming-name,
+html.app-skin-dark .upcoming-amount,
+html.app-skin-dark .activity-text {
+    color: #E5E9F0;
+}
+html.app-skin-dark .attn-count,
+html.app-skin-dark .upcoming-due,
+html.app-skin-dark .activity-meta {
+    color: #94A3B8;
+}

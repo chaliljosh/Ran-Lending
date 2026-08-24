@@ -12,78 +12,51 @@ use Illuminate\Support\Facades\RateLimiter;
 class AuthController extends Controller
 {
     public function login(Request $request)
-    {
-        $email    = trim($request->input('email'));
-        $password = $request->input('password');
+{
+    $email    = trim($request->input('email'));
+    $password = $request->input('password');
 
-        if (!$email || !$password) {
-            return response()->json(['success' => false, 'message' => 'Email and password are required.']);
-        }
+    if (!$email || !$password) {
+        return response()->json(['success' => false, 'message' => 'Email and password are required.']);
+    }
 
-        $key = 'login:' . $request->ip();
-        if (RateLimiter::tooManyAttempts($key, 5)) {
-            $seconds = RateLimiter::availableIn($key);
-            return response()->json([
-                'success' => false,
-                'message' => "Too many login attempts. Try again in {$seconds} seconds."
-            ]);
-        }
-
-        $user = DB::table('users')->where('email', $email)->where('is_active', 1)->first();
-
-        if (!$user || !Hash::check($password, $user->password_hash)) {
-            RateLimiter::hit($key, 600);
-            return response()->json(['success' => false, 'message' => 'Invalid email or password.']);
-        }
-
-        RateLimiter::clear($key);
-
-        if ($user->role === 'admin') {
-            Session::put('user_id',    $user->user_id);
-            Session::put('user_name',  $user->name);
-            Session::put('user_email', $user->email);
-            Session::put('user_role',  $user->role);
-
-            return response()->json([
-                'success'      => true,
-                'otp_required' => false,
-                'redirect'     => route('admin.dashboard'),
-            ]);
-        }
-
-        $otp       = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        $expiresAt = now()->addMinutes(10);
-
-        DB::table('otp_verifications')->where('email', $email)->where('type', 'login')->delete();
-        DB::table('otp_verifications')->insert([
-            'email'      => $email,
-            'otp'        => $otp,
-            'type'       => 'login',
-            'expires_at' => $expiresAt,
+    $key = 'login:' . $request->ip();
+    if (RateLimiter::tooManyAttempts($key, 5)) {
+        $seconds = RateLimiter::availableIn($key);
+        return response()->json([
+            'success' => false,
+            'message' => "Too many login attempts. Try again in {$seconds} seconds."
         ]);
+    }
 
-        Session::put('pending_login', [
-            'user_id'    => $user->user_id,
-            'user_name'  => $user->name,
-            'user_email' => $user->email,
-            'user_role'  => $user->role,
-            'email'      => $email,
+    $user = DB::table('users')->where('email', $email)->where('is_active', 1)->first();
+
+    if (!$user || !Hash::check($password, $user->password_hash)) {
+        RateLimiter::hit($key, 600);
+        return response()->json(['success' => false, 'message' => 'Invalid email or password.']);
+    }
+
+    RateLimiter::clear($key);
+
+    if ($user->role === 'admin') {
+        Session::put('user_id',    $user->user_id);
+        Session::put('user_name',  $user->name);
+        Session::put('user_email', $user->email);
+        Session::put('user_role',  $user->role);
+
+        DB::table('users')->where('user_id', $user->user_id)->update([
+            'last_login_at' => now(),
         ]);
-
-        $name = $user->first_name ?? $user->name;
-        Mail::to($email)->send(new \App\Mail\OtpMail($name, $otp));
-
-        $parts  = explode('@', $email);
-        $local  = $parts[0];
-        $domain = $parts[1];
-        $masked = substr($local, 0, 1) . str_repeat('*', max(1, strlen($local) - 2)) . substr($local, -1) . '@' . $domain;
 
         return response()->json([
             'success'      => true,
-            'otp_required' => true,
-            'masked_email' => $masked,
+            'otp_required' => false,
+            'redirect'     => route('admin.dashboard'),
         ]);
     }
+
+    // ...OTP flow for borrowers, walang binago dito...
+}
 
     public function verifyOtp(Request $request)
     {

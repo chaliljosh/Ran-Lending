@@ -56,6 +56,21 @@ Route::middleware('borrower')->prefix('api/borrower')->group(function () {
 
 Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+
+    // Notifications (header bell dropdown)
+       Route::get('/notifications/{key}/open', [AdminController::class, 'notificationOpen'])
+        ->name('notification-open');
+    Route::post('/notifications/mark-all-read', [AdminController::class, 'notificationsMarkAllRead'])
+        ->name('notifications-mark-all-read');
+            Route::get('/notifications', [AdminController::class, 'notificationsIndex'])
+        ->name('notifications');
+
+    // Account Settings (header profile dropdown)
+    Route::get('/account-settings', [AdminController::class, 'accountSettings'])->name('account-settings');
+    Route::post('/account-settings/password', [AdminController::class, 'updateAccountPassword'])->name('account-settings.password');
+    Route::post('/account-settings/profile-picture', [AdminController::class, 'updateProfilePicture'])->name('account-settings.profile-picture');
+Route::post('/account-settings/profile-picture/remove', [AdminController::class, 'removeProfilePicture'])->name('account-settings.profile-picture.remove');
+
     Route::match(['get', 'post'], '/borrower-verification', [AdminController::class, 'borrowerVerification'])->name('borrower-verification');
     Route::match(['get', 'post'], '/verification-detail/{id}', [AdminController::class, 'verificationDetail'])->name('verification-detail');
     Route::match(['get', 'post'], '/loan-applications', [AdminController::class, 'loanApplications'])->name('loan-applications');

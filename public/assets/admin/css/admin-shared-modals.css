@@ -1,0 +1,1018 @@
+/* ============================================================
+   admin-shared-modals.css
+   REUSABLE across ALL admin pages — header profile dropdown,
+   notification bell dropdown, and the 3 account modals
+   (My Profile / Account Settings / Change Password).
+
+   Link this file on every admin page that includes the shared
+   header (profile + bell) or any of these modals. It has NO
+   dependency on admin-dashboard.css or any dashboard-only class.
+============================================================ */
+
+/* ---------- Header admin profile ---------- */
+.nxl-header-admin {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.nxl-header-admin .dropdown-toggle::after { display: none; }
+
+.nxl-admin-trigger-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 10px 5px 6px;
+    border-radius: 8px;
+    cursor: pointer;
+    list-style: none;
+    transition: background .15s ease;
+}
+.nxl-admin-trigger-header::-webkit-details-marker { display: none; }
+.nxl-admin-trigger-header::marker { content: ""; }
+.nxl-header-admin:hover .nxl-admin-trigger-header,
+.nxl-header-admin[open] .nxl-admin-trigger-header {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.nxl-admin-avatar-header {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: 700;
+    color: #fff; background: linear-gradient(135deg, #4a7cf7, #7ea3ff);
+}
+
+.nxl-admin-name-header {
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: var(--bs-dark, #0F172A);
+    white-space: nowrap;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nxl-admin-caret-header {
+    font-size: 0.75rem;
+    color: var(--bs-secondary, #64748B);
+}
+
+.nxl-admin-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    left: auto;
+    min-width: 280px;
+    background: #fff;
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 20px 50px -14px rgba(15, 23, 42, 0.25);
+    padding: 20px 0 12px;
+    font-size: 0.85rem;
+    z-index: 1050;
+}
+
+.nxl-admin-dropdown-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 0 20px 16px;
+}
+.nxl-admin-dropdown-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, #4a7cf7, #7ea3ff);
+}
+.nxl-admin-dropdown-head .nxl-admin-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--bs-dark, #0F172A);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.nxl-admin-dropdown-head .nxl-admin-email {
+    font-size: 0.78rem;
+    color: var(--bs-secondary, #64748B);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nxl-admin-dropdown-divider {
+    height: 1px;
+    background: rgba(0, 0, 0, 0.07);
+    margin: 0 0 8px;
+}
+
+.nxl-admin-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 20px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--bs-dark, #0F172A);
+    text-decoration: none;
+    transition: background .12s ease;
+}
+.nxl-admin-dropdown-item-icon {
+    width: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    color: var(--bs-secondary, #64748B);
+    flex-shrink: 0;
+}
+.nxl-admin-dropdown-item:hover {
+    background: rgba(0, 0, 0, 0.04);
+    color: var(--bs-dark, #0F172A);
+}
+.nxl-admin-dropdown-item.text-danger:hover {
+    background: rgba(220, 38, 38, 0.08);
+}
+.nxl-admin-dropdown-item.text-danger .nxl-admin-dropdown-item-icon {
+    color: #DC2626;
+}
+
+/* ---------- Notification bell + dropdown ---------- */
+.nxl-header-notif {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.nxl-notif-trigger {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    cursor: pointer;
+    list-style: none;
+    color: var(--bs-secondary, #64748B);
+    font-size: 1.05rem;
+    transition: background .15s ease;
+}
+.nxl-notif-trigger::-webkit-details-marker { display: none; }
+.nxl-notif-trigger::marker { content: ""; }
+.nxl-header-notif:hover .nxl-notif-trigger,
+.nxl-header-notif[open] .nxl-notif-trigger {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.nxl-notif-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 8px;
+    background: #E63946;
+    color: #fff;
+    font-size: 0.62rem;
+    font-weight: 700;
+    line-height: 16px;
+    text-align: center;
+}
+
+.nxl-notif-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    left: auto;
+    width: 340px;
+    max-width: 90vw;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+    z-index: 1050;
+    overflow: hidden;
+}
+
+.nxl-notif-dropdown-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--bs-dark, #0F172A);
+}
+.nxl-notif-mark-all {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: #2563EB;
+    cursor: pointer;
+}
+.nxl-notif-mark-all:hover { text-decoration: underline; }
+
+.nxl-notif-list { max-height: 340px; overflow-y: auto; }
+
+.nxl-notif-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    text-decoration: none;
+    transition: background .12s ease;
+    position: relative;
+}
+.nxl-notif-item:last-child { border-bottom: none; }
+.nxl-notif-item:hover { background: rgba(0, 0, 0, 0.03); }
+.nxl-notif-item.is-unread { background: rgba(230, 57, 70, 0.03); }
+
+.nxl-notif-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.82rem;
+}
+
+.nxl-notif-body { min-width: 0; display: flex; flex-direction: column; }
+.nxl-notif-title { font-size: 0.82rem; font-weight: 700; color: var(--bs-dark, #0F172A); }
+.nxl-notif-sub {
+    font-size: 0.76rem;
+    color: var(--bs-secondary, #64748B);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.nxl-notif-time { font-size: 0.7rem; color: #94A3B8; margin-top: 2px; }
+
+.nxl-notif-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #E63946;
+    flex-shrink: 0;
+    margin-top: 6px;
+}
+
+.nxl-notif-empty {
+    padding: 24px 16px;
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--bs-secondary, #64748B);
+}
+
+.nxl-notif-dropdown-foot {
+    padding: 10px 16px;
+    text-align: center;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+.nxl-notif-dropdown-foot a {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #2563EB;
+    text-decoration: none;
+}
+.nxl-notif-dropdown-foot a:hover { text-decoration: underline; }
+
+/* ---------- Account Settings "page" pattern (reusable card rows,
+   in case any page still lists account fields outside a modal) ---------- */
+.acct-settings-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #fff;
+    background: var(--bs-primary, #2563EB);
+    flex-shrink: 0;
+}
+.acct-settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+.acct-settings-row:last-child { border-bottom: none; }
+.acct-settings-label { font-size: 0.8rem; color: var(--bs-secondary, #64748B); }
+.acct-settings-value { font-size: 0.86rem; font-weight: 600; color: var(--bs-dark, #0F172A); }
+
+/* ============================================================
+   My Profile / Account Settings MODALS — enhanced premium look
+============================================================ */
+
+/* ---------- Modal shell: rounded, elevated, no default border ---------- */
+.nxl-account-modal .modal-content {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px -20px rgba(15, 23, 42, 0.35);
+    overflow: hidden;
+}
+
+.nxl-account-modal .modal-body {
+    padding: 26px 28px 28px;
+}
+
+/* ---------- Shared modal header (title + close X) for both
+   My Profile and Account Settings ---------- */
+.nxl-profile-modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+    background: linear-gradient(180deg, #f8fafc, #ffffff);
+}
+.nxl-profile-modal-header .modal-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--bs-dark, #0F172A);
+}
+
+.nxl-profile-modal-top {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-bottom: 18px;
+}
+.nxl-profile-modal-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, #4a7cf7, #7ea3ff);
+    box-shadow: 0 6px 16px -4px rgba(74, 124, 247, 0.5);
+}
+.nxl-profile-modal-info { min-width: 0; }
+.nxl-profile-modal-name {
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: var(--bs-dark, #0F172A);
+}
+.nxl-profile-modal-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+
+/* Role pill — small soft-blue chip next to the status pill */
+.nxl-role-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: rgba(74, 124, 247, 0.12);
+    color: #2563EB;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.nxl-profile-modal-divider {
+    height: 1px;
+    background: rgba(0, 0, 0, 0.08);
+    margin: 0 0 18px;
+}
+
+/* ---------- Status pill (used in both modals) — now a filled chip
+   instead of bare colored text, so it reads as a status badge ---------- */
+.nxl-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+.nxl-status-pill.is-active { background: rgba(22, 163, 74, 0.12); color: #16A34A; }
+.nxl-status-pill.is-inactive { background: rgba(220, 38, 38, 0.12); color: #DC2626; }
+.nxl-status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+}
+
+/* ---------- Info grid — Full Name / Email / Role / Last Login as
+   small bordered cards with an icon, instead of plain stacked text ---------- */
+.nxl-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+.nxl-info-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 12px;
+    background: #fbfcfe;
+    transition: border-color .15s ease, background .15s ease;
+}
+.nxl-info-card:hover { border-color: rgba(74, 124, 247, 0.35); background: #fff; }
+.nxl-info-card.is-wide { grid-column: 1 / -1; }
+
+.nxl-info-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(74, 124, 247, 0.12);
+    color: #2563EB;
+    font-size: 0.9rem;
+}
+
+/* Field rows (label above value) — reused inside .nxl-info-card,
+   and standalone anywhere else that still needs plain label/value */
+.nxl-account-field { margin-bottom: 16px; min-width: 0; }
+.nxl-account-field:last-child { margin-bottom: 0; }
+.nxl-account-field label {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--bs-secondary, #64748B);
+    margin-bottom: 3px;
+}
+.nxl-account-field span {
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: var(--bs-dark, #0F172A);
+    word-break: break-word;
+}
+
+.nxl-info-card .nxl-account-field { margin-bottom: 0; }
+
+.nxl-account-field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 20px;
+    margin-bottom: 16px;
+}
+.nxl-account-field-grid .nxl-account-field { margin-bottom: 0; }
+
+@media (max-width: 480px) {
+    .nxl-info-grid { grid-template-columns: 1fr; }
+}
+
+/* ---------- Account Settings modal — section labels + cards ---------- */
+.nxl-account-section-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--bs-secondary, #64748B);
+    margin: 0 0 8px;
+}
+
+.nxl-settings-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 12px;
+    padding: 14px 16px;
+    background: #fbfcfe;
+    transition: border-color .15s ease, background .15s ease;
+}
+.nxl-settings-card:hover { border-color: rgba(74, 124, 247, 0.3); background: #fff; }
+
+.nxl-settings-card-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.nxl-settings-card-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    background: rgba(74, 124, 247, 0.12);
+    color: #2563EB;
+}
+.nxl-settings-card-icon.is-security {
+    background: rgba(180, 83, 9, 0.12);
+    color: #B45309;
+}
+
+.nxl-settings-card-label {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--bs-secondary, #64748B);
+    margin-bottom: 3px;
+}
+.nxl-settings-card-value {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--bs-dark, #0F172A);
+    word-break: break-word;
+}
+.nxl-settings-card-sub {
+    font-size: 0.74rem;
+    color: var(--bs-secondary, #64748B);
+    margin-top: 3px;
+}
+.nxl-settings-card-btn {
+    flex-shrink: 0;
+    height: 34px;
+    padding: 0 16px;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    background: #fff;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--bs-primary, #2563EB);
+    cursor: pointer;
+    transition: background .15s ease;
+}
+.nxl-settings-card-btn:hover:not(:disabled) {
+    background: rgba(37, 99, 235, 0.06);
+}
+.nxl-settings-card-btn:disabled {
+    color: var(--bs-secondary, #64748B);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* ============================================================
+   Change Password modal
+============================================================ */
+
+.nxl-pw-modal-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+.nxl-pw-modal-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    color: var(--bs-dark, #0F172A);
+    flex-shrink: 0;
+}
+.nxl-pw-modal-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--bs-dark, #0F172A);
+}
+.nxl-pw-modal-subtitle {
+    font-size: 0.82rem;
+    color: var(--bs-secondary, #64748B);
+    margin-top: 2px;
+}
+.nxl-pw-modal-divider {
+    height: 1px;
+    background: rgba(0, 0, 0, 0.08);
+    margin: 16px 0 18px;
+}
+
+.nxl-pw-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--bs-dark, #0F172A);
+    margin-bottom: 6px;
+}
+.nxl-pw-req { color: #2563EB; margin-left: 2px; }
+
+.nxl-pw-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+.nxl-pw-clear-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--bs-secondary, #64748B);
+    cursor: pointer;
+}
+.nxl-pw-clear-btn:hover { color: var(--bs-dark, #0F172A); text-decoration: underline; }
+
+/* ---------- Strength bar (3 segments) ---------- */
+.nxl-pw-strength-bar {
+    display: flex;
+    gap: 6px;
+    margin-top: 14px;
+}
+.nxl-pw-strength-seg {
+    flex: 1;
+    height: 4px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.08);
+    transition: background .15s ease;
+}
+.nxl-pw-strength-bar.is-weak .nxl-pw-strength-seg[data-seg="1"] { background: #E63946; }
+.nxl-pw-strength-bar.is-medium .nxl-pw-strength-seg[data-seg="1"],
+.nxl-pw-strength-bar.is-medium .nxl-pw-strength-seg[data-seg="2"] { background: #F59E0B; }
+.nxl-pw-strength-bar.is-strong .nxl-pw-strength-seg { background: #16A34A; }
+
+/* ---------- Checklist ---------- */
+.nxl-pw-checklist { margin-top: 12px; }
+.nxl-pw-checklist-label {
+    font-size: 0.82rem;
+    color: var(--bs-dark, #0F172A);
+    margin-bottom: 8px;
+}
+.nxl-pw-check-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.84rem;
+    color: var(--bs-secondary, #64748B);
+    padding: 4px 0;
+}
+.nxl-pw-check-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.12);
+    color: #fff;
+    font-size: 0.68rem;
+}
+.nxl-pw-check-icon i { line-height: 1; }
+.nxl-pw-check-item.is-met { color: var(--bs-dark, #0F172A); }
+.nxl-pw-check-item.is-met .nxl-pw-check-icon {
+    background: #16A34A;
+}
+
+/* ---------- Footer buttons ---------- */
+.nxl-pw-modal-footer {
+    border-top: none;
+    padding: 6px 24px 20px;
+    gap: 10px;
+}
+.nxl-pw-btn-discard {
+    flex: 1;
+    height: 46px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    background: #fff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--bs-dark, #0F172A);
+    cursor: pointer;
+    transition: background .15s ease;
+}
+.nxl-pw-btn-discard:hover { background: rgba(0, 0, 0, 0.04); }
+
+.nxl-pw-btn-apply {
+    flex: 1;
+    height: 46px;
+    border-radius: 10px;
+    border: none;
+    background: var(--bs-primary, #2563EB);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+    transition: background .15s ease, opacity .15s ease;
+}
+.nxl-pw-btn-apply:hover:not(:disabled) { background: #1D4ED8; }
+.nxl-pw-btn-apply:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ---------- Password field show/hide toggle ---------- */
+.nxl-password-field-wrap {
+    position: relative;
+}
+.nxl-password-field-wrap .form-control {
+    padding-right: 42px;
+}
+
+.nxl-password-toggle-btn {
+    position: absolute;
+    top: 50%;
+    right: 4px;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    border-radius: 6px;
+    color: var(--bs-secondary, #64748B);
+    cursor: pointer;
+    transition: background .12s ease, color .12s ease;
+}
+.nxl-password-toggle-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--bs-dark, #0F172A);
+}
+.nxl-password-toggle-btn i {
+    font-size: 1rem;
+}
+
+.nxl-password-hint {
+    font-size: 0.76rem;
+    color: var(--bs-secondary, #64748B);
+    margin: 4px 0 0;
+}
+
+/* ---------- Inline form alert (error/success) inside Change Password modal ---------- */
+.nxl-password-alert {
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin-bottom: 14px;
+}
+.nxl-password-alert-error {
+    background: rgba(230, 57, 70, 0.08);
+    color: #DC2626;
+    border: 1px solid rgba(220, 38, 38, 0.2);
+}
+.nxl-password-alert-success {
+    background: rgba(22, 163, 74, 0.08);
+    color: #16A34A;
+    border: 1px solid rgba(22, 163, 74, 0.2);
+}
+
+/* ---------- Password changed success modal ---------- */
+.nxl-pw-success-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    margin: 0 auto 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    background: rgba(22, 163, 74, 0.1);
+    color: #16A34A;
+}
+.nxl-pw-success-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--bs-dark, #0F172A);
+    margin-bottom: 6px;
+}
+.nxl-pw-success-desc {
+    font-size: 0.84rem;
+    color: var(--bs-secondary, #64748B);
+    line-height: 1.5;
+    padding: 0 8px;
+}
+
+/* ============================================================
+   DARK MODE — everything in this file
+============================================================ */
+
+html.app-skin-dark .nxl-admin-name-header { color: #E5E9F0; }
+html.app-skin-dark .nxl-admin-trigger-header:hover,
+html.app-skin-dark .nxl-header-admin[open] .nxl-admin-trigger-header {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+html.app-skin-dark .nxl-notif-trigger { color: #94A3B8; }
+html.app-skin-dark .nxl-notif-trigger:hover,
+html.app-skin-dark .nxl-header-notif:hover .nxl-notif-trigger,
+html.app-skin-dark .nxl-header-notif[open] .nxl-notif-trigger {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+html.app-skin-dark .nxl-notif-dropdown-menu,
+html.app-skin-dark .nxl-admin-dropdown-menu {
+    background: #17202F;
+    border-color: #2A3648;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+html.app-skin-dark .nxl-notif-dropdown-head {
+    color: #E5E9F0;
+    border-color: #2A3648;
+}
+html.app-skin-dark .nxl-notif-item {
+    border-color: rgba(255, 255, 255, 0.06);
+}
+html.app-skin-dark .nxl-notif-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+html.app-skin-dark .nxl-notif-item.is-unread {
+    background: rgba(230, 57, 70, 0.08);
+}
+html.app-skin-dark .nxl-notif-title { color: #E5E9F0; }
+html.app-skin-dark .nxl-notif-sub { color: #94A3B8; }
+html.app-skin-dark .nxl-notif-time { color: #64748B; }
+html.app-skin-dark .nxl-notif-empty { color: #94A3B8; }
+html.app-skin-dark .nxl-notif-dropdown-foot {
+    border-color: #2A3648;
+}
+
+html.app-skin-dark .nxl-admin-dropdown-head .nxl-admin-name { color: #E5E9F0; }
+html.app-skin-dark .nxl-admin-dropdown-head .nxl-admin-email { color: #94A3B8; }
+html.app-skin-dark .nxl-admin-dropdown-divider { background: #2A3648; }
+html.app-skin-dark .nxl-admin-dropdown-item { color: #E5E9F0; }
+html.app-skin-dark .nxl-admin-dropdown-item-icon { color: #94A3B8; }
+html.app-skin-dark .nxl-admin-dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+html.app-skin-dark .nxl-admin-dropdown-item.text-danger:hover {
+    background: rgba(220, 38, 38, 0.12);
+}
+html.app-skin-dark .nxl-admin-dropdown-item.text-danger .nxl-admin-dropdown-item-icon {
+    color: #F87171;
+}
+
+html.app-skin-dark .acct-settings-row {
+    border-color: rgba(255, 255, 255, 0.06);
+}
+html.app-skin-dark .acct-settings-label { color: #94A3B8; }
+html.app-skin-dark .acct-settings-value { color: #E5E9F0; }
+
+html.app-skin-dark .nxl-account-modal .modal-content {
+    background: #17202F;
+    box-shadow: 0 20px 60px -20px rgba(0, 0, 0, 0.6);
+}
+html.app-skin-dark .nxl-profile-modal-header {
+    background: linear-gradient(180deg, #141b28, #17202F);
+    border-color: #2A3648;
+}
+html.app-skin-dark .nxl-profile-modal-header .modal-title { color: #E5E9F0; }
+
+html.app-skin-dark .nxl-profile-modal-name { color: #E5E9F0; }
+html.app-skin-dark .nxl-role-pill { background: rgba(96, 165, 250, 0.16); color: #60A5FA; }
+html.app-skin-dark .nxl-status-pill.is-active { background: rgba(22, 163, 74, 0.16); color: #4ADE80; }
+html.app-skin-dark .nxl-status-pill.is-inactive { background: rgba(220, 38, 38, 0.16); color: #F87171; }
+html.app-skin-dark .nxl-profile-modal-divider { background: #2A3648; }
+
+html.app-skin-dark .nxl-info-card {
+    background: #101929;
+    border-color: #2A3648;
+}
+html.app-skin-dark .nxl-info-card:hover { border-color: rgba(96, 165, 250, 0.4); background: #141b28; }
+html.app-skin-dark .nxl-info-icon { background: rgba(96, 165, 250, 0.16); color: #60A5FA; }
+
+html.app-skin-dark .nxl-account-field label,
+html.app-skin-dark .nxl-account-section-label,
+html.app-skin-dark .nxl-settings-card-label,
+html.app-skin-dark .nxl-settings-card-sub {
+    color: #94A3B8;
+}
+html.app-skin-dark .nxl-account-field span,
+html.app-skin-dark .nxl-settings-card-value {
+    color: #E5E9F0;
+}
+
+html.app-skin-dark .nxl-settings-card {
+    background: #101929;
+    border-color: #2A3648;
+}
+html.app-skin-dark .nxl-settings-card:hover { border-color: rgba(96, 165, 250, 0.35); background: #141b28; }
+html.app-skin-dark .nxl-settings-card-icon { background: rgba(96, 165, 250, 0.16); color: #60A5FA; }
+html.app-skin-dark .nxl-settings-card-icon.is-security { background: rgba(251, 146, 60, 0.16); color: #FB923C; }
+html.app-skin-dark .nxl-settings-card-btn {
+    background: #17202F;
+    border-color: #2A3648;
+    color: #60A5FA;
+}
+html.app-skin-dark .nxl-settings-card-btn:hover:not(:disabled) {
+    background: rgba(37, 99, 235, 0.12);
+}
+html.app-skin-dark .nxl-settings-card-btn:disabled {
+    color: #64748B;
+}
+
+html.app-skin-dark .nxl-pw-modal-icon {
+    border-color: #2A3648;
+    color: #E5E9F0;
+}
+html.app-skin-dark .nxl-pw-modal-title { color: #E5E9F0; }
+html.app-skin-dark .nxl-pw-modal-subtitle { color: #94A3B8; }
+html.app-skin-dark .nxl-pw-modal-divider { background: #2A3648; }
+html.app-skin-dark .nxl-pw-label { color: #E5E9F0; }
+html.app-skin-dark .nxl-pw-clear-btn { color: #94A3B8; }
+html.app-skin-dark .nxl-pw-clear-btn:hover { color: #E5E9F0; }
+html.app-skin-dark .nxl-pw-strength-seg { background: rgba(255, 255, 255, 0.08); }
+html.app-skin-dark .nxl-pw-checklist-label { color: #E5E9F0; }
+html.app-skin-dark .nxl-pw-check-item { color: #94A3B8; }
+html.app-skin-dark .nxl-pw-check-item.is-met { color: #E5E9F0; }
+html.app-skin-dark .nxl-pw-check-icon { background: rgba(255, 255, 255, 0.14); }
+html.app-skin-dark .nxl-pw-btn-discard {
+    background: #17202F;
+    border-color: #2A3648;
+    color: #E5E9F0;
+}
+html.app-skin-dark .nxl-pw-btn-discard:hover { background: #0F1826; }
+
+html.app-skin-dark .nxl-password-toggle-btn {
+    color: #94A3B8;
+}
+html.app-skin-dark .nxl-password-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #E5E9F0;
+}
+html.app-skin-dark .nxl-password-hint {
+    color: #94A3B8;
+}
+
+html.app-skin-dark .nxl-pw-success-title { color: #E5E9F0; }
+html.app-skin-dark .nxl-pw-success-desc { color: #94A3B8; }
+
+/* ---------- Avatar images (override initials when photo exists) ---------- */
+.nxl-admin-avatar-header img,
+.nxl-admin-dropdown-avatar img,
+.nxl-profile-modal-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* ---------- Upload button (camera overlay on My Profile avatar) ---------- */
+.nxl-profile-modal-avatar-wrap {
+    position: relative;
+    display: inline-block;
+    flex-shrink: 0;
+}
+.nxl-avatar-upload-btn {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--bs-primary, #2563EB);
+    color: #fff;
+    border: 2px solid #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: background .15s ease;
+}
+.nxl-avatar-upload-btn:hover { background: #1D4ED8; }
+.nxl-avatar-upload-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.nxl-avatar-remove-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    margin-top: 6px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #DC2626;
+    cursor: pointer;
+}
+.nxl-avatar-remove-btn:hover { text-decoration: underline; }
+
+html.app-skin-dark .nxl-avatar-upload-btn { border-color: #17202F; }

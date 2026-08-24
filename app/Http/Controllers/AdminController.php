@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Hash;
 use App\Services\PenaltyHelper;
 use App\Services\LoanActivationService;
+use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
 {
@@ -89,17 +91,321 @@ class AdminController extends Controller
         $recentActivity = $this->buildRecentActivity(5);
 
         $admin = DB::table('users')->where('user_id', $adminId)->first();
+        $adminProfilePicture = $this->getProfilePictureUrl($admin);
         $adminName = $admin->name ?? 'Admin';
         $adminRole = $admin && !empty($admin->role) ? ucfirst($admin->role) : 'Administrator';
         $adminInitials = $this->getInitials($adminName);
+        $adminEmail = $admin->email ?? '';
+        $lastLoginAt = $admin->last_login_at ?? null;
+        $adminIsActive = $admin ? (bool) ($admin->is_active ?? true) : true;
+
+        $passwordChangedAt = !empty($admin->password_changed_at)
+    ? \Carbon\Carbon::parse($admin->password_changed_at)->format('M d, Y g:i A')
+    : null;
+
+        // ============ NEW: header notifications ============
+        $notifications = $this->buildAdminNotifications($adminId);
+        $unreadNotifCount = $notifications->where('read', false)->count();
 
         return view('admin.dashboard', compact(
             'pendingVerificationCount', 'totalApplications', 'pendingApplications',
             'activeLoans', 'totalActiveAmount', 'totalBorrowers', 'activeBorrowers',
             'recentApplications', 'pendingCount', 'pendingLoanCount',
             'attentionItems', 'upcomingPayments', 'recentActivity',
-            'adminName', 'adminRole', 'adminInitials'
+            'adminName', 'adminRole', 'adminInitials', 'adminEmail', 'lastLoginAt','adminIsActive',
+            'notifications', 'unreadNotifCount',
+            'passwordChangedAt'   
         ));
+    }   
+
+    // ============ NEW: Account Settings ============
+
+    public function accountSettings()
+{
+    $adminId = Session::get('user_id');
+    $admin = DB::table('users')->where('user_id', $adminId)->first();
+
+    $adminName = $admin->name ?? 'Admin';
+
+    return view('admin.account-settings', [
+        'admin' => $admin,
+        'adminName' => $adminName,
+        
+        'adminRole' => $admin && !empty($admin->role) ? ucfirst($admin->role) : 'Administrator',
+        'adminInitials' => $this->getInitials($adminName),
+        'adminEmail' => $admin->email ?? '',
+        'adminIsActive' => $admin ? (bool) $admin->is_active : true,
+        'lastLoginAt' => $admin->last_login_at ?? null,
+        'passwordChangedAt' => ($admin && !empty($admin->password_changed_at))
+            ? \Carbon\Carbon::parse($admin->password_changed_at)->format('M d, Y')
+            : null,
+        'pendingCount' => $this->getPendingVerificationCount($adminId),
+        'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+        'adminProfilePicture' => $this->getProfilePictureUrl($admin),
+    ]);
+}
+
+    private function getProfilePictureUrl($admin)
+    {
+        if ($admin && !empty($admin->profile_picture) && Storage::disk('public')->exists($admin->profile_picture)) {
+            return Storage::disk('public')->url($admin->profile_picture);
+        }
+        return null;
+    }
+
+    public function updateProfilePicture(Request $request)
+    {
+        $request->validate([
+            'profile_picture' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
+        ]);
+
+        $adminId = Session::get('user_id');
+        $admin = DB::table('users')->where('user_id', $adminId)->first();
+
+        // Alisin muna yung dating picture, kung meron
+        if (!empty($admin->profile_picture) && Storage::disk('public')->exists($admin->profile_picture)) {
+            Storage::disk('public')->delete($admin->profile_picture);
+        }
+
+        $path = $request->file('profile_picture')->store('profile-pictures', 'public');
+
+        DB::table('users')->where('user_id', $adminId)->update([
+            'profile_picture' => $path,
+        ]);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile picture updated.',
+                'profile_picture_url' => Storage::disk('public')->url($path),
+            ]);
+        }
+
+        return back()->with('success', 'Profile picture updated.');
+    }
+
+    public function removeProfilePicture(Request $request)
+    {
+        $adminId = Session::get('user_id');
+        $admin = DB::table('users')->where('user_id', $adminId)->first();
+
+        if (!empty($admin->profile_picture) && Storage::disk('public')->exists($admin->profile_picture)) {
+            Storage::disk('public')->delete($admin->profile_picture);
+        }
+
+        DB::table('users')->where('user_id', $adminId)->update([
+            'profile_picture' => null,
+        ]);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile picture removed.',
+            ]);
+        }
+
+        return back()->with('success', 'Profile picture removed.');
+    }
+
+    public function updateAccountPassword(Request $request)
+{
+    $request->validate([
+        'current_password' => 'required',
+        'new_password' => 'required|min:8|confirmed',
+    ]);
+
+    $adminId = Session::get('user_id');
+    $admin = DB::table('users')->where('user_id', $adminId)->first();
+
+    if (!$admin || !Hash::check($request->current_password, $admin->password_hash)) {
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'errors' => ['current_password' => ['Current password is incorrect.']],
+            ], 422);
+        }
+        return back()->withErrors(['current_password' => 'Current password is incorrect.'])->withInput();
+    }
+
+    $changedAt = now();
+
+    DB::table('users')->where('user_id', $adminId)->update([
+        'password_hash' => Hash::make($request->new_password),
+        'password_changed_at' => $changedAt,
+    ]);
+
+    if ($request->ajax() || $request->wantsJson()) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Password updated successfully.',
+            // Server-formatted text — JS just drops this in directly,
+            // no guessing/reformatting needed on the frontend.
+            'password_changed_at_display' => $changedAt->format('M d, Y g:i A'),
+        ]);
+    }
+
+    return back()->with('success', 'Password updated successfully.');
+}
+
+    // ============ NEW: Notifications ============
+
+    /**
+
+     */
+    private function buildAdminNotifications($adminId)
+    {
+        $items = collect();
+
+        // 1. Borrower verification needing review
+               // 1. Borrower verification needing review
+        // NOTE: borrowerpersonaldetails has no created_at column, so we
+        // can't order/timestamp these by submission time — we just use
+        // now() as a placeholder ts. Sorted by detail_id (newest first)
+        // instead, same as the rest of the list queries in this app.
+        $pendingVerifications = DB::table('borrowerpersonaldetails as bpd')
+            ->where('bpd.status', 'pending')
+            ->whereNotExists(function ($q) use ($adminId) {
+                $q->select(DB::raw(1))->from('detailsapproval as da')
+                    ->whereColumn('da.detail_id', 'bpd.detail_id')
+                    ->where('da.admin_id', $adminId);
+            })
+            ->select('bpd.detail_id', 'bpd.first_name', 'bpd.last_name')
+            ->orderByDesc('bpd.detail_id')
+            ->limit(20)
+            ->get();
+
+        foreach ($pendingVerifications as $row) {
+            $name = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? ''));
+            $items->push([
+                'key'      => 'verify:' . $row->detail_id,
+                'title'    => 'Borrower Verification Needed',
+                'subtitle' => $name !== '' ? $name : 'Unnamed borrower',
+                'icon'     => 'feather-user-check',
+                'color'    => 'warning',
+                'url'      => route('admin.verification-detail', $row->detail_id),
+                'ts'       => now(),
+            ]);
+        }
+
+        // 2. New loan application / decision needed
+        $pendingLoans = DB::table('loan_applications as la')
+            ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
+            ->where('la.status', 'pending')
+            ->whereNotExists(function ($q) use ($adminId) {
+                $q->select(DB::raw(1))->from('loan_approvals as lap')
+                    ->whereColumn('lap.application_id', 'la.application_id')
+                    ->where('lap.admin_id', $adminId);
+            })
+            ->select('la.application_id', 'la.applied_at', 'bpd.first_name', 'bpd.last_name')
+            ->orderByDesc('la.application_id')
+            ->limit(20)
+            ->get();
+
+        foreach ($pendingLoans as $row) {
+            $name = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? ''));
+            $items->push([
+                'key'      => 'loan:' . $row->application_id,
+                'title'    => 'Loan Application Decision Needed',
+                'subtitle' => $name !== '' ? $name : ('Application #' . $row->application_id),
+                'icon'     => 'feather-file-text',
+                'color'    => 'primary',
+                'url'      => route('admin.loan-application-detail', $row->application_id),
+                'ts'       => $row->applied_at ?? now(),
+            ]);
+        }
+
+        // 3. Applications placed on hold
+        $onHoldLoans = DB::table('loan_applications as la')
+            ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
+            ->where('la.status', 'on_hold')
+            ->select('la.application_id', 'la.applied_at', 'bpd.first_name', 'bpd.last_name')
+            ->orderByDesc('la.application_id')
+            ->limit(10)
+            ->get();
+
+        foreach ($onHoldLoans as $row) {
+            $name = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? ''));
+            $items->push([
+                'key'      => 'onhold:' . $row->application_id,
+                'title'    => 'Application Placed On Hold',
+                'subtitle' => $name !== '' ? $name : ('Application #' . $row->application_id),
+                'icon'     => 'feather-pause-circle',
+                'color'    => 'secondary',
+                'url'      => route('admin.loan-application-detail', $row->application_id),
+                'ts'       => $row->applied_at ?? now(),
+            ]);
+        }
+
+        // 4. Overdue payments — one notification per loan (oldest overdue installment)
+        $overdueRows = DB::table('loan_payment_schedules as sch')
+            ->join('loan_applications as la', 'sch.application_id', '=', 'la.application_id')
+            ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
+            ->where('la.status', 'active')
+            ->whereNull('sch.paid_at')
+            ->where('sch.due_date', '<', now())
+            ->select('la.application_id', 'sch.due_date', 'bpd.first_name', 'bpd.last_name')
+            ->orderBy('sch.due_date')
+            ->get()
+            ->unique('application_id')
+            ->take(20);
+
+        foreach ($overdueRows as $row) {
+            $name = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? ''));
+            $items->push([
+                'key'      => 'overdue:' . $row->application_id,
+                'title'    => 'Overdue Payment',
+                'subtitle' => $name !== '' ? $name : ('Application #' . $row->application_id),
+                'icon'     => 'feather-alert-triangle',
+                'color'    => 'danger',
+                'url'      => route('admin.overdue-payment-detail', $row->application_id),
+                'ts'       => $row->due_date,
+            ]);
+        }
+
+        $readKeys = DB::table('admin_notification_reads')
+            ->where('admin_id', $adminId)
+            ->pluck('notification_key')
+            ->flip();
+
+        return $items
+            ->map(function ($n) use ($readKeys) {
+                $n['read'] = $readKeys->has($n['key']);
+                return $n;
+            })
+            ->sortByDesc('ts')
+            ->values();
+    }
+
+    public function notificationOpen(Request $request, $key)
+    {
+        $adminId = Session::get('user_id');
+
+        DB::table('admin_notification_reads')->updateOrInsert(
+            ['admin_id' => $adminId, 'notification_key' => $key],
+            ['read_at' => now(), 'updated_at' => now(), 'created_at' => now()]
+        );
+
+        $redirect = $request->query('redirect');
+        if ($redirect && str_starts_with($redirect, '/')) {
+            return redirect($redirect);
+        }
+
+        return redirect()->route('admin.dashboard');
+    }
+
+    public function notificationsMarkAllRead(Request $request)
+    {
+        $adminId = Session::get('user_id');
+        $notifications = $this->buildAdminNotifications($adminId);
+
+        foreach ($notifications->where('read', false) as $n) {
+            DB::table('admin_notification_reads')->updateOrInsert(
+                ['admin_id' => $adminId, 'notification_key' => $n['key']],
+                ['read_at' => now(), 'updated_at' => now(), 'created_at' => now()]
+            );
+        }
+
+        return response()->json(['success' => true]);
     }
 
     private function buildRecentActivity($limit = 5)
@@ -420,16 +726,6 @@ class AdminController extends Controller
         ]);
     }
 
-    /**
-     * Ongoing Loans > View Details — a LOAN-FOCUSED, read-only view.
-     * Deliberately does NOT repeat borrower profile info (Personal Info,
-     * Birth Place, Address, Work, Co-Maker) since that already lives on
-     * All Borrowers / Active Borrowers / Active Borrower Detail. This page
-     * only cares about: the loan numbers, the 3-admin approval history for
-     * this application, and the payment schedule. Kept fully separate from
-     * activeBorrowerDetail() and loanApplicationDetail() — does not touch
-     * either of those views or methods.
-     */
     public function ongoingLoanDetail(Request $request, $id)
     {
         $adminId = Session::get('user_id');
@@ -447,17 +743,8 @@ class AdminController extends Controller
         $paidCount = $schedule->filter(fn($s) => !is_null($s->paid_at))->count();
         $amountCollected = $schedule->sum('amount_paid');
 
-        // Monthly payment — total repayable spread evenly across the
-        // installment count actually on the schedule (matches what the
-        // borrower is billed per period, rather than assuming loan_term
-        // and schedule count always match 1:1).
         $monthlyPayment = $totalCount > 0 ? ($app->total_amount / $totalCount) : 0;
-
-        // Total interest — total repayable minus principal.
         $totalInterest = max(0, $app->total_amount - $app->loan_amount);
-
-        // Effective interest rate, derived from principal + total interest
-        // (loan_applications has no dedicated interest_rate column).
         $interestRate = $app->loan_amount > 0
             ? round(($totalInterest / $app->loan_amount) * 100, 2)
             : 0;
@@ -636,13 +923,6 @@ class AdminController extends Controller
         ]);
     }
 
-    /**
-     * Loan Stats for the compact borrower header card (Total / Active /
-     * Completed / Overdue) on the Borrower Verification detail page.
-     * Overdue is derived from loan_payment_schedules the same way it is
-     * everywhere else in this controller (unpaid + due_date in the past) —
-     * there is no separate "overdue" status on loan_applications.
-     */
     private function getBorrowerLoanStats($userId)
     {
         if (!$userId) {
@@ -676,9 +956,6 @@ class AdminController extends Controller
             'active' => $active,
             'completed' => $completed,
             'overdue' => $overdue,
-            // Used by the "View Active Loan" button on the verification-detail
-            // page. If a borrower somehow has more than one active loan, this
-            // just points to the first one found.
             'active_application_id' => $activeAppIds->first(),
         ];
     }
@@ -696,13 +973,6 @@ class AdminController extends Controller
         ->count();
 }
 
-    /**
-     * "Pending" here means literally that — status = 'pending' only.
-     * on_hold applications already have their own dedicated filter
-     * (sidebar > Loan Applications > On Hold) and their own badge context,
-     * so they no longer get folded into this count/list. This is what
-     * feeds the "Loan Applications" sidebar badge everywhere it appears.
-     */
     private function getPendingLoanCount($adminId)
     {
         return DB::table('loan_applications as la')
@@ -967,15 +1237,6 @@ class AdminController extends Controller
         ]);
     }
 
-    /**
-     * Active Borrowers > View Details — a focused, read-only view for
-     * monitoring an ACTIVE borrower's current loan (profile + standing,
-     * compact Loan Summary, Payment Progress, Payment Schedule). Kept
-     * completely separate from loanApplicationDetail() (Admin Review /
-     * Personal Info / Address / Work / Discussion / decision modal), which
-     * stays exactly as-is for the loan-application review flow. This page
-     * never touches that controller method or its view.
-     */
     public function activeBorrowerDetail(Request $request, $id)
     {
         $adminId = Session::get('user_id');
@@ -1001,12 +1262,6 @@ class AdminController extends Controller
             ? $overdueSchedules->max(fn($s) => \Carbon\Carbon::parse($s->due_date)->diffInDays(now()))
             : 0;
 
-        // Borrower Standing — derived purely from the actual payment
-        // schedule, no separate rating table needed.
-        //   Good Standing   — no overdue installments
-        //   Payment Delayed — 1 overdue installment, not yet severely late
-        //   At Risk         — 2+ overdue installments, or a single
-        //                     installment 30+ days late
         if ($overdueSchedules->count() === 0) {
             $standing = 'good';
             $standingLabel = 'Good Standing';
@@ -1260,10 +1515,6 @@ class AdminController extends Controller
 
     private function buildLoanApplicationsListData($adminId, $viewStatus = 'pending')
     {
-        // Same rule as getPendingLoanCount(): status = 'pending' only.
-        // on_hold applications belong to the dedicated "On Hold" filter,
-        // not the Pending tab — this keeps the tab list and the count
-        // ($pendingLoanCount below) from disagreeing with each other.
         $pendingRows = DB::table('loan_applications as la')
             ->join('users as u', 'la.user_id', '=', 'u.user_id')
             ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
@@ -1599,7 +1850,6 @@ public function penaltyTrackingDetail($id)
         return redirect()->route('admin.penalty-tracking');
     }
 
-    // Build rate + breakdown (same logic as penaltyTracking())
     $periods = (int) $p->late_fee_periods;
     $rate = $periods > 0 ? round($p->penalty_amount / $periods, 2) : 0;
 
@@ -1658,5 +1908,17 @@ public function waivePenalty(Request $request, $id)
 
     return back()->with('success', 'Penalty waived.');
 }
+
+    public function notificationsIndex(Request $request)
+    {
+        $adminId = Session::get('user_id');
+        $notifications = $this->buildAdminNotifications($adminId);
+
+        return view('admin.notifications', [
+            'notifications' => $notifications,
+            'pendingCount' => $this->getPendingVerificationCount($adminId),
+            'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+        ]);
+    }
     // Ensure class is properly closed
 }
