@@ -90,60 +90,63 @@ class AdminController extends Controller
 
         $recentActivity = $this->buildRecentActivity(5);
 
-        $admin = DB::table('users')->where('user_id', $adminId)->first();
-        $adminProfilePicture = $this->getProfilePictureUrl($admin);
-        $adminName = $admin->name ?? 'Admin';
-        $adminRole = $admin && !empty($admin->role) ? ucfirst($admin->role) : 'Administrator';
-        $adminInitials = $this->getInitials($adminName);
-        $adminEmail = $admin->email ?? '';
-        $lastLoginAt = $admin->last_login_at ?? null;
-        $adminIsActive = $admin ? (bool) ($admin->is_active ?? true) : true;
-
-        $passwordChangedAt = !empty($admin->password_changed_at)
-    ? \Carbon\Carbon::parse($admin->password_changed_at)->format('M d, Y g:i A')
-    : null;
-
-        // ============ NEW: header notifications ============
-        $notifications = $this->buildAdminNotifications($adminId);
-        $unreadNotifCount = $notifications->where('read', false)->count();
-
-        return view('admin.dashboard', compact(
-            'pendingVerificationCount', 'totalApplications', 'pendingApplications',
-            'activeLoans', 'totalActiveAmount', 'totalBorrowers', 'activeBorrowers',
-            'recentApplications', 'pendingCount', 'pendingLoanCount',
-            'attentionItems', 'upcomingPayments', 'recentActivity',
-            'adminName', 'adminRole', 'adminInitials', 'adminEmail', 'lastLoginAt','adminIsActive',
-            'notifications', 'unreadNotifCount',
-            'passwordChangedAt'   
+        return view('admin.dashboard', array_merge(
+            $this->getHeaderData($adminId),
+            compact(
+                'pendingVerificationCount', 'totalApplications', 'pendingApplications',
+                'activeLoans', 'totalActiveAmount', 'totalBorrowers', 'activeBorrowers',
+                'recentApplications', 'pendingCount', 'pendingLoanCount',
+                'attentionItems', 'upcomingPayments', 'recentActivity'
+            )
         ));
-    }   
+    }
+
+    /**
+     * Header data needed by admin.layout on EVERY admin page (profile
+     * dropdown avatar/name/role/email, notification bell + list/count).
+     * Called directly here by dashboard() and accountSettings(), and
+     * also used by the View Composer (see AppServiceProvider::boot())
+     * as a fallback for any other controller method that renders
+     * admin.layout without explicitly passing this data itself — so a
+     * new admin page never has to remember to wire this up manually.
+     */
+    public function getHeaderData($adminId)
+    {
+        $admin = DB::table('users')->where('user_id', $adminId)->first();
+        $adminName = $admin->name ?? 'Admin';
+
+        $notifications = $this->buildAdminNotifications($adminId);
+
+        return [
+            'adminProfilePicture' => $this->getProfilePictureUrl($admin),
+            'adminName' => $adminName,
+            'adminRole' => $admin && !empty($admin->role) ? ucfirst($admin->role) : 'Administrator',
+            'adminInitials' => $this->getInitials($adminName),
+            'adminEmail' => $admin->email ?? '',
+            'lastLoginAt' => $admin->last_login_at ?? null,
+            'adminIsActive' => $admin ? (bool) ($admin->is_active ?? true) : true,
+            'passwordChangedAt' => !empty($admin->password_changed_at)
+                ? \Carbon\Carbon::parse($admin->password_changed_at)->format('M d, Y g:i A')
+                : null,
+            'notifications' => $notifications,
+            'unreadNotifCount' => $notifications->where('read', false)->count(),
+        ];
+    }
 
     // ============ NEW: Account Settings ============
 
     public function accountSettings()
-{
-    $adminId = Session::get('user_id');
-    $admin = DB::table('users')->where('user_id', $adminId)->first();
+    {
+        $adminId = Session::get('user_id');
 
-    $adminName = $admin->name ?? 'Admin';
-
-    return view('admin.account-settings', [
-        'admin' => $admin,
-        'adminName' => $adminName,
-        
-        'adminRole' => $admin && !empty($admin->role) ? ucfirst($admin->role) : 'Administrator',
-        'adminInitials' => $this->getInitials($adminName),
-        'adminEmail' => $admin->email ?? '',
-        'adminIsActive' => $admin ? (bool) $admin->is_active : true,
-        'lastLoginAt' => $admin->last_login_at ?? null,
-        'passwordChangedAt' => ($admin && !empty($admin->password_changed_at))
-            ? \Carbon\Carbon::parse($admin->password_changed_at)->format('M d, Y')
-            : null,
-        'pendingCount' => $this->getPendingVerificationCount($adminId),
-        'pendingLoanCount' => $this->getPendingLoanCount($adminId),
-        'adminProfilePicture' => $this->getProfilePictureUrl($admin),
-    ]);
-}
+        return view('admin.account-settings', array_merge(
+            $this->getHeaderData($adminId),
+            [
+                'pendingCount' => $this->getPendingVerificationCount($adminId),
+                'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+            ]
+        ));
+    }
 
     private function getProfilePictureUrl($admin)
     {

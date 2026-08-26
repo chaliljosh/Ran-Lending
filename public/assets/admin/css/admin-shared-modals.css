@@ -1016,3 +1016,274 @@ html.app-skin-dark .nxl-pw-success-desc { color: #94A3B8; }
 .nxl-avatar-remove-btn:hover { text-decoration: underline; }
 
 html.app-skin-dark .nxl-avatar-upload-btn { border-color: #17202F; }
+
+/* ============================================================
+   Profile avatar upload (My Profile modal) + Crop Photo modal
+   Idagdag sa dulo ng admin-shared-modals.css.
+============================================================ */
+
+.nxl-profile-modal-top {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-bottom: 14px;
+}
+
+.nxl-profile-modal-avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.nxl-profile-modal-avatar {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #fff;
+    background: var(--bs-primary, #2563EB);
+    overflow: hidden;
+}
+.nxl-profile-modal-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.nxl-avatar-upload-btn {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--bs-primary, #2563EB);
+    border: 3px solid #fff;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background .15s ease;
+}
+.nxl-avatar-upload-btn:hover:not(:disabled) { background: #1D4ED8; }
+.nxl-avatar-upload-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.nxl-profile-modal-info { min-width: 0; }
+.nxl-profile-modal-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--bs-dark, #0F172A);
+}
+.nxl-profile-modal-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    color: var(--bs-secondary, #64748B);
+    margin-top: 2px;
+}
+.nxl-meta-dot-sep { color: rgba(0, 0, 0, 0.25); }
+
+.nxl-status-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 600;
+}
+.nxl-status-inline.is-active { color: #16A34A; }
+.nxl-status-inline.is-inactive { color: #DC2626; }
+
+.nxl-avatar-remove-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    margin-top: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #DC2626;
+    cursor: pointer;
+}
+.nxl-avatar-remove-btn:hover { text-decoration: underline; }
+
+/* ---------- Crop Photo modal ---------- */
+.nxl-crop-wrap {
+    width: 100%;
+    height: 340px;
+    background: #111;
+    border-radius: 10px;
+    overflow: hidden;
+}
+.nxl-crop-wrap img {
+    display: block;
+    max-width: 100%;
+}
+.nxl-crop-hint {
+    font-size: 0.78rem;
+    color: var(--bs-secondary, #64748B);
+    text-align: center;
+    margin: 10px 0 0;
+}
+
+/* Cropper.js default crop-box outline uses its own inline styles;
+   we only need to make sure the container has real height (above)
+   since Cropper measures against it on init. */
+
+/* ---------- Dark mode ---------- */
+html.app-skin-dark .nxl-profile-modal-name { color: #E5E9F0; }
+html.app-skin-dark .nxl-profile-modal-meta { color: #94A3B8; }
+html.app-skin-dark .nxl-meta-dot-sep { color: rgba(255, 255, 255, 0.2); }
+html.app-skin-dark .nxl-avatar-upload-btn { border-color: #17202F; }
+html.app-skin-dark .nxl-crop-hint { color: #94A3B8; }
+
+/* ============================================================
+   ADDITIONS — append these to the END of admin-shared-modals.css
+   Covers: (1) circular Cropper.js crop area, (2) the text
+   "Upload Profile Picture" button for non-techy users, and
+   (3) the Remove Photo confirmation modal (replaces browser
+   confirm()).
+============================================================ */
+
+/* ---------- 1. Circular crop area (Cropper.js trick) ----------
+   Cropper.js has no built-in "round" crop mode. The standard
+   workaround is to round the view-box (the part that shows the
+   live preview) and the face (the draggable region) via CSS.
+   The square drag handles stay square — that's normal/expected —
+   but the crop boundary itself reads as a circle. */
+.nxl-crop-wrap.is-round-crop .cropper-view-box {
+    border-radius: 50%;
+    outline: 1px solid #39f;
+    outline-color: rgba(51, 153, 255, .75);
+}
+.nxl-crop-wrap.is-round-crop .cropper-face {
+    border-radius: 50%;
+}
+
+/* ---------- 2. "Upload Profile Picture" text button ----------
+   Sits below the name/status in the My Profile modal, next to
+   Remove photo. Bigger, clearer target than the small camera
+   icon for users who might not realize the icon is clickable. */
+.nxl-avatar-upload-text-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(37, 99, 235, 0.3);
+    background: rgba(37, 99, 235, 0.06);
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--bs-primary, #2563EB);
+    cursor: pointer;
+    transition: background .15s ease;
+}
+.nxl-avatar-upload-text-btn i {
+    font-size: 0.85rem;
+}
+.nxl-avatar-upload-text-btn:hover:not(:disabled) {
+    background: rgba(37, 99, 235, 0.12);
+}
+.nxl-avatar-upload-text-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Row that holds the upload button + remove button side by side */
+.nxl-profile-modal-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+.nxl-profile-modal-actions .nxl-avatar-remove-btn {
+    margin-top: 0; /* was margin-top:6px when it stood alone */
+}
+
+/* ---------- 3. Remove Photo confirmation modal ---------- */
+.nxl-remove-confirm-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    margin: 0 auto 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    background: rgba(217, 119, 6, 0.1);
+    color: #D97706;
+}
+.nxl-remove-confirm-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--bs-dark, #0F172A);
+    margin-bottom: 6px;
+}
+.nxl-remove-confirm-desc {
+    font-size: 0.84rem;
+    color: var(--bs-secondary, #64748B);
+    line-height: 1.5;
+    padding: 0 12px;
+}
+
+/* Danger-filled variant of the existing .nxl-pw-btn-apply button,
+   used for the "Remove Photo" confirm action */
+.nxl-pw-btn-apply.nxl-btn-danger-fill {
+    background: #DC2626;
+}
+.nxl-pw-btn-apply.nxl-btn-danger-fill:hover:not(:disabled) {
+    background: #B91C1C;
+}
+
+/* ---------- Dark mode ---------- */
+html.app-skin-dark .nxl-avatar-upload-text-btn {
+    background: rgba(96, 165, 250, 0.12);
+    border-color: rgba(96, 165, 250, 0.3);
+    color: #60A5FA;
+}
+html.app-skin-dark .nxl-avatar-upload-text-btn:hover:not(:disabled) {
+    background: rgba(96, 165, 250, 0.2);
+}
+html.app-skin-dark .nxl-remove-confirm-title { color: #E5E9F0; }
+html.app-skin-dark .nxl-remove-confirm-desc { color: #94A3B8; }
+
+/* ---------- Stacked upload/remove layout (My Profile modal redesign) ---------- */
+.nxl-profile-modal-actions {
+    margin-top: 8px;
+}
+.nxl-profile-modal-info > .nxl-avatar-remove-btn {
+    display: block;
+    margin-top: 6px;
+}
+
+/* ---------- Remove Photo confirm buttons — override colors ---------- */
+#nxlRemovePhotoConfirmModal .nxl-pw-btn-discard {
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    color: var(--bs-dark, #0F172A);
+}
+#nxlRemovePhotoConfirmModal .nxl-pw-btn-discard:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+#nxlRemovePhotoConfirmModal .nxl-pw-btn-apply.nxl-btn-danger-fill {
+    background: #DC2626;
+    border: none;
+    color: #fff;
+}
+#nxlRemovePhotoConfirmModal .nxl-pw-btn-apply.nxl-btn-danger-fill:hover:not(:disabled) {
+    background: #B91C1C;
+}
+html.app-skin-dark #nxlRemovePhotoConfirmModal .nxl-pw-btn-discard {
+    background: #17202F;
+    border-color: #2A3648;
+    color: #E5E9F0;
+}
+html.app-skin-dark #nxlRemovePhotoConfirmModal .nxl-pw-btn-discard:hover {
+    background: #0F1826;
+}

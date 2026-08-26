@@ -623,3 +623,6 @@ html.app-skin-dark .btn-page:hover:not(:disabled) {
     color: #4a7cf7;
     background: #22314580;
 }
+
+/* FIX: force consistent header height (may unknown override sa
+   ibang shared CSS na nagpapataas nito sa page na ito lang) */

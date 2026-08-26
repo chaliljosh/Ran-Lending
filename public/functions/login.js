@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function showLoading() {
         loginBtn.disabled        = true;
-        loginBtnText.textContent = 'Signing In...';
+        loginBtnText.textContent = '';
         loginSpinner.classList.remove('d-none');
     }
     function hideLoading() {
