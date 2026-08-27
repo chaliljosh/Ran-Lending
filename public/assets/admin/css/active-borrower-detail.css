@@ -140,3 +140,47 @@ html.app-skin-dark .abd-next-payment-date,
 html.app-skin-dark .abd-next-payment-amount { color: #e2e8f0; }
 html.app-skin-dark .abd-next-payment-label { color: #94a3b8; }
 
+/* ---------- Stat cards row (Total to Pay / Total Paid / Remaining / Due In) ---------- */
+.abd-stat-row { margin-bottom: 1rem; }
+.abd-stat-card .card-body { padding: 16px 18px; }
+.abd-stat-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 2px;
+}
+.abd-stat-value {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+/* Purple variant (matches the bg-soft-* pattern used elsewhere, used here for "Due In") */
+.bg-soft-purple { background: rgba(139, 92, 246, 0.12); }
+.text-purple { color: #7c3aed; }
+
+/* ---------- Loan Summary — highlighted "Monthly Payment" row ---------- */
+.abd-summary-highlight td {
+    background: #eff6ff;
+    border-radius: 8px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+.abd-summary-highlight .info-label { color: #2563eb; font-weight: 600; }
+
+/* ---------- Slightly smaller fonts across this page ---------- */
+.abd-profile-name { font-size: 0.94rem; }
+.abd-profile-email { font-size: 0.76rem; }
+.abd-schedule-card .ld-schedule-table tbody td { padding: 12px 14px; font-size: 0.82rem; }
+.abd-schedule-card .ld-schedule-table thead th { font-size: 0.72rem; padding: 10px 14px; }
+
+/* ---------- Dark mode additions ---------- */
+html.app-skin-dark .abd-stat-label { color: #94a3b8; }
+html.app-skin-dark .abd-stat-value { color: #e2e8f0; }
+html.app-skin-dark .bg-soft-purple { background: rgba(139, 92, 246, 0.18); }
+html.app-skin-dark .text-purple { color: #a78bfa; }
+html.app-skin-dark .abd-summary-highlight td { background: rgba(37, 99, 235, 0.1); }
+html.app-skin-dark .abd-summary-highlight .info-label { color: #60a5fa; }
+

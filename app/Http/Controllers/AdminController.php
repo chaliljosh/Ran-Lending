@@ -1344,33 +1344,74 @@ class AdminController extends Controller
     }
 
     public function markInstallmentPaid(Request $request, $id)
-    {
-        $schedule = DB::table('loan_payment_schedules')->where('id', $id)->first();
+{
+    $schedule = DB::table('loan_payment_schedules')->where('id', $id)->first();
 
-        if ($schedule) {
-            DB::table('loan_payment_schedules')->where('id', $id)->update([
-                'paid_at' => now(),
-                'amount_paid' => $schedule->amount_due,
-            ]);
-
-            DB::table('loan_penalties')
-                ->where('schedule_id', $id)
-                ->where('status', 'unpaid')
-                ->update([
-                    'status' => 'paid',
-                    'updated_at' => now(),
-                ]);
-        }
-
+    if (!$schedule) {
         if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Payment marked as paid.',
-            ]);
+            return response()->json(['success' => false, 'message' => 'Installment not found.'], 404);
+        }
+        return back()->with('error', 'Installment not found.');
+    }
+
+    DB::table('loan_payment_schedules')->where('id', $id)->update([
+        'paid_at' => now(),
+        'amount_paid' => $schedule->amount_due,
+    ]);
+
+    DB::table('loan_penalties')
+        ->where('schedule_id', $id)
+        ->where('status', 'unpaid')
+        ->update([
+            'status' => 'paid',
+            'updated_at' => now(),
+        ]);
+
+    if ($request->ajax() || $request->wantsJson()) {
+        $applicationId = $schedule->application_id;
+        $app = DB::table('loan_applications')->where('application_id', $applicationId)->first();
+        $allSchedules = DB::table('loan_payment_schedules')
+            ->where('application_id', $applicationId)
+            ->orderBy('installment_no')
+            ->get();
+
+        $paidCount = $allSchedules->filter(fn($s) => !is_null($s->paid_at))->count();
+        $totalCount = $allSchedules->count();
+        $amountCollected = (float) $allSchedules->sum('amount_paid');
+        $remaining = max(0, ($app->total_amount ?? 0) - $amountCollected);
+        $nextUnpaid = $allSchedules->first(fn($s) => is_null($s->paid_at));
+        $progressPct = $totalCount > 0 ? round(($paidCount / $totalCount) * 100) : 0;
+
+        $dueInLabel = '—';
+        if ($nextUnpaid) {
+            $dueDate = \Carbon\Carbon::parse($nextUnpaid->due_date);
+            if ($dueDate->isPast()) {
+                $dueInLabel = 'Overdue';
+            } else {
+                $days = (int) now()->diffInDays($dueDate);
+                $dueInLabel = $days . ' ' . ($days == 1 ? 'day' : 'days');
+            }
         }
 
-        return back()->with('success', 'Payment marked as paid.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Payment marked as paid.',
+            'schedule_id' => (int) $id,
+            'amount_paid_display' => number_format((float) $schedule->amount_due, 2),
+            'paid_on_display' => now()->format('M d, Y'),
+            'paid_count' => $paidCount,
+            'total_count' => $totalCount,
+            'amount_collected_display' => number_format($amountCollected, 2),
+            'remaining_display' => number_format($remaining, 2),
+            'progress_pct' => $progressPct,
+            'next_due_date_display' => $nextUnpaid ? \Carbon\Carbon::parse($nextUnpaid->due_date)->format('M d, Y') : '—',
+            'due_in_label' => $dueInLabel,
+            'is_fully_paid' => is_null($nextUnpaid),
+        ]);
     }
+
+    return back()->with('success', 'Payment marked as paid.');
+}
 
     private function getPaymentSchedule($applicationId)
     {
@@ -1741,7 +1782,7 @@ class AdminController extends Controller
         ]);
     }
 
-    public function completedLoanDetail(Request $request, $id)
+      public function completedLoanDetail(Request $request, $id)
 {
     $adminId = Session::get('user_id');
     $applicationId = (int) $id;
@@ -1754,18 +1795,24 @@ class AdminController extends Controller
 
     $schedule = $this->getPaymentSchedule($applicationId);
 
+    $totalInterest = max(0, $app->total_amount - $app->loan_amount);
+    $interestRate = $app->loan_amount > 0
+        ? round(($totalInterest / $app->loan_amount) * 100, 2)
+        : 0;
+
     return view('admin.completed-loan-detail', [
         'app' => $app,
         'applicationId' => $applicationId,
         'paymentSchedule' => $schedule,
         'completedAt' => $schedule->max('paid_at'),
         'amountCollected' => $schedule->sum('amount_paid'),
+        'totalInterest' => $totalInterest,
+        'interestRate' => $interestRate,
         'borrowerPerformance' => $this->computeBorrowerPerformance($applicationId, $schedule),
         'pendingCount' => $this->getPendingVerificationCount($adminId),
         'pendingLoanCount' => $this->getPendingLoanCount($adminId),
     ]);
 }
-
 private function computeBorrowerPerformance($applicationId, $schedule)
 {
     $totalPayments = $schedule->count();

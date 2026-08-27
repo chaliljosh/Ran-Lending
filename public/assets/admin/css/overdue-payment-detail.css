@@ -38,44 +38,69 @@
 .opd-card-title i { color: #2563EB; font-size: 1rem; }
 
 /* ============================================================
-   2. OVERDUE PAYMENT SUMMARY — most important section
-   Border-only emphasis (red border), white background — no more
-   red-tinted fill so it stays consistent with the rest of the
-   admin's plain white cards.
+   2. OVERDUE PAYMENT SUMMARY — compact horizontal strip.
+   Was a tall 2-column grid with a separate outstanding row and
+   action row below it; now a single dense card: a horizontal row
+   of small stat fields, a hairline divider, then one footer row
+   that holds Total Outstanding on the left and the two action
+   buttons on the right — same information, much shorter card.
 ============================================================ */
 .opd-overdue-card {
     background: #FFFFFF;
     border: 1px solid #FCA5A5;
+    padding: 14px 20px;
+}
+.opd-overdue-card .opd-card-title {
+    margin-bottom: 12px;
+    font-size: 0.85rem;
 }
 .opd-overdue-card .opd-card-title { color: #B91C1C; }
 .opd-overdue-card .opd-card-title i { color: #DC2626; }
 
-.opd-overdue-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px 24px;
-    margin-bottom: 16px;
+.opd-overdue-strip {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 28px;
+    row-gap: 10px;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+    border-bottom: 1px dashed #FCA5A5;
 }
-.opd-overdue-grid .opd-field.is-full { grid-column: 1 / -1; }
+.opd-overdue-strip .opd-field { min-width: 96px; }
+
 .opd-field-label {
-    font-size: 0.68rem; font-weight: 700; color: #94A3B8;
-    text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px;
+    font-size: 0.62rem; font-weight: 700; color: #94A3B8;
+    text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 3px;
 }
-.opd-field-value { font-size: 0.95rem; font-weight: 700; color: #0F172A; }
+.opd-field-value { font-size: 0.85rem; font-weight: 700; color: #0F172A; }
 .opd-field-value.is-danger { color: #DC2626; }
 .opd-field-value.is-orange { color: #EA580C; }
 
-.opd-outstanding-row {
-    display: flex; align-items: center; justify-content: space-between;
-    padding-top: 16px; margin-top: 4px; border-top: 1px dashed #FCA5A5;
+.opd-overdue-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
 }
-.opd-outstanding-label { font-size: 0.82rem; font-weight: 700; color: #0F172A; text-transform: uppercase; letter-spacing: 0.4px; }
-.opd-outstanding-value { font-size: 1.5rem; font-weight: 800; color: #DC2626; letter-spacing: -0.02em; }
+.opd-outstanding-inline {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.opd-outstanding-inline .opd-outstanding-label {
+    font-size: 0.7rem; font-weight: 700; color: #64748B;
+    text-transform: uppercase; letter-spacing: 0.3px;
+}
+.opd-outstanding-inline .opd-outstanding-value {
+    font-size: 1.2rem; font-weight: 800; color: #DC2626; letter-spacing: -0.02em;
+}
 
-.opd-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+.opd-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .opd-btn {
-    height: 42px; padding: 0 20px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;
-    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    height: 36px; padding: 0 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 600;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
     border: 1px solid transparent; cursor: pointer;
 }
 .opd-btn-mark-paid { background: #16A34A; color: #fff; }
@@ -159,20 +184,15 @@
 
 /* ============================================================
    RESPONSIVE
-   Two breakpoints now instead of one: the overdue grid collapses
-   to a single column earlier (tablet width, 991.98px) since its
-   label/value pairs get cramped well before the old 767.98px
-   cutoff; the table itself always has its own horizontal scroll
-   (see .opd-table-scroll above) so it never needs to collapse.
 ============================================================ */
-@media (max-width: 991.98px) {
-    .opd-overdue-grid { grid-template-columns: 1fr; }
+@media (max-width: 575.98px) {
+    .opd-overdue-strip { column-gap: 20px; }
+    .opd-overdue-footer { flex-direction: column; align-items: flex-start; }
+    .opd-actions { width: 100%; }
+    .opd-actions .opd-btn { flex: 1; }
 }
 @media (max-width: 767.98px) {
     .opd-summary-grid { grid-template-columns: 1fr; }
-    .opd-actions { flex-direction: column; }
-    .opd-actions .opd-btn { width: 100%; }
-    .opd-outstanding-row { flex-direction: column; align-items: flex-start; gap: 6px; }
 
     /* Payment Schedule — real mobile stacking instead of just a
        horizontal-scroll table. Each row becomes its own bordered
@@ -218,14 +238,6 @@
 
 /* ============================================================
    PAGE CONTAINER + BORROWER HEADER
-   Borrower header markup reuses the shared section-card /
-   borrower-avatar components (loan-details.css) instead of a custom
-   opd-card shell — same pattern as Completed Loan Detail's header.
-   Only the page-specific layout tweaks live here:
-     1. Page container width
-     2. Header flex layout (avatar + name/email/meta)
-     3. Badge/meta text specific to this page ("Overdue" badge +
-        "N days overdue" instead of "Fully paid on ...")
 ============================================================ */
 
 .opd-content { max-width: 100%; margin: 0; width: 100%; }
@@ -251,31 +263,7 @@
     .opd-borrower-meta { justify-content: center; }
 }
 
-/* ---------- Loan Summary grid — identical pattern to cld-summary-grid ---------- */
-.opd-summary-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    column-gap: 32px;
-    row-gap: 4px;
-}
-.opd-summary-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 9px 0;
-    border-bottom: 1px solid #F1F4F8;
-}
-.opd-summary-item:nth-last-child(-n+2) { border-bottom: none; }
-
-@media (max-width: 767.98px) {
-    .opd-summary-item:nth-last-child(-n+2) { border-bottom: 1px solid #F1F4F8; }
-    .opd-summary-item:last-child { border-bottom: none; }
-}
-
-/* ---------- Payment Schedule — "Overdue" badge variant + current-row highlight
-   ld-schedule-paid / ld-schedule-pending already exist in loan-details.css;
-   this page additionally needs an "Overdue" state, added here using the
-   same red tone already used system-wide (badge-rejected, etc). ---------- */
+/* ---------- Payment Schedule — "Overdue" badge variant + current-row highlight ---------- */
 .ld-schedule-badge.ld-schedule-overdue {
     background: #FEF2F2;
     color: #DC2626;
@@ -286,14 +274,6 @@ tr.ld-schedule-row-current {
 
 /* ============================================================
    DARK MODE OVERRIDES
-   The Overdue Payment card switches to a dark fill below, but its
-   inner text (field labels/values, outstanding total, action
-   buttons) previously kept their light-mode hardcoded colors —
-   dark text on a dark background — which is what was making the
-   installment #, due date, amount due, and total outstanding
-   unreadable. Every value inside that card gets an explicit dark
-   color here. The Payment Schedule / Loan Summary cards stay white
-   by design (same as the rest of the admin), so they're untouched.
 ============================================================ */
 html.app-skin-dark .opd-overdue-card {
     background: #17202F;
@@ -307,9 +287,9 @@ html.app-skin-dark .opd-field-value { color: #E5E9F0; }
 html.app-skin-dark .opd-field-value.is-danger { color: #F87171; }
 html.app-skin-dark .opd-field-value.is-orange { color: #FB923C; }
 
-html.app-skin-dark .opd-overdue-card .opd-outstanding-row { border-top-color: #7F1D1D; }
-html.app-skin-dark .opd-overdue-card .opd-outstanding-label { color: #E5E9F0; }
-html.app-skin-dark .opd-overdue-card .opd-outstanding-value { color: #F87171; }
+html.app-skin-dark .opd-overdue-strip { border-bottom-color: #7F1D1D; }
+html.app-skin-dark .opd-outstanding-inline .opd-outstanding-label { color: #E5E9F0; }
+html.app-skin-dark .opd-outstanding-inline .opd-outstanding-value { color: #F87171; }
 
 html.app-skin-dark .opd-overdue-card .opd-btn-waive {
     background: #17202F;
@@ -319,18 +299,13 @@ html.app-skin-dark .opd-overdue-card .opd-btn-waive {
 html.app-skin-dark .opd-overdue-card .opd-btn-waive:hover { background: #101929; }
 html.app-skin-dark .opd-overdue-card .opd-btn-mark-paid:hover { background: #15803D; }
 
-html.app-skin-dark .opd-summary-item,
-html.app-skin-dark .opd-outstanding-row {
+html.app-skin-dark .opd-summary-row {
     border-color: #212C3D;
 }
 html.app-skin-dark .opd-days-overdue-text {
     color: #F87171;
 }
 
-/* Mobile stacked Payment Schedule cards (see the 767.98px media
-   query above) also need dark-mode colors for their card borders
-   and the per-cell labels, since those are new structural pieces
-   that don't exist in the desktop table layout. */
 @media (max-width: 767.98px) {
     html.app-skin-dark .opd-table tbody tr { border-color: #2A3648; }
     html.app-skin-dark .opd-table tbody td::before { color: #64748B; }
@@ -338,12 +313,6 @@ html.app-skin-dark .opd-days-overdue-text {
 
 /* ============================================================
    DARK MODE — CONFIRM / WAIVE / SUCCESS MODALS
-   These three modals (Mark as Paid confirm, Waive Penalty, Success)
-   were missing dark-mode overrides entirely. The modal shell itself
-   already goes dark from the site's global dark-mode CSS, but the
-   title and textarea kept their hardcoded light-mode colors — dark
-   text on a now-dark background — which is why the modal title was
-   showing as blank space.
 ============================================================ */
 html.app-skin-dark .opd-modal-title { color: #E5E9F0; }
 html.app-skin-dark .opd-modal-desc { color: #94A3B8; }
@@ -370,10 +339,6 @@ html.app-skin-dark .opd-modal-textarea:focus {
 
 /* ============================================================
    DARK MODE — PAYMENT SCHEDULE & LOAN SUMMARY CARDS
-   These were left white-on-purpose at first (matching the rest of
-   the admin's plain cards), but that reads as broken next to a dark
-   page, and their hardcoded dark text needs a dark counterpart too.
-   Switched to the same dark card surface used elsewhere on this page.
 ============================================================ */
 html.app-skin-dark .opd-card {
     background: #17202F;
@@ -385,7 +350,6 @@ html.app-skin-dark .opd-card-title i { color: #60A5FA; }
 html.app-skin-dark .opd-summary-card { background: #17202F; }
 html.app-skin-dark .opd-summary-card .opd-card-title { color: #94A3B8; }
 html.app-skin-dark .opd-summary-card .opd-card-title i { color: #64748B; }
-html.app-skin-dark .opd-summary-row { border-bottom-color: #212C3D; }
 html.app-skin-dark .opd-summary-label { color: #94A3B8; }
 html.app-skin-dark .opd-summary-value { color: #E5E9F0; }
 
@@ -405,8 +369,6 @@ html.app-skin-dark .opd-badge-paid { background: rgba(22, 163, 74, 0.16); color:
 html.app-skin-dark .opd-badge-overdue { background: rgba(220, 38, 38, 0.16); color: #F87171; }
 html.app-skin-dark .opd-badge-upcoming { background: rgba(37, 99, 235, 0.16); color: #60A5FA; }
 
-/* Stacked mobile Payment Schedule cards also need a dark border to
-   match — the light-mode #F1F5F9 border disappears on a dark card. */
 @media (max-width: 767.98px) {
     html.app-skin-dark .opd-table tbody tr { border-color: #2A3648; }
 }

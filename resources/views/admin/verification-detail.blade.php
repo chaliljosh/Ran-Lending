@@ -316,7 +316,7 @@
                     <div class="modal-header">
                         <div>
                             <h6 class="modal-title" id="decisionModalLabel">Review Borrower Verification</h6>
-                            <p class="modal-subtitle">Confirm whether this borrower's submitted details meet verification requirements.</p>
+                         
                         </div>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
@@ -336,11 +336,7 @@
     </div>
 
     {{-- Small styled confirmation modal — replaces the native browser
-         confirm() alert. Shown after Reject/Approve is clicked in the
-         review modal above; the review modal hides itself first so only
-         one modal is ever visible at a time. Cancel brings the review
-         modal back (remarks are preserved since the DOM isn't destroyed,
-         just hidden). --}}
+         confirm() alert. --}}
     <div class="modal fade" id="decisionConfirmModal" tabindex="-1" aria-labelledby="decisionConfirmModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-confirm-decision">
             <div class="modal-content">
@@ -373,4 +369,54 @@
 
 @section('page-scripts')
     <script src="{{ asset('functions/verification-detail.js') }}"></script>
+
+    <script>
+        function fixVerificationDetailSidebar() {
+            const cameFrom = @json($cameFrom);
+
+          
+            const menusToReset = document.querySelectorAll(
+                '.nxl-navbar > .nxl-item.nxl-hasmenu'
+            );
+
+            menusToReset.forEach(function (parentLi) {
+                const label = parentLi.querySelector('.nxl-mtext');
+                if (!label) return;
+
+                const text = label.textContent.trim();
+                if (text === 'Borrower Verification' || text === 'Borrowers') {
+                    parentLi.classList.remove('nxl-trigger', 'active');
+                    parentLi.querySelectorAll('.nxl-submenu .nxl-item').forEach(function (li) {
+                        li.classList.remove('active');
+                        li.setAttribute('data-current', 'false');
+                    });
+                }
+            });
+
+     
+            menusToReset.forEach(function (parentLi) {
+                const label = parentLi.querySelector('.nxl-mtext');
+                if (!label) return;
+
+                const text = label.textContent.trim();
+
+                if (cameFrom === 'verification' && text === 'Borrower Verification') {
+                    parentLi.classList.add('nxl-trigger', 'active');
+                } else if (cameFrom !== 'verification' && text === 'Borrowers') {
+                    parentLi.classList.add('nxl-trigger', 'active');
+                
+                    const firstSub = parentLi.querySelector('.nxl-submenu .nxl-item');
+                    if (firstSub) {
+                        firstSub.classList.add('active');
+                        firstSub.setAttribute('data-current', 'true');
+                    }
+                }
+            });
+        }
+
+        fixVerificationDetailSidebar();
+        window.addEventListener('load', fixVerificationDetailSidebar);
+        setTimeout(fixVerificationDetailSidebar, 300);
+        setTimeout(fixVerificationDetailSidebar, 1000);
+    </script>
 @endsection

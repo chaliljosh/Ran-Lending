@@ -1287,3 +1287,10 @@ html.app-skin-dark #nxlRemovePhotoConfirmModal .nxl-pw-btn-discard {
 html.app-skin-dark #nxlRemovePhotoConfirmModal .nxl-pw-btn-discard:hover {
     background: #0F1826;
 }
+
+
+body.modal-open .nxl-container {
+    filter: none !important;
+    transition: none !important;
+}
+

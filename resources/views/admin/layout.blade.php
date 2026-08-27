@@ -7,12 +7,16 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Ran Serenity || @yield('title', 'Dashboard')</title>
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset('assets/admin/images/favicon.ico') }}" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/bootstrap.min.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/vendors/css/vendors.min.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/theme.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/admin/css/logout-modal.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/admin-shared-modals.css') }}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/admin-toast.css') }}" />
     {{-- Page-specific stylesheets (e.g. admin-dashboard.css) go here --}}
     @yield('page-styles')
 </head>
@@ -577,6 +581,7 @@
     <script src="{{ asset('functions/admin-header.js') }}"></script>
     <script src="{{ asset('functions/admin-account-modals.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+    <script src="{{ asset('functions/admin-toast.js') }}"></script>
     <script src="{{ asset('functions/admin-profile-picture.js') }}"></script>
     {{-- Page-specific scripts go here --}}
     @yield('page-scripts')
