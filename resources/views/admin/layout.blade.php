@@ -5,6 +5,8 @@
     <meta http-equiv="x-ua-compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="login-route" content="{{ route('login') }}">
+    <meta name="requires-auth" content="true">
     <title>Ran Serenity || @yield('title', 'Dashboard')</title>
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset('assets/admin/images/favicon.ico') }}" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,6 +17,7 @@
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/theme.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/admin/css/logout-modal.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/admin-shared-modals.css') }}" />
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/admin-toast.css') }}" />
     {{-- Page-specific stylesheets (e.g. admin-dashboard.css) go here --}}
@@ -139,7 +142,7 @@
                             <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.ongoing-loans') }}">Ongoing Loans</a></li>
                             <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.overdue-payments') }}">Overdue Payments</a></li>
                             <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.completed-loans') }}">Completed Loans</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="#">Defaulted</a></li>
+                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.defaulted-loans') }}">Defaulted</a></li>
                         </ul>
                     </li>
                     <li class="nxl-item">
@@ -554,8 +557,7 @@
 ============================================================ --}}
 <div class="modal fade nxl-account-modal" id="nxlRemovePhotoConfirmModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-body text-center py-4">
+        <div class="modal-body text-center py-4">
                 <div class="nxl-remove-confirm-icon"><i class="feather-alert-triangle"></i></div>
                 <div class="nxl-remove-confirm-title">Remove profile picture?</div>
                 <div class="nxl-remove-confirm-desc">
@@ -577,12 +579,46 @@
     <script src="{{ asset('assets/admin/vendors/js/vendors.min.js') }}"></script>
     <script src="{{ asset('assets/admin/js/common-init.min.js') }}"></script>
     <script src="{{ asset('assets/admin/js/theme-customizer-init.min.js') }}"></script>
+    <script src="{{ asset('functions/session-sync.js') }}"></script>
     <script src="{{ asset('functions/logout-modal.js') }}"></script>
     <script src="{{ asset('functions/admin-header.js') }}"></script>
     <script src="{{ asset('functions/admin-account-modals.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
     <script src="{{ asset('functions/admin-toast.js') }}"></script>
     <script src="{{ asset('functions/admin-profile-picture.js') }}"></script>
+
+    {{-- ============================================================
+         DEEP-LINK MODAL OPENER
+         Pinapayagan ang pagbukas ng "My Profile" o "Account Settings"
+         modal direkta mula sa ibang page (hal. landing page dropdown)
+         sa pamamagitan ng ?open=profile o ?open=settings query param.
+         Ni-clean ang URL pagkatapos buksan para hindi na bumukas
+         ulit ang modal kapag nag-refresh.
+    ============================================================ --}}
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const params = new URLSearchParams(window.location.search);
+        const openTarget = params.get('open');
+
+        if (openTarget === 'profile') {
+            const modalEl = document.getElementById('nxlMyProfileModal');
+            if (modalEl) {
+                new bootstrap.Modal(modalEl).show();
+            }
+        } else if (openTarget === 'settings') {
+            const modalEl = document.getElementById('nxlAccountSettingsModal');
+            if (modalEl) {
+                new bootstrap.Modal(modalEl).show();
+            }
+        }
+
+        if (openTarget) {
+            const cleanUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, cleanUrl);
+        }
+    });
+    </script>
+
     {{-- Page-specific scripts go here --}}
     @yield('page-scripts')
 </body>

@@ -238,3 +238,18 @@ html.app-skin-dark .pending-card__head-text h6 { color: #e2e8f0; }
 html.app-skin-dark .pending-details           { background: #26374a; border-color: #26374a; }
 html.app-skin-dark .pending-details__cell     { background: #162030; }
 html.app-skin-dark .pending-details__cell .value { color: #e2e8f0; }
+
+/* ── Footer sa ibaba ── */
+.nxl-container {
+    min-height: calc(100vh - 80px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+.nxl-content {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+.nxl-content .main-content { flex: 1 !important; }
+.footer { flex-shrink: 0 !important; margin-top: auto !important; }
+

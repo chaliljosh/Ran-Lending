@@ -827,6 +827,7 @@ class AdminController extends Controller
                 'oldest_due_date'     => $oldestOverdue->due_date,
                 'days_late'           => $daysLate,
                 'overdue_amount'      => $overdueAmount,
+                 'is_defaulted'        => $daysLate >= self::DEFAULT_DAYS_LATE
             ];
 
             $stats['total']++;
@@ -1367,48 +1368,67 @@ class AdminController extends Controller
             'updated_at' => now(),
         ]);
 
-    if ($request->ajax() || $request->wantsJson()) {
-        $applicationId = $schedule->application_id;
-        $app = DB::table('loan_applications')->where('application_id', $applicationId)->first();
-        $allSchedules = DB::table('loan_payment_schedules')
-            ->where('application_id', $applicationId)
-            ->orderBy('installment_no')
-            ->get();
+   if ($request->ajax() || $request->wantsJson()) {
+    $applicationId = $schedule->application_id;
+    $app = DB::table('loan_applications')->where('application_id', $applicationId)->first();
+    $allSchedules = DB::table('loan_payment_schedules')
+        ->where('application_id', $applicationId)
+        ->orderBy('installment_no')
+        ->get();
 
-        $paidCount = $allSchedules->filter(fn($s) => !is_null($s->paid_at))->count();
-        $totalCount = $allSchedules->count();
-        $amountCollected = (float) $allSchedules->sum('amount_paid');
-        $remaining = max(0, ($app->total_amount ?? 0) - $amountCollected);
-        $nextUnpaid = $allSchedules->first(fn($s) => is_null($s->paid_at));
-        $progressPct = $totalCount > 0 ? round(($paidCount / $totalCount) * 100) : 0;
+    $paidCount = $allSchedules->filter(fn($s) => !is_null($s->paid_at))->count();
+    $totalCount = $allSchedules->count();
+    $amountCollected = (float) $allSchedules->sum('amount_paid');
+    $remaining = max(0, ($app->total_amount ?? 0) - $amountCollected);
+    $nextUnpaid = $allSchedules->first(fn($s) => is_null($s->paid_at));
+    $progressPct = $totalCount > 0 ? round(($paidCount / $totalCount) * 100) : 0;
 
-        $dueInLabel = '—';
-        if ($nextUnpaid) {
-            $dueDate = \Carbon\Carbon::parse($nextUnpaid->due_date);
-            if ($dueDate->isPast()) {
-                $dueInLabel = 'Overdue';
-            } else {
-                $days = (int) now()->diffInDays($dueDate);
-                $dueInLabel = $days . ' ' . ($days == 1 ? 'day' : 'days');
-            }
+    $dueInLabel = '—';
+    if ($nextUnpaid) {
+        $dueDate = \Carbon\Carbon::parse($nextUnpaid->due_date);
+        if ($dueDate->isPast()) {
+            $dueInLabel = 'Overdue';
+        } else {
+            $days = (int) now()->diffInDays($dueDate);
+            $dueInLabel = $days . ' ' . ($days == 1 ? 'day' : 'days');
         }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Payment marked as paid.',
-            'schedule_id' => (int) $id,
-            'amount_paid_display' => number_format((float) $schedule->amount_due, 2),
-            'paid_on_display' => now()->format('M d, Y'),
-            'paid_count' => $paidCount,
-            'total_count' => $totalCount,
-            'amount_collected_display' => number_format($amountCollected, 2),
-            'remaining_display' => number_format($remaining, 2),
-            'progress_pct' => $progressPct,
-            'next_due_date_display' => $nextUnpaid ? \Carbon\Carbon::parse($nextUnpaid->due_date)->format('M d, Y') : '—',
-            'due_in_label' => $dueInLabel,
-            'is_fully_paid' => is_null($nextUnpaid),
-        ]);
     }
+
+    // ---- Bago: para sa Defaulted Loan Detail stat cards ----
+    $overdueSchedulesNow = $allSchedules->filter(function ($s) {
+        return is_null($s->paid_at) && \Carbon\Carbon::parse($s->due_date)->isPast();
+    })->sortBy('due_date')->values();
+
+    $oldestOverdueNow = $overdueSchedulesNow->first();
+    $daysLateNow = $oldestOverdueNow
+        ? \Carbon\Carbon::parse($oldestOverdueNow->due_date)->diffInDays(now())
+        : 0;
+    $outstandingAmountNow = $overdueSchedulesNow->sum(fn($s) => $s->amount_due - $s->amount_paid);
+    $unpaidPenaltiesNow = (float) DB::table('loan_penalties')
+        ->where('application_id', $applicationId)
+        ->where('status', 'unpaid')
+        ->sum('penalty_amount');
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Payment marked as paid.',
+        'schedule_id' => (int) $id,
+        'amount_paid_display' => number_format((float) $schedule->amount_due, 2),
+        'paid_on_display' => now()->format('M d, Y'),
+        'paid_count' => $paidCount,
+        'total_count' => $totalCount,
+        'amount_collected_display' => number_format($amountCollected, 2),
+        'remaining_display' => number_format($remaining, 2),
+        'progress_pct' => $progressPct,
+        'next_due_date_display' => $nextUnpaid ? \Carbon\Carbon::parse($nextUnpaid->due_date)->format('M d, Y') : '—',
+        'due_in_label' => $dueInLabel,
+        'is_fully_paid' => is_null($nextUnpaid),
+        // ---- Bago ----
+        'days_late' => $daysLateNow,
+        'outstanding_amount_display' => number_format($outstandingAmountNow, 2),
+        'unpaid_penalties_display' => number_format($unpaidPenaltiesNow, 2),
+    ]);
+}
 
     return back()->with('success', 'Payment marked as paid.');
 }
@@ -1782,37 +1802,201 @@ class AdminController extends Controller
         ]);
     }
 
-      public function completedLoanDetail(Request $request, $id)
-{
-    $adminId = Session::get('user_id');
-    $applicationId = (int) $id;
+    public function completedLoanDetail(Request $request, $id)
+    {
+        $adminId = Session::get('user_id');
+        $applicationId = (int) $id;
 
-    $app = $this->getLoanApplication($applicationId);
+        $app = $this->getLoanApplication($applicationId);
 
-    if (!$app) {
-        return redirect()->route('admin.completed-loans');
+        if (!$app) {
+            return redirect()->route('admin.completed-loans');
+        }
+
+        $schedule = $this->getPaymentSchedule($applicationId);
+
+        // Same computations used in ongoingLoanDetail() — the view
+        // (completed-loan-detail.blade.php) was built from that same
+        // template and needs all of these, but they were never being
+        // passed here. This is what caused the "Undefined variable"
+        // errors for $interestRate, then $monthlyPayment.
+        $totalCount = $schedule->count();
+        $paidCount = $schedule->filter(fn($s) => !is_null($s->paid_at))->count();
+        $monthlyPayment = $totalCount > 0 ? ($app->total_amount / $totalCount) : 0;
+        $totalInterest = max(0, $app->total_amount - $app->loan_amount);
+        $interestRate = $app->loan_amount > 0
+            ? round(($totalInterest / $app->loan_amount) * 100, 2)
+            : 0;
+
+        return view('admin.completed-loan-detail', [
+            'app' => $app,
+            'applicationId' => $applicationId,
+            'adminId' => $adminId,
+            'allReviews' => $this->getAllLoanReviews($applicationId),
+            'comments' => $this->getLoanComments($applicationId),
+            'paymentSchedule' => $schedule,
+            'completedAt' => $schedule->max('paid_at'),
+            'amountCollected' => $schedule->sum('amount_paid'),
+            'totalCount' => $totalCount,
+            'paidCount' => $paidCount,
+            'monthlyPayment' => $monthlyPayment,
+            'totalInterest' => $totalInterest,
+            'interestRate' => $interestRate,
+            'borrowerPerformance' => $this->computeBorrowerPerformance($applicationId, $schedule),
+            'pendingCount' => $this->getPendingVerificationCount($adminId),
+            'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+        ]);
     }
 
-    $schedule = $this->getPaymentSchedule($applicationId);
+        /**
+     * Active Loans > Defaulted — a loan is considered "defaulted" here
+     * when its OLDEST unpaid installment has crossed DEFAULT_DAYS_LATE
+     * days overdue. This is derived (no new status column) — same
+     * pattern as overduePayments(), just a higher threshold. Change
+     * the constant below if the business wants a different cutoff.
+     */
+    private const DEFAULT_DAYS_LATE = 90;
 
-    $totalInterest = max(0, $app->total_amount - $app->loan_amount);
-    $interestRate = $app->loan_amount > 0
-        ? round(($totalInterest / $app->loan_amount) * 100, 2)
-        : 0;
+    public function defaultedLoans(Request $request)
+    {
+        $adminId = Session::get('user_id');
+        $sort = $request->query('sort', 'most_late');
 
-    return view('admin.completed-loan-detail', [
-        'app' => $app,
-        'applicationId' => $applicationId,
-        'paymentSchedule' => $schedule,
-        'completedAt' => $schedule->max('paid_at'),
-        'amountCollected' => $schedule->sum('amount_paid'),
-        'totalInterest' => $totalInterest,
-        'interestRate' => $interestRate,
-        'borrowerPerformance' => $this->computeBorrowerPerformance($applicationId, $schedule),
-        'pendingCount' => $this->getPendingVerificationCount($adminId),
-        'pendingLoanCount' => $this->getPendingLoanCount($adminId),
-    ]);
-}
+        $apps = DB::table('loan_applications as la')
+            ->join('users as u', 'la.user_id', '=', 'u.user_id')
+            ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
+            ->where('la.status', 'active')
+            ->select(
+                'la.application_id', 'la.loan_amount', 'la.loan_term', 'la.loan_purpose',
+                'la.total_amount', 'la.applied_at',
+                'u.user_id', 'u.email',
+                'bpd.detail_id', 'bpd.first_name', 'bpd.last_name'
+            )
+            ->get();
+
+        $defaultedLoans = [];
+        $stats = ['total' => 0, 'total_outstanding' => 0, 'total_penalties' => 0];
+
+        foreach ($apps as $row) {
+            $schedules = DB::table('loan_payment_schedules')
+                ->where('application_id', $row->application_id)
+                ->orderBy('installment_no')
+                ->get();
+
+            $overdueSchedules = $schedules->filter(function ($s) {
+                return is_null($s->paid_at) && \Carbon\Carbon::parse($s->due_date)->isPast();
+            })->sortBy('due_date')->values();
+
+            if ($overdueSchedules->isEmpty()) continue;
+
+            $oldestOverdue = $overdueSchedules->first();
+            $daysLate = \Carbon\Carbon::parse($oldestOverdue->due_date)->diffInDays(now());
+
+            // Only "graduated" defaults belong on this page — anything
+            // less severe still lives on Overdue Payments.
+            if ($daysLate < self::DEFAULT_DAYS_LATE) continue;
+
+            $outstandingAmount = $overdueSchedules->sum(fn($s) => $s->amount_due - $s->amount_paid);
+            $lastPayment = $schedules->whereNotNull('paid_at')->sortByDesc('paid_at')->first();
+
+            $unpaidPenalties = (float) DB::table('loan_penalties')
+                ->where('application_id', $row->application_id)
+                ->where('status', 'unpaid')
+                ->sum('penalty_amount');
+
+            $fullName = trim($row->first_name . ' ' . $row->last_name);
+            $displayName = $fullName !== '' ? $fullName : $row->email;
+            $initials = $fullName !== ''
+                ? strtoupper(substr($row->first_name, 0, 1) . substr($row->last_name, 0, 1))
+                : strtoupper(substr($row->email, 0, 2));
+
+            $defaultedLoans[] = [
+                'application_id'    => $row->application_id,
+                'user_id'           => $row->user_id,
+                'borrower_id'       => 'BRW-' . str_pad($row->user_id, 4, '0', STR_PAD_LEFT),
+                'name'              => $displayName,
+                'initials'          => $initials,
+                'email'             => $row->email,
+                'loan_amount'       => $row->loan_amount,
+                'total_amount'      => $row->total_amount,
+                'applied_at'        => $row->applied_at,
+                'days_late'         => $daysLate,
+                'outstanding_amount'=> $outstandingAmount,
+                'unpaid_penalties'  => $unpaidPenalties,
+                'last_payment_at'   => $lastPayment->paid_at ?? null,
+            ];
+
+            $stats['total']++;
+            $stats['total_outstanding'] += $outstandingAmount;
+            $stats['total_penalties'] += $unpaidPenalties;
+        }
+
+        $defaultedLoans = collect($defaultedLoans)->sortBy(function ($loan) use ($sort) {
+            if ($sort === 'newest') return -strtotime($loan['applied_at']);
+            if ($sort === 'oldest') return strtotime($loan['applied_at']);
+            if ($sort === 'highest_balance') return -$loan['outstanding_amount'];
+            return -$loan['days_late']; // most_late (default)
+        })->values()->all();
+
+        return view('admin.defaulted-loans', [
+            'defaultedLoans'   => $defaultedLoans,
+            'stats'            => $stats,
+            'sort'             => $sort,
+            'defaultDaysLate'  => self::DEFAULT_DAYS_LATE,
+            'pendingCount'     => $this->getPendingVerificationCount($adminId),
+            'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+        ]);
+    }
+
+    public function defaultedLoanDetail(Request $request, $id)
+    {
+        $adminId = Session::get('user_id');
+        $applicationId = (int) $id;
+
+        $app = $this->getLoanApplication($applicationId);
+
+        if (!$app) {
+            return redirect()->route('admin.defaulted-loans');
+        }
+
+        $schedule = $this->getPaymentSchedule($applicationId);
+
+        $overdueSchedules = $schedule->filter(function ($s) {
+            return is_null($s->paid_at) && \Carbon\Carbon::parse($s->due_date)->isPast();
+        })->sortBy('due_date')->values();
+
+        $oldestOverdue = $overdueSchedules->first();
+        $daysLate = $oldestOverdue ? \Carbon\Carbon::parse($oldestOverdue->due_date)->diffInDays(now()) : 0;
+
+        $totalCount = $schedule->count();
+        $paidCount = $schedule->filter(fn($s) => !is_null($s->paid_at))->count();
+        $amountCollected = $schedule->sum('amount_paid');
+        $outstandingAmount = $overdueSchedules->sum(fn($s) => $s->amount_due - $s->amount_paid);
+
+        $unpaidPenalties = (float) DB::table('loan_penalties')
+            ->where('application_id', $applicationId)
+            ->where('status', 'unpaid')
+            ->sum('penalty_amount');
+
+        $lastPayment = $schedule->whereNotNull('paid_at')->sortByDesc('paid_at')->first();
+
+        return view('admin.defaulted-loan-detail', [
+            'app' => $app,
+            'applicationId' => $applicationId,
+            'paymentSchedule' => $schedule,
+            'totalCount' => $totalCount,
+            'paidCount' => $paidCount,
+            'amountCollected' => $amountCollected,
+            'outstandingAmount' => $outstandingAmount,
+            'unpaidPenalties' => $unpaidPenalties,
+            'daysLate' => $daysLate,
+            'lastPaymentAt' => $lastPayment->paid_at ?? null,
+            'defaultDaysLate' => self::DEFAULT_DAYS_LATE,
+            'pendingCount' => $this->getPendingVerificationCount($adminId),
+            'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+        ]);
+    }
+
 private function computeBorrowerPerformance($applicationId, $schedule)
 {
     $totalPayments = $schedule->count();

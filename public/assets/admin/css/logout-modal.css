@@ -124,3 +124,12 @@
     background:#1E40AF !important;
     color:#FFFFFF !important;
 }
+
+.logout-danger-btn{
+    background:#2563EB !important;
+    color:#FFFFFF !important;
+    border:none !important;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}

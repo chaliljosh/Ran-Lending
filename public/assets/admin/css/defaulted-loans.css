@@ -1,0 +1,312 @@
+/* ============================================================
+   defaulted-loans.css
+   Same rs-card / stats-grid-v2 pattern as completed-loans.css,
+   but red/danger accent since this is the "bad news" page.
+============================================================ */
+
+:root {
+    --dl-red: #dc2626;
+    --dl-red-soft: #fef2f2;
+    --dl-red-border: #fecaca;
+}
+
+.dl-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    border-radius: 12px;
+    background: var(--dl-red-soft);
+    border: 1px solid var(--dl-red-border);
+    color: #991b1b;
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+}
+.dl-banner i { color: var(--dl-red); font-size: 1.05rem; flex-shrink: 0; }
+
+.stats-grid-v2 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.rs-card {
+    background: #fff;
+    border: 1px solid #e7eaf0;
+    border-radius: 16px;
+    box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 10px 24px -14px rgba(15,23,42,.12);
+}
+.stat-card-v2 {
+    display: flex; align-items: center; gap: 16px;
+    padding: 22px 24px;
+}
+.stat-icon-v2 {
+    width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 19px;
+}
+.stat-icon-v2.total  { background: var(--dl-red-soft); color: var(--dl-red); }
+.stat-icon-v2.amount { background: #fff7ed; color: #ea580c; }
+.stat-icon-v2.avg    { background: #fef2f2; color: #b91c1c; }
+.stat-label-v2 {
+    font-size: 0.72rem; font-weight: 600; color: #94a3b8;
+    text-transform: uppercase; letter-spacing: .4px; margin-bottom: 4px;
+}
+.stat-value-v2 {
+    font-size: 1.4rem; font-weight: 700; color: #0f172a;
+    font-variant-numeric: tabular-nums;
+}
+
+.filter-bar-v2 { margin-bottom: 20px; }
+.sort-select-v2 {
+    height: 46px; border: 1px solid #e7eaf0; border-radius: 10px;
+    font-size: 0.83rem; font-weight: 500; color: #0f172a;
+    padding: 0 16px; background: #fff;
+}
+
+.rs-table-card { overflow: hidden; }
+.rs-table thead th {
+    background: #fbfcfe; color: #94a3b8;
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .4px; border-bottom: 1px solid #e7eaf0;
+    padding: 14px 20px; white-space: nowrap;
+}
+.rs-table tbody td {
+    padding: 16px 20px; border-bottom: 1px solid #e7eaf0;
+    vertical-align: middle; font-size: 0.85rem;
+}
+.rs-table tbody tr:last-child td { border-bottom: none; }
+.rs-table tbody tr:hover { background: #fafbfd; }
+
+.borrower-cell-v2 { display: flex; align-items: center; gap: 12px; }
+.dl-avatar {
+    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--dl-red), #f87171);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; font-size: 0.78rem;
+}
+.borrower-name-v2 { font-weight: 700; color: #0f172a; font-size: 0.87rem; }
+.borrower-id-v2 { font-size: 0.7rem; color: #4a7cf7; font-weight: 600; margin: 1px 0; }
+.borrower-email-v2 { font-size: 0.76rem; color: #94a3b8; }
+
+.loan-amount-v2 { font-weight: 700; color: #0f172a; font-variant-numeric: tabular-nums; }
+.loan-meta-v2 { color: #475569; }
+
+.dl-outstanding-v2 { font-weight: 700; color: var(--dl-red); font-variant-numeric: tabular-nums; }
+
+.dl-days-pill {
+    display: inline-flex; align-items: center;
+    padding: 4px 12px; border-radius: 20px;
+    background: var(--dl-red-soft); color: var(--dl-red);
+    font-size: 0.74rem; font-weight: 700;
+}
+
+.btn-view-v2 {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 20px;
+    border: 1px solid #e7eaf0; background: #fff;
+    font-size: 0.78rem; font-weight: 600; color: #0f172a;
+    transition: all .15s ease;
+}
+.btn-view-v2:hover { border-color: var(--dl-red); color: var(--dl-red); background: var(--dl-red-soft); }
+
+.empty-state-v2 { text-align: center; padding: 64px 20px; }
+.empty-state-v2 i { font-size: 42px; color: #94a3b8; }
+.empty-state-v2 h6 { margin-top: 14px; font-weight: 700; color: #0f172a; }
+.empty-state-v2 p { color: #94a3b8; font-size: 0.85rem; margin: 0; }
+
+@media (max-width: 767.98px) {
+    .stats-grid-v2 { grid-template-columns: 1fr; }
+}
+
+/* ── Dark mode ── */
+html.app-skin-dark .dl-banner { background: rgba(220,38,38,.1); border-color: rgba(220,38,38,.25); color: #fca5a5; }
+html.app-skin-dark .rs-card { background: #1e2a3a; border-color: #2d3f55; }
+html.app-skin-dark .stat-value-v2,
+html.app-skin-dark .borrower-name-v2,
+html.app-skin-dark .loan-amount-v2,
+html.app-skin-dark .btn-view-v2,
+html.app-skin-dark .empty-state-v2 h6 { color: #e2e8f0; }
+html.app-skin-dark .stat-label-v2,
+html.app-skin-dark .borrower-email-v2,
+html.app-skin-dark .loan-meta-v2,
+html.app-skin-dark .empty-state-v2 p { color: #94a3b8; }
+html.app-skin-dark .sort-select-v2 { background: #16202e; border-color: #2d3f55; color: #e2e8f0; }
+html.app-skin-dark .rs-table thead th { background: #16202e; border-color: #2d3f55; color: #94a3b8; }
+html.app-skin-dark .rs-table tbody td { border-color: #2d3f55; }
+html.app-skin-dark .rs-table tbody tr:hover { background: #16202e; }
+html.app-skin-dark .btn-view-v2 { background: #16202e; border-color: #2d3f55; }
+html.app-skin-dark .dl-days-pill { background: rgba(220,38,38,.15); color: #f87171; }
+
+/* ---------- Stat card subtitle (added below the value) ---------- */
+.stat-sub-v2 { font-size: 0.7rem; color: #94a3b8; margin-top: 3px; }
+
+/* ---------- Filter bar ---------- */
+.dl-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+.dl-search-wrap {
+    flex: 1;
+    min-width: 220px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff;
+    border: 1px solid #e7eaf0;
+    border-radius: 10px;
+    padding: 0 16px;
+}
+.dl-search-wrap i { color: #94a3b8; font-size: 15px; flex-shrink: 0; }
+.dl-search-wrap input {
+    flex: 1; height: 46px; border: none; background: transparent;
+    font-size: 0.86rem;
+}
+.dl-search-wrap input:focus { outline: none; }
+
+.dl-select {
+    height: 46px;
+    border: 1px solid #e7eaf0;
+    border-radius: 10px;
+    font-size: 0.83rem;
+    font-weight: 500;
+    color: #0f172a;
+    padding: 0 16px;
+    background: #fff;
+    flex-shrink: 0;
+}
+.dl-select-sm { height: 34px; padding: 0 10px; font-size: 0.8rem; }
+
+.dl-filters-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 46px;
+    padding: 0 18px;
+    border-radius: 10px;
+    border: 1px solid #4a7cf7;
+    background: #eef3ff;
+    color: #4a7cf7;
+    font-size: 0.83rem;
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all .15s ease;
+}
+.dl-filters-btn:hover { background: #4a7cf7; color: #fff; }
+
+/* ---------- Loan ID link ---------- */
+.dl-loan-id { color: #4a7cf7; font-weight: 700; font-size: 0.83rem; }
+
+/* ---------- Days overdue plain text (not a pill in this design) ---------- */
+.dl-days-text { color: var(--dl-red); font-weight: 700; }
+
+/* ---------- Status pill ---------- */
+.dl-status-pill {
+    display: inline-block;
+    padding: 5px 14px;
+    border-radius: 20px;
+    background: var(--dl-red-soft);
+    color: var(--dl-red);
+    font-size: 0.76rem;
+    font-weight: 700;
+}
+
+/* ---------- Actions cell: View Details + kebab ---------- */
+.dl-actions-cell {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+.dl-kebab-wrap { position: relative; }
+.dl-kebab-btn {
+    width: 34px; height: 34px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 10px;
+    border: 1px solid #e7eaf0;
+    background: #fff;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all .15s ease;
+}
+.dl-kebab-btn:hover { border-color: var(--dl-red); color: var(--dl-red); background: var(--dl-red-soft); }
+.dl-kebab-menu { font-size: 0.85rem; }
+
+/* ---------- Rows-per-page + pagination bar ---------- */
+.dl-pagination-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 16px 20px;
+    border-top: 1px solid #e7eaf0;
+    background: #fbfcfe;
+}
+.dl-rows-per-page {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: #64748b;
+    flex-shrink: 0;
+}
+.dl-pagination-info { font-size: 0.8rem; color: #94a3b8; }
+.dl-pagination-controls { display: flex; align-items: center; gap: 10px; }
+.dl-page-arrow {
+    width: 32px; height: 32px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 8px;
+    border: 1px solid #e7eaf0;
+    background: #fff;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all .15s ease;
+}
+.dl-page-arrow:hover:not(:disabled) { border-color: var(--dl-red); color: var(--dl-red); }
+.dl-page-arrow:disabled { opacity: 0.4; cursor: not-allowed; }
+.dl-page-number {
+    width: 32px; height: 32px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 8px;
+    background: var(--dl-red);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.82rem;
+}
+
+/* ---------- Dark mode additions ---------- */
+html.app-skin-dark .stat-sub-v2 { color: #64748b; }
+html.app-skin-dark .dl-search-wrap,
+html.app-skin-dark .dl-select { background: #16202e; border-color: #2d3f55; color: #e2e8f0; }
+html.app-skin-dark .dl-filters-btn { background: rgba(74,124,247,.15); border-color: #6c9bff; color: #6c9bff; }
+html.app-skin-dark .dl-filters-btn:hover { background: #4a7cf7; color: #fff; }
+html.app-skin-dark .dl-loan-id { color: #6c9bff; }
+html.app-skin-dark .dl-status-pill { background: rgba(220,38,38,.18); color: #f87171; }
+html.app-skin-dark .dl-kebab-btn { background: #1e2a3a; border-color: #2d3f55; color: #94a3b8; }
+html.app-skin-dark .dl-pagination-bar { background: #16202e; border-color: #2d3f55; }
+html.app-skin-dark .dl-rows-per-page,
+html.app-skin-dark .dl-pagination-info { color: #94a3b8; }
+html.app-skin-dark .dl-page-arrow { background: #1e2a3a; border-color: #2d3f55; color: #94a3b8; }
+
+.dl-kebab-wrap { position: relative; }
+.dl-kebab-menu { position: absolute !important; inset: auto 0 auto auto !important; top: 100% !important; }
+
+/* ── Footer sa ibaba ── */
+.nxl-container {
+    min-height: calc(100vh - 80px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+.nxl-content {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+.nxl-content .main-content { flex: 1 !important; }
+.footer { flex-shrink: 0 !important; margin-top: auto !important; }
+

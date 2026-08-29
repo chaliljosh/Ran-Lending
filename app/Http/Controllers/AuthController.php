@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\RateLimiter;
 
 class AuthController extends Controller
 {
-    public function login(Request $request)
+   public function login(Request $request)
 {
     $email    = trim($request->input('email'));
     $password = $request->input('password');
@@ -43,6 +43,7 @@ class AuthController extends Controller
         Session::put('user_name',  $user->name);
         Session::put('user_email', $user->email);
         Session::put('user_role',  $user->role);
+        Session::put('user_profile_picture', $user->profile_picture ?? null); // ADDED
 
         DB::table('users')->where('user_id', $user->user_id)->update([
             'last_login_at' => now(),
@@ -55,7 +56,42 @@ class AuthController extends Controller
         ]);
     }
 
-    // ...OTP flow for borrowers, walang binago dito...
+    // OTP flow for borrowers
+    $otp       = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+    $expiresAt = now()->addMinutes(10);
+
+    DB::table('otp_verifications')->where('email', $email)->where('type', 'login')->delete();
+    DB::table('otp_verifications')->insert([
+        'email'      => $email,
+        'otp'        => $otp,
+        'type'       => 'login',
+        'expires_at' => $expiresAt,
+    ]);
+
+    Session::put('pending_login', [
+        'email'      => $user->email,
+        'user_id'    => $user->user_id,
+        'user_name'  => $user->name,
+        'user_email' => $user->email,
+        'user_role'  => $user->role,
+        'user_profile_picture' => $user->profile_picture ?? null, // ADDED
+    ]);
+
+    Mail::to($email)->send(new \App\Mail\OtpMail($user->name, $otp));
+
+    return response()->json([
+        'success'      => true,
+        'otp_required' => true,
+        'masked_email' => $this->maskEmail($email),
+    ]);
+}
+
+private function maskEmail(string $email): string
+{
+    [$name, $domain] = explode('@', $email);
+    $visible = min(2, strlen($name));
+    $masked  = substr($name, 0, $visible) . str_repeat('*', max(strlen($name) - $visible, 3));
+    return $masked . '@' . $domain;
 }
 
     public function verifyOtp(Request $request)
@@ -90,6 +126,7 @@ class AuthController extends Controller
         Session::put('user_name',  $pending['user_name']);
         Session::put('user_email', $pending['user_email']);
         Session::put('user_role',  $pending['user_role']);
+        Session::put('user_profile_picture', $pending['user_profile_picture'] ?? null); // ADDED
         Session::forget('pending_login');
 
         return response()->json([

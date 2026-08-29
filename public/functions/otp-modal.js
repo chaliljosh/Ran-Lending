@@ -1,42 +1,8 @@
-// public/functions/otp-modal.js
-//
-// Self-contained OTP modal controller. Does NOT know about your backend —
-// you give it two callback functions when you open it, and it calls them
-// for you. This keeps it reusable for both login OTP and register OTP.
-//
-// USAGE:
-//   OtpModal.open({
-//       maskedEmail: 'v**********a@gmail.com',
-//       onVerify: function(code) {
-//           // return a Promise. Resolve on success, reject with an
-//           // Error(message) on failure — the modal shows the message.
-//           return fetch('/api/login/verify-otp', {
-//               method: 'POST',
-//               headers: { 'Content-Type': 'application/json' },
-//               body: JSON.stringify({ email: pendingEmail, otp: code })
-//           })
-//           .then(res => res.json())
-//           .then(data => {
-//               if (!data.success) throw new Error(data.message || 'Invalid code.');
-//               return data; // e.g. { success: true, redirect: '...' }
-//           });
-//       },
-//       onResend: function() {
-//           return fetch('/api/login/resend-otp', {
-//               method: 'POST',
-//               headers: { 'Content-Type': 'application/json' },
-//               body: JSON.stringify({ email: pendingEmail })
-//           }).then(res => res.json());
-//       },
-//       onSuccess: function(data) {
-//           window.location.href = data.redirect;
-//       }
-//   });
 
 const OtpModal = (function () {
     const RESEND_SECONDS = 120;
 
-    let overlay, inputsWrap, inputs, errorEl, verifyBtn, resendWrap, countdownEl, backBtn, maskedEmailEl;
+    let overlay, inputsWrap, inputs, errorEl, verifyBtn, resendWrap, countdownEl, backBtn, maskedEmailEl, trustCheckbox;
     let countdownTimer = null;
     let currentOnVerify = null;
     let currentOnResend = null;
@@ -52,6 +18,7 @@ const OtpModal = (function () {
         countdownEl   = document.getElementById('otpCountdown');
         backBtn       = document.getElementById('otpBackBtn');
         maskedEmailEl = document.getElementById('otpMaskedEmail');
+        trustCheckbox = document.getElementById('otpTrustDevice');
 
         inputs.forEach((input, i) => {
             input.addEventListener('input', () => handleInput(i));
@@ -122,6 +89,7 @@ const OtpModal = (function () {
 
     function handleVerifyClick() {
         const code = getCode();
+        const trustDevice = trustCheckbox ? trustCheckbox.checked : false;
 
         if (code.length !== 6) {
             showError('Please enter the full 6-digit code.');
@@ -131,7 +99,7 @@ const OtpModal = (function () {
         clearError();
         setLoading(true);
 
-        Promise.resolve(currentOnVerify(code))
+        Promise.resolve(currentOnVerify(code, trustDevice))
             .then((data) => {
                 setLoading(false);
                 if (currentOnSuccess) currentOnSuccess(data);
@@ -201,6 +169,7 @@ const OtpModal = (function () {
 
         maskedEmailEl.textContent = options.maskedEmail || '';
         inputs.forEach(inp => { inp.value = ''; inp.classList.remove('is-filled'); });
+        if (trustCheckbox) trustCheckbox.checked = false;
         clearError();
         setLoading(false);
 

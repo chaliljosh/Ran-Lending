@@ -7,16 +7,16 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\BorrowerController;
 
 Route::get('/', function () {
-    return file_get_contents(public_path('landing.html'));
+    return view('landing');
 });
 
 Route::get('/login', function () {
     return file_get_contents(public_path('login.html'));
-})->name('login');
+})->name('login')->middleware('guest');
 
 Route::get('/register', function () {
     return file_get_contents(public_path('register.html'));
-})->name('register');
+})->name('register')->middleware('guest');
 
 Route::get('/forgot-password', function () {
     return file_get_contents(public_path('forgot-password.html'));
@@ -116,4 +116,9 @@ Route::post('/account-settings/profile-picture/remove', [AdminController::class,
     Route::get('/active-loans/completed', [AdminController::class, 'completedLoans'])->name('completed-loans');
     Route::get('/completed-loan-detail/{id}', [AdminController::class, 'completedLoanDetail'])
         ->name('completed-loan-detail');
+
+        // Active Loans > Defaulted
+Route::get('/active-loans/defaulted', [AdminController::class, 'defaultedLoans'])->name('defaulted-loans');
+Route::get('/defaulted-loan-detail/{id}', [AdminController::class, 'defaultedLoanDetail'])
+    ->name('defaulted-loan-detail');
 });

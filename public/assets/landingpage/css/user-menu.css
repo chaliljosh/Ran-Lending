@@ -1,0 +1,106 @@
+.landing-user-menu{
+    position:relative;
+}
+
+.landing-user-trigger{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:transparent;
+    border:1px solid rgba(255,255,255,.3);
+    padding:6px 14px 6px 6px;
+    border-radius:30px;
+    cursor:pointer;
+    color:#fff;
+}
+
+.landing-user-avatar,
+.landing-user-avatar-lg{
+    background:#e02b3d;
+    color:#fff;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+}
+
+.landing-user-avatar{
+    width:30px;
+    height:30px;
+    font-size:13px;
+}
+
+.landing-user-avatar-lg{
+    width:42px;
+    height:42px;
+    font-size:16px;
+}
+
+.landing-user-name{
+    color:#fff;
+    font-weight:600;
+    font-size:14px;
+}
+
+.landing-user-dropdown{
+    display:none;
+    position:absolute;
+    right:0;
+    top:calc(100% + 10px);
+    width:260px;
+    background:#fff;
+    border-radius:12px;
+    box-shadow:0 15px 35px rgba(0,0,0,.15);
+    padding:10px;
+    z-index:1000;
+}
+
+.landing-user-dropdown.is-open{
+    display:block;
+}
+
+.landing-user-dropdown-head{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:8px 10px 12px;
+}
+
+.landing-user-dd-name{
+    font-weight:700;
+    color:#1E293B;
+    font-size:14px;
+}
+
+.landing-user-dd-email{
+    font-size:12px;
+    color:#64748B;
+}
+
+.landing-user-dropdown-divider{
+    height:1px;
+    background:#E5E7EB;
+    margin:4px 0;
+}
+
+.landing-user-dd-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:9px 10px;
+    border-radius:8px;
+    color:#334155;
+    font-size:14px;
+    text-decoration:none;
+}
+
+.landing-user-dd-item:hover{
+    background:#F1F5F9;
+    color:#1E293B;
+}
+
+.landing-user-dd-item.text-danger:hover{
+    background:#FEF2F2;
+    color:#DC2626;
+}

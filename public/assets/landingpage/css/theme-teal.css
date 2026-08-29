@@ -1,0 +1,422 @@
+/* ============================================================
+   RAN SERENITY — LIGHT TEAL / FINTECH THEME OVERRIDE
+   ------------------------------------------------------------
+   Layout ay HINDI ginalaw — pure color-token replacement lang.
+   Load HULI, pagkatapos ng main.css, section.css, at user-menu.css.
+   (Kung theme-warm.css ang dati mong ginamit, PALITAN ang <link>
+   nito ng theme-teal.css — huwag isabay pareho, mag-aaway sila.)
+   ============================================================ */
+
+:root {
+  --rs-bg:        #F2FBFB;   /* very light blue/cyan - main page bg */
+  --rs-white:     #FFFFFF;   /* white sections/cards */
+  --rs-navy:      #17233D;   /* deep navy - headings */
+  --rs-slate:     #52627A;   /* muted blue-gray - secondary text */
+  --rs-teal:      #159A9C;   /* primary accent - buttons, links, icons */
+  --rs-teal-dark: #117D7F;   /* teal hover state */
+  --rs-teal-tint: #DDF3F3;   /* light teal bg - highlights, pills */
+  --rs-border:    #DCE5E8;   /* borders/dividers */
+  --rs-danger:    #DC3545;   /* red - warnings/errors/critical ONLY */
+}
+
+/* ============================================================
+   HEADER — white bg, navy text, teal hover/active
+   ============================================================ */
+#header {
+  background: var(--rs-white) !important;
+  backdrop-filter: none;
+  border-bottom: 1px solid var(--rs-border);
+  box-shadow: 0 1px 10px rgba(23, 35, 61, 0.04);
+}
+#header .sitename,
+#header .logo h1 {
+  color: var(--rs-navy) !important;
+}
+#navmenu ul li a {
+  color: var(--rs-navy) !important;
+}
+#navmenu ul li a:hover,
+#navmenu ul li a.active {
+  color: var(--rs-teal) !important;
+}
+#header .cta-btn {
+  background: var(--rs-teal) !important;
+  color: #fff !important;
+  border-radius: 8px;
+}
+#header .cta-btn:hover {
+  background: var(--rs-teal-dark) !important;
+}
+.mobile-nav-toggle {
+  color: var(--rs-navy) !important;
+}
+
+/* ============================================================
+   HERO SECTION — very light cyan bg
+   ============================================================ */
+#hero {
+  background: var(--rs-bg) !important;
+}
+
+.hero-badge {
+  background: var(--rs-teal-tint) !important;
+  color: var(--rs-teal) !important;
+}
+
+.hero-text h1 {
+  color: var(--rs-navy) !important;
+}
+.hero-text h1 .red {
+  color: var(--rs-teal) !important;
+}
+
+.hero-text > p {
+  color: var(--rs-slate) !important;
+}
+
+.hero-stats h4 {
+  color: var(--rs-navy) !important;
+}
+.hero-stats p {
+  color: var(--rs-slate) !important;
+}
+
+/* --- Calculator card: white, subtle border/shadow --- */
+.calc-card {
+  background: var(--rs-white) !important;
+  border: 1px solid var(--rs-border);
+  box-shadow: 0 4px 20px rgba(23, 35, 61, 0.06) !important;
+  border-radius: 14px;
+}
+.calc-card h3 {
+  color: var(--rs-teal) !important;
+}
+.calc-card .calc-subtitle {
+  color: var(--rs-slate) !important;
+}
+
+.calc-row .calc-label,
+.calc-row .calc-value {
+  color: var(--rs-navy) !important;
+}
+.calc-row .calc-value .unit {
+  color: var(--rs-slate) !important;
+}
+
+/* Slider track & thumb */
+.calc-row input[type="range"] {
+  background: var(--rs-teal-tint) !important;
+}
+.calc-row input[type="range"]::-webkit-slider-thumb {
+  background: var(--rs-teal) !important;
+}
+.calc-row input[type="range"]::-moz-range-thumb {
+  background: var(--rs-teal) !important;
+}
+
+.slider-labels {
+  color: var(--rs-slate) !important;
+}
+
+/* Term pills */
+.term-pills button {
+  border-color: var(--rs-border) !important;
+  background: var(--rs-white) !important;
+  color: var(--rs-slate) !important;
+  border-radius: 8px;
+}
+.term-pills button:hover {
+  border-color: var(--rs-teal) !important;
+  color: var(--rs-teal) !important;
+}
+.term-pills button.active {
+  background: var(--rs-teal) !important;
+  border-color: var(--rs-teal) !important;
+  color: #fff !important;
+}
+
+/* Summary box */
+.calc-summary {
+  background: var(--rs-teal-tint) !important;
+  border-radius: 10px;
+}
+.calc-summary .sum-label {
+  color: var(--rs-navy) !important;
+}
+.calc-summary .sum-label small {
+  color: var(--rs-slate) !important;
+}
+.calc-summary .sum-amount {
+  color: var(--rs-navy) !important;
+}
+
+/* CTA button */
+.calc-cta {
+  background: var(--rs-teal) !important;
+  color: #fff !important;
+  border-radius: 10px;
+}
+.calc-cta:hover {
+  background: var(--rs-teal-dark) !important;
+}
+
+/* ============================================================
+   ABOUT SECTION — white
+   ============================================================ */
+#about {
+  background: var(--rs-white) !important;
+}
+#about h3 {
+  color: var(--rs-navy) !important;
+}
+#about p {
+  color: var(--rs-slate) !important;
+}
+#about ul li {
+  color: var(--rs-slate) !important;
+}
+#about ul li i {
+  color: var(--rs-teal) !important;
+}
+#about .pulsating-play-btn {
+  background: var(--rs-teal) !important;
+}
+
+/* ============================================================
+   TERMS / FEATURES SECTION — light cyan bg
+   ============================================================ */
+#features {
+  background: var(--rs-bg) !important;
+}
+#features .section-title h2 {
+  color: var(--rs-navy) !important;
+}
+#features .section-title p {
+  color: var(--rs-teal) !important;
+}
+
+#features .nav-tabs .nav-link {
+  color: var(--rs-navy) !important;
+  background: var(--rs-white) !important;
+  border: 1px solid var(--rs-border) !important;
+  border-radius: 8px 8px 0 0;
+}
+#features .nav-tabs .nav-link i,
+#features .nav-tabs .nav-link h4 {
+  color: var(--rs-navy) !important;
+}
+
+#features .nav-tabs .nav-link:hover,
+#features .nav-tabs .nav-link.active {
+  background: var(--rs-teal) !important;
+  border-color: var(--rs-teal) !important;
+  color: #fff !important;
+}
+#features .nav-tabs .nav-link:hover i,
+#features .nav-tabs .nav-link.active i,
+#features .nav-tabs .nav-link:hover h4,
+#features .nav-tabs .nav-link.active h4 {
+  color: #fff !important;
+}
+
+#features .tab-content h3 {
+  color: var(--rs-navy) !important;
+}
+#features .tab-content p,
+#features .tab-content ul li {
+  color: var(--rs-slate) !important;
+}
+#features .tab-content ul li i {
+  color: var(--rs-teal) !important;
+}
+
+/* ============================================================
+   PROCESS SECTION (How It Works) — white
+   ============================================================ */
+#services-2 {
+  background: var(--rs-white) !important;
+}
+#services-2 .section-title h2 {
+  color: var(--rs-navy) !important;
+}
+#services-2 .section-title p {
+  color: var(--rs-teal) !important;
+}
+#services-2 .service-item {
+  border: 1px solid var(--rs-border);
+  box-shadow: none;
+  border-radius: 10px;
+  transition: 0.25s;
+}
+#services-2 .service-item:hover {
+  border-color: var(--rs-teal);
+  box-shadow: 0 4px 16px rgba(21, 154, 156, 0.10);
+}
+#services-2 .service-item .icon {
+  color: var(--rs-teal) !important;
+}
+#services-2 .service-item h4 {
+  color: var(--rs-navy) !important;
+}
+#services-2 .service-item h4 a {
+  color: var(--rs-navy) !important;
+}
+#services-2 .service-item h4 a:hover {
+  color: var(--rs-teal) !important;
+}
+#services-2 .service-item p {
+  color: var(--rs-slate) !important;
+}
+
+/* ============================================================
+   CONTACT SECTION — light cyan bg
+   ============================================================ */
+#contact {
+  background: var(--rs-bg) !important;
+}
+#contact .section-title h2 {
+  color: var(--rs-navy) !important;
+}
+#contact .section-title p {
+  color: var(--rs-teal) !important;
+}
+#contact .info-item {
+  background: var(--rs-white) !important;
+  border: 1px solid var(--rs-border);
+  box-shadow: none !important;
+  border-radius: 10px;
+}
+#contact .info-item i {
+  color: var(--rs-teal) !important;
+}
+#contact .info-item h3 {
+  color: var(--rs-navy) !important;
+}
+#contact .info-item p {
+  color: var(--rs-slate) !important;
+}
+#contact .form-control {
+  border: 1px solid var(--rs-border) !important;
+  background: var(--rs-white) !important;
+  color: var(--rs-navy) !important;
+  border-radius: 8px;
+}
+#contact .form-control:focus {
+  border-color: var(--rs-teal) !important;
+  box-shadow: 0 0 0 3px rgba(21, 154, 156, 0.15) !important;
+}
+#contact button[type="submit"] {
+  background: var(--rs-teal) !important;
+  color: #fff !important;
+  border-radius: 8px;
+}
+#contact button[type="submit"]:hover {
+  background: var(--rs-teal-dark) !important;
+}
+
+/* ============================================================
+   FOOTER — nananatiling deep navy para may visual anchor sa
+   dulo ng page (hindi apektado ng light theme sa itaas)
+   ============================================================ */
+#footer {
+  background: var(--rs-navy) !important;
+  color: #B9C2D0;
+}
+#footer .sitename {
+  color: #fff !important;
+}
+#footer .footer-contact p {
+  color: #B9C2D0;
+}
+#footer .footer-contact strong {
+  color: #fff;
+}
+#footer .social-links a {
+  color: rgba(255,255,255,0.6);
+  border-color: rgba(255,255,255,0.15);
+}
+#footer .social-links a:hover {
+  background: var(--rs-teal) !important;
+  border-color: var(--rs-teal) !important;
+  color: #fff !important;
+}
+#footer .footer-links h4 {
+  color: #fff;
+}
+#footer .footer-links ul li a {
+  color: #B9C2D0;
+}
+#footer .footer-links ul li a:hover {
+  color: var(--rs-teal) !important;
+}
+#footer .footer-links ul li i {
+  color: var(--rs-teal) !important;
+}
+#footer .copyright p {
+  color: #8894A6;
+}
+#footer .copyright .sitename {
+  color: var(--rs-teal) !important;
+}
+
+/* ============================================================
+   SCROLL-TO-TOP
+   ============================================================ */
+#scroll-top {
+  background: var(--rs-teal) !important;
+  border-radius: 8px;
+}
+#scroll-top:hover {
+  background: var(--rs-teal-dark) !important;
+}
+
+/* ============================================================
+   PRELOADER
+   ============================================================ */
+#preloader {
+  background: var(--rs-bg) !important;
+}
+#preloader:before {
+  border-color: var(--rs-teal) transparent var(--rs-teal) transparent !important;
+}
+
+/* ============================================================
+   LOGGED-IN USER MENU (landing navbar)
+   ============================================================ */
+.landing-user-trigger {
+  border: 1px solid var(--rs-border) !important;
+  color: var(--rs-navy) !important;
+}
+.landing-user-avatar,
+.landing-user-avatar-lg {
+  background: var(--rs-teal) !important;
+  color: #fff !important;
+}
+.landing-user-name {
+  color: var(--rs-navy) !important;
+}
+.landing-user-dropdown {
+  background: var(--rs-white) !important;
+  border: 1px solid var(--rs-border);
+  box-shadow: 0 12px 30px rgba(23, 35, 61, 0.10) !important;
+}
+.landing-user-dd-name {
+  color: var(--rs-navy) !important;
+}
+.landing-user-dd-email {
+  color: var(--rs-slate) !important;
+}
+.landing-user-dropdown-divider {
+  background: var(--rs-border) !important;
+}
+.landing-user-dd-item {
+  color: var(--rs-navy) !important;
+}
+.landing-user-dd-item:hover {
+  background: var(--rs-teal-tint) !important;
+  color: var(--rs-navy) !important;
+}
+.landing-user-dd-item.text-danger:hover {
+  background: #FDECEC !important;
+  color: var(--rs-danger) !important;
+}

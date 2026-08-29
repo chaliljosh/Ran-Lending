@@ -94,6 +94,7 @@
                             <th>Overdue Installments</th>
                             <th>Days Late</th>
                             <th>Amount Overdue</th>
+                            <th>Status</th>
                             <th class="text-end">Actions</th>
                         </tr>
                     </thead>
@@ -120,11 +121,15 @@
                                 </span>
                             </td>
                             <td class="overdue-amount-v2">₱{{ number_format($loan['overdue_amount'], 2) }}</td>
+                            <td>
+    @if($loan['is_defaulted'])
+        <span class="dl-status-pill">Defaulted</span>
+    @else
+        <span class="ov-status-pill">Overdue</span>
+    @endif
+</td>
                             <td class="text-end">
-                                {{-- Points to the new, focused overdue-payment-detail page
-                                     (borrower card + overview + Loan Summary + Payment
-                                     Schedule only) instead of the full loan-application-detail
-                                     page, so that page's approve/reject flow stays untouched. --}}
+                        
                                 <a href="{{ route('admin.overdue-payment-detail', $loan['application_id']) }}" class="btn-view-v2">
                                     <i class="feather-eye"></i> View Details
                                 </a>

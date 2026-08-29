@@ -1,0 +1,425 @@
+/* ============================================================
+   RAN SERENITY — WARM IVORY THEME OVERRIDE
+   ------------------------------------------------------------
+   Layout ay HINDI ginalaw — pure color-token replacement lang.
+   Load HULI, pagkatapos ng main.css, section.css, at user-menu.css.
+
+   Dating palette: #1a1a2e (navy) na malaking bahagi ng bg,
+                   #dc3545 (red) bilang accent
+   Bagong palette: warm ivory/cream bg, navy text/headings,
+                   red pa rin bilang LIMITED accent (CTA, active
+                   states, small icons lang)
+   ============================================================ */
+
+:root {
+  --rs-ivory:     #F8F5EA;   /* warm ivory - main light bg */
+  --rs-offwhite:  #FFFDF8;   /* off-white - cards */
+  --rs-navy:      #17233F;   /* deep navy - headings/text */
+  --rs-navy-soft: #1F2B47;   /* konting mas maliwanag na navy - footer surface */
+  --rs-slate:     #66748A;   /* muted slate - secondary text */
+  --rs-beige:     #F3EBD5;   /* warm beige - subtle accent bg */
+  --rs-red:       #E63946;   /* red accent (dating #dc3545) */
+  --rs-red-dark:  #C92A38;   /* red hover (dating #c82333) */
+  --rs-border:    #E8E0CC;   /* soft border, mas mahina kesa beige */
+}
+
+/* ============================================================
+   HEADER — dating dark transparent+blur overlay -> warm off-white
+   ============================================================ */
+#header {
+  background: var(--rs-offwhite) !important;
+  backdrop-filter: none;
+  border-bottom: 1px solid var(--rs-border);
+  box-shadow: 0 1px 12px rgba(23, 35, 63, 0.05);
+}
+#header .sitename,
+#header .logo h1 {
+  color: var(--rs-navy) !important;
+}
+#navmenu ul li a {
+  color: var(--rs-navy) !important;
+}
+#navmenu ul li a:hover,
+#navmenu ul li a.active {
+  color: var(--rs-red) !important;
+}
+#header .cta-btn {
+  background: var(--rs-red) !important;
+  color: #fff !important;
+}
+#header .cta-btn:hover {
+  background: var(--rs-red-dark) !important;
+}
+.mobile-nav-toggle {
+  color: var(--rs-navy) !important;
+}
+
+/* ============================================================
+   HERO SECTION — dating navy gradient -> warm ivory
+   ============================================================ */
+#hero {
+  background: var(--rs-ivory) !important;
+}
+
+.hero-badge {
+  background: var(--rs-beige) !important;
+  color: var(--rs-navy) !important;
+}
+
+.hero-text h1 {
+  color: var(--rs-navy) !important;
+}
+.hero-text h1 .red {
+  color: var(--rs-red) !important;
+}
+
+.hero-text > p {
+  color: var(--rs-slate) !important;
+}
+
+.hero-stats h4 {
+  color: var(--rs-navy) !important;
+}
+.hero-stats p {
+  color: var(--rs-slate) !important;
+}
+
+/* --- Calculator card --- */
+.calc-card {
+  background: var(--rs-offwhite) !important;
+  border: 1px solid var(--rs-border);
+  box-shadow: 0 8px 30px rgba(23, 35, 63, 0.08) !important;
+}
+.calc-card h3 {
+  color: var(--rs-red) !important;
+}
+.calc-card .calc-subtitle {
+  color: var(--rs-slate) !important;
+}
+
+.calc-row .calc-label,
+.calc-row .calc-value {
+  color: var(--rs-navy) !important;
+}
+.calc-row .calc-value .unit {
+  color: var(--rs-slate) !important;
+}
+
+/* Slider track & thumb */
+.calc-row input[type="range"] {
+  background: var(--rs-beige) !important;
+}
+.calc-row input[type="range"]::-webkit-slider-thumb {
+  background: var(--rs-navy) !important;
+}
+.calc-row input[type="range"]::-moz-range-thumb {
+  background: var(--rs-navy) !important;
+}
+
+.slider-labels {
+  color: var(--rs-slate) !important;
+}
+
+/* Term pills */
+.term-pills button {
+  border-color: var(--rs-border) !important;
+  background: var(--rs-ivory) !important;
+  color: var(--rs-slate) !important;
+}
+.term-pills button:hover {
+  border-color: var(--rs-red) !important;
+  color: var(--rs-red) !important;
+}
+.term-pills button.active {
+  background: var(--rs-red) !important;
+  border-color: var(--rs-red) !important;
+  color: #fff !important;
+}
+
+/* Summary box */
+.calc-summary {
+  background: var(--rs-beige) !important;
+}
+.calc-summary .sum-label {
+  color: var(--rs-navy) !important;
+}
+.calc-summary .sum-label small {
+  color: var(--rs-slate) !important;
+}
+.calc-summary .sum-amount {
+  color: var(--rs-navy) !important;
+}
+
+/* CTA button */
+.calc-cta {
+  background: var(--rs-red) !important;
+  color: #fff !important;
+}
+.calc-cta:hover {
+  background: var(--rs-red-dark) !important;
+}
+
+/* ============================================================
+   ABOUT SECTION
+   ============================================================ */
+#about {
+  background: var(--rs-offwhite) !important;
+}
+#about h3 {
+  color: var(--rs-navy) !important;
+}
+#about p {
+  color: var(--rs-slate) !important;
+}
+#about ul li {
+  color: var(--rs-slate) !important;
+}
+#about ul li i {
+  color: var(--rs-red) !important;
+}
+#about .pulsating-play-btn {
+  background: var(--rs-red) !important;
+}
+
+/* ============================================================
+   TERMS / FEATURES SECTION
+   ============================================================ */
+#features {
+  background: var(--rs-ivory) !important;
+}
+#features .section-title h2 {
+  color: var(--rs-navy) !important;
+}
+#features .section-title p {
+  color: var(--rs-red) !important;
+}
+
+#features .nav-tabs .nav-link {
+  color: var(--rs-navy) !important;
+  background: var(--rs-offwhite) !important;
+  border: 1px solid var(--rs-border) !important;
+}
+#features .nav-tabs .nav-link i,
+#features .nav-tabs .nav-link h4 {
+  color: var(--rs-navy) !important;
+}
+
+/* Active/hover tab — dating solid red bg. Ngayon navy ang bg
+   (mas malaki ang area kesa red pill), red na lang yung icon,
+   para hindi masyadong dominante ang red sa large surface. */
+#features .nav-tabs .nav-link:hover,
+#features .nav-tabs .nav-link.active {
+  background: var(--rs-navy) !important;
+  border-color: var(--rs-navy) !important;
+  color: #fff !important;
+}
+#features .nav-tabs .nav-link:hover i,
+#features .nav-tabs .nav-link.active i {
+  color: var(--rs-red) !important;
+}
+#features .nav-tabs .nav-link:hover h4,
+#features .nav-tabs .nav-link.active h4 {
+  color: #fff !important;
+}
+
+#features .tab-content h3 {
+  color: var(--rs-navy) !important;
+}
+#features .tab-content p,
+#features .tab-content ul li {
+  color: var(--rs-slate) !important;
+}
+#features .tab-content ul li i {
+  color: var(--rs-red) !important;
+}
+
+/* ============================================================
+   PROCESS SECTION (How It Works)
+   ============================================================ */
+#services-2 {
+  background: var(--rs-offwhite) !important;
+}
+#services-2 .section-title h2 {
+  color: var(--rs-navy) !important;
+}
+#services-2 .section-title p {
+  color: var(--rs-red) !important;
+}
+#services-2 .service-item {
+  border: 1px solid var(--rs-border);
+  box-shadow: 0 2px 14px rgba(23, 35, 63, 0.04);
+  transition: 0.3s;
+}
+#services-2 .service-item:hover {
+  border-color: var(--rs-red);
+  box-shadow: 0 8px 24px rgba(23, 35, 63, 0.10);
+}
+#services-2 .service-item .icon {
+  color: var(--rs-red) !important;
+}
+#services-2 .service-item h4 {
+  color: var(--rs-navy) !important;
+}
+#services-2 .service-item h4 a {
+  color: var(--rs-navy) !important;
+}
+#services-2 .service-item h4 a:hover {
+  color: var(--rs-red) !important;
+}
+#services-2 .service-item p {
+  color: var(--rs-slate) !important;
+}
+
+/* ============================================================
+   CONTACT SECTION
+   ============================================================ */
+#contact {
+  background: var(--rs-ivory) !important;
+}
+#contact .section-title h2 {
+  color: var(--rs-navy) !important;
+}
+#contact .section-title p {
+  color: var(--rs-red) !important;
+}
+#contact .info-item {
+  background: var(--rs-offwhite) !important;
+  border: 1px solid var(--rs-border);
+  box-shadow: 0 2px 14px rgba(23, 35, 63, 0.05) !important;
+}
+#contact .info-item i {
+  color: var(--rs-red) !important;
+}
+#contact .info-item h3 {
+  color: var(--rs-navy) !important;
+}
+#contact .info-item p {
+  color: var(--rs-slate) !important;
+}
+#contact .form-control {
+  border: 1px solid var(--rs-border) !important;
+  background: var(--rs-offwhite) !important;
+  color: var(--rs-navy) !important;
+}
+#contact .form-control:focus {
+  border-color: var(--rs-red) !important;
+  box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.15) !important;
+}
+#contact button[type="submit"] {
+  background: var(--rs-red) !important;
+  color: #fff !important;
+}
+#contact button[type="submit"]:hover {
+  background: var(--rs-red-dark) !important;
+}
+
+/* ============================================================
+   FOOTER — nananatiling navy (hindi ivory) para may visual
+   anchor sa dulo ng page, consistent sa admin dashboard
+   ============================================================ */
+#footer {
+  background: var(--rs-navy) !important;
+  color: #C7CEDB;
+}
+#footer .sitename {
+  color: #fff !important;
+}
+#footer .footer-contact p {
+  color: #C7CEDB;
+}
+#footer .footer-contact strong {
+  color: #fff;
+}
+#footer .social-links a {
+  color: rgba(255,255,255,0.6);
+  border-color: rgba(255,255,255,0.15);
+}
+#footer .social-links a:hover {
+  background: var(--rs-red) !important;
+  border-color: var(--rs-red) !important;
+  color: #fff !important;
+}
+#footer .footer-links h4 {
+  color: #fff;
+}
+#footer .footer-links ul li a {
+  color: #C7CEDB;
+}
+#footer .footer-links ul li a:hover {
+  color: var(--rs-red) !important;
+}
+#footer .footer-links ul li i {
+  color: var(--rs-red) !important;
+}
+#footer .copyright p {
+  color: #8E97AB;
+}
+#footer .copyright .sitename {
+  color: var(--rs-red) !important;
+}
+
+/* ============================================================
+   SCROLL-TO-TOP
+   ============================================================ */
+#scroll-top {
+  background: var(--rs-red) !important;
+}
+#scroll-top:hover {
+  background: var(--rs-red-dark) !important;
+}
+
+/* ============================================================
+   PRELOADER (galing sa main.css, hindi sa section.css, pero
+   idagdag pa rin dito para consistent yung theme habang naglo-load)
+   ============================================================ */
+#preloader {
+  background: var(--rs-ivory) !important;
+}
+#preloader:before {
+  border-color: var(--rs-red) transparent var(--rs-red) transparent !important;
+}
+
+/* ============================================================
+   LOGGED-IN USER MENU (landing navbar)
+   ------------------------------------------------------------
+   Nasa section.css ang mismong markup/behavior nito (naka-light
+   trigger dahil naka-dark na header dati). Ngayon light na rin
+   ang header, kaya kailangan din i-adjust yung trigger border
+   at text para makita pa rin sa ibabaw ng ivory header.
+   ============================================================ */
+.landing-user-trigger {
+  border: 1px solid var(--rs-border) !important;
+  color: var(--rs-navy) !important;
+}
+.landing-user-avatar,
+.landing-user-avatar-lg {
+  background: var(--rs-navy) !important;
+  color: #fff !important;
+}
+.landing-user-name {
+  color: var(--rs-navy) !important;
+}
+.landing-user-dropdown {
+  background: var(--rs-offwhite) !important;
+  box-shadow: 0 15px 35px rgba(23, 35, 63, 0.12) !important;
+}
+.landing-user-dd-name {
+  color: var(--rs-navy) !important;
+}
+.landing-user-dd-email {
+  color: var(--rs-slate) !important;
+}
+.landing-user-dropdown-divider {
+  background: var(--rs-border) !important;
+}
+.landing-user-dd-item {
+  color: var(--rs-navy) !important;
+}
+.landing-user-dd-item:hover {
+  background: var(--rs-beige) !important;
+  color: var(--rs-navy) !important;
+}
+.landing-user-dd-item.text-danger:hover {
+  background: #FDECEC !important;
+  color: var(--rs-red-dark) !important;
+}

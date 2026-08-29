@@ -69,7 +69,9 @@ function confirmLogout() {
 function performLogout() {
     const btn = document.getElementById('logoutConfirmBtn');
     btn.disabled = true;
-    btn.innerHTML = '<i class="feather-loader me-1"></i> Logging out...';
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+
+     SessionSync.broadcastLogout();
 
     fetch('/api/logout', {
         method: 'POST',
@@ -79,13 +81,9 @@ function performLogout() {
         },
     })
     .then(() => {
-        // Same end result as the old logout.php — session cleared server-side,
-        // now just send the browser back to the login page.
         window.location.href = '/login';
     })
     .catch(() => {
-        // Even if the request itself failed to complete, still redirect —
-        // mirrors the old script's "always exit to login" behavior.
         window.location.href = '/login';
     });
 }
