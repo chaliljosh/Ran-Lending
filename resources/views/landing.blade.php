@@ -93,15 +93,16 @@
               <a href="{{ route('admin.dashboard', ['open' => 'settings']) }}" class="landing-user-dd-item">
                 <i class="bi bi-gear"></i> Account Settings
               </a>
-            @else
-              {{-- BORROWER: My Profile pa rin, tulad ng dati --}}
-              <a href="{{ route('borrower.profile') }}" class="landing-user-dd-item">
-                <i class="bi bi-person"></i> My Profile
-              </a>
-              <a href="{{ route('borrower.dashboard') }}" class="landing-user-dd-item">
-                <i class="bi bi-gear"></i> Account Settings
-              </a>
-            @endif
+          @else
+  {{-- BORROWER: Dashboard, My Profile, tapos Account Settings --}}
+  <a href="{{ route('borrower.dashboard') }}" class="landing-user-dd-item">
+    <i class="bi bi-speedometer2"></i> Dashboard
+  </a>
+  <a href="{{ route('borrower.profile') }}" class="landing-user-dd-item">
+    <i class="bi bi-person"></i> My Profile
+  </a>
+  
+@endif
 
             <div class="landing-user-dropdown-divider"></div>
             <a href="javascript:void(0);" class="landing-user-dd-item text-danger" id="landingLogoutBtn">

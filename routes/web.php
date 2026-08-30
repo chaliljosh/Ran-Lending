@@ -7,16 +7,16 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\BorrowerController;
 
 Route::get('/', function () {
-    return view('landing');
+    return file_get_contents(public_path('landing.html'));
 });
 
 Route::get('/login', function () {
     return file_get_contents(public_path('login.html'));
-})->name('login')->middleware('guest');
+})->name('login');
 
 Route::get('/register', function () {
     return file_get_contents(public_path('register.html'));
-})->name('register')->middleware('guest');
+})->name('register');
 
 Route::get('/forgot-password', function () {
     return file_get_contents(public_path('forgot-password.html'));
@@ -35,7 +35,7 @@ Route::post('/api/forgot-password/send-otp', [ForgotPasswordController::class, '
 Route::post('/api/forgot-password/reset',    [ForgotPasswordController::class, 'reset'])->middleware('throttle:5,10');
 
 // Borrower pages — Blade, protected by 'borrower' middleware
-Route::middleware('borrower')->group(function () {
+Route::middleware(['borrower', 'no-cache'])->group(function () {
     Route::get('/borrower/dashboard', [BorrowerController::class, 'dashboard'])->name('borrower.dashboard');
     Route::get('/borrower/personal-details', [BorrowerController::class, 'personalDetails'])->name('borrower.personal-details');
     Route::get('/borrower/apply-loan', [BorrowerController::class, 'applyLoan'])->name('borrower.apply-loan');
@@ -45,7 +45,7 @@ Route::middleware('borrower')->group(function () {
 });
 
 // Borrower API — save actions, protected by 'borrower' middleware
-Route::middleware('borrower')->prefix('api/borrower')->group(function () {
+Route::middleware(['borrower', 'no-cache'])->prefix('api/borrower')->group(function () {
     Route::post('/personal-details', [BorrowerController::class, 'savePersonalDetails']);
     Route::post('/apply-loan', [BorrowerController::class, 'submitLoanApplication']);
     Route::post('/profile/update-section', [BorrowerController::class, 'updateProfileSection']);
@@ -54,7 +54,7 @@ Route::middleware('borrower')->prefix('api/borrower')->group(function () {
 
 // Admin pages
 
-Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['admin', 'no-cache'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
 
     // Notifications (header bell dropdown)
@@ -117,8 +117,10 @@ Route::post('/account-settings/profile-picture/remove', [AdminController::class,
     Route::get('/completed-loan-detail/{id}', [AdminController::class, 'completedLoanDetail'])
         ->name('completed-loan-detail');
 
-        // Active Loans > Defaulted
-Route::get('/active-loans/defaulted', [AdminController::class, 'defaultedLoans'])->name('defaulted-loans');
-Route::get('/defaulted-loan-detail/{id}', [AdminController::class, 'defaultedLoanDetail'])
-    ->name('defaulted-loan-detail');
+    // Active Loans > Defaulted
+    // A loan is "defaulted" once its oldest unpaid installment has been
+    // overdue for 90+ days (see AdminController::DEFAULT_DAYS_LATE).
+    Route::get('/active-loans/defaulted', [AdminController::class, 'defaultedLoans'])->name('defaulted-loans');
+    Route::get('/defaulted-loan-detail/{id}', [AdminController::class, 'defaultedLoanDetail'])
+        ->name('defaulted-loan-detail');
 });

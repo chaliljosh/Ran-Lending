@@ -64,8 +64,8 @@ class Kernel extends HttpKernel
         'signed' => \App\Http\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-         'borrower' => \App\Http\Middleware\EnsureBorrower::class,
-          'borrower' => \App\Http\Middleware\EnsureBorrower::class,
-    'admin' => \App\Http\Middleware\EnsureAdmin::class,
+        'borrower' => \App\Http\Middleware\EnsureBorrower::class,
+        'admin' => \App\Http\Middleware\EnsureAdmin::class,
+        'no-cache' => \App\Http\Middleware\PreventBackHistoryCache::class,
     ];
 }

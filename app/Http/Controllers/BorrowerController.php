@@ -13,6 +13,7 @@ class BorrowerController extends Controller
     // Shared helper — kinukuha ang common data na kailangan ng nav sa lahat ng borrower pages
     private function commonData($userId)
     {
+        $user = DB::table('users')->where('user_id', $userId)->first();
         $details = DB::table('borrowerpersonaldetails')->where('user_id', $userId)->first();
         $detailsStatus = $details->status ?? 'incomplete';
 
@@ -39,7 +40,33 @@ class BorrowerController extends Controller
         }
         $initials = substr($initials, 0, 2);
 
-        return compact('details', 'detailsStatus', 'approvedCount', 'isFullyApproved', 'userName', 'initials');
+        // Profile picture — shared column on `users` (same one the admin
+        // side already uses). Needed by borrower.layout on every page
+        // for the header dropdown avatar.
+        $profilePicture = $this->getProfilePictureUrl($userId);
+
+        // NEW: needed by the Account Settings modal (settings-modal.blade.php)
+        // on every borrower page, since the modal is included globally in
+        // borrower.layout and its trigger (header dropdown) is always visible.
+        $userEmail = $user->email ?? '';
+        $userPhone = $details->cellphone_num ?? '';
+        $isActive = $user ? (bool) ($user->is_active ?? true) : true;
+        $lastLoginAt = $user->last_login_at ?? null;
+
+        return compact(
+            'details', 'detailsStatus', 'approvedCount', 'isFullyApproved',
+            'userName', 'initials', 'profilePicture',
+            'userEmail', 'userPhone', 'isActive', 'lastLoginAt'
+        );
+    }
+
+    private function getProfilePictureUrl($userId)
+    {
+        $user = DB::table('users')->where('user_id', $userId)->first();
+        if ($user && !empty($user->profile_picture) && Storage::disk('public')->exists($user->profile_picture)) {
+            return Storage::disk('public')->url($user->profile_picture);
+        }
+        return null;
     }
 
     // Builds the loan payment schedule/notifications shared by dashboard, loan-details, and notifications pages.
@@ -119,8 +146,9 @@ class BorrowerController extends Controller
         }
 
         return view('borrower.dashboard', compact(
-            'userName', 'initials', 'detailsStatus', 'approvedCount',
-            'isFullyApproved', 'latestLoan', 'loanStatus', 'app', 'notifications'
+            'userName', 'initials', 'profilePicture', 'detailsStatus', 'approvedCount',
+            'isFullyApproved', 'latestLoan', 'loanStatus', 'app', 'notifications',
+            'userEmail', 'userPhone', 'isActive', 'lastLoginAt'
         ));
     }
 
@@ -141,7 +169,8 @@ class BorrowerController extends Controller
         ];
 
         return view('borrower.personal-details', compact(
-            'userName', 'initials', 'detailsStatus', 'approvedCount', 'isFullyApproved', 'regData', 'details'
+            'userName', 'initials', 'profilePicture', 'detailsStatus', 'approvedCount', 'isFullyApproved', 'regData', 'details',
+            'userEmail', 'userPhone', 'isActive', 'lastLoginAt'
         ));
     }
 
@@ -258,7 +287,8 @@ class BorrowerController extends Controller
         $hasPendingApplication = (bool) $existingApplication;
 
         return view('borrower.apply-loan', compact(
-            'userName', 'initials', 'isFullyApproved', 'hasPendingApplication', 'existingApplication'
+            'userName', 'initials', 'profilePicture', 'isFullyApproved', 'hasPendingApplication', 'existingApplication',
+            'userEmail', 'userPhone', 'isActive', 'lastLoginAt'
         ));
     }
 
@@ -355,7 +385,8 @@ class BorrowerController extends Controller
         $paymentSchedule = $this->buildPaymentSchedule($app);
 
         return view('borrower.loan-details', compact(
-            'userName', 'initials', 'isFullyApproved', 'app', 'status', 'loanId', 'paymentSchedule'
+            'userName', 'initials', 'profilePicture', 'isFullyApproved', 'app', 'status', 'loanId', 'paymentSchedule',
+            'userEmail', 'userPhone', 'isActive', 'lastLoginAt'
         ));
     }
 
@@ -406,7 +437,10 @@ class BorrowerController extends Controller
             usort($notifications, fn($a, $b) => $a['sort'] <=> $b['sort']);
         }
 
-        return view('borrower.notifications', compact('userName', 'initials', 'isFullyApproved', 'app', 'notifications'));
+        return view('borrower.notifications', compact(
+            'userName', 'initials', 'profilePicture', 'isFullyApproved', 'app', 'notifications',
+            'userEmail', 'userPhone', 'isActive', 'lastLoginAt'
+        ));
     }
 
     public function profile(Request $request)
@@ -434,7 +468,150 @@ class BorrowerController extends Controller
 
         $profileData = $profileRow ? (array) $profileRow : [];
 
-        return view('borrower.profile', compact('userName', 'initials', 'isFullyApproved', 'profileData'));
+        return view('borrower.profile', compact(
+            'userName', 'initials', 'profilePicture', 'isFullyApproved', 'profileData',
+            'userEmail', 'userPhone', 'isActive', 'lastLoginAt'
+        ));
+    }
+
+    /**
+     * OLD settings page — hindi na ito ang default entry point (modal na
+     * ang tinatawag mula sa header dropdown), pero pinapanatili pa rin
+     * ang route/method na ito bilang fallback kung sakaling kailangan
+     * pa ring i-access nang direkta.
+     */
+    public function settings(Request $request)
+    {
+        $userId = Session::get('user_id');
+        $common = $this->commonData($userId);
+        extract($common);
+
+        if (!$isFullyApproved) {
+            return redirect()->route('borrower.dashboard');
+        }
+
+        return view('borrower.settings', compact(
+            'userName', 'initials', 'profilePicture', 'isFullyApproved',
+            'userEmail', 'userPhone', 'isActive', 'lastLoginAt'
+        ));
+    }
+
+    /**
+     * NEW: Account Settings modal — GET account info (Full Name, Email,
+     * Phone) para i-populate ang modal fields tuwing bubuksan ito.
+     */
+    public function getAccountSettings(Request $request)
+    {
+        $userId = Session::get('user_id');
+        $user = DB::table('users')->where('user_id', $userId)->first();
+        $details = DB::table('borrowerpersonaldetails')->where('user_id', $userId)->first();
+
+        return response()->json([
+            'success' => true,
+            'name'    => $user->name ?? '',
+            'email'   => $user->email ?? '',
+            'phone'   => $details->cellphone_num ?? '',
+        ]);
+    }
+
+    /**
+     * NEW: Account Settings modal — i-save ang Full Name, Email, Phone
+     * mula sa Profile Information panel ng modal.
+     */
+    public function updateAccountSettings(Request $request)
+    {
+        $userId = Session::get('user_id');
+
+        $fullName = trim($request->input('full_name'));
+        $email    = trim($request->input('email'));
+        $phone    = trim($request->input('phone'));
+
+        if (!$fullName || !$email) {
+            return response()->json(['success' => false, 'message' => 'Full name and email are required.'], 422);
+        }
+
+        $emailTaken = DB::table('users')
+            ->where('email', $email)
+            ->where('user_id', '!=', $userId)
+            ->exists();
+
+        if ($emailTaken) {
+            return response()->json(['success' => false, 'message' => 'This email is already in use.'], 422);
+        }
+
+        DB::table('users')->where('user_id', $userId)->update([
+            'name'  => $fullName,
+            'email' => $email,
+        ]);
+
+        Session::put('user_name', $fullName);
+        Session::put('user_email', $email);
+
+        $hasDetails = DB::table('borrowerpersonaldetails')->where('user_id', $userId)->exists();
+        if ($hasDetails) {
+            DB::table('borrowerpersonaldetails')->where('user_id', $userId)->update([
+                'cellphone_num' => $phone,
+            ]);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Profile information updated.']);
+    }
+
+    public function updateProfilePicture(Request $request)
+    {
+        $request->validate([
+            'profile_picture' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
+        ]);
+
+        $userId = Session::get('user_id');
+        $user = DB::table('users')->where('user_id', $userId)->first();
+
+        if (!empty($user->profile_picture) && Storage::disk('public')->exists($user->profile_picture)) {
+            Storage::disk('public')->delete($user->profile_picture);
+        }
+
+        $path = $request->file('profile_picture')->store('profile-pictures', 'public');
+
+        DB::table('users')->where('user_id', $userId)->update([
+            'profile_picture' => $path,
+        ]);
+
+        Session::put('user_profile_picture', $path);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile picture updated.',
+                'profile_picture_url' => Storage::disk('public')->url($path),
+            ]);
+        }
+
+        return back()->with('success', 'Profile picture updated.');
+    }
+
+    public function removeProfilePicture(Request $request)
+    {
+        $userId = Session::get('user_id');
+        $user = DB::table('users')->where('user_id', $userId)->first();
+
+        if (!empty($user->profile_picture) && Storage::disk('public')->exists($user->profile_picture)) {
+            Storage::disk('public')->delete($user->profile_picture);
+        }
+
+        DB::table('users')->where('user_id', $userId)->update([
+            'profile_picture' => null,
+        ]);
+
+        Session::forget('user_profile_picture');
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile picture removed.',
+            ]);
+        }
+
+        return back()->with('success', 'Profile picture removed.');
     }
 
     public function updateProfileSection(Request $request)
