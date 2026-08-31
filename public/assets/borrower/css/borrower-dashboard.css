@@ -1,0 +1,306 @@
+/* ============================================================
+   BORROWER DASHBOARD — redesign
+   Prefixed with bwl-dash- to avoid clashing with any existing
+   theme classes elsewhere in the app.
+============================================================ */
+
+:root {
+    --bwl-dash-ink: #0F172A;
+    --bwl-dash-gray: #64748B;
+    --bwl-dash-border: #E7EAF0;
+    --bwl-dash-blue: #2563EB;
+    --bwl-dash-blue-soft: #EFF6FF;
+    --bwl-dash-orange: #EA580C;
+    --bwl-dash-orange-soft: #FFF7ED;
+    --bwl-dash-purple: #7C3AED;
+    --bwl-dash-purple-soft: #F5F3FF;
+    --bwl-dash-green: #16A34A;
+    --bwl-dash-green-soft: #ECFDF5;
+    --bwl-dash-red: #DC2626;
+    --bwl-dash-red-soft: #FEF2F2;
+}
+
+/* ---------- Top widgets row ---------- */
+.bwl-dash-widgets {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+}
+.bwl-dash-widget {
+    background: #fff;
+    border: 1px solid var(--bwl-dash-border);
+    border-radius: 16px;
+    padding: 20px 22px;
+    box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 10px 24px -14px rgba(15,23,42,.10);
+}
+.bwl-dash-widget-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+.bwl-dash-widget-icon {
+    width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+}
+.bwl-dash-widget-icon.is-blue   { background: var(--bwl-dash-blue-soft);   color: var(--bwl-dash-blue); }
+.bwl-dash-widget-icon.is-orange { background: var(--bwl-dash-orange-soft); color: var(--bwl-dash-orange); }
+.bwl-dash-widget-icon.is-purple { background: var(--bwl-dash-purple-soft); color: var(--bwl-dash-purple); }
+.bwl-dash-widget-icon.is-green  { background: var(--bwl-dash-green-soft);  color: var(--bwl-dash-green); }
+.bwl-dash-widget-icon.is-red    { background: var(--bwl-dash-red-soft);    color: var(--bwl-dash-red); }
+
+.bwl-dash-widget-label {
+    font-size: 0.78rem; font-weight: 600; color: var(--bwl-dash-gray);
+    margin-bottom: 3px;
+}
+.bwl-dash-widget-value {
+    font-size: 1.3rem; font-weight: 800; color: var(--bwl-dash-ink);
+}
+.bwl-dash-widget-value.fs-16 { font-size: 1rem; }
+.bwl-dash-widget-sub {
+    font-size: 0.78rem; color: var(--bwl-dash-gray); margin-bottom: 8px;
+}
+
+.bwl-dash-progress-track {
+    height: 6px; border-radius: 4px; background: #E2E8F0; overflow: hidden;
+}
+.bwl-dash-progress-fill {
+    height: 100%; background: var(--bwl-dash-blue); border-radius: 4px;
+}
+
+.bwl-dash-pill {
+    display: inline-block; padding: 3px 10px; border-radius: 20px;
+    font-size: 0.72rem; font-weight: 700;
+}
+.bwl-dash-pill.is-info   { background: var(--bwl-dash-blue-soft); color: var(--bwl-dash-blue); }
+.bwl-dash-pill.is-danger { background: var(--bwl-dash-red-soft);  color: var(--bwl-dash-red); }
+
+/* ---------- Two-column rows ---------- */
+.bwl-dash-row {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+    align-items: start;
+}
+.bwl-dash-card {
+    background: #fff;
+    border: 1px solid var(--bwl-dash-border);
+    border-radius: 16px;
+    box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 10px 24px -14px rgba(15,23,42,.10);
+    overflow: hidden;
+}
+.bwl-dash-card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--bwl-dash-border);
+}
+.bwl-dash-card-header h6 { margin: 0; font-weight: 700; color: var(--bwl-dash-ink); font-size: 0.95rem; }
+.bwl-dash-card-header a {
+    font-size: 0.8rem; font-weight: 700; color: var(--bwl-dash-blue); text-decoration: none;
+    display: inline-flex; align-items: center; gap: 4px;
+}
+.bwl-dash-card-header a:hover { text-decoration: underline; }
+
+/* ---------- Current Loan Overview ---------- */
+.bwl-dash-overview-body {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px;
+    padding: 20px 22px;
+    align-items: start;
+}
+.bwl-dash-overview-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 360px;   /* dagdag ito */
+}
+.bwl-dash-overview-row {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 0.86rem;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--bwl-dash-border);
+}
+.bwl-dash-overview-row:last-child { border-bottom: none; padding-bottom: 0; }
+.bwl-dash-overview-row span { color: var(--bwl-dash-gray); }
+.bwl-dash-overview-row strong { color: var(--bwl-dash-ink); font-weight: 700; }
+
+.bwl-dash-donut-wrap {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center;
+    min-width: 180px;
+    text-align: center;
+}
+.bwl-dash-progress-title { font-size: 0.85rem; font-weight: 700; color: var(--bwl-dash-ink); margin-bottom: 2px; }
+.bwl-dash-progress-sub { font-size: 0.75rem; color: var(--bwl-dash-gray); margin-bottom: 12px; }
+
+.bwl-dash-donut {
+    width: 150px; height: 150px; border-radius: 50%;
+    background: conic-gradient(var(--bwl-dash-blue) calc(var(--pct) * 1%), #E2E8F0 0);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 12px;
+}
+.bwl-dash-donut-inner {
+    width: 112px; height: 112px; border-radius: 50%; background: #fff;
+    display: flex; align-items: center; justify-content: center;
+}
+.bwl-dash-donut-pct { font-size: 1.5rem; font-weight: 800; color: var(--bwl-dash-ink); }
+
+/* ---------- Payment Calendar ---------- */
+.bwl-dash-cal-month {
+    text-align: center; font-weight: 700; color: var(--bwl-dash-ink);
+    padding: 14px 0 4px; font-size: 0.9rem;
+}
+.bwl-dash-cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 38px);
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 16px 16px;
+}
+.bwl-dash-cal-dow {
+    text-align: center;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--bwl-dash-gray);
+    text-transform: uppercase;
+    padding-bottom: 4px;
+}
+.bwl-dash-cal-day {
+    width: 38px;
+    height: 38px;
+    aspect-ratio: unset;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78rem;
+    color: var(--bwl-dash-ink);
+    border-radius: 50%;
+    position: relative;
+}
+.bwl-dash-cal-day.is-empty { visibility: hidden; }
+.bwl-dash-cal-day.is-today {
+    background: var(--bwl-dash-blue); color: #fff; font-weight: 700;
+}
+.bwl-dash-cal-day.has-payment:not(.is-today) {
+    background: var(--bwl-dash-blue-soft); color: var(--bwl-dash-blue); font-weight: 700;
+}
+
+.bwl-dash-cal-next {
+    display: flex; align-items: center; gap: 12px;
+    margin: 0 16px 16px;
+    padding: 12px 14px;
+    background: #F8FAFC;
+    border-radius: 12px;
+}
+.bwl-dash-cal-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--bwl-dash-blue); flex-shrink: 0;
+}
+.bwl-dash-cal-next-label { font-size: 0.82rem; font-weight: 700; color: var(--bwl-dash-ink); }
+.bwl-dash-cal-next-sub { font-size: 0.72rem; color: var(--bwl-dash-gray); }
+.bwl-dash-cal-next strong { margin-left: auto; color: var(--bwl-dash-ink); font-size: 0.86rem; }
+
+/* ---------- Application Timeline ---------- */
+.bwl-dash-timeline-list { padding: 20px 22px; }
+.bwl-dash-timeline-item {
+    display: flex; align-items: flex-start; gap: 14px;
+    position: relative;
+    padding-bottom: 24px;
+}
+.bwl-dash-timeline-item:last-child { padding-bottom: 0; }
+.bwl-dash-timeline-item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 11px; top: 24px; bottom: 0;
+    width: 2px;
+    background: var(--bwl-dash-border);
+}
+.bwl-dash-timeline-dot {
+    width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; z-index: 1;
+}
+.bwl-dash-timeline-item.is-done .bwl-dash-timeline-dot {
+    background: var(--bwl-dash-green); color: #fff;
+}
+.bwl-dash-timeline-item.is-upcoming .bwl-dash-timeline-dot {
+    background: #fff; border: 2px solid var(--bwl-dash-blue);
+}
+.bwl-dash-timeline-body { flex: 1; min-width: 0; }
+.bwl-dash-timeline-title { font-size: 0.87rem; font-weight: 700; color: var(--bwl-dash-ink); }
+.bwl-dash-timeline-date { font-size: 0.76rem; color: var(--bwl-dash-gray); margin-top: 1px; }
+.bwl-dash-timeline-badge {
+    font-size: 0.7rem; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+    flex-shrink: 0; align-self: center;
+}
+.bwl-dash-timeline-badge.is-done { background: var(--bwl-dash-green-soft); color: var(--bwl-dash-green); }
+.bwl-dash-timeline-badge.is-upcoming { background: var(--bwl-dash-blue-soft); color: var(--bwl-dash-blue); }
+
+/* ---------- Recent Payments ---------- */
+.bwl-dash-payment-list { padding: 6px 0; }
+.bwl-dash-payment-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 22px;
+    border-bottom: 1px solid var(--bwl-dash-border);
+}
+.bwl-dash-payment-item:last-child { border-bottom: none; }
+.bwl-dash-payment-check {
+    width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    background: var(--bwl-dash-green-soft); color: var(--bwl-dash-green);
+}
+.bwl-dash-payment-body { flex: 1; min-width: 0; }
+.bwl-dash-payment-title { font-size: 0.84rem; font-weight: 700; color: var(--bwl-dash-ink); }
+.bwl-dash-payment-date { font-size: 0.76rem; color: var(--bwl-dash-gray); margin-top: 1px; }
+.bwl-dash-payment-amount {
+    font-size: 0.86rem; font-weight: 700; color: var(--bwl-dash-ink);
+    white-space: nowrap; flex-shrink: 0;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1199.98px) {
+    .bwl-dash-widgets { grid-template-columns: repeat(2, 1fr); }
+    .bwl-dash-row { grid-template-columns: 1fr; }
+    .bwl-dash-overview-body { grid-template-columns: 1fr; }
+}
+@media (max-width: 575.98px) {
+    .bwl-dash-widgets { grid-template-columns: 1fr; }
+}
+
+.bwl-dash-calendar {
+     width: 100%;
+}
+
+/* ---------- Dark mode ---------- */
+html.app-skin-dark .bwl-dash-widget,
+html.app-skin-dark .bwl-dash-card { background: #1E2A3A; border-color: #2D3F55; }
+html.app-skin-dark .bwl-dash-widget-value,
+html.app-skin-dark .bwl-dash-card-header h6,
+html.app-skin-dark .bwl-dash-overview-row strong,
+html.app-skin-dark .bwl-dash-progress-title,
+html.app-skin-dark .bwl-dash-donut-pct,
+html.app-skin-dark .bwl-dash-timeline-title,
+html.app-skin-dark .bwl-dash-payment-title,
+html.app-skin-dark .bwl-dash-payment-amount,
+html.app-skin-dark .bwl-dash-cal-month,
+html.app-skin-dark .bwl-dash-cal-day,
+html.app-skin-dark .bwl-dash-cal-next-label { color: #E2E8F0; }
+html.app-skin-dark .bwl-dash-widget-label,
+html.app-skin-dark .bwl-dash-widget-sub,
+html.app-skin-dark .bwl-dash-overview-row span,
+html.app-skin-dark .bwl-dash-progress-sub,
+html.app-skin-dark .bwl-dash-cal-dow,
+html.app-skin-dark .bwl-dash-timeline-date,
+html.app-skin-dark .bwl-dash-payment-date,
+html.app-skin-dark .bwl-dash-cal-next-sub { color: #94A3B8; }
+html.app-skin-dark .bwl-dash-card-header,
+html.app-skin-dark .bwl-dash-overview-row,
+html.app-skin-dark .bwl-dash-payment-item,
+html.app-skin-dark .bwl-dash-timeline-item:not(:last-child)::before { border-color: #2D3F55; }
+html.app-skin-dark .bwl-dash-donut-inner { background: #1E2A3A; }
+html.app-skin-dark .bwl-dash-cal-next { background: #16202E; }
+html.app-skin-dark .bwl-dash-progress-track { background: #2D3F55; }

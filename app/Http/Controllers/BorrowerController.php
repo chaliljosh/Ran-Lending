@@ -120,35 +120,138 @@ class BorrowerController extends Controller
             ? ($loanStatusMap[$latestLoan->status] ?? ['label' => 'Unknown', 'bar' => 'bg-secondary', 'progress' => 0])
             : ['label' => 'No Application', 'bar' => 'bg-secondary', 'progress' => 0];
 
-        $app = DB::table('loan_applications')
+        // ============================================================
+        // FULL REDESIGNED DASHBOARD DATA
+        // Only meaningful once a loan actually has a payment schedule
+        // (i.e. it's been ACTIVATED, not merely fully approved — see
+        // AdminController::refreshLoanApplicationStatus(), which flips
+        // status to 'active' and calls LoanActivationService::activate()
+        // right after the 3rd admin approval). Everything below stays
+        // at its default/empty value when there's no schedule yet, and
+        // the view (borrower.dashboard) falls back to the simple status
+        // card via its `@elseif(!$app)` branch.
+        // ============================================================
+        $app = null;
+        $outstandingAmount = 0;
+        $progressPct = 0;
+        $totalCount = 0;
+        $paidCount = 0;
+        $nextUnpaid = null;
+        $isOverdue = false;
+        $daysOverdue = 0;
+        $approvedAt = null;
+        $activatedAt = null;
+        $calDaysWithPayments = collect();
+        $notifications = collect();
+        $recentPayments = collect();
+
+        // ------------------------------------------------------------
+        // Payment calendar month — navigable via ?cal_month=YYYY-MM.
+        // Falls back to the current month when missing/invalid so the
+        // calendar never breaks on a bad query string.
+        // ------------------------------------------------------------
+        $calMonthParam = $request->query('cal_month');
+        try {
+            $calMonth = $calMonthParam
+                ? Carbon::createFromFormat('Y-m', $calMonthParam)->startOfMonth()
+                : Carbon::now()->startOfMonth();
+        } catch (\Exception $e) {
+            $calMonth = Carbon::now()->startOfMonth();
+        }
+        $calPrevMonth = $calMonth->copy()->subMonth()->format('Y-m');
+        $calNextMonth = $calMonth->copy()->addMonth()->format('Y-m');
+
+        $candidateApp = DB::table('loan_applications')
             ->where('user_id', $userId)
-            ->where('status', 'approved')
+            ->whereIn('status', ['active', 'approved'])
             ->orderByDesc('applied_at')
             ->first();
 
-        $notifications = [];
+        if ($candidateApp) {
+            $schedule = DB::table('loan_payment_schedules')
+                ->where('application_id', $candidateApp->application_id)
+                ->orderBy('installment_no')
+                ->get();
 
-        if ($app) {
-            $today = Carbon::today();
-            foreach ($this->buildPaymentSchedule($app) as $row) {
-                $daysUntilDue = $today->diffInDays($row['due'], false);
+            if ($schedule->isNotEmpty()) {
+                $app = $candidateApp;
 
-                if ($daysUntilDue <= 14) {
-                    $message = $daysUntilDue < 0
-                        ? 'Your payment of ₱' . number_format($row['amount'], 2) . ' was due on ' . $row['due']->format('F j, Y') . '.'
-                        : 'Your payment of ₱' . number_format($row['amount'], 2) . ' is due on ' . $row['due']->format('F j, Y') . '.';
+                $totalCount = $schedule->count();
+                $paidCount = $schedule->filter(fn($s) => !is_null($s->paid_at))->count();
+                $progressPct = $totalCount > 0 ? (int) round(($paidCount / $totalCount) * 100) : 0;
+                $outstandingAmount = max(0, (float) $app->total_amount - (float) $schedule->sum('amount_paid'));
 
-                    $notifications[] = ['message' => $message, 'sort' => $daysUntilDue];
+                $nextUnpaid = $schedule->first(fn($s) => is_null($s->paid_at));
+                if ($nextUnpaid) {
+                    $dueDate = Carbon::parse($nextUnpaid->due_date);
+                    $isOverdue = $dueDate->isPast();
+                    $daysOverdue = $isOverdue ? $dueDate->diffInDays(now()) : 0;
                 }
-            }
 
-            usort($notifications, fn($a, $b) => $a['sort'] <=> $b['sort']);
+                // "Approved" timestamp: the reviewed_at of the decision
+                // that completed the 3-admin approval — i.e. the latest
+                // of the three 'approved' reviews for this application.
+                $approvedAt = DB::table('loan_approvals')
+                    ->where('application_id', $app->application_id)
+                    ->where('decision', 'approved')
+                    ->orderByDesc('reviewed_at')
+                    ->value('reviewed_at');
+
+                // There's no separate "activated_at" column — activation
+                // happens immediately after full approval, so we reuse
+                // approvedAt as the activation timestamp too.
+                $activatedAt = $approvedAt;
+
+                // Payment calendar — mark which days of the SELECTED
+                // month have an installment due, so the calendar grid
+                // can highlight them.
+                $calDaysWithPayments = $schedule
+                    ->filter(fn($s) => Carbon::parse($s->due_date)->isSameMonth($calMonth))
+                    ->mapWithKeys(fn($s) => [Carbon::parse($s->due_date)->day => true]);
+
+                // Upcoming/overdue payment notifications — same 14-day
+                // window used on the dedicated Notifications page.
+                $today = Carbon::today();
+                $notifItems = [];
+
+                foreach ($schedule->whereNull('paid_at') as $s) {
+                    $due = Carbon::parse($s->due_date);
+                    $daysUntilDue = $today->diffInDays($due, false);
+
+                    if ($daysUntilDue <= 14) {
+                        $isLate = $daysUntilDue < 0;
+                        $notifItems[] = [
+                            'icon'    => $isLate ? 'feather-alert-circle' : 'feather-clock',
+                            'color'   => $isLate ? 'danger' : 'primary',
+                            'title'   => $isLate ? 'Payment Overdue' : 'Upcoming Payment',
+                            'message' => $isLate
+                                ? 'Your payment of ₱' . number_format($s->amount_due, 2) . ' was due on ' . $due->format('F j, Y') . '.'
+                                : 'Your payment of ₱' . number_format($s->amount_due, 2) . ' is due on ' . $due->format('F j, Y') . '.',
+                            'ts'      => $due,
+                            'sort'    => $daysUntilDue,
+                        ];
+                    }
+                }
+
+                usort($notifItems, fn($a, $b) => $a['sort'] <=> $b['sort']);
+                $notifications = collect($notifItems);
+
+                // Recent Payments — latest 3 paid installments for this loan
+                $recentPayments = $schedule
+                    ->filter(fn($s) => !is_null($s->paid_at))
+                    ->sortByDesc('paid_at')
+                    ->take(3)
+                    ->values();
+            }
         }
 
         return view('borrower.dashboard', compact(
             'userName', 'initials', 'profilePicture', 'detailsStatus', 'approvedCount',
-            'isFullyApproved', 'latestLoan', 'loanStatus', 'app', 'notifications',
-            'userEmail', 'userPhone', 'isActive', 'lastLoginAt'
+            'isFullyApproved', 'latestLoan', 'loanStatus', 'app', 'notifications', 'recentPayments',
+            'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
+            'outstandingAmount', 'progressPct', 'totalCount', 'paidCount', 'nextUnpaid',
+            'isOverdue', 'daysOverdue', 'approvedAt', 'activatedAt',
+            'calMonth', 'calDaysWithPayments', 'calPrevMonth', 'calNextMonth'
         ));
     }
 
@@ -442,6 +545,50 @@ class BorrowerController extends Controller
             'userEmail', 'userPhone', 'isActive', 'lastLoginAt'
         ));
     }
+
+    public function dashboardCalendar(Request $request)
+{
+    $userId = Session::get('user_id');
+
+    $calMonthParam = $request->query('cal_month');
+    try {
+        $calMonth = $calMonthParam
+            ? Carbon::createFromFormat('Y-m', $calMonthParam)->startOfMonth()
+            : Carbon::now()->startOfMonth();
+    } catch (\Exception $e) {
+        $calMonth = Carbon::now()->startOfMonth();
+    }
+    $calPrevMonth = $calMonth->copy()->subMonth()->format('Y-m');
+    $calNextMonth = $calMonth->copy()->addMonth()->format('Y-m');
+
+    $candidateApp = DB::table('loan_applications')
+        ->where('user_id', $userId)
+        ->whereIn('status', ['active', 'approved'])
+        ->orderByDesc('applied_at')
+        ->first();
+
+    $calDaysWithPayments = collect();
+    $nextUnpaid = null;
+
+    if ($candidateApp) {
+        $schedule = DB::table('loan_payment_schedules')
+            ->where('application_id', $candidateApp->application_id)
+            ->orderBy('installment_no')
+            ->get();
+
+        if ($schedule->isNotEmpty()) {
+            $nextUnpaid = $schedule->first(fn($s) => is_null($s->paid_at));
+
+            $calDaysWithPayments = $schedule
+                ->filter(fn($s) => Carbon::parse($s->due_date)->isSameMonth($calMonth))
+                ->mapWithKeys(fn($s) => [Carbon::parse($s->due_date)->day => true]);
+        }
+    }
+
+    return view('borrower.partials.payment-calendar', compact(
+        'calMonth', 'calPrevMonth', 'calNextMonth', 'calDaysWithPayments', 'nextUnpaid'
+    ));
+}
 
     public function profile(Request $request)
     {

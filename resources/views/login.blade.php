@@ -89,42 +89,34 @@
   </div>
 
   <!-- Shared OTP Modal — public/css/otp-modal.css + public/functions/otp-modal.js -->
-  <div class="otp-overlay" id="otpOverlay">
-      <div class="otp-modal">
-          <div class="otp-icon-circle">
-              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                  <polyline points="22,6 12,13 2,6"></polyline>
-              </svg>
-          </div>
-          <h5 class="otp-title">2-Step Verification</h5>
-          <p class="otp-subtitle">Enter the 6-digit code sent to</p>
-          <p class="otp-email" id="otpMaskedEmail"></p>
+ <!-- Shared OTP Modal — public/css/otp-modal.css + public/functions/otp-modal.js -->
+<div class="otp-overlay" id="otpOverlay">
+    <div class="otp-modal">
+        <h5 class="otp-title">Enter Verification Code</h5>
+        <p class="otp-subtitle">Please enter the verification code we just sent to</p>
+        <p class="otp-email" id="otpMaskedEmail"></p>
 
-          <div class="otp-inputs" id="otpInputs">
-              <input type="text" inputmode="numeric" maxlength="1">
-              <input type="text" inputmode="numeric" maxlength="1">
-              <input type="text" inputmode="numeric" maxlength="1">
-              <input type="text" inputmode="numeric" maxlength="1">
-              <input type="text" inputmode="numeric" maxlength="1">
-              <input type="text" inputmode="numeric" maxlength="1">
-          </div>
+        <div class="otp-inputs" id="otpInputs">
+            <input type="text" inputmode="numeric" maxlength="1">
+            <input type="text" inputmode="numeric" maxlength="1">
+            <input type="text" inputmode="numeric" maxlength="1">
+            <input type="text" inputmode="numeric" maxlength="1">
+            <input type="text" inputmode="numeric" maxlength="1">
+            <input type="text" inputmode="numeric" maxlength="1">
+        </div>
 
-          <div class="otp-error" id="otpError"></div>
+        <div class="otp-error" id="otpError"></div>
 
-          
-          <button type="button" class="otp-primary-btn" id="otpVerifyBtn">
-              <span class="otp-btn-label">Verify</span>
-              <span class="otp-spinner"></span>
-          </button>
+        <button type="button" class="otp-primary-btn" id="otpVerifyBtn">
+            <span class="otp-btn-label">Confirm</span>
+            <span class="otp-spinner"></span>
+        </button>
 
-          <div class="otp-resend" id="otpResendWrap"></div>
+        <div class="otp-resend" id="otpResendWrap"></div>
 
-          <button type="button" class="otp-back-link" id="otpBackBtn">Back to Login</button>
-
-         
-      </div>
-  </div>
+        <button type="button" class="otp-back-link" id="otpBackBtn">Back to Login</button>
+    </div>
+</div>
 
   <script src="{{ asset('assets/login/libs/jquery/dist/jquery.min.js') }}"></script>
   <script src="{{ asset('assets/login/libs/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>

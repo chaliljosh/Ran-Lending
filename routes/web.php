@@ -7,13 +7,18 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\BorrowerController;
 
 Route::get('/', function () {
-    return file_get_contents(public_path('landing.html'));
+    return view('landing');
 });
 
 Route::get('/login', function () {
-    return file_get_contents(public_path('login.html'));
+    return view('login');
 })->name('login');
 
+// NOTE: these two still serve frozen static HTML snapshots from public/,
+// same problem the landing page and login page just had — if you've
+// also converted these to Blade views, tell me and I'll switch these
+// too (view('register') / view('forgot-password'), or wherever you
+// actually saved those files).
 Route::get('/register', function () {
     return file_get_contents(public_path('register.html'));
 })->name('register');
@@ -37,6 +42,7 @@ Route::post('/api/forgot-password/reset',    [ForgotPasswordController::class, '
 // Borrower pages — Blade, protected by 'borrower' middleware
 Route::middleware(['borrower', 'no-cache'])->group(function () {
     Route::get('/borrower/dashboard', [BorrowerController::class, 'dashboard'])->name('borrower.dashboard');
+    Route::get('/borrower/dashboard/calendar', [BorrowerController::class, 'dashboardCalendar'])->name('borrower.dashboard.calendar'); // BAGO
     Route::get('/borrower/personal-details', [BorrowerController::class, 'personalDetails'])->name('borrower.personal-details');
     Route::get('/borrower/apply-loan', [BorrowerController::class, 'applyLoan'])->name('borrower.apply-loan');
     Route::get('/borrower/loan-details', [BorrowerController::class, 'loanDetails'])->name('borrower.loan-details');
@@ -50,6 +56,8 @@ Route::middleware(['borrower', 'no-cache'])->prefix('api/borrower')->group(funct
     Route::post('/apply-loan', [BorrowerController::class, 'submitLoanApplication']);
     Route::post('/profile/update-section', [BorrowerController::class, 'updateProfileSection']);
     Route::post('/profile/change-password', [BorrowerController::class, 'changePassword']);
+    Route::post('/profile/upload-picture', [BorrowerController::class, 'updateProfilePicture'])->name('borrower.profile.upload-picture');
+    Route::post('/profile/remove-picture', [BorrowerController::class, 'removeProfilePicture'])->name('borrower.profile.remove-picture');
 });
 
 // Admin pages
