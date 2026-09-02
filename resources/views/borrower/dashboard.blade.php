@@ -4,6 +4,9 @@
 
 @section('page-head-links')
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/borrower-dashboard.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 @endsection
 
 @section('content')
@@ -121,15 +124,15 @@
         {{-- ============ FULL REDESIGNED DASHBOARD (may active loan) ============ --}}
 
         {{-- ============ TOP STAT WIDGETS ============ --}}
+        {{-- Icon ngayon nasa top-right ng bawat widget, kagaya ng
+             reference screenshot (label left, icon right, value below). --}}
         <div class="bwl-dash-widgets">
             <div class="bwl-dash-widget">
                 <div class="bwl-dash-widget-top">
-                    <div class="bwl-dash-widget-icon is-blue"><i class="feather-credit-card"></i></div>
-                    <div>
-                        <div class="bwl-dash-widget-label">Outstanding Balance</div>
-                        <div class="bwl-dash-widget-value">₱{{ number_format($outstandingAmount, 2) }}</div>
-                    </div>
+                    <div class="bwl-dash-widget-label">Outstanding Balance</div>
+                    <div class="bwl-dash-widget-icon"><i class="feather-credit-card"></i></div>
                 </div>
+                <div class="bwl-dash-widget-value">₱{{ number_format($outstandingAmount, 2) }}</div>
                 <div class="bwl-dash-widget-sub">Loan #{{ str_pad($app->application_id, 5, '0', STR_PAD_LEFT) }}</div>
                 <div class="bwl-dash-progress-track">
                     <div class="bwl-dash-progress-fill" style="width:{{ $progressPct }}%"></div>
@@ -138,13 +141,11 @@
 
             <div class="bwl-dash-widget">
                 <div class="bwl-dash-widget-top">
-                    <div class="bwl-dash-widget-icon is-orange"><i class="feather-calendar"></i></div>
-                    <div>
-                        <div class="bwl-dash-widget-label">Next Payment</div>
-                        <div class="bwl-dash-widget-value">
-                            {{ $nextUnpaid ? '₱' . number_format($nextUnpaid->amount_due, 2) : '—' }}
-                        </div>
-                    </div>
+                    <div class="bwl-dash-widget-label">Next Payment</div>
+                    <div class="bwl-dash-widget-icon"><i class="feather-calendar"></i></div>
+                </div>
+                <div class="bwl-dash-widget-value">
+                    {{ $nextUnpaid ? '₱' . number_format($nextUnpaid->amount_due, 2) : '—' }}
                 </div>
                 @if($nextUnpaid)
                     @php
@@ -162,26 +163,22 @@
 
             <div class="bwl-dash-widget">
                 <div class="bwl-dash-widget-top">
-                    <div class="bwl-dash-widget-icon is-purple"><i class="feather-pie-chart"></i></div>
-                    <div>
-                        <div class="bwl-dash-widget-label">Loan Progress</div>
-                        <div class="bwl-dash-widget-value fs-16">{{ $paidCount }} of {{ $totalCount }} payments</div>
-                    </div>
+                    <div class="bwl-dash-widget-label">Loan Progress</div>
+                    <div class="bwl-dash-widget-icon"><i class="feather-trending-up"></i></div>
                 </div>
+                <div class="bwl-dash-widget-value fs-16">{{ $paidCount }} of {{ $totalCount }} payments</div>
                 <div class="bwl-dash-widget-sub">{{ $progressPct }}% completed</div>
             </div>
 
             <div class="bwl-dash-widget">
                 <div class="bwl-dash-widget-top">
+                    <div class="bwl-dash-widget-label">Payment Status</div>
                     <div class="bwl-dash-widget-icon {{ $isOverdue ? 'is-red' : 'is-green' }}">
-                        <i class="{{ $isOverdue ? 'feather-alert-triangle' : 'feather-check-circle' }}"></i>
+                        <i class="feather-{{ $isOverdue ? 'alert-circle' : 'check-circle' }}"></i>
                     </div>
-                    <div>
-                        <div class="bwl-dash-widget-label">Payment Status</div>
-                        <div class="bwl-dash-widget-value {{ $isOverdue ? 'text-danger' : 'text-success' }}">
-                            {{ $isOverdue ? 'Overdue' : 'Up to date' }}
-                        </div>
-                    </div>
+                </div>
+                <div class="bwl-dash-widget-value {{ $isOverdue ? 'text-danger' : 'text-success' }}">
+                    {{ $isOverdue ? 'Overdue' : 'Up to date' }}
                 </div>
                 <div class="bwl-dash-widget-sub">
                     {{ $isOverdue ? $daysOverdue . ' ' . ($daysOverdue == 1 ? 'day' : 'days') . ' overdue' : 'No overdue payment' }}
@@ -190,11 +187,10 @@
         </div>
 
         {{-- ============ CURRENT LOAN OVERVIEW + PAYMENT CALENDAR ============ --}}
-        <div class="bwl-dash-row">
+        <div class="bwl-dash-row bwl-dash-row-cal">
             <div class="bwl-dash-card bwl-dash-overview">
                 <div class="bwl-dash-card-header">
                     <h6>Current Loan Overview</h6>
-                    <a href="{{ route('borrower.loan-details') }}">View Loan Details <i class="feather-arrow-right"></i></a>
                 </div>
                 <div class="bwl-dash-overview-body">
                     <div class="bwl-dash-overview-list">
@@ -246,14 +242,15 @@
             </div>
 
             <div class="bwl-dash-card bwl-dash-calendar" id="bwl-dash-calendar-card"
-     data-calendar-url="{{ route('borrower.dashboard.calendar') }}">
-    <div class="bwl-dash-card-header">
-        <h6><i class="feather-calendar me-2"></i>Payment Calendar</h6>
-    </div>
-    <div id="bwl-cal-content">
-        @include('borrower.partials.payment-calendar')
-    </div>
-</div>
+                 data-calendar-url="{{ route('borrower.dashboard.calendar') }}">
+                <div class="bwl-dash-card-header">
+                    <h6>Payment Calendar</h6>
+                </div>
+                <div id="bwl-cal-content">
+                    @include('borrower.partials.payment-calendar')
+                </div>
+            </div>
+        </div>
 
         {{-- ============ APPLICATION TIMELINE + RECENT PAYMENTS ============ --}}
         <div class="bwl-dash-row">
@@ -261,7 +258,7 @@
                 <div class="bwl-dash-card-header"><h6>Application Timeline</h6></div>
                 <div class="bwl-dash-timeline-list">
                     <div class="bwl-dash-timeline-item is-done">
-                        <span class="bwl-dash-timeline-dot"><i class="feather-check"></i></span>
+                        <span class="bwl-dash-timeline-dot"></span>
                         <div class="bwl-dash-timeline-body">
                             <div class="bwl-dash-timeline-title">Application Submitted</div>
                             <div class="bwl-dash-timeline-date">{{ \Carbon\Carbon::parse($app->applied_at)->format('F j, Y') }}</div>
@@ -271,7 +268,7 @@
 
                     @if($approvedAt)
                     <div class="bwl-dash-timeline-item is-done">
-                        <span class="bwl-dash-timeline-dot"><i class="feather-check"></i></span>
+                        <span class="bwl-dash-timeline-dot"></span>
                         <div class="bwl-dash-timeline-body">
                             <div class="bwl-dash-timeline-title">Application Approved</div>
                             <div class="bwl-dash-timeline-date">{{ \Carbon\Carbon::parse($approvedAt)->format('F j, Y') }}</div>
@@ -282,7 +279,7 @@
 
                     @if($activatedAt)
                     <div class="bwl-dash-timeline-item is-done">
-                        <span class="bwl-dash-timeline-dot"><i class="feather-check"></i></span>
+                        <span class="bwl-dash-timeline-dot"></span>
                         <div class="bwl-dash-timeline-body">
                             <div class="bwl-dash-timeline-title">Loan Activated</div>
                             <div class="bwl-dash-timeline-date">{{ \Carbon\Carbon::parse($activatedAt)->format('F j, Y') }}</div>
@@ -302,7 +299,7 @@
                     </div>
                     @else
                     <div class="bwl-dash-timeline-item is-done">
-                        <span class="bwl-dash-timeline-dot"><i class="feather-check"></i></span>
+                        <span class="bwl-dash-timeline-dot"></span>
                         <div class="bwl-dash-timeline-body">
                             <div class="bwl-dash-timeline-title">Loan Fully Paid</div>
                         </div>
@@ -315,12 +312,11 @@
             <div class="bwl-dash-card bwl-dash-payments">
                 <div class="bwl-dash-card-header">
                     <h6>Recent Payments</h6>
-                    <a href="{{ route('borrower.loan-details') }}">View All <i class="feather-arrow-right"></i></a>
+                    <a href="{{ route('borrower.loan-details') }}">View All →</a>
                 </div>
                 <div class="bwl-dash-payment-list">
                     @forelse($recentPayments as $p)
                         <div class="bwl-dash-payment-item">
-                            <span class="bwl-dash-payment-check"><i class="feather-check"></i></span>
                             <div class="bwl-dash-payment-body">
                                 <div class="bwl-dash-payment-title">Installment #{{ $p->installment_no }}</div>
                                 <div class="bwl-dash-payment-date">{{ \Carbon\Carbon::parse($p->paid_at)->format('F j, Y') }}</div>
@@ -336,39 +332,10 @@
 
         @endif
 
-        @push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const calCard = document.getElementById('bwl-dash-calendar-card');
-    if (!calCard) return;
-
-    const calContent = document.getElementById('bwl-cal-content');
-    const baseUrl = calCard.dataset.calendarUrl;
-
-    calCard.addEventListener('click', function (e) {
-        const link = e.target.closest('.bwl-dash-cal-nav');
-        if (!link) return;
-        e.preventDefault();
-
-        const month = link.dataset.month;
-
-        fetch(`${baseUrl}?cal_month=${month}`, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(res => res.text())
-        .then(html => {
-            calContent.innerHTML = html;
-            const url = new URL(window.location.href);
-            url.searchParams.set('cal_month', month);
-            window.history.replaceState({}, '', url);
-        })
-        .catch(() => {
-            window.location.href = `${window.location.pathname}?cal_month=${month}`;
-        });
-    });
-});
-</script>
-@endpush
+        @section('page-scripts')
+         <script src="{{ asset('functions/borrower-dashboard-calendar.js') }}"></script>
+            <script src="{{ asset('functions/borrower-header-notification.js') }}?v={{ time() }}"></script>
+        @endsection
 
     </div>
 @endsection

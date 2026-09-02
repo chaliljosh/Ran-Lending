@@ -2,12 +2,24 @@
    BORROWER DASHBOARD — redesign
    Prefixed with bwl-dash- to avoid clashing with any existing
    theme classes elsewhere in the app.
+
+   UPDATE: ginawang mas "plain SaaS" yung look (kagaya ng
+   reference screenshot) — icon sa top-right ng widget, mas
+   simple na palette, flat white cards.
+
+   UPDATE 2: font weights binaba (800→600, 700→600, 600→500)
+   para tumugma sa Shadcn Admin reference — mas "light/medium"
+   ang timbang ng text doon, hindi super bold.
 ============================================================ */
 
 :root {
+    --bwl-dash-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     --bwl-dash-ink: #0F172A;
     --bwl-dash-gray: #64748B;
-    --bwl-dash-border: #E7EAF0;
+    --bwl-dash-gray-light: #94A3B8;
+    --bwl-dash-border: #ECEEF2;
+    --bwl-dash-bg-soft: #F8FAFC;
+
     --bwl-dash-blue: #2563EB;
     --bwl-dash-blue-soft: #EFF6FF;
     --bwl-dash-orange: #EA580C;
@@ -21,6 +33,21 @@
 }
 
 /* ---------- Top widgets row ---------- */
+/* Force Inter kahit may global font-family !important yung theme
+   niyo (karaniwan ganito sa mga NXL/DashUI-style themes — may
+   sariling "Poppins"/"Nunito Sans" silang naka-!important sa body,
+   headings, atbp). Kaya ang wildcard * dito para ma-cover lahat ng
+   child elements (h6, span, strong) na baka may sariling declaration.
+   Idinagdag din ang font-smoothing para mas malapit sa "crisp/thin"
+   na render ng Inter sa mga shadcn/modern SaaS apps. */
+.bwl-dash-widgets,
+.bwl-dash-widgets *,
+.bwl-dash-row,
+.bwl-dash-row * {
+    font-family: var(--bwl-dash-font) !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
 .bwl-dash-widgets {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -32,18 +59,28 @@
     border: 1px solid var(--bwl-dash-border);
     border-radius: 16px;
     padding: 20px 22px;
-    box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 10px 24px -14px rgba(15,23,42,.10);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .03);
 }
+
+/* label (left) + icon (right), parang reference screenshot */
 .bwl-dash-widget-top {
     display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 14px;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.bwl-dash-widget-label {
+    font-size: 0.8rem;
+    font-weight: 500; /* dati 600 */
+    color: var(--bwl-dash-gray);
 }
 .bwl-dash-widget-icon {
-    width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+    width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
+    font-size: 15px;
+    background: var(--bwl-dash-bg-soft);
+    color: var(--bwl-dash-gray);
 }
 .bwl-dash-widget-icon.is-blue   { background: var(--bwl-dash-blue-soft);   color: var(--bwl-dash-blue); }
 .bwl-dash-widget-icon.is-orange { background: var(--bwl-dash-orange-soft); color: var(--bwl-dash-orange); }
@@ -51,14 +88,14 @@
 .bwl-dash-widget-icon.is-green  { background: var(--bwl-dash-green-soft);  color: var(--bwl-dash-green); }
 .bwl-dash-widget-icon.is-red    { background: var(--bwl-dash-red-soft);    color: var(--bwl-dash-red); }
 
-.bwl-dash-widget-label {
-    font-size: 0.78rem; font-weight: 600; color: var(--bwl-dash-gray);
-    margin-bottom: 3px;
-}
 .bwl-dash-widget-value {
-    font-size: 1.3rem; font-weight: 800; color: var(--bwl-dash-ink);
+    font-size: 1.5rem;
+    font-weight: 600; /* dati 800 */
+    color: var(--bwl-dash-ink);
+    line-height: 1.2;
+    margin-bottom: 6px;
 }
-.bwl-dash-widget-value.fs-16 { font-size: 1rem; }
+.bwl-dash-widget-value.fs-16 { font-size: 1.05rem; }
 .bwl-dash-widget-sub {
     font-size: 0.78rem; color: var(--bwl-dash-gray); margin-bottom: 8px;
 }
@@ -72,7 +109,7 @@
 
 .bwl-dash-pill {
     display: inline-block; padding: 3px 10px; border-radius: 20px;
-    font-size: 0.72rem; font-weight: 700;
+    font-size: 0.72rem; font-weight: 600; /* dati 700 */
 }
 .bwl-dash-pill.is-info   { background: var(--bwl-dash-blue-soft); color: var(--bwl-dash-blue); }
 .bwl-dash-pill.is-danger { background: var(--bwl-dash-red-soft);  color: var(--bwl-dash-red); }
@@ -83,13 +120,16 @@
     grid-template-columns: 1.4fr 1fr;
     gap: 16px;
     margin-bottom: 20px;
-    align-items: start;
+    align-items: stretch;
+}
+.bwl-dash-row.bwl-dash-row-cal {
+    grid-template-columns: 1fr auto;
 }
 .bwl-dash-card {
     background: #fff;
     border: 1px solid var(--bwl-dash-border);
     border-radius: 16px;
-    box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 10px 24px -14px rgba(15,23,42,.10);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .03);
     overflow: hidden;
 }
 .bwl-dash-card-header {
@@ -97,26 +137,26 @@
     padding: 18px 22px;
     border-bottom: 1px solid var(--bwl-dash-border);
 }
-.bwl-dash-card-header h6 { margin: 0; font-weight: 700; color: var(--bwl-dash-ink); font-size: 0.95rem; }
+.bwl-dash-card-header h6 { margin: 0; font-weight: 600; color: var(--bwl-dash-ink); font-size: 0.95rem; } /* dati 700 */
 .bwl-dash-card-header a {
-    font-size: 0.8rem; font-weight: 700; color: var(--bwl-dash-blue); text-decoration: none;
+    font-size: 0.8rem; font-weight: 600; color: var(--bwl-dash-blue); text-decoration: none; /* dati 700 */
     display: inline-flex; align-items: center; gap: 4px;
 }
 .bwl-dash-card-header a:hover { text-decoration: underline; }
 
 /* ---------- Current Loan Overview ---------- */
 .bwl-dash-overview-body {
-    display: grid;
-    grid-template-columns: 1fr auto;
+    display: flex;
     gap: 24px;
     padding: 20px 22px;
-    align-items: start;
+    align-items: stretch;
 }
 .bwl-dash-overview-list {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    max-width: 360px;   /* dagdag ito */
+    width: 320px;
+    flex-shrink: 0;
 }
 .bwl-dash-overview-row {
     display: flex; align-items: center; justify-content: space-between;
@@ -126,15 +166,16 @@
 }
 .bwl-dash-overview-row:last-child { border-bottom: none; padding-bottom: 0; }
 .bwl-dash-overview-row span { color: var(--bwl-dash-gray); }
-.bwl-dash-overview-row strong { color: var(--bwl-dash-ink); font-weight: 700; }
+.bwl-dash-overview-row strong { color: var(--bwl-dash-ink); font-weight: 600; } /* dati 700 */
 
 .bwl-dash-donut-wrap {
     display: flex; flex-direction: column; align-items: center;
     justify-content: center;
+    flex: 1;
     min-width: 180px;
     text-align: center;
 }
-.bwl-dash-progress-title { font-size: 0.85rem; font-weight: 700; color: var(--bwl-dash-ink); margin-bottom: 2px; }
+.bwl-dash-progress-title { font-size: 0.85rem; font-weight: 600; color: var(--bwl-dash-ink); margin-bottom: 2px; } /* dati 700 */
 .bwl-dash-progress-sub { font-size: 0.75rem; color: var(--bwl-dash-gray); margin-bottom: 12px; }
 
 .bwl-dash-donut {
@@ -147,12 +188,37 @@
     width: 112px; height: 112px; border-radius: 50%; background: #fff;
     display: flex; align-items: center; justify-content: center;
 }
-.bwl-dash-donut-pct { font-size: 1.5rem; font-weight: 800; color: var(--bwl-dash-ink); }
+.bwl-dash-donut-pct { font-size: 1.5rem; font-weight: 600; color: var(--bwl-dash-ink); } /* dati 800 */
 
 /* ---------- Payment Calendar ---------- */
+.bwl-dash-calendar {
+    width: 520px;
+}
+
 .bwl-dash-cal-month {
-    text-align: center; font-weight: 700; color: var(--bwl-dash-ink);
-    padding: 14px 0 4px; font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px 4px;
+    font-weight: 600; /* dati 700 */
+    color: var(--bwl-dash-ink);
+    font-size: 0.9rem;
+}
+.bwl-dash-cal-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    color: var(--bwl-dash-gray);
+    text-decoration: none;
+    flex-shrink: 0;
+    transition: background .15s, color .15s;
+}
+.bwl-dash-cal-nav:hover {
+    background: var(--bwl-dash-blue-soft);
+    color: var(--bwl-dash-blue);
 }
 .bwl-dash-cal-grid {
     display: grid;
@@ -164,7 +230,7 @@
 .bwl-dash-cal-dow {
     text-align: center;
     font-size: 0.68rem;
-    font-weight: 700;
+    font-weight: 500; /* dati 700 */
     color: var(--bwl-dash-gray);
     text-transform: uppercase;
     padding-bottom: 4px;
@@ -183,10 +249,10 @@
 }
 .bwl-dash-cal-day.is-empty { visibility: hidden; }
 .bwl-dash-cal-day.is-today {
-    background: var(--bwl-dash-blue); color: #fff; font-weight: 700;
+    background: var(--bwl-dash-blue); color: #fff; font-weight: 600; /* dati 700 */
 }
 .bwl-dash-cal-day.has-payment:not(.is-today) {
-    background: var(--bwl-dash-blue-soft); color: var(--bwl-dash-blue); font-weight: 700;
+    background: var(--bwl-dash-blue-soft); color: var(--bwl-dash-blue); font-weight: 500; /* dati 700 */
 }
 
 .bwl-dash-cal-next {
@@ -199,7 +265,7 @@
 .bwl-dash-cal-dot {
     width: 8px; height: 8px; border-radius: 50%; background: var(--bwl-dash-blue); flex-shrink: 0;
 }
-.bwl-dash-cal-next-label { font-size: 0.82rem; font-weight: 700; color: var(--bwl-dash-ink); }
+.bwl-dash-cal-next-label { font-size: 0.82rem; font-weight: 600; color: var(--bwl-dash-ink); } /* dati 700 */
 .bwl-dash-cal-next-sub { font-size: 0.72rem; color: var(--bwl-dash-gray); }
 .bwl-dash-cal-next strong { margin-left: auto; color: var(--bwl-dash-ink); font-size: 0.86rem; }
 
@@ -230,10 +296,10 @@
     background: #fff; border: 2px solid var(--bwl-dash-blue);
 }
 .bwl-dash-timeline-body { flex: 1; min-width: 0; }
-.bwl-dash-timeline-title { font-size: 0.87rem; font-weight: 700; color: var(--bwl-dash-ink); }
+.bwl-dash-timeline-title { font-size: 0.87rem; font-weight: 600; color: var(--bwl-dash-ink); } /* dati 700 */
 .bwl-dash-timeline-date { font-size: 0.76rem; color: var(--bwl-dash-gray); margin-top: 1px; }
 .bwl-dash-timeline-badge {
-    font-size: 0.7rem; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+    font-size: 0.7rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; /* dati 700 */
     flex-shrink: 0; align-self: center;
 }
 .bwl-dash-timeline-badge.is-done { background: var(--bwl-dash-green-soft); color: var(--bwl-dash-green); }
@@ -254,30 +320,36 @@
     background: var(--bwl-dash-green-soft); color: var(--bwl-dash-green);
 }
 .bwl-dash-payment-body { flex: 1; min-width: 0; }
-.bwl-dash-payment-title { font-size: 0.84rem; font-weight: 700; color: var(--bwl-dash-ink); }
+.bwl-dash-payment-title { font-size: 0.84rem; font-weight: 600; color: var(--bwl-dash-ink); } /* dati 700 */
 .bwl-dash-payment-date { font-size: 0.76rem; color: var(--bwl-dash-gray); margin-top: 1px; }
 .bwl-dash-payment-amount {
-    font-size: 0.86rem; font-weight: 700; color: var(--bwl-dash-ink);
+    font-size: 0.86rem; font-weight: 600; color: var(--bwl-dash-ink); /* dati 700 */
     white-space: nowrap; flex-shrink: 0;
 }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 1199.98px) {
     .bwl-dash-widgets { grid-template-columns: repeat(2, 1fr); }
-    .bwl-dash-row { grid-template-columns: 1fr; }
-    .bwl-dash-overview-body { grid-template-columns: 1fr; }
+    .bwl-dash-row,
+    .bwl-dash-row.bwl-dash-row-cal { grid-template-columns: 1fr; }
+    .bwl-dash-overview-body { flex-direction: column; }
+    .bwl-dash-overview-list { width: 100%; }
+    .bwl-dash-calendar { width: 100%; }
+}
+@media (min-width: 1200px) and (max-width: 1500px) {
+    .bwl-dash-calendar { width: 300px; }
+    .bwl-dash-overview-list { width: 260px; }
+    .bwl-dash-cal-grid { grid-template-columns: repeat(7, 32px); gap: 4px; }
+    .bwl-dash-cal-day { width: 32px; height: 32px; font-size: 0.72rem; }
 }
 @media (max-width: 575.98px) {
     .bwl-dash-widgets { grid-template-columns: 1fr; }
 }
 
-.bwl-dash-calendar {
-     width: 100%;
-}
-
 /* ---------- Dark mode ---------- */
 html.app-skin-dark .bwl-dash-widget,
 html.app-skin-dark .bwl-dash-card { background: #1E2A3A; border-color: #2D3F55; }
+html.app-skin-dark .bwl-dash-widget-icon { background: #16202E; color: #94A3B8; }
 html.app-skin-dark .bwl-dash-widget-value,
 html.app-skin-dark .bwl-dash-card-header h6,
 html.app-skin-dark .bwl-dash-overview-row strong,
@@ -294,9 +366,11 @@ html.app-skin-dark .bwl-dash-widget-sub,
 html.app-skin-dark .bwl-dash-overview-row span,
 html.app-skin-dark .bwl-dash-progress-sub,
 html.app-skin-dark .bwl-dash-cal-dow,
+html.app-skin-dark .bwl-dash-cal-nav,
 html.app-skin-dark .bwl-dash-timeline-date,
 html.app-skin-dark .bwl-dash-payment-date,
 html.app-skin-dark .bwl-dash-cal-next-sub { color: #94A3B8; }
+html.app-skin-dark .bwl-dash-cal-nav:hover { background: #16202E; color: #E2E8F0; }
 html.app-skin-dark .bwl-dash-card-header,
 html.app-skin-dark .bwl-dash-overview-row,
 html.app-skin-dark .bwl-dash-payment-item,

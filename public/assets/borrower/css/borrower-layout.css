@@ -1,0 +1,123 @@
+.nxl-container { min-height: calc(100vh - 80px) !important; display: flex !important; flex-direction: column !important; }
+.nxl-content { flex: 1 !important; display: flex !important; flex-direction: column !important; }
+.nxl-content .main-content { flex: 1 !important; }
+.footer { flex-shrink: 0 !important; margin-top: auto !important; }
+
+
+body.modal-open .nxl-container,
+body.modal-open .nxl-header,
+body.modal-open .nxl-navigation {
+    filter: none !important;
+}
+
+/* ============================================================
+   HEADER — PROFILE DROPDOWN (moved from bottom of sidebar)
+============================================================ */
+.bwl-header-profile {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.bwl-profile-trigger {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 10px 5px 6px;
+    border-radius: 8px;
+    cursor: pointer;
+    list-style: none;
+    transition: background .15s ease;
+}
+.bwl-profile-trigger::-webkit-details-marker { display: none; }
+.bwl-profile-trigger::marker { content: ""; }
+.bwl-header-profile:hover .bwl-profile-trigger,
+.bwl-header-profile[open] .bwl-profile-trigger {
+    background: rgba(0, 0, 0, 0.05);
+}
+.bwl-avatar {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: 700;
+    color: #fff; background: linear-gradient(135deg, #4a7cf7, #7ea3ff);
+    overflow: hidden;
+}
+.bwl-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.bwl-name-block { display: flex; flex-direction: column; line-height: 1.2; }
+.bwl-name { font-size: 0.86rem; font-weight: 600; color: #1a2a3a; white-space: nowrap; max-width: 140px; overflow: hidden; text-overflow: ellipsis; }
+.bwl-role { font-size: 0.72rem; color: #8a9bb0; }
+.bwl-caret { font-size: 0.75rem; color: #8a9bb0; }
+
+.bwl-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    left: auto;
+    min-width: 260px;
+    background: #fff;
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 20px 50px -14px rgba(15, 23, 42, 0.25);
+    padding: 20px 0 12px;
+    font-size: 0.85rem;
+    z-index: 1050;
+}
+.bwl-dropdown-head { display: flex; align-items: center; gap: 14px; padding: 0 20px 16px; }
+.bwl-dropdown-avatar {
+    width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.05rem; font-weight: 700; color: #fff;
+    background: linear-gradient(135deg, #4a7cf7, #7ea3ff); overflow: hidden;
+}
+.bwl-dropdown-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.bwl-dropdown-name { font-size: 0.95rem; font-weight: 700; color: #1a2a3a; }
+.bwl-dropdown-role { font-size: 0.78rem; color: #8a9bb0; }
+.bwl-dropdown-divider { height: 1px; background: rgba(0, 0, 0, 0.07); margin: 0 0 8px; }
+.bwl-dropdown-item {
+    display: flex; align-items: center; gap: 14px; padding: 12px 20px;
+    font-size: 0.88rem; font-weight: 600; color: #1a2a3a; text-decoration: none;
+    transition: background .12s ease; background: none; border: none; width: 100%; text-align: left;
+}
+.bwl-dropdown-item-icon { width: 20px; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: #8a9bb0; flex-shrink: 0; }
+.bwl-dropdown-item:hover { background: rgba(0, 0, 0, 0.04); color: #1a2a3a; }
+.bwl-dropdown-item.text-danger:hover { background: rgba(220, 38, 38, 0.08); }
+.bwl-dropdown-item.text-danger .bwl-dropdown-item-icon { color: #DC2626; }
+
+/* ============================================================
+   BORROWER LAYOUT — structural + performance fixes
+   (footer pinning, modal blur removal, feather icon font fix)
+============================================================ */
+
+.nxl-container { min-height: calc(100vh - 80px) !important; display: flex !important; flex-direction: column !important; }
+.nxl-content { flex: 1 !important; display: flex !important; flex-direction: column !important; }
+.nxl-content .main-content { flex: 1 !important; }
+.footer { flex-shrink: 0 !important; margin-top: auto !important; }
+
+/* ============================================================
+   Alisin yung blur filter na inilalapat ng theme.min.css sa
+   .nxl-container (at kadikit na elements) tuwing may bukas na
+   Bootstrap modal. Mabigat computationally yung blur, kaya
+   laggy pag-open ng modal — same fix na ginawa natin sa Admin.
+============================================================ */
+body.modal-open .nxl-container,
+body.modal-open .nxl-header,
+body.modal-open .nxl-navigation {
+    filter: none !important;
+}
+
+/* ============================================================
+   FIX: "tofu boxes" imbes na tamang icons — dahil ang mga
+   wildcard font-family overrides sa borrower-sidebar.css,
+   header-profile.css, at borrower-dashboard.css (.nxl-navigation *,
+   .bwl-header-profile *, .bwl-dash-widgets *, atbp.) ay hindi
+   sinasadyang inaapektuhan din ang mga <i class="feather-...">
+   icon elements. Ang Feather icons ay umaasa sa isang espesyal
+   na icon font (font-family: 'feather'), kaya kapag pinalitan
+   natin ito ng 'Inter', nawawala ang tamang glyph. Ito ang
+   dapat na PINAKA-HULING na-link na CSS file sa layout (sa
+   <head>, kasunod ng lahat ng ibang borrower CSS files) para
+   talunin ang mga naunang override, ibalik ang tamang icon font.
+============================================================ */
+[class^="feather-"],
+[class*=" feather-"] {
+    font-family: 'feather' !important;
+}

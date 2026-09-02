@@ -1,0 +1,186 @@
+/* ============================================================
+   BORROWER SIDEBAR — v2, grouped sections (kagaya ng bagong
+   reference screenshot: "Loan Management", "Account", etc.)
+
+   IMPORTANT: ilagay ito sa GLOBAL na CSS ng borrower layout,
+   hindi sa borrower-dashboard.css, dahil lumalabas yung sidebar
+   sa lahat ng borrower pages.
+============================================================ */
+
+.nxl-navigation,
+.nxl-navigation * {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+}
+.nxl-navigation {
+    background: #ffffff !important;
+    border-right: 1px solid #ECEEF2;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* ---------- Brand row (icon + name + tagline), kagaya ng
+   "Shadcn Admin" block sa reference ---------- */
+.bwl-sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 20px;
+    border-bottom: 1px solid #ECEEF2;
+}
+.bwl-sidebar-brand-icon {
+    width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: #0F172A; color: #fff;
+    font-size: 0.78rem; font-weight: 800; letter-spacing: 0.02em;
+}
+.bwl-sidebar-brand-text { min-width: 0; flex: 1; }
+.bwl-sidebar-brand-name {
+    font-size: 0.95rem; font-weight: 800; color: #0F172A;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.bwl-sidebar-brand-sub {
+    font-size: 0.72rem; color: #94A3B8; font-weight: 500;
+}
+
+.nxl-navigation .navbar-content {
+    padding: 10px 14px 20px;
+    flex: 1;
+    overflow-y: auto;
+}
+.nxl-navigation .nxl-navbar {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.nxl-navigation .nxl-item {
+    margin-bottom: 4px;
+}
+
+/* section label, e.g. "LOAN MANAGEMENT"
+   note: dati naka-cut yung unang letra (hal. "oan Management")
+   dahil sumasabay yung li sa default padding/margin ng theme na
+   nxl-navbar > li instead of yung 14px na gusto natin. Kaya
+   ini-force natin dito ng box-sizing + margin reset + !important
+   para sigurado na yung 14px lang talaga yung left inset niya,
+   parehas ng .nxl-link. */
+.nxl-navigation .nxl-navbar .nxl-nav-label {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0 !important;
+    padding: 16px 14px 8px !important;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #94A3B8;
+    white-space: nowrap;
+}
+
+.nxl-navigation .nxl-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    color: #64748B;
+    font-size: 0.86rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background .15s ease, color .15s ease;
+}
+.nxl-navigation .nxl-link:hover {
+    background: #F8FAFC;
+    color: #0F172A;
+}
+
+/* active page — light gray pill, kagaya ng reference (hindi dark) */
+.nxl-navigation .nxl-item.active > .nxl-link,
+.nxl-navigation .nxl-link.active {
+    background: #F1F3F6 !important;
+    color: #0F172A !important;
+}
+
+.nxl-navigation .nxl-micon {
+    width: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+.nxl-navigation .nxl-mtext {
+    flex: 1;
+    min-width: 0;
+}
+
+/* divider bago yung Logout */
+.nxl-navigation .nxl-nav-divider {
+    height: 1px;
+    background: #ECEEF2;
+    margin: 14px 14px 10px;
+}
+
+/* Logout — walang bg, pulang text/icon, subtle red hover */
+.nxl-navigation .nxl-link.is-logout {
+    color: #E11D48;
+}
+.nxl-navigation .nxl-link.is-logout:hover {
+    background: #FEF2F2;
+    color: #E11D48;
+}
+
+/* ---------- Footer account row (bottom of sidebar),
+   kagaya ng "satnaing / satnaingdev@gmail.com" block sa reference ---------- */
+.bwl-sidebar-footer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    border-top: 1px solid #ECEEF2;
+    cursor: pointer;
+    transition: background .15s ease;
+}
+.bwl-sidebar-footer:hover { background: #F8FAFC; }
+.bwl-sidebar-avatar {
+    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: #EFF6FF; color: #2563EB;
+    font-size: 0.72rem; font-weight: 700;
+    overflow: hidden;
+}
+.bwl-sidebar-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.bwl-sidebar-footer-text { min-width: 0; flex: 1; line-height: 1.3; }
+.bwl-sidebar-footer-name {
+    font-size: 0.83rem; font-weight: 700; color: #0F172A;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.bwl-sidebar-footer-email {
+    font-size: 0.72rem; color: #94A3B8;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.bwl-sidebar-footer-caret { color: #94A3B8; font-size: 0.85rem; flex-shrink: 0; }
+
+/* Dark mode, sakto sa existing app-skin-dark pattern niyo */
+html.app-skin-dark .nxl-navigation {
+    background: #1E2A3A !important;
+    border-color: #2D3F55;
+}
+html.app-skin-dark .bwl-sidebar-brand,
+html.app-skin-dark .bwl-sidebar-footer { border-color: #2D3F55; }
+html.app-skin-dark .bwl-sidebar-footer:hover { background: #16202E; }
+html.app-skin-dark .bwl-sidebar-brand-name,
+html.app-skin-dark .bwl-sidebar-footer-name { color: #E2E8F0; }
+html.app-skin-dark .bwl-sidebar-brand-sub,
+html.app-skin-dark .bwl-sidebar-footer-email,
+html.app-skin-dark .bwl-sidebar-footer-caret { color: #64748B; }
+html.app-skin-dark .nxl-navigation .nxl-nav-label { color: #64748B; }
+html.app-skin-dark .nxl-navigation .nxl-link { color: #94A3B8; }
+html.app-skin-dark .nxl-navigation .nxl-link:hover { background: #16202E; color: #E2E8F0; }
+html.app-skin-dark .nxl-navigation .nxl-item.active > .nxl-link,
+html.app-skin-dark .nxl-navigation .nxl-link.active {
+    background: #16202E !important;
+    color: #E2E8F0 !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-nav-divider { background: #2D3F55; }

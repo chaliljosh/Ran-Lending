@@ -1,11 +1,7 @@
 <div class="bwl-dash-cal-month">
-    <a href="#" class="bwl-dash-cal-nav" data-month="{{ $calPrevMonth }}" aria-label="Previous month">
-        <i class="feather-chevron-left"></i>
-    </a>
+    <a href="#" class="bwl-dash-cal-nav" data-month="{{ $calPrevMonth }}" aria-label="Previous month">‹</a>
     <span>{{ $calMonth->format('F Y') }}</span>
-    <a href="#" class="bwl-dash-cal-nav" data-month="{{ $calNextMonth }}" aria-label="Next month">
-        <i class="feather-chevron-right"></i>
-    </a>
+    <a href="#" class="bwl-dash-cal-nav" data-month="{{ $calNextMonth }}" aria-label="Next month">›</a>
 </div>
 <div class="bwl-dash-cal-grid">
     @foreach(['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as $d)

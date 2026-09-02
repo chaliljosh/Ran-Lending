@@ -85,10 +85,6 @@
                     </div>
                 </div>
 
-                <div class="bwl-acct-field">
-                    <label>Last Login</label>
-                    <span>{{ $lastLoginAt ? \Carbon\Carbon::parse($lastLoginAt)->format('F d, Y \a\t g:i A') : 'Not available' }}</span>
-                </div>
 
             </div>
         </div>

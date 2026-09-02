@@ -1,0 +1,50 @@
+/* ============================================================
+   BORROWER LAYOUT — structural + performance fixes
+   (footer pinning, modal blur removal, global font override,
+   feather icon font fix)
+============================================================ */
+
+.nxl-container { min-height: calc(100vh - 80px) !important; display: flex !important; flex-direction: column !important; }
+.nxl-content { flex: 1 !important; display: flex !important; flex-direction: column !important; }
+.nxl-content .main-content { flex: 1 !important; }
+.footer { flex-shrink: 0 !important; margin-top: auto !important; }
+
+/* ============================================================
+   Alisin yung blur filter na inilalapat ng theme.min.css sa
+   .nxl-container (at kadikit na elements) tuwing may bukas na
+   Bootstrap modal. Mabigat computationally yung blur, kaya
+   laggy pag-open ng modal — same fix na ginawa natin sa Admin.
+============================================================ */
+body.modal-open .nxl-container,
+body.modal-open .nxl-header,
+body.modal-open .nxl-navigation {
+    filter: none !important;
+}
+
+/* ============================================================
+   GLOBAL FONT OVERRIDE — Inter sa BUONG borrower area.
+   Gumagamit ng universal selector (*) na pinalakas ang
+   specificity gamit :not() chains, para talunin ang mas
+   specific na class-based selectors ng theme.min.css (hal.
+   .card h5, .table td) kahit parehong may !important — dahil
+   sa CSS, specificity pa rin ang unang pinagbabasehan bago
+   source order, kahit parehong !important ang dalawang panig.
+============================================================ */
+*:not([class^="feather-"]):not([class*=" feather-"]):not(.feather) {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+}
+
+/* ============================================================
+   FIX: "tofu boxes" imbes na tamang icons — dahil ang global
+   font override sa itaas ay inaapektuhan din ang mga
+   <i class="feather-..."> icon elements. Ang Feather icons ay
+   umaasa sa isang espesyal na icon font (font-family: 'feather'),
+   kaya kailangan nating ibalik ito PAGKATAPOS ng global override
+   sa itaas — mismong pagkasunod-sunod sa loob ng file na ito
+   ang tumatakbo (huling declaration ang nananalo sa parehong
+   specificity).
+============================================================ */
+[class^="feather-"],
+[class*=" feather-"] {
+    font-family: 'feather' !important;
+}

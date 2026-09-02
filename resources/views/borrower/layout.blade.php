@@ -6,111 +6,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Borrower') - Ran Lending</title>
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset('assets/borrower/images/favicon.ico') }}" />
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/borrower/css/bootstrap.min.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/borrower/vendors/css/vendors.min.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/borrower/css/theme.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/logout-modal.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/settings-modal.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/borrower/css/borrower-sidebar.css') }}">
+   <link rel="stylesheet" href="{{ asset('assets/borrower/css/header-profile.css') }}?v={{ time() }}">
+<link rel="stylesheet" href="{{ asset('assets/borrower/css/header-notifications.css') }}?v={{ time() }}">
+    <link rel="stylesheet" href="{{ asset('assets/borrower/css/borrower-layout.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
-    {{-- Page-specific <link> stylesheets (e.g. Cropper.js CDN CSS) go here —
-         kept OUTSIDE the <style> block below since <link> tags can't be
-         nested inside <style>. --}}
+    {{-- Page-specific <link> stylesheets go here — e.g. borrower-dashboard.css,
+         Cropper.js CDN CSS, atbp. --}}
     @yield('page-head-links')
-    <style>
-        .nxl-container { min-height: calc(100vh - 80px) !important; display: flex !important; flex-direction: column !important; }
-        .nxl-content { flex: 1 !important; display: flex !important; flex-direction: column !important; }
-        .nxl-content .main-content { flex: 1 !important; }
-        .footer { flex-shrink: 0 !important; margin-top: auto !important; }
-
-        /* ============================================================
-   Alisin yung blur filter na inilalapat ng theme.min.css sa
-   .nxl-container (at kadikit na elements) tuwing may bukas na
-   Bootstrap modal. Mabigat computationally yung blur, kaya
-   laggy pag-open ng modal — same fix na ginawa natin sa Admin.
-============================================================ */
-body.modal-open .nxl-container,
-body.modal-open .nxl-header,
-body.modal-open .nxl-navigation {
-    filter: none !important;
-}
-
-        /* ============================================================
-           HEADER — PROFILE DROPDOWN (moved from bottom of sidebar)
-        ============================================================ */
-        .bwl-header-profile {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-        .bwl-profile-trigger {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 5px 10px 5px 6px;
-            border-radius: 8px;
-            cursor: pointer;
-            list-style: none;
-            transition: background .15s ease;
-        }
-        .bwl-profile-trigger::-webkit-details-marker { display: none; }
-        .bwl-profile-trigger::marker { content: ""; }
-        .bwl-header-profile:hover .bwl-profile-trigger,
-        .bwl-header-profile[open] .bwl-profile-trigger {
-            background: rgba(0, 0, 0, 0.05);
-        }
-        .bwl-avatar {
-            width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 0.8rem; font-weight: 700;
-            color: #fff; background: linear-gradient(135deg, #4a7cf7, #7ea3ff);
-            overflow: hidden;
-        }
-        .bwl-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .bwl-name-block { display: flex; flex-direction: column; line-height: 1.2; }
-        .bwl-name { font-size: 0.86rem; font-weight: 600; color: #1a2a3a; white-space: nowrap; max-width: 140px; overflow: hidden; text-overflow: ellipsis; }
-        .bwl-role { font-size: 0.72rem; color: #8a9bb0; }
-        .bwl-caret { font-size: 0.75rem; color: #8a9bb0; }
-
-        .bwl-dropdown-menu {
-            position: absolute;
-            top: calc(100% + 8px);
-            right: 0;
-            left: auto;
-            min-width: 260px;
-            background: #fff;
-            border: none;
-            border-radius: 16px;
-            box-shadow: 0 20px 50px -14px rgba(15, 23, 42, 0.25);
-            padding: 20px 0 12px;
-            font-size: 0.85rem;
-            z-index: 1050;
-        }
-        .bwl-dropdown-head { display: flex; align-items: center; gap: 14px; padding: 0 20px 16px; }
-        .bwl-dropdown-avatar {
-            width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.05rem; font-weight: 700; color: #fff;
-            background: linear-gradient(135deg, #4a7cf7, #7ea3ff); overflow: hidden;
-        }
-        .bwl-dropdown-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .bwl-dropdown-name { font-size: 0.95rem; font-weight: 700; color: #1a2a3a; }
-        .bwl-dropdown-role { font-size: 0.78rem; color: #8a9bb0; }
-        .bwl-dropdown-divider { height: 1px; background: rgba(0, 0, 0, 0.07); margin: 0 0 8px; }
-        .bwl-dropdown-item {
-            display: flex; align-items: center; gap: 14px; padding: 12px 20px;
-            font-size: 0.88rem; font-weight: 600; color: #1a2a3a; text-decoration: none;
-            transition: background .12s ease; background: none; border: none; width: 100%; text-align: left;
-        }
-        .bwl-dropdown-item-icon { width: 20px; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: #8a9bb0; flex-shrink: 0; }
-        .bwl-dropdown-item:hover { background: rgba(0, 0, 0, 0.04); color: #1a2a3a; }
-        .bwl-dropdown-item.text-danger:hover { background: rgba(220, 38, 38, 0.08); }
-        .bwl-dropdown-item.text-danger .bwl-dropdown-item-icon { color: #DC2626; }
-
-        {{-- Page-specific RAW CSS rules go here (no <link> tags — use
-             @section('page-head-links') above for those instead) --}}
-        @yield('page-styles')
-    </style>
+    {{-- Layout-level structural/performance fixes — MUST be last so it wins
+         the cascade over all the CSS files above (feather icon font fix
+         needs to override the wildcard font-family overrides in
+         borrower-sidebar.css, header-profile.css, borrower-dashboard.css). --}}
+    <link rel="stylesheet" href="{{ asset('assets/borrower/css/layout-fixes.css') }}?v={{ time() }}">
 </head>
 <body>
 
@@ -135,6 +55,38 @@ body.modal-open .nxl-navigation {
                         <a href="javascript:void(0);" class="nxl-head-link me-0 dark-button"><i class="feather-moon"></i></a>
                         <a href="javascript:void(0);" class="nxl-head-link me-0 light-button" style="display:none"><i class="feather-sun"></i></a>
                     </div>
+
+                     {{-- ============ HEADER — NOTIFICATION BELL ============ --}}
+        <details class="bwl-notif-bell" name="header-dropdown-group">
+            <summary class="bwl-notif-trigger">
+                <i class="feather-bell"></i>
+                @if(($unreadNotifCount ?? 0) > 0)
+                    <span class="bwl-notif-badge">{{ $unreadNotifCount > 9 ? '9+' : $unreadNotifCount }}</span>
+                @endif
+            </summary>
+            <div class="bwl-notif-dropdown">
+                <div class="bwl-notif-head">
+                    <h6>Notifications</h6>
+                    @if(($unreadNotifCount ?? 0) > 0)
+                        <button type="button" id="bwlNotifMarkAllRead" data-url="{{ route('borrower.notifications.mark-all-read') }}">Mark all as read</button>
+                    @endif
+                </div>
+                <div class="bwl-notif-list">
+                    @forelse(($headerNotifications ?? collect()) as $n)
+                        <a href="{{ route('borrower.notification-open', $n['key']) }}?redirect={{ urlencode($n['url']) }}"
+                           class="bwl-notif-item {{ $n['read'] ? '' : 'is-unread' }}">
+                            <span class="bwl-notif-item-body">
+                                <span class="bwl-notif-item-title">{{ $n['title'] }}</span>
+                                <span class="bwl-notif-item-sub">{{ $n['subtitle'] }}</span>
+                            </span>
+                        </a>
+                    @empty
+                        <p class="bwl-notif-empty">No notifications yet.</p>
+                    @endforelse
+                </div>
+            </div>
+        </details>
+
 
                     {{-- ============ HEADER — BORROWER PROFILE DROPDOWN ============ --}}
                     <details class="bwl-header-profile" name="header-dropdown-group">
@@ -223,9 +175,11 @@ body.modal-open .nxl-navigation {
     <script src="{{ asset('assets/borrower/js/common-init.min.js') }}"></script>
     <script src="{{ asset('assets/borrower/js/dashboard-init.min.js') }}"></script>
     <script src="{{ asset('assets/borrower/js/theme-customizer-init.min.js') }}"></script>
+     <script src="{{ asset('functions/borrower-header-notifications.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('functions/logout-modal.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
     <script src="{{ asset('functions/settings-modal.js') }}"></script>
+ 
     {{-- Page-specific scripts go here --}}
     @yield('page-scripts')
 </body>

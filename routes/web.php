@@ -48,6 +48,10 @@ Route::middleware(['borrower', 'no-cache'])->group(function () {
     Route::get('/borrower/loan-details', [BorrowerController::class, 'loanDetails'])->name('borrower.loan-details');
     Route::get('/borrower/notifications', [BorrowerController::class, 'notifications'])->name('borrower.notifications');
     Route::get('/borrower/profile', [BorrowerController::class, 'profile'])->name('borrower.profile');
+    Route::get('/notifications/open/{key}', [BorrowerController::class, 'openNotification'])
+    ->name('borrower.notification-open');
+Route::post('/notifications/mark-all-read', [BorrowerController::class, 'markAllNotificationsRead'])
+    ->name('borrower.notifications.mark-all-read');
 });
 
 // Borrower API — save actions, protected by 'borrower' middleware

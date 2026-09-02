@@ -1,15 +1,37 @@
 /* ============================================================
    BORROWER ACCOUNT SETTINGS — compact modal, same visual
    language as the Admin "My Profile" modal.
+
+   UPDATE: idinagdag ang Inter font-family (wildcard, may
+   !important) dahil hindi kasama ang mga modal na ito sa loob
+   ng .bwl-dash-widgets/.bwl-dash-row (nasa ibang parte ng DOM
+   sila — @included sa layout, hindi sa dashboard view), kaya
+   hindi sila naaabot ng font override na nasa borrower-dashboard.css.
+   Ibinaba rin ang font-weight (800/700 → 600, uppercase micro
+   labels → 500) para tumugma sa "light/medium" na timbang ng
+   Shadcn Admin reference.
 ============================================================ */
 
 :root {
+    --bwl-acct-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     --bwl-acct-navy: #0F172A;
     --bwl-acct-gray: #64748B;
     --bwl-acct-blue: #2563EB;
     --bwl-acct-border: rgba(15, 23, 42, 0.08);
     --bwl-acct-green: #16A34A;
     --bwl-acct-danger: #DC2626;
+}
+
+/* Force Inter sa loob ng modals at toast, kasama ang lahat ng
+   child elements — kailangan ng wildcard dahil sa Bootstrap
+   modal defaults / theme's global font-family !important. */
+.bwl-acct-modal,
+.bwl-acct-modal *,
+.bwl-toast-stack,
+.bwl-toast-stack * {
+    font-family: var(--bwl-acct-font) !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .bwl-acct-modal .modal-dialog { max-width: 640px; }
@@ -29,7 +51,7 @@
 }
 .bwl-acct-header .modal-title {
     font-size: 1.05rem;
-    font-weight: 700;
+    font-weight: 600; /* dati 700 */
     color: var(--bwl-acct-navy);
 }
 
@@ -44,7 +66,7 @@
 .bwl-acct-avatar {
     width: 64px; height: 64px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.25rem; font-weight: 700; color: #fff;
+    font-size: 1.25rem; font-weight: 600; color: #fff; /* dati 700 */
     background: linear-gradient(135deg, #4a7cf7, #7ea3ff);
     box-shadow: 0 6px 16px -4px rgba(74, 124, 247, 0.5);
     overflow: hidden;
@@ -67,14 +89,14 @@
 .bwl-acct-camera-btn:hover { background: #1D4ED8; }
 
 .bwl-acct-info { min-width: 0; }
-.bwl-acct-name { font-size: 1.08rem; font-weight: 700; color: var(--bwl-acct-navy); }
+.bwl-acct-name { font-size: 1.08rem; font-weight: 600; color: var(--bwl-acct-navy); } /* dati 700 */
 .bwl-acct-meta {
     display: flex; align-items: center; gap: 8px;
     font-size: 0.82rem; color: var(--bwl-acct-gray);
     margin-top: 4px;
 }
 .bwl-acct-dot { color: rgba(0,0,0,0.25); }
-.bwl-acct-status-inline { display: inline-flex; align-items: center; gap: 5px; font-weight: 600; }
+.bwl-acct-status-inline { display: inline-flex; align-items: center; gap: 5px; font-weight: 500; } /* dati 600 */
 .bwl-acct-status-inline.is-active { color: var(--bwl-acct-green); }
 .bwl-acct-status-inline.is-inactive { color: var(--bwl-acct-danger); }
 .bwl-acct-status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
@@ -92,7 +114,7 @@
     padding: 7px 14px; border-radius: 8px;
     border: 1px solid rgba(37, 99, 235, 0.3);
     background: rgba(37, 99, 235, 0.06);
-    font-size: 0.78rem; font-weight: 600; color: var(--bwl-acct-blue);
+    font-size: 0.78rem; font-weight: 500; color: var(--bwl-acct-blue); /* dati 600 */
     cursor: pointer; transition: background .15s ease;
 }
 .bwl-acct-change-photo-text:hover { background: rgba(37, 99, 235, 0.12); }
@@ -105,7 +127,7 @@
     padding: 0;
     margin-top: 0;
     font-size: 0.78rem;
-    font-weight: 600;
+    font-weight: 500; /* dati 600 */
     color: var(--bwl-acct-danger);
     cursor: pointer;
 }
@@ -119,13 +141,13 @@
 .bwl-acct-field:last-child { margin-bottom: 0; }
 .bwl-acct-field label {
     display: block;
-    font-size: 0.68rem; font-weight: 700;
+    font-size: 0.68rem; font-weight: 500; /* dati 700 */
     text-transform: uppercase; letter-spacing: 0.4px;
     color: var(--bwl-acct-gray);
     margin-bottom: 3px;
 }
 .bwl-acct-field span {
-    font-size: 0.86rem; font-weight: 600; color: var(--bwl-acct-navy);
+    font-size: 0.86rem; font-weight: 500; color: var(--bwl-acct-navy); /* dati 600 */
     word-break: break-word;
 }
 
@@ -140,7 +162,7 @@
 .bwl-acct-status-pill {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 3px 10px; border-radius: 20px;
-    font-size: 0.72rem; font-weight: 700;
+    font-size: 0.72rem; font-weight: 600; /* dati 700 */
 }
 .bwl-acct-status-pill.is-active { background: rgba(22, 163, 74, 0.12); color: var(--bwl-acct-green); }
 .bwl-acct-status-pill.is-inactive { background: rgba(220, 38, 38, 0.12); color: var(--bwl-acct-danger); }
@@ -158,7 +180,7 @@
     border-radius: 10px;
     border: 1px solid var(--bwl-acct-border);
     background: #fff;
-    font-size: 0.83rem; font-weight: 600; color: var(--bwl-acct-navy);
+    font-size: 0.83rem; font-weight: 500; color: var(--bwl-acct-navy); /* dati 600 */
     cursor: pointer;
     transition: all .15s ease;
 }
@@ -169,7 +191,7 @@
 /* ---------- Change Password modal form fields ---------- */
 .bwl-acct-form-field { margin-bottom: 16px; }
 .bwl-acct-form-field label {
-    display: block; font-size: 0.8rem; font-weight: 600;
+    display: block; font-size: 0.8rem; font-weight: 500; /* dati 600 */
     color: var(--bwl-acct-navy); margin-bottom: 6px;
 }
 .bwl-acct-input {
@@ -198,14 +220,14 @@
 .bwl-acct-btn-cancel {
     flex: 1; height: 44px; border-radius: 10px;
     border: 1px solid var(--bwl-acct-border); background: #fff;
-    font-size: 0.88rem; font-weight: 600; color: var(--bwl-acct-navy);
+    font-size: 0.88rem; font-weight: 500; color: var(--bwl-acct-navy); /* dati 600 */
     cursor: pointer; transition: background .15s ease;
 }
 .bwl-acct-btn-cancel:hover { background: rgba(0,0,0,0.04); }
 .bwl-acct-btn-save {
     flex: 1; height: 44px; border-radius: 10px; border: none;
     background: var(--bwl-acct-blue);
-    font-size: 0.88rem; font-weight: 700; color: #fff;
+    font-size: 0.88rem; font-weight: 600; color: #fff; /* dati 700 */
     cursor: pointer; transition: background .15s ease, opacity .15s ease;
 }
 .bwl-acct-btn-save:hover:not(:disabled) { background: #1D4ED8; }
@@ -227,7 +249,7 @@
     font-size: 1.4rem;
 }
 .bwl-remove-confirm-title {
-    font-size: 1rem; font-weight: 700; color: var(--bwl-acct-navy);
+    font-size: 1rem; font-weight: 600; color: var(--bwl-acct-navy); /* dati 700 */
     margin-bottom: 6px;
 }
 .bwl-remove-confirm-desc {
@@ -279,7 +301,7 @@
 .bwl-toast.is-error .bwl-toast-icon { background: rgba(220, 38, 38, 0.12); color: var(--bwl-acct-danger); }
 
 .bwl-toast-body { flex: 1; min-width: 0; }
-.bwl-toast-title { font-size: 0.85rem; font-weight: 700; color: var(--bwl-acct-navy); }
+.bwl-toast-title { font-size: 0.85rem; font-weight: 600; color: var(--bwl-acct-navy); } /* dati 700 */
 .bwl-toast-desc { font-size: 0.78rem; color: var(--bwl-acct-gray); margin-top: 2px; }
 
 .bwl-toast-close {
