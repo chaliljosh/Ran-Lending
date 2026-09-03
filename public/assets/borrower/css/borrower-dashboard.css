@@ -10,6 +10,13 @@
    UPDATE 2: font weights binaba (800→600, 700→600, 600→500)
    para tumugma sa Shadcn Admin reference — mas "light/medium"
    ang timbang ng text doon, hindi super bold.
+
+   UPDATE 3: tinugma ang card treatment (white bg, border, shadow)
+   sa parehong pattern na ginamit sa apply-loan.css
+   (.pending-section / .bwl-stat-card) — puting page background,
+   border lang ang naghihiwalay sa mga card sa page bg (hindi
+   malakas na background color contrast), banayad na shadow lang
+   para may konting depth.
 ============================================================ */
 
 :root {
@@ -17,7 +24,7 @@
     --bwl-dash-ink: #0F172A;
     --bwl-dash-gray: #64748B;
     --bwl-dash-gray-light: #94A3B8;
-    --bwl-dash-border: #ECEEF2;
+    --bwl-dash-border: #e5e7eb; /* dati #ECEEF2 — tinugma sa apply-loan.css border color */
     --bwl-dash-bg-soft: #F8FAFC;
 
     --bwl-dash-blue: #2563EB;
@@ -30,6 +37,13 @@
     --bwl-dash-green-soft: #ECFDF5;
     --bwl-dash-red: #DC2626;
     --bwl-dash-red-soft: #FEF2F2;
+}
+
+/* Puting page background — parehong treatment ng apply-loan page,
+   para hindi na naiiba ang card mula sa page bg, border/shadow lang
+   ang naghihiwalay sa kanila. */
+.nxl-content {
+    background: #fff;
 }
 
 /* ---------- Top widgets row ---------- */
@@ -54,12 +68,14 @@
     gap: 16px;
     margin-bottom: 20px;
 }
+/* Small stat widget — parehong treatment ng .bwl-stat-card sa
+   apply-loan.css: puti, banayad na border, mahinang shadow lang. */
 .bwl-dash-widget {
-    background: #fff;
-    border: 1px solid var(--bwl-dash-border);
-    border-radius: 16px;
+    background: #ffffff !important;
+    border: 1px solid var(--bwl-dash-border) !important;
+    border-radius: 12px !important;
     padding: 20px 22px;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, .03);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
 }
 
 /* label (left) + icon (right), parang reference screenshot */
@@ -125,11 +141,14 @@
 .bwl-dash-row.bwl-dash-row-cal {
     grid-template-columns: 1fr auto;
 }
+/* Bigger section card — parehong treatment ng .pending-section sa
+   apply-loan.css: puti, border, at bahagyang mas matingkad na
+   shadow kaysa sa maliliit na widget (dahil mas malaki ang wrapper). */
 .bwl-dash-card {
-    background: #fff;
-    border: 1px solid var(--bwl-dash-border);
-    border-radius: 16px;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, .03);
+    background: #ffffff !important;
+    border: 1px solid var(--bwl-dash-border) !important;
+    border-radius: 14px !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15) !important;
     overflow: hidden;
 }
 .bwl-dash-card-header {
@@ -347,8 +366,9 @@
 }
 
 /* ---------- Dark mode ---------- */
+html.app-skin-dark .nxl-content { background: #14202e; }
 html.app-skin-dark .bwl-dash-widget,
-html.app-skin-dark .bwl-dash-card { background: #1E2A3A; border-color: #2D3F55; }
+html.app-skin-dark .bwl-dash-card { background: #1E2A3A !important; border-color: #2D3F55 !important; }
 html.app-skin-dark .bwl-dash-widget-icon { background: #16202E; color: #94A3B8; }
 html.app-skin-dark .bwl-dash-widget-value,
 html.app-skin-dark .bwl-dash-card-header h6,

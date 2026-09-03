@@ -34,7 +34,7 @@
         const saveBtn = document.getElementById(`saveBtn-${section}`);
         const originalText = saveBtn.innerHTML;
         saveBtn.disabled = true;
-        saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...';
+        saveBtn.innerHTML = '<span class="save-pulse"></span>Saving...';
 
         const formData = new FormData();
         formData.append('section', section);

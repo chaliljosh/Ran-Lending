@@ -692,12 +692,65 @@ class BorrowerController extends Controller
             : null;
 
         $loanId = $app ? 'LN-' . str_pad($app->application_id, 6, '0', STR_PAD_LEFT) : null;
-        $paymentSchedule = $this->buildPaymentSchedule($app);
+
+        // Prefer the REAL payment schedule (loan_payment_schedules) once
+        // the loan has been activated — this has the actual due dates
+        // and paid status per installment (paid_at, amount_paid). Before
+        // activation there are no rows there yet, so we fall back to the
+        // estimated schedule from buildPaymentSchedule().
+        $realSchedule = $app
+            ? DB::table('loan_payment_schedules')
+                ->where('application_id', $app->application_id)
+                ->orderBy('installment_no')
+                ->get()
+            : collect();
+
+        $totalCount = 0;
+        $paidCount = 0;
+        $amountCollected = 0;
+        $remainingBalance = $app->total_amount ?? 0;
+        $nextUnpaid = null;
+        $isOverdue = false;
+
+        if ($realSchedule->isNotEmpty()) {
+            $paymentSchedule = $realSchedule->map(function ($s) {
+                $due = Carbon::parse($s->due_date);
+                $rowStatus = !is_null($s->paid_at)
+                    ? 'paid'
+                    : ($due->isPast() ? 'overdue' : 'pending');
+
+                return [
+                    'month'  => $s->installment_no,
+                    'due'    => $due,
+                    'amount' => (float) $s->amount_due,
+                    'status' => $rowStatus,
+                ];
+            })->all();
+
+            $totalCount = $realSchedule->count();
+            $paidCount = $realSchedule->filter(fn($s) => !is_null($s->paid_at))->count();
+            $amountCollected = (float) $realSchedule->sum('amount_paid');
+            $remainingBalance = max(0, (float) $app->total_amount - $amountCollected);
+
+            $nextUnpaidRow = $realSchedule->first(fn($s) => is_null($s->paid_at));
+            if ($nextUnpaidRow) {
+                $nextUnpaid = $nextUnpaidRow;
+                $isOverdue = Carbon::parse($nextUnpaidRow->due_date)->isPast();
+            }
+        } else {
+            // No real schedule yet (not activated) — show the estimate,
+            // every row simply "pending" since nothing's been recorded.
+            $paymentSchedule = array_map(function ($row) {
+                $row['status'] = 'pending';
+                return $row;
+            }, $this->buildPaymentSchedule($app));
+        }
 
         return view('borrower.loan-details', compact(
             'userName', 'initials', 'profilePicture', 'isFullyApproved', 'app', 'status', 'loanId', 'paymentSchedule',
             'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
-            'headerNotifications', 'unreadNotifCount'
+            'headerNotifications', 'unreadNotifCount',
+            'totalCount', 'paidCount', 'amountCollected', 'remainingBalance', 'nextUnpaid', 'isOverdue'
         ));
     }
 

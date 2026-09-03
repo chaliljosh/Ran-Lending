@@ -91,55 +91,66 @@ html.app-skin-dark .info-banner   { background: #1e2d4a; border-color: #4a7cf7; 
 }
 
 /* ══════════════════════════════════════════
-   Pending Application Card — compact ticket style
+   Pending Application Section — white page,
+   plain header row, individual bordered stat cards
+   (matches the "Total Revenue / Subscriptions / Sales"
+   widget style from the reference dashboard)
    ══════════════════════════════════════════ */
 
-.pending-card {
+/* Puting page background — hindi na naiiba ang card mula sa
+   page bg, border lang ang naghihiwalay sa kanila. Naka-scope
+   lang ito sa apply-loan page dahil dito lang naka-link itong
+   CSS file na ito. */
+.nxl-content {
     background: #fff;
-    border: 1px solid #e9ecef;
-    border-radius: 16px;
-    padding: 40px;
-    box-shadow: 0 8px 22px -14px rgba(26, 42, 58, 0.25);
 }
 
-/* ── Header row: icon + title + status badge ── */
-.pending-card__head {
+/* ── Outer wrapper: buong section (title + status + stat cards +
+     note + link) ay nasa loob ng ISANG bordered box. Light/subtle
+     border lang, katulad ng "Overview"/"Recent Sales" cards sa
+     reference — hindi matingkad/madilim. ── */
+.pending-section {
+    background: #fff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 14px !important;
+    padding: 24px !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15) !important;
+}
+
+/* ── Header row: eyebrow + title + subtitle, status badge on the right.
+     Walang border/bg — plain text lang, katulad ng "Dashboard" heading
+     sa reference (hindi ito naka-enclose sa card). ── */
+.pending-section__head {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
+    justify-content: space-between;
     gap: 14px;
+    margin-bottom: 20px;
 }
-.pending-icon-wrap {
-    flex: none;
-    width: 60px;
-    height: 60px;
-    border-radius: 10px;
-    background: #fff4e0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.pending-eyebrow {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #8a9bb0;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 6px;
 }
-.pending-icon-wrap i {
-    font-size: 18px;
-    color: #d9880a;
-}
-.pending-card:has(.status-badge.approved) .pending-icon-wrap {
-    background: #e7f8ee;
-}
-.pending-card:has(.status-badge.approved) .pending-icon-wrap i {
-    color: #16a34a;
-}
-.pending-card__head-text {
+.pending-section__head-text {
     flex: 1;
     min-width: 0;
 }
-.pending-card__head-text h6 {
+.pending-section__head-text h5 {
     font-weight: 700;
-    color: #1a2a3a;
-    font-size: 1.10rem;
+    font-size: 1.15rem;
+    color: #0f172a;
+    line-height: 1.3;
 }
-.pending-card__head-text p {
-    font-size: 0.78rem;
-    color: #8a9bb0;
+.pending-section__head-text p {
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: #64748b;
+    margin-top: 4px;
 }
 
 .status-badge {
@@ -147,10 +158,10 @@ html.app-skin-dark .info-banner   { background: #1e2d4a; border-color: #4a7cf7; 
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 11px 4px 9px;
+    padding: 4px 12px 4px 10px;
     border-radius: 20px;
-    font-size: 0.68rem;
-    font-weight: 700;
+    font-size: 0.72rem;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -161,44 +172,54 @@ html.app-skin-dark .info-banner   { background: #1e2d4a; border-color: #4a7cf7; 
     border-radius: 50%;
     background: currentColor;
 }
-.status-badge.pending  { background: #fff4e0; color: #d9880a; }
-.status-badge.on_hold  { background: #fde8e8; color: #dc2626; }
-.status-badge.approved { background: #e7f8ee; color: #16a34a; }
+.status-badge.pending  { background: #fef3c7; color: #b45309; }
+.status-badge.on_hold  { background: #fee2e2; color: #dc2626; }
+.status-badge.approved,
+.status-badge.active   { background: #dcfce7; color: #16a34a; }
 
-/* ── Details: 3-up compact grid, not tall stacked rows ── */
-.pending-details {
+/* ── Stat cards: plain white, same as page bg — border is the
+     only thing separating them, exactly like the reference. ── */
+.bwl-stat-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    background: #e9eef4;
-    border: 1px solid #e9eef4;
-    border-radius: 10px;
-    margin-top: 18px;
-    overflow: hidden;
+    gap: 20px;
 }
-.pending-details__cell {
-    background: #f8fafc;
-    padding: 10px 12px;
+.bwl-stat-card {
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    padding: 20px 22px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+.bwl-stat-top {
     display: flex;
-    flex-direction: column;
-    gap: 2px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
 }
-.pending-details__cell .label {
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    color: #8a9bb0;
+.bwl-stat-label {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: #1e293b;
 }
-.pending-details__cell .value {
-    font-size: 1.10rem;
+.bwl-stat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    font-size: 18px;
+}
+.bwl-stat-value {
+    font-size: 1.45rem;
     font-weight: 700;
-    color: #1a2a3a;
+    color: #0f172a;
+    line-height: 1.2;
 }
 
 .pending-note {
-    margin: 14px 0 0 0;
-    font-size: 0.78rem;
+    margin: 20px 0 0 0;
+    font-size: 0.85rem;
+    font-weight: 400;
     color: #8a9bb0;
     line-height: 1.5;
 }
@@ -209,8 +230,8 @@ html.app-skin-dark .info-banner   { background: #1e2d4a; border-color: #4a7cf7; 
     align-items: center;
     gap: 6px;
     margin-top: 14px;
-    font-size: 0.84rem;
-    font-weight: 700;
+    font-size: 0.88rem;
+    font-weight: 600;
     color: #4a7cf7;
     text-decoration: none;
 }
@@ -225,31 +246,203 @@ html.app-skin-dark .info-banner   { background: #1e2d4a; border-color: #4a7cf7; 
     transform: translateX(3px);
 }
 
-/* ── Small screens: stack the detail grid to 1 column ── */
-@media (max-width: 480px) {
-    .pending-details { grid-template-columns: 1fr; }
-    .pending-card__head { flex-wrap: wrap; }
-    .status-badge { order: 3; margin-left: 54px; }
+/* ── Small screens: stack the stat grid to 1 column ── */
+@media (max-width: 640px) {
+    .bwl-stat-grid { grid-template-columns: 1fr; }
+    .pending-section__head { flex-wrap: wrap; }
 }
 
 /* ── Dark mode ── */
-html.app-skin-dark .pending-card              { background: #1e2a3a; border-color: #2d3f55; }
-html.app-skin-dark .pending-card__head-text h6 { color: #e2e8f0; }
-html.app-skin-dark .pending-details           { background: #26374a; border-color: #26374a; }
-html.app-skin-dark .pending-details__cell     { background: #162030; }
-html.app-skin-dark .pending-details__cell .value { color: #e2e8f0; }
+html.app-skin-dark .nxl-content                    { background: #14202e; }
+html.app-skin-dark .pending-section                 { background: #1a2632 !important; border-color: #2d3f55 !important; }
+html.app-skin-dark .pending-section__head-text h5  { color: #e2e8f0; }
+html.app-skin-dark .pending-section__head-text p   { color: #94a3b8; }
+html.app-skin-dark .bwl-stat-card                  { background: #1e2a3a !important; border-color: #2d3f55 !important; }
+html.app-skin-dark .bwl-stat-value                 { color: #e2e8f0; }
+html.app-skin-dark .bwl-stat-label                 { color: #cbd5e1; }
 
-/* ── Footer sa ibaba ── */
-.nxl-container {
-    min-height: calc(100vh - 80px) !important;
-    display: flex !important;
-    flex-direction: column !important;
-}
-.nxl-content {
-    flex: 1 !important;
-    display: flex !important;
-    flex-direction: column !important;
-}
-.nxl-content .main-content { flex: 1 !important; }
-.footer { flex-shrink: 0 !important; margin-top: auto !important; }
 
+
+
+/* ══════════════════════════════════════════
+   Terms Modal
+   ══════════════════════════════════════════ */
+
+/*
+ * Important:
+ * Do NOT blur the entire page behind the modal.
+ * backdrop-filter can cause noticeable lag during scrolling,
+ * especially on larger pages.
+ */
+
+.modal-backdrop {
+    background-color: rgba(30, 41, 59, 0.55);
+}
+
+.modal-backdrop.show {
+    opacity: 1;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+/*
+ * Keep the modal itself simple and GPU-friendly.
+ */
+#termsModal .modal-content {
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+}
+
+/*
+ * Only the terms content scrolls.
+ * The modal header/footer remain fixed.
+ */
+#termsModal .modal-body {
+    max-height: 460px;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    /* smoother scrolling */
+    -webkit-overflow-scrolling: touch;
+
+    /* prevents unnecessary rendering work */
+    overscroll-behavior: contain;
+
+    padding: 24px;
+}
+
+/*
+ * Lightweight scrollbar
+ */
+#termsModal .modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+#termsModal .modal-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#termsModal .modal-body::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+#termsModal .modal-body::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/*
+ * Modal footer stays clean.
+ */
+#termsModal .modal-footer {
+    background: #fff;
+    border-top: 1px solid #eef1f5;
+    padding: 16px 24px;
+}
+
+/*
+ * Avoid unnecessary transitions that can make
+ * the modal feel sluggish.
+ */
+#termsModal .modal-dialog {
+    will-change: auto;
+}
+
+/*
+ * Better spacing for the terms.
+ */
+#termsModal .modal-body p {
+    color: #6c7a89;
+    font-size: 0.88rem;
+    line-height: 1.6;
+}
+
+#termsModal .modal-body h6 {
+    color: #1a2a3a;
+}
+
+/*
+ * Info notice inside terms
+ */
+#termsModal .alert-info {
+    background: #e8f8fa;
+    border: 1px solid #c7eef1;
+    color: #197b83;
+    border-radius: 8px;
+    font-size: 0.86rem;
+}
+
+
+/* ══════════════════════════════════════════
+   Success Overlay
+   ══════════════════════════════════════════ */
+
+#successOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: rgba(0, 0, 0, 0.55);
+    align-items: center;
+    justify-content: center;
+}
+
+#successOverlay .success-modal {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+#successOverlay .success-modal-top {
+    height: 5px;
+    background: #16a34a;
+}
+
+#successOverlay .success-modal-body {
+    padding: 36px 28px;
+}
+
+#successOverlay .success-icon {
+    font-size: 48px;
+    color: #16a34a;
+}
+
+#successOverlay .success-modal h5 {
+    font-weight: 700;
+    margin: 12px 0 8px;
+}
+
+#successOverlay .success-modal p {
+    color: #6c757d;
+    font-size: 0.88rem;
+    margin-bottom: 20px;
+}
+
+#successOverlay .waiting-box {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 20px;
+}
+
+#successOverlay .waiting-box p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: #6c757d;
+}
+
+#successOverlay .status-link {
+    display: inline-block;
+    background: #4a7cf7;
+    color: #fff;
+    border-radius: 10px;
+    padding: 10px 36px;
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
