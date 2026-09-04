@@ -124,7 +124,7 @@
                     <div class="bwl-ld-card-body">
                         <div class="bwl-ld-info-row">
                             <span class="bwl-ld-info-label">Total Amount to Pay</span>
-                            <div class="bwl-ld-info-value is-primary">₱{{ number_format($app->total_amount, 2) }}</div>
+                            <div class="bwl-ld-info-value is-danger">₱{{ number_format($app->total_amount, 2) }}</div>
                             <div class="bwl-ld-info-sub">(Principal + Interest)</div>
                         </div>
                         <div class="bwl-ld-info-row">

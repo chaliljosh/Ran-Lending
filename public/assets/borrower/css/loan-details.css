@@ -371,3 +371,6 @@ html.app-skin-dark .bwl-ld-reminders-title,
 html.app-skin-dark .bwl-ld-reminders ul {
     color: #93c5fd;
 }
+.bwl-ld-info-value.is-danger {
+    color: #e63946;
+}

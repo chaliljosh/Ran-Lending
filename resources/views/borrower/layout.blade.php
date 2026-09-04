@@ -151,9 +151,9 @@
                 <span>By: <a target="_blank" href="#">Ran Serenity</a></span>
             </p>
             <div class="d-flex align-items-center gap-4">
-                <a href="javascript:void(0);" class="fs-11 fw-semibold text-uppercase">Help</a>
-                <a href="javascript:void(0);" class="fs-11 fw-semibold text-uppercase">Terms</a>
-                <a href="javascript:void(0);" class="fs-11 fw-semibold text-uppercase">Privacy</a>
+                <a href="{{ route('borrower.faq') }}" class="fs-11 fw-semibold text-uppercase">Help</a>
+                <a href="{{ route('borrower.terms') }}" class="fs-11 fw-semibold text-uppercase">Terms</a>
+                <a href="{{ route('borrower.privacy') }}" class="fs-11 fw-semibold text-uppercase">Privacy</a>
             </div>
         </footer>
     </main>

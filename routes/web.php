@@ -48,6 +48,9 @@ Route::middleware(['borrower', 'no-cache'])->group(function () {
     Route::get('/borrower/loan-details', [BorrowerController::class, 'loanDetails'])->name('borrower.loan-details');
     Route::get('/borrower/notifications', [BorrowerController::class, 'notifications'])->name('borrower.notifications');
     Route::get('/borrower/profile', [BorrowerController::class, 'profile'])->name('borrower.profile');
+    Route::get('/borrower/faq', [BorrowerController::class, 'faq'])->name('borrower.faq');
+    Route::get('/borrower/terms', [BorrowerController::class, 'terms'])->name('borrower.terms');
+Route::get('/borrower/privacy', [BorrowerController::class, 'privacy'])->name('borrower.privacy');
     Route::get('/notifications/open/{key}', [BorrowerController::class, 'openNotification'])
     ->name('borrower.notification-open');
 Route::post('/notifications/mark-all-read', [BorrowerController::class, 'markAllNotificationsRead'])

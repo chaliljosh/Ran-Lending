@@ -54,6 +54,15 @@
                     </a>
                 </li>
 
+                <li class="nxl-nav-label" style="display:block; box-sizing:border-box; width:100%; margin:0; padding:16px 14px 8px; font-size:0.68rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#94A3B8; white-space:nowrap;">Support</li>
+
+                <li class="nxl-item {{ request()->routeIs('borrower.faq') ? 'active' : '' }}">
+                    <a href="{{ route('borrower.faq') }}" class="nxl-link">
+                        <span class="nxl-micon"><i class="feather-help-circle"></i></span>
+                        <span class="nxl-mtext">Help & FAQ</span>
+                    </a>
+                </li>
+
                 <li class="nxl-nav-divider"></li>
 
                 <li class="nxl-item">

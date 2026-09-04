@@ -1107,6 +1107,57 @@ class BorrowerController extends Controller
         }
     }
 
+    public function faq(Request $request)
+{
+    $userId = Session::get('user_id');
+    $common = $this->commonData($userId);
+    extract($common);
+
+    if (!$isFullyApproved) {
+        return redirect()->route('borrower.dashboard');
+    }
+
+    return view('borrower.faq', compact(
+        'userName', 'initials', 'profilePicture', 'isFullyApproved',
+        'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
+        'headerNotifications', 'unreadNotifCount'
+    ));
+}
+
+public function terms(Request $request)
+{
+    $userId = Session::get('user_id');
+    $common = $this->commonData($userId);
+    extract($common);
+
+    if (!$isFullyApproved) {
+        return redirect()->route('borrower.dashboard');
+    }
+
+    return view('borrower.terms', compact(
+        'userName', 'initials', 'profilePicture', 'isFullyApproved',
+        'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
+        'headerNotifications', 'unreadNotifCount'
+    ));
+}
+
+public function privacy(Request $request)
+{
+    $userId = Session::get('user_id');
+    $common = $this->commonData($userId);
+    extract($common);
+
+    if (!$isFullyApproved) {
+        return redirect()->route('borrower.dashboard');
+    }
+
+    return view('borrower.privacy', compact(
+        'userName', 'initials', 'profilePicture', 'isFullyApproved',
+        'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
+        'headerNotifications', 'unreadNotifCount'
+    ));
+}
+
     public function changePassword(Request $request)
     {
         $userId = Session::get('user_id');

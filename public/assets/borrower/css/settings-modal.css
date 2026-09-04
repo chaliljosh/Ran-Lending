@@ -194,6 +194,7 @@
     display: block; font-size: 0.8rem; font-weight: 500; /* dati 600 */
     color: var(--bwl-acct-navy); margin-bottom: 6px;
 }
+.bwl-required { color: var(--bwl-acct-blue); }
 .bwl-acct-input {
     width: 100%; padding: 9px 40px 9px 12px;
     border: 1px solid var(--bwl-acct-border); border-radius: 8px;
@@ -315,6 +316,96 @@
     .bwl-toast { width: 100%; }
 }
 
+/* ---------- Change Password header (icon badge + subtitle) ---------- */
+.bwl-pw-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+.bwl-pw-header-icon {
+    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(37, 99, 235, 0.08);
+    color: var(--bwl-acct-blue);
+    font-size: 1rem;
+}
+.bwl-pw-header-text { flex: 1; min-width: 0; }
+.bwl-pw-header-text .modal-title { margin-bottom: 2px; }
+.bwl-pw-header-sub {
+    font-size: 0.78rem;
+    color: var(--bwl-acct-gray);
+    margin: 0;
+}
+.bwl-pw-header .btn-close { margin-top: 2px; }
+
+/* ---------- Confirm password label row (with Clear link) ---------- */
+.bwl-pw-confirm-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+.bwl-pw-confirm-label-row label { margin-bottom: 0; }
+.bwl-pw-clear-btn {
+    background: none; border: none; padding: 0;
+    font-size: 0.76rem; font-weight: 500;
+    color: var(--bwl-acct-gray);
+    cursor: pointer;
+}
+.bwl-pw-clear-btn:hover { color: var(--bwl-acct-navy); text-decoration: underline; }
+
+/* ---------- Password strength meter ---------- */
+.bwl-pw-strength { margin-top: 4px; margin-bottom: 4px; }
+
+.bwl-pw-strength-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+.bwl-pw-strength-seg {
+    flex: 1;
+    height: 4px;
+    border-radius: 999px;
+    background: #E2E8F0;
+    transition: background .2s ease;
+}
+.bwl-pw-strength-seg.is-weak { background: var(--bwl-acct-danger); }
+.bwl-pw-strength-seg.is-medium { background: #D97706; }
+.bwl-pw-strength-seg.is-strong { background: var(--bwl-acct-green); }
+
+.bwl-pw-strength-label {
+    font-size: 0.78rem;
+    color: var(--bwl-acct-gray);
+    margin: 0 0 8px;
+}
+
+.bwl-pw-checklist {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.bwl-pw-checklist li {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.8rem;
+    color: var(--bwl-acct-gray);
+}
+.bwl-pw-checklist li i {
+    font-size: 0.85rem;
+    color: #CBD5E1;
+    flex-shrink: 0;
+}
+.bwl-pw-checklist li.is-met {
+    color: var(--bwl-acct-navy);
+}
+.bwl-pw-checklist li.is-met i {
+    color: var(--bwl-acct-green);
+}
+
 /* ---------- Dark mode ---------- */
 html.app-skin-dark .bwl-acct-modal .modal-content { background: #17202F; box-shadow: 0 20px 60px -20px rgba(0,0,0,0.6); }
 html.app-skin-dark .bwl-acct-header { background: linear-gradient(180deg, #141b28, #17202F); border-color: #2A3648; }
@@ -335,3 +426,23 @@ html.app-skin-dark .bwl-toast { background: #17202F; box-shadow: 0 12px 30px -10
 html.app-skin-dark .bwl-toast-title { color: #E5E9F0; }
 html.app-skin-dark .bwl-toast-desc { color: #94A3B8; }
 html.app-skin-dark .bwl-toast-close:hover { color: #E5E9F0; }
+html.app-skin-dark .bwl-pw-header-icon { background: rgba(37, 99, 235, 0.15); }
+html.app-skin-dark .bwl-pw-header-sub { color: #94A3B8; }
+html.app-skin-dark .bwl-pw-clear-btn { color: #94A3B8; }
+html.app-skin-dark .bwl-pw-clear-btn:hover { color: #E5E9F0; }
+html.app-skin-dark .bwl-pw-strength-seg { background: #2A3648; }
+html.app-skin-dark .bwl-pw-strength-label { color: #94A3B8; }
+html.app-skin-dark .bwl-pw-checklist li { color: #94A3B8; }
+html.app-skin-dark .bwl-pw-checklist li i { color: #3D4B60; }
+html.app-skin-dark .bwl-pw-checklist li.is-met { color: #E5E9F0; }
+
+.bwl-acct-btn-save.is-loading {
+    background: #0F172A; /* black/navy, "go" button look */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.bwl-acct-btn-save.is-loading:hover { background: #0F172A; }
+.bwl-acct-btn-save.is-loading #bwlSetSavePasswordSpinner {
+    margin-left: 0; /* remove ms-2 offset since text is hidden */
+}

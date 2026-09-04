@@ -97,19 +97,13 @@
 <div class="modal fade bwl-acct-modal" id="bwlChangePasswordModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bwl-acct-header">
-                <h6 class="modal-title">Change Password</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
+           
             <div class="modal-body">
 
                 <div id="bwlSetPasswordError" class="bwl-acct-alert bwl-acct-alert-danger d-none"></div>
-                <div id="bwlSetPasswordSuccess" class="bwl-acct-alert bwl-acct-alert-success d-none">
-                    Password changed successfully!
-                </div>
-
+             
                 <div class="bwl-acct-form-field">
-                    <label for="bwlSetCurrentPassword">Current Password</label>
+                    <label for="bwlSetCurrentPassword">Current Password <span class="bwl-required">*</span></label>
                     <div class="bwl-acct-pw-wrap">
                         <input type="password" id="bwlSetCurrentPassword" class="bwl-acct-input" placeholder="Enter current password">
                         <button type="button" class="bwl-acct-pw-toggle" data-target="bwlSetCurrentPassword">
@@ -119,7 +113,7 @@
                 </div>
 
                 <div class="bwl-acct-form-field">
-                    <label for="bwlSetNewPassword">New Password</label>
+                    <label for="bwlSetNewPassword">New Password <span class="bwl-required">*</span></label>
                     <div class="bwl-acct-pw-wrap">
                         <input type="password" id="bwlSetNewPassword" class="bwl-acct-input" placeholder="Enter new password">
                         <button type="button" class="bwl-acct-pw-toggle" data-target="bwlSetNewPassword">
@@ -129,7 +123,10 @@
                 </div>
 
                 <div class="bwl-acct-form-field">
-                    <label for="bwlSetConfirmPassword">Confirm New Password</label>
+                    <div class="bwl-pw-confirm-label-row">
+                        <label for="bwlSetConfirmPassword" class="mb-0">Confirm New Password <span class="bwl-required">*</span></label>
+                        <button type="button" class="bwl-pw-clear-btn" id="bwlSetClearConfirmBtn">Clear</button>
+                    </div>
                     <div class="bwl-acct-pw-wrap">
                         <input type="password" id="bwlSetConfirmPassword" class="bwl-acct-input" placeholder="Re-enter new password">
                         <button type="button" class="bwl-acct-pw-toggle" data-target="bwlSetConfirmPassword">
@@ -138,12 +135,25 @@
                     </div>
                 </div>
 
-                <p class="bwl-acct-hint">Password must be at least 8 characters long.</p>
+                <div class="bwl-pw-strength" id="bwlPwStrength">
+                    <div class="bwl-pw-strength-bar">
+                        <span class="bwl-pw-strength-seg" data-seg="1"></span>
+                        <span class="bwl-pw-strength-seg" data-seg="2"></span>
+                        <span class="bwl-pw-strength-seg" data-seg="3"></span>
+                    </div>
+                    <p class="bwl-pw-strength-label" id="bwlPwStrengthLabel">Password strength. Must contain;</p>
+                    <ul class="bwl-pw-checklist">
+                        <li id="bwlPwReqUpper"><i class="feather-x-circle"></i> At least 1 uppercase</li>
+                        <li id="bwlPwReqNumber"><i class="feather-x-circle"></i> At least 1 number</li>
+                        <li id="bwlPwReqLength"><i class="feather-x-circle"></i> At least 8 characters</li>
+                    </ul>
+                </div>
+
             </div>
             <div class="modal-footer bwl-acct-footer">
                 <button type="button" class="bwl-acct-btn-cancel" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="bwl-acct-btn-save" id="bwlSetSavePasswordBtn">
-                    <span id="bwlSetSavePasswordText">Update Password</span>
+                    <span id="bwlSetSavePasswordText">Change Password</span>
                     <span id="bwlSetSavePasswordSpinner" class="spinner-border spinner-border-sm ms-2 d-none"></span>
                 </button>
             </div>

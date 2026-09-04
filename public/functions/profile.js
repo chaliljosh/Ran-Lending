@@ -7,6 +7,14 @@
     // Snapshot ng original values, para maibalik pag Cancel.
     const originalValues = {};
 
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'profile-toast';
+        toast.innerHTML = `<i class="feather-check-circle"></i>${message}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2600);
+    }
+
     window.toggleSectionEdit = function (section) {
         const fields = document.querySelectorAll(`.profile-editable[data-section="${section}"]`);
         fields.forEach(f => {
@@ -58,6 +66,7 @@
                 document.querySelectorAll(`.profile-editable[data-section="${section}"]`).forEach(f => { f.disabled = true; });
                 document.getElementById(`editLink-${section}`).classList.remove('d-none');
                 document.getElementById(`sectionActions-${section}`).classList.add('d-none');
+                showToast('Changes saved successfully.');
             } else {
                 alert(data.message || 'Something went wrong. Please try again.');
             }

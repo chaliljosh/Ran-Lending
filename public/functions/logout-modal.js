@@ -2,8 +2,38 @@
 // Used by: both admin and borrower nav "Logout" links (onclick="confirmLogout()")
 // Endpoint: POST /api/logout (routes/web.php, name('logout'))
 //
-// Builds the confirm modal dynamically so it works on any page that includes
-// this script, without needing to paste modal HTML into every blade file.
+// Also handles CROSS-TAB logout sync: when one tab logs out, any other open
+// tab on the same site (e.g. a dashboard tab that was just left open, never
+// touched) shows a "You've been logged out" overlay instead of silently
+// staying on a now-invalid session until the user clicks/refreshes something.
+
+const LOGOUT_BROADCAST_KEY = 'ran_logout_broadcast';
+
+// ---- Listener: fires in OTHER tabs when this key changes in localStorage.
+// (Note: the 'storage' event never fires in the tab that made the change,
+// only in other tabs — exactly the behavior we want here.)
+window.addEventListener('storage', function (e) {
+    if (e.key === LOGOUT_BROADCAST_KEY && e.newValue) {
+        showLoggedOutOverlay();
+    }
+});
+
+function showLoggedOutOverlay() {
+    if (document.getElementById('loggedOutOverlay')) return; // already showing, avoid dupes
+
+    const overlay = document.createElement('div');
+    overlay.id = 'loggedOutOverlay';
+    overlay.className = 'logged-out-overlay';
+    overlay.innerHTML = `
+        <div class="logged-out-card">
+            <h4>You've been logged out</h4>
+            <p>Please log in again.</p>
+            <div class="logged-out-divider"></div>
+            <a href="/login" class="logged-out-link">Log in</a>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+}
 
 function confirmLogout() {
     let modalEl = document.getElementById('logoutConfirmModal');
@@ -14,24 +44,20 @@ function confirmLogout() {
         modalEl.id = 'logoutConfirmModal';
         modalEl.tabIndex = -1;
         modalEl.setAttribute('aria-hidden', 'true');
-      modalEl.innerHTML = `
+    modalEl.innerHTML = `
 <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content logout-modal">
 
-       
+        <button type="button" class="logout-close-btn" data-bs-dismiss="modal" aria-label="Close"></button>
 
         <div class="modal-body text-center">
 
-            <div class="logout-icon">
-                <i class="fas fa-sign-out-alt"></i>
-            </div>
-
             <h5 class="mt-3">
-                Are you sure you want to log out?
+            Log out Account
             </h5>
 
             <p class="mt-2 text-muted">
-                You will need to sign in again to access your account.
+                Are you sure you want to log out? You will need to log in again to access your account.
             </p>
 
         </div>
@@ -40,23 +66,23 @@ function confirmLogout() {
 
             <button
                 type="button"
-                class="btn logout-cancel-btn flex-fill"
+                class="btn logout-cancel-btn"
                 data-bs-dismiss="modal">
                 Cancel
             </button>
 
             <button
                 type="button"
-                class="btn logout-danger-btn flex-fill"
+                class="btn logout-danger-btn"
                 id="logoutConfirmBtn">
-                Logout
+                Log out
             </button>
 
         </div>
 
     </div>
 </div>
-        `;
+    `;
         document.body.appendChild(modalEl);
 
         document.getElementById('logoutConfirmBtn').addEventListener('click', performLogout);
@@ -77,20 +103,15 @@ function performLogout() {
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
 
-    // Broadcasting the logout to other open tabs is a nice-to-have, not a
-    // requirement for logging THIS tab out. Previously this called
-    // SessionSync.broadcastLogout() directly and unguarded — on any page
-    // where that script isn't loaded (e.g. the borrower dashboard), this
-    // threw an uncaught error RIGHT HERE, before fetch() ever ran. That's
-    // why the button spun forever and never actually logged out: the
-    // request was never sent at all. Guarding it means a missing/broken
-    // SessionSync can never block the actual logout again.
+    // Broadcast to any other open tabs so they lock out immediately too,
+    // instead of staying on a stale dashboard until the user interacts
+    // with them. Wrapped in try/catch: some browsers block localStorage
+    // in certain contexts (private mode, etc.) — that should never block
+    // the actual logout of THIS tab.
     try {
-        if (typeof SessionSync !== 'undefined' && typeof SessionSync.broadcastLogout === 'function') {
-            SessionSync.broadcastLogout();
-        }
+        localStorage.setItem(LOGOUT_BROADCAST_KEY, Date.now().toString());
     } catch (err) {
-        console.error('[logout-modal.js] SessionSync.broadcastLogout failed (ignoring):', err);
+        console.error('[logout-modal.js] cross-tab broadcast failed (ignoring):', err);
     }
 
     const csrfMeta = document.querySelector('meta[name="csrf-token"]');
