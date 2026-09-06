@@ -1,4 +1,4 @@
-  @push('page-head-links')
+@push('page-head-links')
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/layout-fixes.css') }}">
 @endpush
 
@@ -20,7 +20,6 @@
                 </li>
 
                 @if(!$isFullyApproved)
-                                <li class="nxl-nav-label" style="display:block; box-sizing:border-box; width:100%; margin:0; padding:16px 14px 8px; font-size:0.68rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#94A3B8; white-space:nowrap;">G</li>
                 <li class="nxl-item {{ request()->routeIs('borrower.personal-details') ? 'active' : '' }}">
                     <a href="{{ route('borrower.personal-details') }}" class="nxl-link">
                         <span class="nxl-micon"><i class="feather-user-check"></i></span>

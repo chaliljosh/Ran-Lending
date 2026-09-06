@@ -65,7 +65,7 @@
                       <input class="form-check-input" type="checkbox" id="rememberMe">
                       <label class="form-check-label text-dark" for="rememberMe">Remember me</label>
                     </div>
-                    <a class="text-primary fw-bold" href="{{ route('forgot-password') }}">Forgot Password?</a>
+                   <a class="text-primary link-dark-nav" href="{{ route('forgot-password') }}">Forgot Password?</a>
                   </div>
 
                   <button type="submit" class="btn btn-primary w-100 py-8 fs-4 mb-3" id="loginBtn">
@@ -75,7 +75,7 @@
 
                   <div class="d-flex align-items-center justify-content-center">
                     <p class="fs-4 mb-0 fw-bold">New to RAN?</p>
-                    <a class="text-primary fw-bold ms-2" href="{{ route('register') }}">Create an account</a>
+                    <a class="text-primary ms-2" href="{{ route('register') }}">Create an account</a>
                   </div>
                 </form>
               </div>

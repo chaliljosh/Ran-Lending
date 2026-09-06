@@ -1,3 +1,9 @@
+/* ── Page background — white sa halip na yung default gray ng
+     theme (kagaya ng ginawa na natin sa Profile page) ── */
+.nxl-content {
+    background: #fff;
+}
+
 /* ── Submission Overlay ── */
 #submissionOverlay {
     display: none; opacity: 0;
@@ -44,6 +50,79 @@
     text-decoration: none; transition: background 0.2s;
 }
 #submissionOverlay .btn-go:hover { background: #3a6de0; color: #fff; }
+
+/* ── Status Cards (Details Already Submitted / Profile Approved /
+     Submission Rejected) — same white bg + neutral border + subtle
+     shadow language as .form-section below, dahil plain Bootstrap
+     .card lang ito dati (walang dark-mode support, at hindi
+     tugma yung border/shadow sa ibang cards natin). ── */
+.bwl-status-card {
+    background: #fff;
+    border: 1px solid #eef0f7;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(15,23,42,0.06);
+}
+
+/* ── "Details Already Submitted" layout — icon + title/desc row,
+     divider, tapos icon + label/value row. Walang button dito. ── */
+.bwl-status-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 24px 24px 20px;
+}
+.bwl-status-icon {
+    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: #dcfce7; color: #16a34a; font-size: 18px;
+}
+.bwl-status-title-wrap { min-width: 0; }
+.bwl-status-title {
+    font-size: 1.05rem; font-weight: 700; color: #1e293b;
+    margin: 0 0 4px;
+}
+.bwl-status-desc {
+    font-size: 0.85rem; color: #64748b; margin: 0; line-height: 1.5;
+}
+
+.bwl-status-divider {
+    height: 1px; background: #eef0f7; margin: 0 24px;
+}
+
+.bwl-status-approvals {
+    display: flex; align-items: center; gap: 12px;
+    padding: 20px 24px;
+}
+.bwl-status-approvals-icon {
+    width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: #f1f5f9; color: #64748b; font-size: 16px;
+}
+.bwl-status-approvals-label {
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.4px; color: #94a3b8; margin-bottom: 2px;
+}
+.bwl-status-approvals-value {
+    font-size: 1.4rem; font-weight: 800; color: #1e293b;
+}
+
+html.app-skin-dark .bwl-status-card {
+    background: #1e2a3b !important;
+    border-color: #2d3f55 !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3) !important;
+}
+html.app-skin-dark .bwl-status-card h4 {
+    color: #e2e8f0 !important;
+}
+html.app-skin-dark .bwl-status-card .text-muted {
+    color: #94a3b8 !important;
+}
+html.app-skin-dark .bwl-status-title { color: #e2e8f0 !important; }
+html.app-skin-dark .bwl-status-desc { color: #94a3b8 !important; }
+html.app-skin-dark .bwl-status-divider { background: #2d3f55; }
+html.app-skin-dark .bwl-status-approvals-icon { background: #16202e; color: #94a3b8; }
+html.app-skin-dark .bwl-status-approvals-label { color: #64748b; }
+html.app-skin-dark .bwl-status-approvals-value { color: #e2e8f0; }
 
 /* ── Form Section Cards ── */
 .form-section {
@@ -103,20 +182,34 @@
     letter-spacing: 0.4px !important;
 }
 
-/* ── Submit Button ── */
+/* ── Submit Button — black, kasama ang Cancel outline ── */
 #submitBtn {
-    background: linear-gradient(135deg, #4a7cf7, #6ea8fe);
+    background: #0F172A;
     border: none; border-radius: 12px;
     padding: 12px 40px; font-size: 0.95rem; font-weight: 600;
     color: #fff; transition: all 0.2s;
-    box-shadow: 0 4px 15px rgba(74,124,247,0.35);
+    box-shadow: none;
 }
 #submitBtn:hover:not(:disabled) {
+    background: #1E293B;
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(74,124,247,0.45);
+    box-shadow: 0 6px 16px rgba(15,23,42,0.25);
 }
 #submitBtn:disabled {
     background: #cbd5e1; box-shadow: none; cursor: not-allowed;
+}
+
+/* ── Cancel Button — black outline, kasabay ng Submit ── */
+.d-flex.gap-3 .btn-outline-secondary {
+    color: #0F172A !important;
+    border-color: #0F172A !important;
+    background: transparent !important;
+    transition: background .15s ease, color .15s ease;
+}
+.d-flex.gap-3 .btn-outline-secondary:hover {
+    background: #0F172A !important;
+    color: #fff !important;
+    border-color: #0F172A !important;
 }
 
 /* ── Progress Steps ── */
@@ -155,6 +248,8 @@
    DARK MODE — html.app-skin-dark
    (NXL/NEXEL theme adds this class to <html>)
    ══════════════════════════════════════════ */
+
+html.app-skin-dark .nxl-content { background: #14202e; }
 
 /* Form section cards */
 html.app-skin-dark .form-section {
@@ -242,6 +337,26 @@ html.app-skin-dark .progress-connector {
 
 html.app-skin-dark .progress-connector.done {
     background: #4a7cf7 !important;
+}
+
+/* Submit / Cancel buttons — sa dark mode, dagdagan ng subtle
+   border yung black button para hindi masyadong lumubog sa
+   dark navy background ng theme */
+html.app-skin-dark #submitBtn {
+    background: #0F172A;
+    border: 1px solid #2d3f55;
+}
+html.app-skin-dark #submitBtn:hover:not(:disabled) {
+    background: #1E293B;
+}
+html.app-skin-dark .d-flex.gap-3 .btn-outline-secondary {
+    color: #E2E8F0 !important;
+    border-color: #4a6080 !important;
+}
+html.app-skin-dark .d-flex.gap-3 .btn-outline-secondary:hover {
+    background: #1E293B !important;
+    color: #fff !important;
+    border-color: #4a6080 !important;
 }
 
 /* Submission overlay modal */

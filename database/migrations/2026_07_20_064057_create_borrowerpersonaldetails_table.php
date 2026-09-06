@@ -26,6 +26,7 @@ return new class extends Migration
             $table->enum('id_type', ['national_id','passport','drivers_license','umid','sss','tin','postal','voters','prc'])->nullable();
             $table->string('id_number', 45)->nullable();
             $table->string('id_file_path', 255)->nullable();
+            $table->string('id_file_path_back', 255)->nullable();
             $table->decimal('monthly_income', 10, 2)->nullable();
             $table->string('email', 150)->nullable();
             $table->enum('status', ['incomplete','pending','approved','rejected','on_hold'])->default('incomplete');

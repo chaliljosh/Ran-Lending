@@ -40,29 +40,21 @@ class BorrowerController extends Controller
         }
         $initials = substr($initials, 0, 2);
 
-        // Profile picture — shared column on `users` (same one the admin
-        // side already uses). Needed by borrower.layout on every page
-        // for the header dropdown avatar.
         $profilePicture = $this->getProfilePictureUrl($userId);
 
-        // NEW: needed by the Account Settings modal (settings-modal.blade.php)
-        // on every borrower page, since the modal is included globally in
-        // borrower.layout and its trigger (header dropdown) is always visible.
         $userEmail = $user->email ?? '';
         $userPhone = $details->cellphone_num ?? '';
         $isActive = $user ? (bool) ($user->is_active ?? true) : true;
         $lastLoginAt = $user->last_login_at ?? null;
 
-
-          // ============ BAGO: header bell notifications ============
-    $headerNotifications = $this->buildBorrowerNotifications($userId);
-    $unreadNotifCount = $headerNotifications->where('read', false)->count();
+        $headerNotifications = $this->buildBorrowerNotifications($userId);
+        $unreadNotifCount = $headerNotifications->where('read', false)->count();
 
         return compact(
             'details', 'detailsStatus', 'approvedCount', 'isFullyApproved',
             'userName', 'initials', 'profilePicture',
             'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
-            'headerNotifications', 'unreadNotifCount'  
+            'headerNotifications', 'unreadNotifCount'
         );
     }
 
@@ -75,7 +67,6 @@ class BorrowerController extends Controller
         return null;
     }
 
-    // Builds the loan payment schedule/notifications shared by dashboard, loan-details, and notifications pages.
     private function buildPaymentSchedule($app)
     {
         $schedule = [];
@@ -101,23 +92,6 @@ class BorrowerController extends Controller
         return $schedule;
     }
 
-    /**
-     * Header bell — builds the FULL dynamic notification list shown in
-     * the borrower.layout dropdown. Combines 5 sources, all shaped the
-     * same way (key, url, icon, color, title, subtitle, read, ts) then
-     * merged and sorted by ts desc:
-     *
-     *   1. Loan application decided (approved/active or rejected)
-     *   2. Verification fully approved — borrower newly eligible to apply
-     *   3. Payment received/confirmed (recently paid installments)
-     *   4. Penalty charged (unpaid loan_penalties)
-     *   5. Upcoming/overdue payment reminders (original behavior)
-     *
-     * "read" state lives in borrower_notification_reads, keyed by a
-     * stable string per notification (e.g. "loan_status:14:approved",
-     * "penalty:9") since none of these are rows in a dedicated
-     * notifications table — they're all computed on the fly.
-     */
     private function buildBorrowerNotifications($userId)
     {
         $items = collect();
@@ -130,8 +104,6 @@ class BorrowerController extends Controller
 
         $today = Carbon::today();
 
-        // All loan applications for this user — needed across several
-        // of the sections below (decision, payments, penalties).
         $applications = DB::table('loan_applications')
             ->where('user_id', $userId)
             ->orderByDesc('applied_at')
@@ -139,11 +111,6 @@ class BorrowerController extends Controller
 
         $applicationIds = $applications->pluck('application_id');
 
-        // ------------------------------------------------------------
-        // 1. Loan application decided — approved (incl. auto-activated)
-        //    or rejected. One notification per application in a
-        //    terminal decided state.
-        // ------------------------------------------------------------
         foreach ($applications as $app) {
             if (!in_array($app->status, ['approved', 'active', 'rejected'], true)) {
                 continue;
@@ -172,11 +139,6 @@ class BorrowerController extends Controller
             ]);
         }
 
-        // ------------------------------------------------------------
-        // 2. Verification fully approved — borrower can now apply.
-        //    Same "3 admins approved" rule used by isFullyApproved in
-        //    commonData().
-        // ------------------------------------------------------------
         $details = DB::table('borrowerpersonaldetails')->where('user_id', $userId)->first();
 
         if ($details && $details->status === 'approved') {
@@ -208,11 +170,6 @@ class BorrowerController extends Controller
         }
 
         if ($applicationIds->isNotEmpty()) {
-            // --------------------------------------------------------
-            // 3. Payment received/confirmed — installments paid within
-            //    the last 14 days, across ALL of the borrower's loans
-            //    (not just the current active one).
-            // --------------------------------------------------------
             $recentPaid = DB::table('loan_payment_schedules')
                 ->whereIn('application_id', $applicationIds)
                 ->whereNotNull('paid_at')
@@ -234,10 +191,6 @@ class BorrowerController extends Controller
                 ]);
             }
 
-            // --------------------------------------------------------
-            // 4. Penalty charged — currently unpaid penalties on any of
-            //    the borrower's loans.
-            // --------------------------------------------------------
             $penalties = DB::table('loan_penalties')
                 ->whereIn('application_id', $applicationIds)
                 ->where('status', 'unpaid')
@@ -259,10 +212,6 @@ class BorrowerController extends Controller
             }
         }
 
-        // ------------------------------------------------------------
-        // 5. Upcoming/overdue payment reminders — original behavior,
-        //    scoped to the current active/approved loan's schedule.
-        // ------------------------------------------------------------
         $candidateApp = $applications->first(fn($a) => in_array($a->status, ['active', 'approved'], true));
 
         if ($candidateApp) {
@@ -324,17 +273,6 @@ class BorrowerController extends Controller
             ? ($loanStatusMap[$latestLoan->status] ?? ['label' => 'Unknown', 'bar' => 'bg-secondary', 'progress' => 0])
             : ['label' => 'No Application', 'bar' => 'bg-secondary', 'progress' => 0];
 
-        // ============================================================
-        // FULL REDESIGNED DASHBOARD DATA
-        // Only meaningful once a loan actually has a payment schedule
-        // (i.e. it's been ACTIVATED, not merely fully approved — see
-        // AdminController::refreshLoanApplicationStatus(), which flips
-        // status to 'active' and calls LoanActivationService::activate()
-        // right after the 3rd admin approval). Everything below stays
-        // at its default/empty value when there's no schedule yet, and
-        // the view (borrower.dashboard) falls back to the simple status
-        // card via its `@elseif(!$app)` branch.
-        // ============================================================
         $app = null;
         $outstandingAmount = 0;
         $progressPct = 0;
@@ -349,11 +287,6 @@ class BorrowerController extends Controller
         $notifications = collect();
         $recentPayments = collect();
 
-        // ------------------------------------------------------------
-        // Payment calendar month — navigable via ?cal_month=YYYY-MM.
-        // Falls back to the current month when missing/invalid so the
-        // calendar never breaks on a bad query string.
-        // ------------------------------------------------------------
         $calMonthParam = $request->query('cal_month');
         try {
             $calMonth = $calMonthParam
@@ -392,29 +325,18 @@ class BorrowerController extends Controller
                     $daysOverdue = $isOverdue ? $dueDate->diffInDays(now()) : 0;
                 }
 
-                // "Approved" timestamp: the reviewed_at of the decision
-                // that completed the 3-admin approval — i.e. the latest
-                // of the three 'approved' reviews for this application.
                 $approvedAt = DB::table('loan_approvals')
                     ->where('application_id', $app->application_id)
                     ->where('decision', 'approved')
                     ->orderByDesc('reviewed_at')
                     ->value('reviewed_at');
 
-                // There's no separate "activated_at" column — activation
-                // happens immediately after full approval, so we reuse
-                // approvedAt as the activation timestamp too.
                 $activatedAt = $approvedAt;
 
-                // Payment calendar — mark which days of the SELECTED
-                // month have an installment due, so the calendar grid
-                // can highlight them.
                 $calDaysWithPayments = $schedule
                     ->filter(fn($s) => Carbon::parse($s->due_date)->isSameMonth($calMonth))
                     ->mapWithKeys(fn($s) => [Carbon::parse($s->due_date)->day => true]);
 
-                // Upcoming/overdue payment notifications — same 14-day
-                // window used on the dedicated Notifications page.
                 $today = Carbon::today();
                 $notifItems = [];
 
@@ -440,7 +362,6 @@ class BorrowerController extends Controller
                 usort($notifItems, fn($a, $b) => $a['sort'] <=> $b['sort']);
                 $notifications = collect($notifItems);
 
-                // Recent Payments — latest 3 paid installments for this loan
                 $recentPayments = $schedule
                     ->filter(fn($s) => !is_null($s->paid_at))
                     ->sortByDesc('paid_at')
@@ -466,7 +387,6 @@ class BorrowerController extends Controller
         $common = $this->commonData($userId);
         extract($common);
 
-        // Registration data para sa auto-fill (readonly fields)
         $user = DB::table('users')->where('user_id', $userId)->first();
         $regData = [
             'lastName'   => $details->last_name ?? $user->last_name ?? '',
@@ -489,30 +409,40 @@ class BorrowerController extends Controller
 
         $existing = DB::table('borrowerpersonaldetails')->where('user_id', $userId)->first();
 
+        // ID Front / Back — dalawang hiwalay na files na ngayon (dati
+        // isa lang na "validId"). Kinukuha ang existing paths bilang
+        // fallback kung hindi na muling nag-upload (hal. sa resubmit
+        // pagkatapos ng rejection, kung same ID pa rin ang gagamitin).
         $idFilePath = $existing->id_file_path ?? null;
-        if ($request->hasFile('validId')) {
-            $idFilePath = $request->file('validId')->store('ids', 'public');
+        if ($request->hasFile('validIdFront')) {
+            $idFilePath = $request->file('validIdFront')->store('ids', 'public');
+        }
+
+        $idFilePathBack = $existing->id_file_path_back ?? null;
+        if ($request->hasFile('validIdBack')) {
+            $idFilePathBack = $request->file('validIdBack')->store('ids', 'public');
         }
 
         $personalData = [
-            'last_name'      => $request->input('lastName'),
-            'first_name'     => $request->input('firstName'),
-            'middle_name'    => $request->input('middleName'),
-            'suffix'         => $request->input('suffix'),
-            'birthday'       => $request->input('birthday'),
-            'gender'         => $request->input('gender'),
-            'civil_status'   => $request->input('civilStatus'),
-            'citizenship'    => $request->input('citizenship'),
-            'birth_country'  => $request->input('birthCountry'),
-            'birth_province' => $request->input('birthProvince'),
-            'birth_city'     => $request->input('birthCity'),
-            'cellphone_num'  => $request->input('cellphone'),
-            'id_type'        => $request->input('idType'),
-            'id_number'      => $request->input('idNumber'),
-            'id_file_path'   => $idFilePath,
-            'monthly_income' => $request->input('monthlyIncome'),
-            'email'          => $request->input('email'),
-            'status'         => 'pending',
+            'last_name'         => $request->input('lastName'),
+            'first_name'        => $request->input('firstName'),
+            'middle_name'       => $request->input('middleName'),
+            'suffix'            => $request->input('suffix'),
+            'birthday'          => $request->input('birthday'),
+            'gender'            => $request->input('gender'),
+            'civil_status'      => $request->input('civilStatus'),
+            'citizenship'       => $request->input('citizenship'),
+            'birth_country'     => $request->input('birthCountry'),
+            'birth_province'    => $request->input('birthProvince'),
+            'birth_city'        => $request->input('birthCity'),
+            'cellphone_num'     => $request->input('cellphone'),
+            'id_type'           => $request->input('idType'),
+            'id_number'         => $request->input('idNumber'),
+            'id_file_path'      => $idFilePath,
+            'id_file_path_back' => $idFilePathBack,
+            'monthly_income'    => $request->input('monthlyIncome'),
+            'email'             => $request->input('email'),
+            'status'            => 'pending',
         ];
 
         $addressData = [
@@ -586,7 +516,6 @@ class BorrowerController extends Controller
             return redirect()->route('borrower.dashboard');
         }
 
-        // Isa lang ang pwedeng "buhay" na application sa isang pagkakataon.
         $existingApplication = DB::table('loan_applications')
             ->where('user_id', $userId)
             ->whereIn('status', ['pending', 'approved', 'active', 'on_hold'])
@@ -631,7 +560,7 @@ class BorrowerController extends Controller
             return response()->json(['success' => false, 'message' => 'Invalid loan term.'], 422);
         }
 
-        $interestRate   = 5.00; // Fixed 5% monthly, same as sa lumang system.
+        $interestRate   = 5.00;
         $totalInterest  = $loanAmount * ($interestRate / 100) * $loanTerm;
         $totalAmount    = $loanAmount + $totalInterest;
         $monthlyPayment = round($totalAmount / $loanTerm, 2);
@@ -642,7 +571,7 @@ class BorrowerController extends Controller
                 'loan_amount'     => $loanAmount,
                 'loan_term'       => $loanTerm,
                 'interest_rate'   => $interestRate,
-                 'total_interest'  => $totalInterest,  
+                 'total_interest'  => $totalInterest,
                 'total_amount'    => $totalAmount,
                 'monthly_payment' => $monthlyPayment,
                 'loan_purpose'    => $request->input('loanPurpose'),
@@ -693,11 +622,6 @@ class BorrowerController extends Controller
 
         $loanId = $app ? 'LN-' . str_pad($app->application_id, 6, '0', STR_PAD_LEFT) : null;
 
-        // Prefer the REAL payment schedule (loan_payment_schedules) once
-        // the loan has been activated — this has the actual due dates
-        // and paid status per installment (paid_at, amount_paid). Before
-        // activation there are no rows there yet, so we fall back to the
-        // estimated schedule from buildPaymentSchedule().
         $realSchedule = $app
             ? DB::table('loan_payment_schedules')
                 ->where('application_id', $app->application_id)
@@ -738,8 +662,6 @@ class BorrowerController extends Controller
                 $isOverdue = Carbon::parse($nextUnpaidRow->due_date)->isPast();
             }
         } else {
-            // No real schedule yet (not activated) — show the estimate,
-            // every row simply "pending" since nothing's been recorded.
             $paymentSchedule = array_map(function ($row) {
                 $row['status'] = 'pending';
                 return $row;
@@ -808,12 +730,6 @@ class BorrowerController extends Controller
         ));
     }
 
-    /**
-     * Header bell — user clicked a specific notification. I-mamark as
-     * read (upsert sa borrower_notification_reads) then i-redirect papunta
-     * sa ?redirect= URL na pinasa ng layout blade (yung actual page kung
-     * saan dapat tumingin ang user, e.g. loan-details).
-     */
     public function openNotification(Request $request, $key)
     {
         $userId = Session::get('user_id');
@@ -825,8 +741,6 @@ class BorrowerController extends Controller
 
         $redirect = $request->query('redirect');
 
-        // Safety check — huwag payagang mag-redirect papunta sa ibang domain
-        // (open redirect). Kung invalid o wala, bumalik na lang sa dashboard.
         if ($redirect && str_starts_with($redirect, '/')) {
             return redirect($redirect);
         }
@@ -834,12 +748,6 @@ class BorrowerController extends Controller
         return redirect()->route('borrower.dashboard');
     }
 
-    /**
-     * Header bell — "Mark all as read". Kinukuha ang FULL current list
-     * (parehong 5 sources sa buildBorrowerNotifications) at i-uupsert
-     * lahat ng currently-unread keys papunta sa reads table — kaya
-     * gumagana ito nang tama kahit anong klase ng notification.
-     */
     public function markAllNotificationsRead(Request $request)
     {
         $userId = Session::get('user_id');
@@ -856,48 +764,48 @@ class BorrowerController extends Controller
     }
 
     public function dashboardCalendar(Request $request)
-{
-    $userId = Session::get('user_id');
+    {
+        $userId = Session::get('user_id');
 
-    $calMonthParam = $request->query('cal_month');
-    try {
-        $calMonth = $calMonthParam
-            ? Carbon::createFromFormat('Y-m', $calMonthParam)->startOfMonth()
-            : Carbon::now()->startOfMonth();
-    } catch (\Exception $e) {
-        $calMonth = Carbon::now()->startOfMonth();
-    }
-    $calPrevMonth = $calMonth->copy()->subMonth()->format('Y-m');
-    $calNextMonth = $calMonth->copy()->addMonth()->format('Y-m');
-
-    $candidateApp = DB::table('loan_applications')
-        ->where('user_id', $userId)
-        ->whereIn('status', ['active', 'approved'])
-        ->orderByDesc('applied_at')
-        ->first();
-
-    $calDaysWithPayments = collect();
-    $nextUnpaid = null;
-
-    if ($candidateApp) {
-        $schedule = DB::table('loan_payment_schedules')
-            ->where('application_id', $candidateApp->application_id)
-            ->orderBy('installment_no')
-            ->get();
-
-        if ($schedule->isNotEmpty()) {
-            $nextUnpaid = $schedule->first(fn($s) => is_null($s->paid_at));
-
-            $calDaysWithPayments = $schedule
-                ->filter(fn($s) => Carbon::parse($s->due_date)->isSameMonth($calMonth))
-                ->mapWithKeys(fn($s) => [Carbon::parse($s->due_date)->day => true]);
+        $calMonthParam = $request->query('cal_month');
+        try {
+            $calMonth = $calMonthParam
+                ? Carbon::createFromFormat('Y-m', $calMonthParam)->startOfMonth()
+                : Carbon::now()->startOfMonth();
+        } catch (\Exception $e) {
+            $calMonth = Carbon::now()->startOfMonth();
         }
-    }
+        $calPrevMonth = $calMonth->copy()->subMonth()->format('Y-m');
+        $calNextMonth = $calMonth->copy()->addMonth()->format('Y-m');
 
-    return view('borrower.partials.payment-calendar', compact(
-        'calMonth', 'calPrevMonth', 'calNextMonth', 'calDaysWithPayments', 'nextUnpaid'
-    ));
-}
+        $candidateApp = DB::table('loan_applications')
+            ->where('user_id', $userId)
+            ->whereIn('status', ['active', 'approved'])
+            ->orderByDesc('applied_at')
+            ->first();
+
+        $calDaysWithPayments = collect();
+        $nextUnpaid = null;
+
+        if ($candidateApp) {
+            $schedule = DB::table('loan_payment_schedules')
+                ->where('application_id', $candidateApp->application_id)
+                ->orderBy('installment_no')
+                ->get();
+
+            if ($schedule->isNotEmpty()) {
+                $nextUnpaid = $schedule->first(fn($s) => is_null($s->paid_at));
+
+                $calDaysWithPayments = $schedule
+                    ->filter(fn($s) => Carbon::parse($s->due_date)->isSameMonth($calMonth))
+                    ->mapWithKeys(fn($s) => [Carbon::parse($s->due_date)->day => true]);
+            }
+        }
+
+        return view('borrower.partials.payment-calendar', compact(
+            'calMonth', 'calPrevMonth', 'calNextMonth', 'calDaysWithPayments', 'nextUnpaid'
+        ));
+    }
 
     public function profile(Request $request)
     {
@@ -931,12 +839,6 @@ class BorrowerController extends Controller
         ));
     }
 
-    /**
-     * OLD settings page — hindi na ito ang default entry point (modal na
-     * ang tinatawag mula sa header dropdown), pero pinapanatili pa rin
-     * ang route/method na ito bilang fallback kung sakaling kailangan
-     * pa ring i-access nang direkta.
-     */
     public function settings(Request $request)
     {
         $userId = Session::get('user_id');
@@ -954,10 +856,6 @@ class BorrowerController extends Controller
         ));
     }
 
-    /**
-     * NEW: Account Settings modal — GET account info (Full Name, Email,
-     * Phone) para i-populate ang modal fields tuwing bubuksan ito.
-     */
     public function getAccountSettings(Request $request)
     {
         $userId = Session::get('user_id');
@@ -972,10 +870,6 @@ class BorrowerController extends Controller
         ]);
     }
 
-    /**
-     * NEW: Account Settings modal — i-save ang Full Name, Email, Phone
-     * mula sa Profile Information panel ng modal.
-     */
     public function updateAccountSettings(Request $request)
     {
         $userId = Session::get('user_id');
@@ -1108,55 +1002,55 @@ class BorrowerController extends Controller
     }
 
     public function faq(Request $request)
-{
-    $userId = Session::get('user_id');
-    $common = $this->commonData($userId);
-    extract($common);
+    {
+        $userId = Session::get('user_id');
+        $common = $this->commonData($userId);
+        extract($common);
 
-    if (!$isFullyApproved) {
-        return redirect()->route('borrower.dashboard');
+        if (!$isFullyApproved) {
+            return redirect()->route('borrower.dashboard');
+        }
+
+        return view('borrower.faq', compact(
+            'userName', 'initials', 'profilePicture', 'isFullyApproved',
+            'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
+            'headerNotifications', 'unreadNotifCount'
+        ));
     }
 
-    return view('borrower.faq', compact(
-        'userName', 'initials', 'profilePicture', 'isFullyApproved',
-        'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
-        'headerNotifications', 'unreadNotifCount'
-    ));
-}
+    public function terms(Request $request)
+    {
+        $userId = Session::get('user_id');
+        $common = $this->commonData($userId);
+        extract($common);
 
-public function terms(Request $request)
-{
-    $userId = Session::get('user_id');
-    $common = $this->commonData($userId);
-    extract($common);
+        if (!$isFullyApproved) {
+            return redirect()->route('borrower.dashboard');
+        }
 
-    if (!$isFullyApproved) {
-        return redirect()->route('borrower.dashboard');
+        return view('borrower.terms', compact(
+            'userName', 'initials', 'profilePicture', 'isFullyApproved',
+            'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
+            'headerNotifications', 'unreadNotifCount'
+        ));
     }
 
-    return view('borrower.terms', compact(
-        'userName', 'initials', 'profilePicture', 'isFullyApproved',
-        'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
-        'headerNotifications', 'unreadNotifCount'
-    ));
-}
+    public function privacy(Request $request)
+    {
+        $userId = Session::get('user_id');
+        $common = $this->commonData($userId);
+        extract($common);
 
-public function privacy(Request $request)
-{
-    $userId = Session::get('user_id');
-    $common = $this->commonData($userId);
-    extract($common);
+        if (!$isFullyApproved) {
+            return redirect()->route('borrower.dashboard');
+        }
 
-    if (!$isFullyApproved) {
-        return redirect()->route('borrower.dashboard');
+        return view('borrower.privacy', compact(
+            'userName', 'initials', 'profilePicture', 'isFullyApproved',
+            'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
+            'headerNotifications', 'unreadNotifCount'
+        ));
     }
-
-    return view('borrower.privacy', compact(
-        'userName', 'initials', 'profilePicture', 'isFullyApproved',
-        'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
-        'headerNotifications', 'unreadNotifCount'
-    ));
-}
 
     public function changePassword(Request $request)
     {

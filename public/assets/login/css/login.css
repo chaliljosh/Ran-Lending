@@ -14,7 +14,6 @@
   border-bottom: 1px solid #e5e7eb;
   background: #fff;
   z-index: 1000;
-  transition: color 0.2s;
 }
 
 .back-home-btn:hover {
@@ -28,20 +27,20 @@
 /* Push content down para hindi macover ng fixed button */
 .radial-gradient {
   padding-top: 50px;
+  background: #f3f4f6;
 }
 
 /* Card polish */
 .login-card {
-  border: none;
-  border-radius: 16px !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
 }
 
 .tagline {
   font-size: 0.82rem;
-  color: #8a9bb0;
+  color: #6b7280;
   margin-bottom: 20px;
-  letter-spacing: 0.3px;
 }
 
 /* Password toggle button */
@@ -53,14 +52,50 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #b0bec8;
+  color: #9ca3af;
   padding: 0;
   line-height: 1;
-  transition: color 0.2s;
 }
-.pw-toggle-btn:hover { color: #4a5a6a; }
+.pw-toggle-btn:hover { color: #4b5563; }
 
 /* reCAPTCHA spacing */
 .g-recaptcha {
   margin-bottom: 4px;
+}
+
+/* ---------- Sign In button: solid navy, plain ---------- */
+#loginBtn.btn-primary {
+    background-color: #0F172A !important;
+    border-color: #0F172A !important;
+    color: #FFFFFF !important;
+    border-radius: 30px !important;
+}
+#loginBtn.btn-primary:hover,
+#loginBtn.btn-primary:focus {
+    background-color: #000000 !important;
+    border-color: #000000 !important;
+    box-shadow: none !important;
+}
+#loginBtn.btn-primary:active {
+    background-color: #000000 !important;
+    border-color: #000000 !important;
+}
+
+/* ---------- Checkbox: solid navy fill ---------- */
+#rememberMe.form-check-input:checked {
+    background-color: #0F172A !important;
+    border-color: #0F172A !important;
+}
+#rememberMe.form-check-input:focus {
+    border-color: #0F172A !important;
+    box-shadow: none !important;
+}
+
+/* ---------- Forgot Password link: navy ---------- */
+a.link-dark-nav.text-primary {
+    color: #0F172A !important;
+}
+a.link-dark-nav.text-primary:hover {
+    color: #000000 !important;
+    text-decoration: underline;
 }

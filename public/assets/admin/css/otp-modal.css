@@ -31,7 +31,7 @@
     height:68px;
     margin:0 auto 16px;
     border-radius:50%;
-    background:#EFF6FF;
+    background:#F1F5F9;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -40,7 +40,7 @@
 .otp-icon-circle svg{
     width:32px;
     height:32px;
-    stroke:#2563EB;
+    stroke:#0F172A;
 }
 
 /* ── Text ── */
@@ -86,13 +86,13 @@
 }
 
 .otp-inputs input:focus{
-    border-color:#2563EB;
-    box-shadow:0 0 0 .2rem rgba(37,99,235,.15);
+    border-color:#0F172A;
+    box-shadow:0 0 0 .2rem rgba(15,23,42,.12);
 }
 
 .otp-inputs input.is-filled{
-    border-color:#2563EB;
-    background:#EFF6FF;
+    border-color:#0F172A;
+    background:#F1F5F9;
 }
 
 /* ── Error Message ── */
@@ -110,7 +110,7 @@
     height:48px;
     border:none;
     border-radius:10px;
-    background:#2563EB;
+    background:#0F172A;
     color:#FFFFFF;
     font-size:15px;
     font-weight:600;
@@ -123,7 +123,7 @@
 }
 
 .otp-primary-btn:hover:not(:disabled){
-    background:#1D4ED8;
+    background:#000000;
 }
 
 .otp-primary-btn:disabled{
@@ -170,7 +170,7 @@
     border:none;
     padding:0;
     margin-left:4px;
-    color:#2563EB;
+    color:#0F172A;
     font-weight:600;
     font-size:13px;
     cursor:pointer;
@@ -216,6 +216,6 @@
 .otp-trust-label input[type="checkbox"]{
     width:16px;
     height:16px;
-    accent-color:#2563EB;
+    accent-color:#0F172A;
     cursor:pointer;
 }

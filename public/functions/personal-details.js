@@ -85,7 +85,11 @@ function handleEmploymentStatus() {
         companyLabel.innerHTML = 'Company/Business Name <span class="text-danger">*</span>';
         positionLabel.innerHTML = 'Position/Occupation <span class="text-danger">*</span>';
         yearsLabel.innerHTML = 'Years in Company <span class="text-danger">*</span>';
-        monthsLabel.innerHTML = 'Months in Company <span class="text-danger">*</span>';
+        // FIX: Months in Company ay hindi kasama sa [required] validation
+        // (walang `required` attribute yung <select id="monthsInCompany">), kaya
+        // yung red asterisk dati ay nagpapakita ng maling impresyon na kailangan
+        // itong sagutan. Optional talaga ito — tinanggal ang asterisk.
+        monthsLabel.innerHTML = 'Months in Company';
 
     } else {
         companyWrapper.style.display = 'none';
@@ -358,7 +362,8 @@ document.addEventListener('DOMContentLoaded', function () {
     loadRegions();
     setMaxBirthday();
     setupMonthlyIncome();
-    setupFilePreview('validId', 'idPreview');
+    setupFilePreview('validIdFront', 'idFrontPreview');
+    setupFilePreview('validIdBack', 'idBackPreview');
     setupPhoneInput('cellphone');
     setupPhoneInput('coMakerContact');
 
@@ -413,7 +418,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const btn = this;
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Submitting...';
+        // ---- Loading state: spinner icon na lang, walang "Submitting..." text
+        //      (kagaya ng ibang "black button" loading states sa app) ----
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
 
         const formData = new FormData();
 
@@ -472,8 +479,11 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('coMakerRelationship', document.getElementById('coMakerRelationship').value);
         formData.append('coMakerContact',      document.getElementById('coMakerContact').value);
 
-        const validId = document.getElementById('validId').files[0];
-        if (validId) formData.append('validId', validId);
+        // ID Front / Back — dalawang hiwalay na files na
+        const validIdFront = document.getElementById('validIdFront').files[0];
+        const validIdBack  = document.getElementById('validIdBack').files[0];
+        if (validIdFront) formData.append('validIdFront', validIdFront);
+        if (validIdBack)  formData.append('validIdBack', validIdBack);
 
         fetch('/api/borrower/personal-details', {
             method: 'POST',

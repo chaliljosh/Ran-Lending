@@ -60,26 +60,27 @@ function goStep(n) {
     document.getElementById('panel' + n).classList.add('active');
 }
 
-function togglePw(id, btn) {
-    const inp  = document.getElementById(id);
-    const icon = btn.querySelector('i');
-    if (inp.type === 'password') {
-        inp.type = 'text';
-        icon.classList.replace('bi-eye-slash', 'bi-eye');
-    } else {
-        inp.type = 'password';
-        icon.classList.replace('bi-eye', 'bi-eye-slash');
-    }
-}
-
 function showError(panelNum, msg) {
-    const id    = 'error' + panelNum;
-    const el    = document.getElementById(id);
+    const id = 'error' + panelNum;
+    const el = document.getElementById(id);
     if (el) {
         el.textContent = msg;
         el.style.display = 'block';
         setTimeout(() => el.style.display = 'none', 5000);
     }
+}
+
+/* ── Standard headers for every AJAX call to Laravel.
+   Accept + X-Requested-With tell Laravel "this is an AJAX/JSON
+   request" — without these, a 419 (CSRF) or 422 (validation) error
+   comes back as a full HTML error page instead of JSON, which is
+   what caused the "Unexpected token '<'" crash. ── */
+function ajaxHeaders() {
+    return {
+        'X-XSRF-TOKEN': getCsrfToken(),
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+    };
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -91,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const btn = this;
         btn.disabled = true;
-        btn.textContent = 'Sending...';
+        btn.classList.add('is-loading');
 
         const formData = new FormData();
         formData.append('email', email);
@@ -99,13 +100,13 @@ document.addEventListener('DOMContentLoaded', function () {
         fetch('/api/forgot-password/send-otp', {
             method: 'POST',
             credentials: 'same-origin',
-            headers: { 'X-XSRF-TOKEN': getCsrfToken() },
+            headers: ajaxHeaders(),
             body: formData
         })
         .then(res => res.json())
         .then(data => {
             btn.disabled = false;
-            btn.textContent = 'Send Verification Code';
+            btn.classList.remove('is-loading');
 
             if (data.success) {
                 openForgotPasswordOtpModal(email);
@@ -116,60 +117,185 @@ document.addEventListener('DOMContentLoaded', function () {
         .catch(() => {
             showError(1, 'Something went wrong. Please try again.');
             btn.disabled = false;
-            btn.textContent = 'Send Verification Code';
+            btn.classList.remove('is-loading');
         });
     });
 
-    // ── STEP 3: Reset Password
-    document.getElementById('resetBtn').addEventListener('click', function () {
-        const password        = document.getElementById('newPw').value;
-        const confirmPassword = document.getElementById('confirmPw').value;
+    // ============================================================
+    // RESET PASSWORD MODAL — opens after OTP is verified
+    // ============================================================
+    const resetModalEl   = document.getElementById('resetPasswordModal');
+    const rpSubmitBtn     = document.getElementById('rpSubmitBtn');
+    const rpDiscardBtn    = document.getElementById('rpDiscardBtn');
+    const rpError         = document.getElementById('rpError');
+    const rpNewPassword   = document.getElementById('rpNewPassword');
+    const rpConfirmPassword = document.getElementById('rpConfirmPassword');
 
-        if (!password || password.length < 6) {
-            showError(3, 'Password must be at least 6 characters.');
+    // ---- Password strength meter (same pattern used elsewhere in the app) ----
+    function evaluatePasswordStrength(pw) {
+        const hasUpper  = /[A-Z]/.test(pw);
+        const hasNumber = /[0-9]/.test(pw);
+        const hasLength = pw.length >= 8;
+        const metCount  = [hasUpper, hasNumber, hasLength].filter(Boolean).length;
+        return { hasUpper, hasNumber, hasLength, metCount };
+    }
+
+    function setReqState(id, met) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const icon = el.querySelector('i');
+        if (met) {
+            el.classList.add('is-met');
+            icon.className = 'bi bi-check-circle-fill';
+        } else {
+            el.classList.remove('is-met');
+            icon.className = 'bi bi-x-circle';
+        }
+    }
+
+    function updateRpStrengthUI() {
+        const strengthWrap = document.getElementById('rpStrength');
+        if (!rpNewPassword || !strengthWrap) return;
+
+        const pw = rpNewPassword.value;
+        const result = evaluatePasswordStrength(pw);
+
+        setReqState('rpReqUpper', result.hasUpper);
+        setReqState('rpReqNumber', result.hasNumber);
+        setReqState('rpReqLength', result.hasLength);
+
+        const segs = strengthWrap.querySelectorAll('.rp-strength-seg');
+        const label = document.getElementById('rpStrengthLabel');
+
+        segs.forEach(seg => seg.className = 'rp-strength-seg');
+
+        if (pw.length === 0) {
+            if (label) label.textContent = 'Password strength. Must contain;';
             return;
         }
-        if (password !== confirmPassword) {
-            showError(3, 'Passwords do not match.');
-            return;
-        }
 
-        const btn = this;
-        btn.disabled = true;
-        btn.textContent = 'Resetting...';
+        const level = result.metCount;
+        const levelClass = level <= 1 ? 'is-weak' : (level === 2 ? 'is-medium' : 'is-strong');
+        const levelLabel = level <= 1 ? 'Weak password. Must contain;' : (level === 2 ? 'Medium password. Must contain;' : 'Strong password.');
 
-        const formData = new FormData();
-        formData.append('action', 'reset_password');
-        formData.append('password', password);
-        formData.append('confirmPassword', confirmPassword);
+        for (let i = 0; i < level; i++) segs[i].classList.add(levelClass);
+        if (label) label.textContent = levelLabel;
+    }
 
-        fetch('/api/forgot-password/reset', {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: { 'X-XSRF-TOKEN': getCsrfToken() },
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                goStep(4);
+    if (rpNewPassword) rpNewPassword.addEventListener('input', updateRpStrengthUI);
+
+    const rpClearConfirmBtn = document.getElementById('rpClearConfirmBtn');
+    if (rpClearConfirmBtn) {
+        rpClearConfirmBtn.addEventListener('click', function () {
+            rpConfirmPassword.value = '';
+        });
+    }
+
+    document.querySelectorAll('.rp-pw-toggle').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const input = document.getElementById(btn.dataset.target);
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'bi bi-eye';
             } else {
-                showError(3, data.message);
-                btn.disabled = false;
-                btn.textContent = 'Reset Password';
+                input.type = 'password';
+                icon.className = 'bi bi-eye-slash';
             }
-        })
-        .catch(() => {
-            showError(3, 'Something went wrong.');
-            btn.disabled = false;
-            btn.textContent = 'Reset Password';
         });
     });
+
+    function resetRpForm() {
+        rpError.classList.add('d-none');
+        rpNewPassword.value = '';
+        rpConfirmPassword.value = '';
+        updateRpStrengthUI();
+    }
+
+    if (resetModalEl) {
+        resetModalEl.addEventListener('show.bs.modal', resetRpForm);
+    }
+
+    // ---- Discard: close modal, go back to Step 1 ----
+    if (rpDiscardBtn) {
+        rpDiscardBtn.addEventListener('click', function () {
+            const modal = bootstrap.Modal.getInstance(resetModalEl);
+            if (modal) modal.hide();
+            goStep(1);
+        });
+    }
+
+    // ---- Submit: validate, call API, show toast, redirect to login ----
+    if (rpSubmitBtn) {
+        rpSubmitBtn.addEventListener('click', function () {
+            rpError.classList.add('d-none');
+
+            const password = rpNewPassword.value;
+            const confirm  = rpConfirmPassword.value;
+
+            if (!password || !confirm) {
+                rpError.textContent = 'Please fill in both fields.';
+                rpError.classList.remove('d-none');
+                return;
+            }
+
+            const strength = evaluatePasswordStrength(password);
+            if (!strength.hasUpper || !strength.hasNumber || !strength.hasLength) {
+                rpError.textContent = 'Password must have at least 1 uppercase letter, 1 number, and be 8+ characters.';
+                rpError.classList.remove('d-none');
+                return;
+            }
+
+            if (password !== confirm) {
+                rpError.textContent = 'Passwords do not match.';
+                rpError.classList.remove('d-none');
+                return;
+            }
+
+            rpSubmitBtn.disabled = true;
+            rpSubmitBtn.classList.add('is-loading');
+
+            const formData = new FormData();
+            formData.append('action', 'reset_password');
+            formData.append('password', password);
+            formData.append('confirmPassword', confirm);
+
+            fetch('/api/forgot-password/reset', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: ajaxHeaders(),
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const modal = bootstrap.Modal.getInstance(resetModalEl);
+                    if (modal) modal.hide();
+
+                    showToast('Password changed successfully!', 'success');
+
+                    setTimeout(() => {
+                        window.location.href = document.body.dataset.loginUrl || '/login';
+                    }, 1800);
+                } else {
+                    rpError.textContent = data.message || 'Something went wrong. Please try again.';
+                    rpError.classList.remove('d-none');
+                }
+            })
+            .catch(() => {
+                rpError.textContent = 'Something went wrong. Please check your connection.';
+                rpError.classList.remove('d-none');
+            })
+            .finally(() => {
+                rpSubmitBtn.disabled = false;
+                rpSubmitBtn.classList.remove('is-loading');
+            });
+        });
+    }
 });
 
 /* ── Opens the shared OtpModal, wired up to the forgot-password OTP endpoints.
-   Kapag na-verify na, diretso na sa Panel 3 (bagong password) — wala nang
-   panel2 na atskip pa. ── */
+   Kapag na-verify na, bubukas na yung Reset Password MODAL (hindi na panel3). ── */
 function openForgotPasswordOtpModal(email) {
     OtpModal.open({
         maskedEmail: email,
@@ -182,7 +308,7 @@ function openForgotPasswordOtpModal(email) {
             return fetch('/api/forgot-password/reset', {
                 method: 'POST',
                 credentials: 'same-origin',
-                headers: { 'X-XSRF-TOKEN': getCsrfToken() },
+                headers: ajaxHeaders(),
                 body: formData
             })
             .then(res => res.json())
@@ -198,7 +324,7 @@ function openForgotPasswordOtpModal(email) {
             return fetch('/api/forgot-password/send-otp', {
                 method: 'POST',
                 credentials: 'same-origin',
-                headers: { 'X-XSRF-TOKEN': getCsrfToken() },
+                headers: ajaxHeaders(),
                 body: formData
             })
             .then(res => res.json())
@@ -209,7 +335,8 @@ function openForgotPasswordOtpModal(email) {
         },
         onSuccess: function () {
             OtpModal.close();
-            goStep(3);
+            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('resetPasswordModal'));
+            modal.show();
         }
     });
 }

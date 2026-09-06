@@ -14,17 +14,13 @@ Route::get('/login', function () {
     return view('login');
 })->name('login');
 
-// NOTE: these two still serve frozen static HTML snapshots from public/,
-// same problem the landing page and login page just had — if you've
-// also converted these to Blade views, tell me and I'll switch these
-// too (view('register') / view('forgot-password'), or wherever you
-// actually saved those files).
+
 Route::get('/register', function () {
-    return file_get_contents(public_path('register.html'));
+    return view('register');
 })->name('register');
 
 Route::get('/forgot-password', function () {
-    return file_get_contents(public_path('forgot-password.html'));
+    return view('forgot-password');
 })->name('forgot-password');
 
 Route::post('/api/register',            [AuthController::class, 'register'])->middleware('throttle:5,10');
@@ -104,9 +100,7 @@ Route::post('/account-settings/profile-picture/remove', [AdminController::class,
     // Active Loans > Ongoing Loans
     Route::get('/active-loans/ongoing', [AdminController::class, 'ongoingLoans'])->name('ongoing-loans');
 
-    // Active Loans > Ongoing Loans > View Details (loan-focused — NOT the
-    // same as Active Borrower Detail. No borrower profile info here, just
-    // Loan Summary, Admin Review Status, and Payment Schedule.)
+    // Active Loans 
     Route::get('/ongoing-loan-detail/{id}', [AdminController::class, 'ongoingLoanDetail'])
         ->name('ongoing-loan-detail');
 

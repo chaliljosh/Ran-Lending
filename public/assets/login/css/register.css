@@ -6,13 +6,16 @@
   --blue-light: #eef2fd;
   --text: #1a2a3a;
   --muted: #6b7c93;
-  --border: #d8e2ec;
-  --bg: #dce8f5;
+  --border: #e5e7eb; /* dati #d8e2ec — tinugma sa bordered-card pattern (apply-loan/loan-details) */
+  --bg: #f1f5f9; /* balik sa light gray (dati pure white, dati pa nun light blue #dce8f5) */
   --white: #ffffff;
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 body {
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   background: var(--bg);
   min-height: 100vh;
   display: flex;
@@ -33,11 +36,11 @@ body {
   gap: 6px;
   padding: 12px 20px;
   font-size: 13px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font);
   color: #6b7280;
   text-decoration: none;
   background: #fff;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border);
   z-index: 1000;
   transition: color 0.2s;
 }
@@ -50,12 +53,16 @@ body {
   max-width: 650px;
 }
 
-/* ── Main card ── */
+/* ── Main card ──
+   Puting bg (kapareho ng page), border + banayad na shadow na lang
+   ang naghihiwalay — parehong pattern ng .pending-section /
+   .bwl-ld-section / .bwl-dash-card sa ibang pages. */
 .register-card {
   display: flex;
-  background: var(--white);
+  background: #ffffff !important;
+  border: 1px solid var(--border) !important;
   border-radius: 20px;
-  box-shadow: 0 4px 32px rgba(0,0,0,0.10);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15) !important;
   overflow: hidden;
   min-height: 560px;
 }
@@ -78,9 +85,9 @@ body {
 }
 
 .brand-title {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font);
   font-size: 1.75rem;
-  font-weight: 700;
+  font-weight: 600; /* dati 700 */
   line-height: 1.25;
   color: #fff;
   margin-bottom: 14px;
@@ -127,7 +134,7 @@ body {
 }
 .already-text a {
   color: #fff;
-  font-weight: 600;
+  font-weight: 500; /* dati 600 */
   text-decoration: underline;
 }
 
@@ -142,9 +149,9 @@ body {
   margin-bottom: 24px;
 }
 .form-header h2 {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font); /* dati 'Playfair Display', serif */
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 600; /* dati 700 */
   color: var(--text);
   margin-bottom: 4px;
 }
@@ -165,7 +172,7 @@ body {
 .field label {
   display: block;
   font-size: 0.78rem;
-  font-weight: 600;
+  font-weight: 500; /* dati 600 */
   color: #3a4a5c;
   margin-bottom: 6px;
   letter-spacing: 0.3px;
@@ -195,11 +202,19 @@ body {
   border: 1.5px solid var(--border);
   border-radius: 10px;
   font-size: 0.875rem;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font);
   color: var(--text);
   background: #fff;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* ── No-icon variant — para sa fields na walang leading icon
+     (hal. ang 3 birthday dropdowns), para hindi sila lumitaw na
+     naka-indent nang walang laman sa kaliwa. ── */
+.input-wrap.no-icon input,
+.input-wrap.no-icon select {
+  padding-left: 14px;
 }
 
 .input-wrap input::placeholder { color: #b0bec8; }
@@ -245,6 +260,62 @@ body {
 }
 .toggle-pw:hover { color: #3a4a5c; }
 
+/* ── Password strength meter ──
+   Parehong pattern ng ginamit sa borrower Account Settings > Change
+   Password modal (uppercase / number / 8-character checklist), para
+   consistent ang password policy sa buong app. */
+.pw-strength {
+  margin-top: 10px;
+}
+.pw-strength-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.pw-strength-seg {
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  transition: background 0.2s ease;
+}
+.pw-strength-seg.is-weak { background: #dc2626; }
+.pw-strength-seg.is-medium { background: #d97706; }
+.pw-strength-seg.is-strong { background: #16a34a; }
+
+.pw-strength-label {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+
+.pw-checklist {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pw-checklist li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.pw-checklist li i {
+  font-size: 0.85rem;
+  color: #cbd5e1;
+  flex-shrink: 0;
+}
+.pw-checklist li.is-met {
+  color: var(--text);
+}
+.pw-checklist li.is-met i {
+  color: #16a34a;
+}
+
 /* ── Sign Up button ── */
 .btn-signup {
   display: flex;
@@ -253,25 +324,25 @@ body {
   gap: 8px;
   width: 100%;
   padding: 13px;
-  background: var(--blue);
-  color: #fff;
-  font-family: 'DM Sans', sans-serif;
+  background: #0f172a !important; /* dati var(--blue) — itim/dark navy na ngayon */
+  color: #fff !important;
+  font-family: var(--font);
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 500; /* dati 600 */
   border: none;
   border-radius: 50px;
   cursor: pointer;
   margin-top: 6px;
   transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
-  box-shadow: 0 4px 14px rgba(45,91,227,0.30);
+  box-shadow: 0 4px 14px rgba(15,23,42,0.30);
 }
 .btn-signup:hover {
-  background: var(--blue-dark);
+  background: #1e293b !important;
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(45,91,227,0.38);
+  box-shadow: 0 6px 20px rgba(15,23,42,0.38);
 }
 .btn-signup:disabled {
-  background: #9ab0f0;
+  background: #94a3b8 !important;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
@@ -286,7 +357,7 @@ body {
 }
 .footer-text a {
   color: var(--blue);
-  font-weight: 600;
+  font-weight: 500; /* dati 600 */
   text-decoration: none;
   margin-left: 4px;
 }
@@ -328,7 +399,7 @@ body {
   margin: 0 auto 20px;
 }
 
-.modal-box h5 { font-weight: 700; font-size: 1.2rem; margin-bottom: 8px; color: var(--text); }
+.modal-box h5 { font-weight: 600; font-size: 1.2rem; margin-bottom: 8px; color: var(--text); } /* dati 700 */
 .modal-box p  { color: #6c757d; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6; }
 
 .modal-btn {
@@ -338,11 +409,11 @@ body {
   border-radius: 50px;
   padding: 12px 40px;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 500; /* dati 600 */
   cursor: pointer;
   width: 100%;
   transition: background 0.2s;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font);
 }
 .modal-btn:hover { background: var(--blue-dark); }
 
@@ -357,7 +428,7 @@ body {
   border-radius: 10px;
   margin-bottom: 16px;
   outline: none;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font);
   transition: border-color 0.2s;
 }
 .otp-input:focus { border-color: var(--blue); }
@@ -366,10 +437,10 @@ body {
   background: none;
   border: none;
   color: var(--blue);
-  font-weight: 600;
+  font-weight: 500; /* dati 600 */
   cursor: pointer;
   font-size: 0.9rem;
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font);
   margin-top: 12px;
 }
 .resend-btn:hover { text-decoration: underline; }
@@ -386,6 +457,13 @@ body {
   .card-right { padding: 28px 20px; }
   .form-grid { grid-template-columns: 1fr; }
   .col-span-2 { grid-column: span 1; }
-  .birthday-row { grid-template-columns: 1fr; }
+  .birthday-row { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
   .already-text { display: none; }
 }
+
+@media (max-width: 420px) {
+  /* Sa pinaka-maliit na screens, ibaba ang gaps/padding ng 3
+     dropdowns nang bahagya para hindi masyadong siksikan. */
+  .birthday-row { gap: 6px; }
+  .input-wrap.no-icon select { padding-left: 8px; padding-right: 26px; font-size: 0.8rem; }
+} 
