@@ -1,65 +1,374 @@
 /* ============================================================
    admin-dashboard.css
-   DASHBOARD-ONLY — Attention Required, Upcoming Payments,
-   Recent Activity cards. Wala nang header dropdown / modal CSS
-   dito; lumipat na sila sa admin-shared-modals.css.
+   DASHBOARD-ONLY — Recent Loan Applications, Attention Required,
+   Upcoming Payments, Recent Activity cards.
 
-   Palaging i-link BAGO ang admin-shared-modals.css sa
-   dashboard.blade.php, o kahit anong order — hindi sila
-   nagtutunggali dahil magkaibang class names.
+   UPDATE 11: full redesign to match the "LoanHub" reference —
+   every panel now gets an icon+title+subtitle header with a
+   "View all" link; Recent Loan Applications rows get avatar
+   circles + a trailing chevron; Attention Required becomes a
+   soft-red-tinted card with colored left-border items; Upcoming
+   Payments gets a stacked month/day date badge; Recent Activity
+   gets a category pill on the right. Page background is now a
+   light gray canvas (was pure white in UPDATE 7) so the white
+   cards stand out, matching the reference.
+
+   New optional data keys (safe if absent — blade falls back
+   gracefully): $item['description'] for Attention Required,
+   $payment->loan_number for Upcoming Payments, $activity['category']
+   for Recent Activity.
 ============================================================ */
 
-/* ---------- Attention Required ---------- */
-.attn-item {
-    display: flex; align-items: center; gap: 12px;
-    padding: 12px 0; border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+:root {
+    --adm-dash-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --adm-dash-ink: #0F172A;
+    --adm-dash-gray: #64748B;
+    --adm-dash-gray-light: #94A3B8;
+    --adm-dash-border: #E5E7EB;
+    --adm-dash-bg-soft: #F8FAFC;
+
+    --adm-dash-blue: #2563EB;
+    --adm-dash-blue-soft: #EFF6FF;
+    --adm-dash-purple: #7C3AED;
+    --adm-dash-purple-soft: #F5F3FF;
+    --adm-dash-green: #16A34A;
+    --adm-dash-green-soft: #ECFDF5;
+    --adm-dash-orange: #EA580C;
+    --adm-dash-orange-soft: #FFF7ED;
+    --adm-dash-red: #DC2626;
+    --adm-dash-red-soft: #FEF2F2;
 }
-.attn-item:last-child { border-bottom: none; }
-.attn-icon {
-    width: 34px; height: 34px; border-radius: 8px; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center; font-size: 0.9rem;
+
+/* ---------- Page background — white (naka-light-gray dati sa
+     UPDATE 11 para tumugma sa LoanHub reference, pero balik sa
+     puti per request) ---------- */
+html body .nxl-content {
+    background: #FFFFFF;
 }
-.attn-text { min-width: 0; }
-.attn-label { font-size: 0.85rem; font-weight: 600; color: var(--bs-dark, #0F172A); }
-.attn-count { font-size: 0.74rem; color: var(--bs-secondary, #64748B); margin-top: 1px; }
-.attn-action { font-size: 0.78rem; font-weight: 600; white-space: nowrap; margin-left: auto; }
+
+/* ---------- Inter font — applied to the whole dashboard content area ---------- */
+html body .main-content,
+html body .main-content * {
+    font-family: var(--adm-dash-font) !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+html body .main-content i,
+html body .main-content [class*="feather-"] {
+    font-family: inherit !important;
+}
+html body .main-content i[class*="feather-"]::before {
+    font-family: 'feather' !important;
+}
+
+/* ---------- Cards — white-on-gray, crisp soft border, single subtle shadow ---------- */
+html body .main-content .card,
+html body .main-content .card.stretch,
+html body .main-content .card.stretch-full,
+html body .main-content .card.adm-stat-card {
+    background: #ffffff !important;
+    border: 1px solid var(--adm-dash-border) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08) !important;
+}
+
+/* ---------- Top stat cards — icon top-right, big bold value,
+     muted subtitle below (dating na-drop nang hindi sinasadya
+     sa UPDATE 11 rewrite — ibinalik) ---------- */
+.adm-stat-body {
+    padding: 20px 22px;
+}
+.adm-stat-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.adm-stat-label {
+    font-size: 0.86rem;
+    font-weight: 500;
+    color: var(--adm-dash-ink);
+}
+.adm-stat-icon {
+    font-size: 1rem;
+    color: var(--adm-dash-gray);
+    flex-shrink: 0;
+}
+.adm-stat-value {
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: var(--adm-dash-ink);
+    line-height: 1.15;
+    margin-bottom: 6px;
+}
+.adm-stat-sub {
+    font-size: 0.78rem;
+    color: var(--adm-dash-gray);
+    display: block;
+}
+.adm-stat-link {
+    font-weight: 600;
+    color: var(--adm-dash-blue);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.adm-stat-link:hover { text-decoration: underline; }
+
+/* ---------- Card titles ---------- */
+html body .main-content .card-title {
+    font-weight: 600 !important;
+    color: var(--adm-dash-ink) !important;
+    font-size: 0.98rem;
+}
+
+/* ---------- Panel header — icon + title/subtitle + "View all" ---------- */
+.adm-panel-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 20px 22px !important;
+}
+.adm-panel-header-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    min-width: 0;
+}
+.adm-panel-icon {
+    width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+}
+.adm-panel-icon.is-blue   { background: var(--adm-dash-blue-soft);   color: var(--adm-dash-blue); }
+.adm-panel-icon.is-purple { background: var(--adm-dash-purple-soft); color: var(--adm-dash-purple); }
+.adm-panel-icon.is-green  { background: var(--adm-dash-green-soft);  color: var(--adm-dash-green); }
+.adm-panel-icon.is-orange { background: var(--adm-dash-orange-soft); color: var(--adm-dash-orange); }
+.adm-panel-icon.is-danger { background: var(--adm-dash-red-soft);    color: var(--adm-dash-red); }
+
+.adm-panel-title { margin: 0 0 2px !important; }
+.adm-panel-sub {
+    font-size: 0.8rem;
+    color: var(--adm-dash-gray);
+    margin: 0;
+}
+.adm-panel-link {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--adm-dash-blue);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+.adm-panel-link:hover { text-decoration: underline; }
+
+/* ---------- Recent Loan Applications table ---------- */
+.adm-table thead tr {
+    background: var(--adm-dash-bg-soft);
+}
+html body .main-content table.adm-table thead th {
+    font-weight: 600 !important;
+    color: var(--adm-dash-gray) !important;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 12px 22px;
+    border: none !important;
+}
+.adm-table tbody td {
+    padding: 14px 22px;
+    vertical-align: middle;
+    border-color: var(--adm-dash-border) !important;
+}
+.adm-table-borrower {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.adm-table-avatar {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 700;
+}
+.adm-table-avatar.is-blue   { background: var(--adm-dash-blue-soft);   color: var(--adm-dash-blue); }
+.adm-table-avatar.is-purple { background: var(--adm-dash-purple-soft); color: var(--adm-dash-purple); }
+.adm-table-avatar.is-green  { background: var(--adm-dash-green-soft);  color: var(--adm-dash-green); }
+.adm-table-avatar.is-orange { background: var(--adm-dash-orange-soft); color: var(--adm-dash-orange); }
+.adm-table-name {
+    font-weight: 600;
+    color: var(--adm-dash-ink);
+}
+.adm-table-amount {
+    font-weight: 600;
+    color: var(--adm-dash-ink);
+}
+.adm-table-date {
+    color: var(--adm-dash-gray);
+    font-size: 0.85rem;
+}
+.adm-table-chevron-col { width: 32px; text-align: right; padding-right: 20px !important; }
+.adm-table-chevron { color: var(--adm-dash-gray-light); font-size: 0.9rem; }
+
+/* ---------- Attention Required — soft red-tinted card, colored
+     left-border items ---------- */
+.adm-attn-card {
+    background: linear-gradient(180deg, var(--adm-dash-red-soft), #ffffff 140px) !important;
+}
+.adm-attn-count-badge {
+    width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+    background: var(--adm-dash-red); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.78rem; font-weight: 700;
+}
+.adm-attn-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 22px;
+    border-left: 4px solid var(--adm-dash-border);
+    border-bottom: 1px solid var(--adm-dash-border);
+}
+.adm-attn-item:last-child { border-bottom: none; }
+.adm-attn-item-body { min-width: 0; }
+.adm-attn-item-title { font-size: 0.86rem; font-weight: 600; color: var(--adm-dash-ink); }
+.adm-attn-item-desc { font-size: 0.78rem; color: var(--adm-dash-gray); margin-top: 2px; }
+.adm-attn-item-side { text-align: right; flex-shrink: 0; }
+.adm-attn-item-action {
+    font-size: 0.8rem; font-weight: 600; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 2px; white-space: nowrap;
+}
+.adm-attn-item-action:hover { text-decoration: underline; }
+.adm-attn-item-count { font-size: 0.74rem; color: var(--adm-dash-gray); margin-top: 2px; }
 
 /* ---------- Upcoming Payments ---------- */
-.upcoming-row {
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    padding: 11px 0; border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+.adm-upcoming-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--adm-dash-border);
 }
-.upcoming-row:last-child { border-bottom: none; }
-.upcoming-name { font-size: 0.84rem; font-weight: 600; color: var(--bs-dark, #0F172A); }
-.upcoming-due { font-size: 0.76rem; color: var(--bs-secondary, #64748B); }
-.upcoming-amount { font-size: 0.86rem; font-weight: 700; color: var(--bs-dark, #0F172A); white-space: nowrap; }
+.adm-upcoming-row:last-child { border-bottom: none; }
+.adm-upcoming-date {
+    width: 46px; flex-shrink: 0; text-align: center;
+    background: var(--adm-dash-blue-soft);
+    border-radius: 10px;
+    padding: 6px 0;
+    display: flex; flex-direction: column;
+}
+.adm-upcoming-date-month {
+    font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+    color: var(--adm-dash-blue); letter-spacing: 0.4px;
+}
+.adm-upcoming-date-day {
+    font-size: 1.05rem; font-weight: 800; color: var(--adm-dash-ink);
+}
+.adm-upcoming-body { flex: 1; min-width: 0; }
+.adm-upcoming-name { font-size: 0.86rem; font-weight: 600; color: var(--adm-dash-ink); }
+.adm-upcoming-sub { font-size: 0.76rem; color: var(--adm-dash-gray); margin-top: 1px; }
+.adm-upcoming-side { text-align: right; flex-shrink: 0; }
+.adm-upcoming-amount { font-size: 0.9rem; font-weight: 700; color: var(--adm-dash-ink); white-space: nowrap; }
+.adm-upcoming-pill {
+    display: inline-block; margin-top: 4px;
+    font-size: 0.7rem; font-weight: 600;
+    padding: 2px 9px; border-radius: 20px;
+    background: var(--adm-dash-blue-soft); color: var(--adm-dash-blue);
+}
+.adm-upcoming-pill.is-danger { background: var(--adm-dash-red-soft); color: var(--adm-dash-red); }
 
 /* ---------- Recent Activity ---------- */
-.activity-row { display: flex; align-items: flex-start; gap: 12px; padding: 11px 0; border-bottom: 1px solid rgba(0, 0, 0, 0.06); }
-.activity-row:last-child { border-bottom: none; }
-.activity-dot {
-    width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; margin-top: 1px;
-    display: flex; align-items: center; justify-content: center; font-size: 0.8rem;
+.adm-activity-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 13px 22px;
+    border-bottom: 1px solid var(--adm-dash-border);
 }
-.activity-text { font-size: 0.83rem; color: var(--bs-dark, #0F172A); line-height: 1.4; }
-.activity-meta { font-size: 0.74rem; color: var(--bs-secondary, #64748B); margin-top: 2px; }
+.adm-activity-row:last-child { border-bottom: none; }
+.adm-activity-dot {
+    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; margin-top: 1px;
+    display: flex; align-items: center; justify-content: center; font-size: 0.85rem;
+}
+.adm-activity-body { flex: 1; min-width: 0; }
+.adm-activity-text { font-size: 0.85rem; color: var(--adm-dash-ink); line-height: 1.4; font-weight: 500; }
+.adm-activity-meta { font-size: 0.74rem; color: var(--adm-dash-gray); margin-top: 2px; }
+.adm-activity-pill {
+    font-size: 0.7rem; font-weight: 600;
+    padding: 3px 10px; border-radius: 20px;
+    flex-shrink: 0; white-space: nowrap; margin-top: 2px;
+}
 
 /* ============================================================
-   DARK MODE — dashboard cards lang
+   DARK MODE — true black, not navy/blue
 ============================================================ */
-html.app-skin-dark .attn-item,
-html.app-skin-dark .upcoming-row,
-html.app-skin-dark .activity-row {
-    border-color: rgba(255, 255, 255, 0.06);
+html.app-skin-dark body .nxl-content {
+    background: #000000;
 }
-html.app-skin-dark .attn-label,
-html.app-skin-dark .upcoming-name,
-html.app-skin-dark .upcoming-amount,
-html.app-skin-dark .activity-text {
-    color: #E5E9F0;
+html.app-skin-dark body .main-content .card,
+html.app-skin-dark body .main-content .card.stretch,
+html.app-skin-dark body .main-content .card.stretch-full,
+html.app-skin-dark body .main-content .card.adm-stat-card {
+    background: #0d0d0d !important;
+    border: 1px solid #262626 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
 }
-html.app-skin-dark .attn-count,
-html.app-skin-dark .upcoming-due,
-html.app-skin-dark .activity-meta {
-    color: #94A3B8;
+html.app-skin-dark .adm-attn-card {
+    background: linear-gradient(180deg, rgba(220,38,38,0.08), #0d0d0d 140px) !important;
+}
+html.app-skin-dark .adm-stat-label,
+html.app-skin-dark .adm-stat-value {
+    color: #EDEDED;
+}
+html.app-skin-dark .adm-stat-icon,
+html.app-skin-dark .adm-stat-sub {
+    color: #8A8A8A;
+}
+html.app-skin-dark .main-content .card-title,
+html.app-skin-dark .adm-panel-title {
+    color: #EDEDED !important;
+}
+html.app-skin-dark .adm-panel-sub {
+    color: #8A8A8A;
+}
+html.app-skin-dark .main-content table.adm-table thead th {
+    color: #8A8A8A !important;
+}
+.adm-table thead tr,
+html.app-skin-dark .adm-table thead tr {
+    background: transparent;
+}
+html.app-skin-dark .adm-table tbody td,
+html.app-skin-dark .adm-attn-item,
+html.app-skin-dark .adm-upcoming-row,
+html.app-skin-dark .adm-activity-row {
+    border-color: #262626 !important;
+}
+html.app-skin-dark .adm-table-name,
+html.app-skin-dark .adm-table-amount,
+html.app-skin-dark .adm-attn-item-title,
+html.app-skin-dark .adm-upcoming-name,
+html.app-skin-dark .adm-upcoming-amount,
+html.app-skin-dark .adm-activity-text {
+    color: #EDEDED;
+}
+html.app-skin-dark .adm-table-date,
+html.app-skin-dark .adm-attn-item-desc,
+html.app-skin-dark .adm-attn-item-count,
+html.app-skin-dark .adm-upcoming-sub,
+html.app-skin-dark .adm-activity-meta {
+    color: #8A8A8A;
+}
+html.app-skin-dark .adm-upcoming-date {
+    background: rgba(37, 99, 235, 0.15);
+}
+html.app-skin-dark .adm-upcoming-date-day {
+    color: #EDEDED;
 }

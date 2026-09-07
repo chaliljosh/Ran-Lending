@@ -5,7 +5,22 @@
 @section('page-styles')
     <link rel="stylesheet" href="{{ asset('assets/admin/css/modals-modern.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/admin/css/borrower-verification.css') }}">
+
+      <style>
+        html.app-skin-dark body .main-content a.action-link-btn.action-link-btn.action-link-btn {
+            background-color: #3a3a3a !important;
+            border-color: #3a3a3a !important;
+            color: #EDEDED !important;
+        }
+        html.app-skin-dark body .main-content a.action-link-btn.action-link-btn.action-link-btn:hover {
+            background-color: #4a4a4a !important;
+            border-color: #4a4a4a !important;
+            color: #EDEDED !important;
+        }
+    </style>
 @endsection
+
+
 
 @section('content')
     <div class="page-header">
@@ -28,24 +43,11 @@
     <div class="main-content">
 
         @if(($viewStatus ?? 'pending') === 'pending')
-        {{-- ================= PENDING VIEW (Pending / Reviewed tabs) ================= --}}
+        {{-- ================= PENDING VIEW ================= --}}
+        {{-- Tabs removed — "Reviewed" is now its own sidebar link
+             (see the 'reviewed' branch below), same pattern as
+             Approved / Rejected / On Hold. --}}
 
-        <div class="d-flex gap-2 mb-4">
-            <button class="tab-btn active" onclick="showTab('pending', this)">
-                Pending
-                @if($pendingCount > 0)
-                    <span class="badge bg-danger ms-1">{{ $pendingCount }}</span>
-                @endif
-            </button>
-            <button class="tab-btn" onclick="showTab('reviewed', this)">
-                Reviewed
-                <span class="badge bg-secondary ms-1">{{ count($reviewedDetails) }}</span>
-            </button>
-        </div>
-
-        <!-- PENDING TAB — table, same pattern as Reviewed/Filtered
-             (search + status filter + rows-per-page + pagination). -->
-        <div id="tab-pending">
             @if(count($pendingDetails) === 0)
             <div class="card">
                 <div class="card-body text-center py-5">
@@ -69,13 +71,14 @@
                         <option value="pending">Pending</option>
                         <option value="on_hold">On Hold</option>
                     </select>
-                    <div class="reviewed-rpp-wrap">
-                        <label for="pendingRowsPerPage" class="reviewed-rpp-label">Rows per page</label>
+                    <div class="reviewed-toolbar-meta">
+                        <span class="reviewed-count-label">Showing</span>
                         <select id="pendingRowsPerPage" class="reviewed-rpp-select" onchange="pendingChangeRowsPerPage(this)">
                             <option value="10" selected>10</option>
                             <option value="25">25</option>
                             <option value="50">50</option>
                         </select>
+                        <span class="reviewed-count-text" id="pendingPaginationInfo">of {{ count($pendingDetails) }} results</span>
                     </div>
                 </div>
 
@@ -83,12 +86,12 @@
                     <table class="table reviewed-table mb-0" id="pendingDetailsTable">
                         <thead>
                             <tr>
-                                <th>Borrower</th>
-                                <th>Contact</th>
-                                <th>Detail ID</th>
-                                <th>Status</th>
-                                <th>Approvals</th>
-                                <th class="text-end">Action</th>
+                                <th class="sortable-th">Borrower</th>
+                                <th class="sortable-th">Contact</th>
+                                <th class="sortable-th">Detail ID</th>
+                                <th class="sortable-th">Status</th>
+                                <th class="sortable-th">Approvals</th>
+                                <th class="text-end sortable-th">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -102,21 +105,19 @@
                                     @endif
                                 </td>
                                 <td class="rt-date">{{ $d['cellphone_num'] ?? '—' }}</td>
-                                <td class="rt-date">#{{ $d['detail_id'] }}</td>
+                                <td class="rt-detailid">#{{ $d['detail_id'] }}</td>
                                 <td>
                                     @if($d['status'] === 'on_hold')
-                                        <span class="badge badge-onhold px-3 py-2">On Hold</span>
+                                        <span class="badge badge-onhold">On Hold</span>
                                     @else
-                                        <span class="badge badge-pending px-3 py-2">Pending</span>
+                                        <span class="badge badge-pending">Pending</span>
                                     @endif
                                 </td>
                                 <td class="rt-date">
                                     {{ $d['approved_count'] }}/3 approved &middot; {{ $d['rejected_count'] }}/3 rejected
                                 </td>
                                 <td class="text-end">
-                                    <a href="{{ route('admin.verification-detail', $d['detail_id']) }}?from=verification" class="btn btn-sm btn-light">
-                                        <i class="feather-eye me-1"></i> View Full Details
-                                    </a>
+                                    <a href="{{ route('admin.verification-detail', $d['detail_id']) }}?from=verification" class="action-link-btn">View Details</a>
                                 </td>
                             </tr>
                             @endforeach
@@ -128,25 +129,17 @@
                 </div>
 
                 <div class="reviewed-pagination" id="pendingPagination">
-                    <span class="reviewed-pagination-info" id="pendingPaginationInfo">
-                        Showing 1&ndash;{{ min(10, count($pendingDetails)) }} of {{ count($pendingDetails) }}
-                    </span>
-                    <div class="reviewed-pagination-controls">
-                        <button type="button" class="btn-page" id="pendingPrevPage" onclick="pendingGoToPage(-1)">
-                            <i class="feather-chevron-left"></i> Prev
-                        </button>
-                        <span class="reviewed-page-indicator" id="pendingPageIndicator">Page 1 of 1</span>
-                        <button type="button" class="btn-page" id="pendingNextPage" onclick="pendingGoToPage(1)">
-                            Next <i class="feather-chevron-right"></i>
-                        </button>
-                    </div>
+                    <div class="reviewed-pagination-controls" id="pendingPaginationControls"></div>
                 </div>
             </div>
             @endif
-        </div>
 
-        <!-- REVIEWED TAB -->
-        <div id="tab-reviewed" style="display:none;">
+        @elseif($viewStatus === 'reviewed')
+        {{-- ================= REVIEWED VIEW ================= --}}
+        {{-- Previously a JS-toggled tab inside the Pending page;
+             now its own page/sidebar link. Controller should pass
+             $viewStatus = 'reviewed' and $reviewedDetails here. --}}
+
             @if(count($reviewedDetails) === 0)
             <div class="card">
                 <div class="card-body text-center py-5">
@@ -156,7 +149,6 @@
             @else
             <div class="reviewed-card">
 
-                {{-- Search + decision filter + rows-per-page --}}
                 <div class="reviewed-toolbar">
                     <div class="search-bar-wrap reviewed-search-wrap">
                         <i class="feather-search"></i>
@@ -170,13 +162,14 @@
                         <option value="rejected">Rejected</option>
                         <option value="on_hold">On Hold</option>
                     </select>
-                    <div class="reviewed-rpp-wrap">
-                        <label for="reviewedRowsPerPage" class="reviewed-rpp-label">Rows per page</label>
+                    <div class="reviewed-toolbar-meta">
+                        <span class="reviewed-count-label">Showing</span>
                         <select id="reviewedRowsPerPage" class="reviewed-rpp-select" onchange="reviewedChangeRowsPerPage(this)">
                             <option value="10" selected>10</option>
                             <option value="25">25</option>
                             <option value="50">50</option>
                         </select>
+                        <span class="reviewed-count-text" id="reviewedPaginationInfo">of {{ count($reviewedDetails) }} results</span>
                     </div>
                 </div>
 
@@ -184,11 +177,11 @@
                     <table class="table reviewed-table mb-0" id="reviewedTable">
                         <thead>
                             <tr>
-                                <th>Borrower</th>
-                                <th>Decision</th>
-                                <th>Reviewed At</th>
-                                <th>Remarks</th>
-                                <th class="text-end">Action</th>
+                                <th class="sortable-th">Borrower</th>
+                                <th class="sortable-th">Decision</th>
+                                <th class="sortable-th">Reviewed At</th>
+                                <th class="sortable-th">Remarks</th>
+                                <th class="text-end sortable-th">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -203,11 +196,11 @@
                                 </td>
                                 <td>
                                     @if($r->decision === 'approved')
-                                        <span class="badge badge-approved px-3 py-2">Approved</span>
+                                        <span class="badge badge-approved">Approved</span>
                                     @elseif($r->decision === 'rejected')
-                                        <span class="badge badge-rejected px-3 py-2">Rejected</span>
+                                        <span class="badge badge-rejected">Rejected</span>
                                     @else
-                                        <span class="badge badge-onhold px-3 py-2">On Hold</span>
+                                        <span class="badge badge-onhold">On Hold</span>
                                     @endif
                                 </td>
                                 <td class="rt-date">
@@ -217,9 +210,7 @@
                                     {{ $r->remarks ? \Illuminate\Support\Str::limit($r->remarks, 70) : 'No remarks' }}
                                 </td>
                                 <td class="text-end">
-                                    <a href="{{ route('admin.verification-detail', $r->detail_id) }}?from=verification" class="btn btn-sm btn-light">
-                                        <i class="feather-eye me-1"></i> View Details
-                                    </a>
+                                    <a href="{{ route('admin.verification-detail', $r->detail_id) }}?from=verification" class="action-link-btn">View Details</a>
                                 </td>
                             </tr>
                             @endforeach
@@ -230,32 +221,15 @@
                     </div>
                 </div>
 
-                {{-- Pagination bar: info text (left) + Prev/Next controls (right).
-                     JS (reviewedRenderPage / reviewedUpdatePaginationControls) fills
-                     these in on load and after every search/filter/rows-per-page change. --}}
                 <div class="reviewed-pagination" id="reviewedPagination">
-                    <span class="reviewed-pagination-info" id="reviewedPaginationInfo">
-                        Showing 1&ndash;{{ min(10, count($reviewedDetails)) }} of {{ count($reviewedDetails) }}
-                    </span>
-                    <div class="reviewed-pagination-controls">
-                        <button type="button" class="btn-page" id="reviewedPrevPage" onclick="reviewedGoToPage(-1)">
-                            <i class="feather-chevron-left"></i> Prev
-                        </button>
-                        <span class="reviewed-page-indicator" id="reviewedPageIndicator">Page 1 of 1</span>
-                        <button type="button" class="btn-page" id="reviewedNextPage" onclick="reviewedGoToPage(1)">
-                            Next <i class="feather-chevron-right"></i>
-                        </button>
-                    </div>
+                    <div class="reviewed-pagination-controls" id="reviewedPaginationControls"></div>
                 </div>
             </div>
             @endif
-        </div>
 
         @else
         {{-- ================= FILTERED VIEW: Approved / Rejected / On Hold ================= --}}
-        {{-- Same structure as the Reviewed tab: toolbar (search + rows-per-page)
-             / table / pagination, all inside one .reviewed-card.
-             Columns: Borrower | User ID | Contact | Status | Action --}}
+        {{-- Columns: Borrower | User ID | Contact | Status | Action --}}
 
             @if(count($filteredDetails) === 0)
             <div class="card">
@@ -274,13 +248,14 @@
                                placeholder="Search by name or email..."
                                onkeyup="filterDetailsTable()">
                     </div>
-                    <div class="reviewed-rpp-wrap">
-                        <label for="filteredRowsPerPage" class="reviewed-rpp-label">Rows per page</label>
+                    <div class="reviewed-toolbar-meta">
+                        <span class="reviewed-count-label">Showing</span>
                         <select id="filteredRowsPerPage" class="reviewed-rpp-select" onchange="filteredChangeRowsPerPage(this)">
                             <option value="10" selected>10</option>
                             <option value="25">25</option>
                             <option value="50">50</option>
                         </select>
+                        <span class="reviewed-count-text" id="filteredPaginationInfo">of {{ count($filteredDetails) }} results</span>
                     </div>
                 </div>
 
@@ -288,11 +263,11 @@
                     <table class="table reviewed-table mb-0" id="filteredDetailsTable">
                         <thead>
                             <tr>
-                                <th>Borrower</th>
-                                <th>User ID</th>
-                                <th>Contact</th>
-                                <th>Status</th>
-                                <th class="text-end">Action</th>
+                                <th class="sortable-th">Borrower</th>
+                                <th class="sortable-th">User ID</th>
+                                <th class="sortable-th">Contact</th>
+                                <th class="sortable-th">Status</th>
+                                <th class="text-end sortable-th">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -306,17 +281,15 @@
                                 <td class="rt-date">{{ $d->cellphone_num ?? '—' }}</td>
                                 <td>
                                     @if($viewStatus === 'approved')
-                                        <span class="badge badge-approved px-3 py-2">Approved</span>
+                                        <span class="badge badge-approved">Approved</span>
                                     @elseif($viewStatus === 'rejected')
-                                        <span class="badge badge-rejected px-3 py-2">Rejected</span>
+                                        <span class="badge badge-rejected">Rejected</span>
                                     @else
-                                        <span class="badge badge-onhold px-3 py-2">On Hold</span>
+                                        <span class="badge badge-onhold">On Hold</span>
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    <a href="{{ route('admin.verification-detail', $d->detail_id) }}?from=verification" class="btn btn-sm btn-light">
-                                        <i class="feather-eye me-1"></i> View Full Details
-                                    </a>
+                                    <a href="{{ route('admin.verification-detail', $d->detail_id) }}?from=verification" class="action-link-btn">View Details</a>
                                 </td>
                             </tr>
                             @endforeach
@@ -327,20 +300,8 @@
                     </div>
                 </div>
 
-                {{-- Pagination bar --}}
                 <div class="reviewed-pagination" id="filteredPagination">
-                    <span class="reviewed-pagination-info" id="filteredPaginationInfo">
-                        Showing 1&ndash;{{ min(10, count($filteredDetails)) }} of {{ count($filteredDetails) }}
-                    </span>
-                    <div class="reviewed-pagination-controls">
-                        <button type="button" class="btn-page" id="filteredPrevPage" onclick="filteredGoToPage(-1)">
-                            <i class="feather-chevron-left"></i> Prev
-                        </button>
-                        <span class="reviewed-page-indicator" id="filteredPageIndicator">Page 1 of 1</span>
-                        <button type="button" class="btn-page" id="filteredNextPage" onclick="filteredGoToPage(1)">
-                            Next <i class="feather-chevron-right"></i>
-                        </button>
-                    </div>
+                    <div class="reviewed-pagination-controls" id="filteredPaginationControls"></div>
                 </div>
             </div>
             @endif

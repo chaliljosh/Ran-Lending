@@ -25,21 +25,6 @@
 </head>
 <body>
 
-    {{-- ============================================================
-         SIDEBAR ACTIVE-SECTION LOGIC — computed server-side from the
-         current route name, NOT from window.location.pathname. This
-         is what makes the highlight correct on detail pages too
-         (e.g. loan-application-detail), where the pathname never
-         matches any sidebar link's href.
-
-         $viewStatus is set by every controller in each section:
-           - list pages   -> the ?status= query filter
-           - detail pages -> the record's own current status
-
-         For Loan Applications, 'active' loan status also counts as
-         the "Approved" tab (matches the filtering logic already used
-         in AdminController::buildLoanApplicationsListData()).
-    ============================================================ --}}
     @php
         $currentRouteName = request()->route()?->getName();
 
@@ -81,20 +66,23 @@
                             @endif
                             <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
                         </a>
-                        <ul class="nxl-submenu">
-                            <li class="nxl-item" data-current="{{ $bvStatusTab === 'pending' ? 'true' : 'false' }}">
-                                <a class="nxl-link" href="{{ route('admin.borrower-verification') }}">Pending</a>
-                            </li>
-                            <li class="nxl-item" data-current="{{ $bvStatusTab === 'approved' ? 'true' : 'false' }}">
-                                <a class="nxl-link" href="{{ route('admin.borrower-verification', ['status' => 'approved']) }}">Approved</a>
-                            </li>
-                            <li class="nxl-item" data-current="{{ $bvStatusTab === 'rejected' ? 'true' : 'false' }}">
-                                <a class="nxl-link" href="{{ route('admin.borrower-verification', ['status' => 'rejected']) }}">Rejected</a>
-                            </li>
-                            <li class="nxl-item" data-current="{{ $bvStatusTab === 'on_hold' ? 'true' : 'false' }}">
-                                <a class="nxl-link" href="{{ route('admin.borrower-verification', ['status' => 'on_hold']) }}">On Hold</a>
-                            </li>
-                        </ul>
+                      <ul class="nxl-submenu">
+    <li class="nxl-item" data-current="{{ $bvStatusTab === 'pending' ? 'true' : 'false' }}">
+        <a class="nxl-link" href="{{ route('admin.borrower-verification') }}">Pending</a>
+    </li>
+    <li class="nxl-item" data-current="{{ $bvStatusTab === 'reviewed' ? 'true' : 'false' }}">
+        <a class="nxl-link" href="{{ route('admin.borrower-verification', ['status' => 'reviewed']) }}">Reviewed</a>
+    </li>
+    <li class="nxl-item" data-current="{{ $bvStatusTab === 'approved' ? 'true' : 'false' }}">
+        <a class="nxl-link" href="{{ route('admin.borrower-verification', ['status' => 'approved']) }}">Approved</a>
+    </li>
+    <li class="nxl-item" data-current="{{ $bvStatusTab === 'rejected' ? 'true' : 'false' }}">
+        <a class="nxl-link" href="{{ route('admin.borrower-verification', ['status' => 'rejected']) }}">Rejected</a>
+    </li>
+    <li class="nxl-item" data-current="{{ $bvStatusTab === 'on_hold' ? 'true' : 'false' }}">
+        <a class="nxl-link" href="{{ route('admin.borrower-verification', ['status' => 'on_hold']) }}">On Hold</a>
+    </li>
+</ul>
                     </li>
                     <li class="nxl-item nxl-hasmenu {{ $isLoanApplicationsSection ? 'active' : '' }}">
                         <a href="javascript:void(0);" class="nxl-link {{ $isLoanApplicationsSection ? 'active' : '' }}">

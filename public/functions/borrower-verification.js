@@ -1,11 +1,102 @@
 // public/functions/borrower-verification.js
 // Used by: resources/views/admin/borrower-verification.blade.php
+//
+// UPDATE: (1) showTab() REMOVED — ang Pending/Reviewed tabs ay tinanggal
+// na sa blade (ang "Reviewed" ay hiwalay na pahina/sidebar link ngayon,
+// hindi na JS-toggled tab). (2) Pagination rewrite: numbered pages
+// (1 2 3 .... 6) na may prev/next chevrons, sa halip na "Page X of Y"
+// pill — ito ang gumagawa/nagre-render ng buong laman ng
+// #pendingPaginationControls / #reviewedPaginationControls /
+// #filteredPaginationControls mula sa wala, dahil wala nang static
+// Prev/Next buttons sa blade. (3) "Showing X of Y" text format
+// pinasimple sa "of N results" na lang (ang salitang "Showing" at ang
+// rows-per-page dropdown ay static/base na sa blade, hiwalay sa span
+// na ito).
 
-function showTab(tab, btn) {
-    document.getElementById('tab-pending').style.display  = tab === 'pending'  ? 'block' : 'none';
-    document.getElementById('tab-reviewed').style.display = tab === 'reviewed' ? 'block' : 'none';
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+// ========================================
+// SHARED — generic numbered-pagination renderer
+// Ginagamit ito ng Pending/Reviewed/Filtered tables (tatlo, magkaparehong
+// pattern). Gumagawa ng: [<] [1] [2] [...] [N] [>] sa loob ng containerId,
+// may ellipsis kapag maraming pages, at direktang tumatawag sa
+// onPageChange(pageNumber) kapag na-click ang isang page button.
+// ========================================
+function buildPageList(current, total) {
+    const delta = 1; // ilang numero sa magkabilang gilid ng current page
+    const range = [];
+    const withDots = [];
+    let last = null;
+
+    range.push(1);
+    for (let i = current - delta; i <= current + delta; i++) {
+        if (i > 1 && i < total) range.push(i);
+    }
+    if (total > 1) range.push(total);
+
+    for (const i of range) {
+        if (last !== null) {
+            if (i - last === 2) {
+                withDots.push(last + 1);
+            } else if (i - last > 2) {
+                withDots.push('...');
+            }
+        }
+        withDots.push(i);
+        last = i;
+    }
+
+    return withDots;
+}
+
+function renderPageButtons(containerId, currentPage, totalPages, onPageChange) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (totalPages <= 0) return;
+
+    // ---- Prev arrow ----
+    const prevBtn = document.createElement('button');
+    prevBtn.type = 'button';
+    prevBtn.className = 'btn-page';
+    prevBtn.innerHTML = '<i class="feather-chevron-left"></i>';
+    prevBtn.disabled = currentPage <= 1;
+    prevBtn.addEventListener('click', function () {
+        if (currentPage > 1) onPageChange(currentPage - 1);
+    });
+    container.appendChild(prevBtn);
+
+    // ---- Numbered pages + ellipsis ----
+    const pages = buildPageList(currentPage, totalPages);
+    pages.forEach(function (p) {
+        if (p === '...') {
+            const dots = document.createElement('span');
+            dots.className = 'rv-page-ellipsis';
+            dots.textContent = '....';
+            container.appendChild(dots);
+            return;
+        }
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'rv-page-num' + (p === currentPage ? ' active' : '');
+        btn.textContent = p;
+        btn.addEventListener('click', function () {
+            if (p !== currentPage) onPageChange(p);
+        });
+        container.appendChild(btn);
+    });
+
+    // ---- Next arrow ----
+    const nextBtn = document.createElement('button');
+    nextBtn.type = 'button';
+    nextBtn.className = 'btn-page';
+    nextBtn.innerHTML = '<i class="feather-chevron-right"></i>';
+    nextBtn.disabled = currentPage >= totalPages;
+    nextBtn.addEventListener('click', function () {
+        if (currentPage < totalPages) onPageChange(currentPage + 1);
+    });
+    container.appendChild(nextBtn);
 }
 
 // ========================================
@@ -47,8 +138,8 @@ function pendingChangeRowsPerPage(select) {
     pendingRenderPage();
 }
 
-function pendingGoToPage(direction) {
-    pendingCurrentPage += direction;
+function pendingGoToPage(page) {
+    pendingCurrentPage = page;
     pendingRenderPage();
 }
 
@@ -70,32 +161,18 @@ function pendingRenderPage() {
         emptyState.style.display = totalRows === 0 ? 'block' : 'none';
     }
 
-    pendingUpdatePaginationControls(totalRows, totalPages, start, end);
+    pendingUpdatePaginationControls(totalRows, totalPages);
 }
 
-function pendingUpdatePaginationControls(totalRows, totalPages, start, end) {
+function pendingUpdatePaginationControls(totalRows, totalPages) {
     const infoEl = document.getElementById('pendingPaginationInfo');
-    const pageIndicator = document.getElementById('pendingPageIndicator');
-    const prevBtn = document.getElementById('pendingPrevPage');
-    const nextBtn = document.getElementById('pendingNextPage');
     const paginationWrap = document.getElementById('pendingPagination');
 
     if (infoEl) {
-        if (totalRows === 0) {
-            infoEl.textContent = 'Showing 0 of 0';
-        } else {
-            const shownStart = start + 1;
-            const shownEnd = Math.min(end, totalRows);
-            infoEl.textContent = `Showing ${shownStart}–${shownEnd} of ${totalRows}`;
-        }
+        infoEl.textContent = `of ${totalRows} result${totalRows === 1 ? '' : 's'}`;
     }
 
-    if (pageIndicator) {
-        pageIndicator.textContent = `Page ${pendingCurrentPage} of ${totalPages}`;
-    }
-
-    if (prevBtn) prevBtn.disabled = pendingCurrentPage <= 1;
-    if (nextBtn) nextBtn.disabled = pendingCurrentPage >= totalPages;
+    renderPageButtons('pendingPaginationControls', pendingCurrentPage, totalPages, pendingGoToPage);
 
     if (paginationWrap) {
         const hasActiveFilter = document.getElementById('pendingSearchInput')?.value
@@ -110,7 +187,7 @@ function pendingUpdatePaginationControls(totalRows, totalPages, start, end) {
 // filterReviewedTable() re-runs whenever search/decision changes and
 // resets to page 1. reviewedRenderPage() just slices that set based on
 // reviewedCurrentPage / reviewedRowsPerPage and updates the row display
-// + the pagination controls (info text, Prev/Next disabled state).
+// + the pagination controls (info text, numbered page buttons).
 // ========================================
 let reviewedMatchingRows = [];
 let reviewedCurrentPage = 1;
@@ -145,8 +222,8 @@ function reviewedChangeRowsPerPage(select) {
     reviewedRenderPage();
 }
 
-function reviewedGoToPage(direction) {
-    reviewedCurrentPage += direction;
+function reviewedGoToPage(page) {
+    reviewedCurrentPage = page;
     reviewedRenderPage();
 }
 
@@ -168,37 +245,23 @@ function reviewedRenderPage() {
         emptyState.style.display = totalRows === 0 ? 'block' : 'none';
     }
 
-    reviewedUpdatePaginationControls(totalRows, totalPages, start, end);
+    reviewedUpdatePaginationControls(totalRows, totalPages);
 }
 
-function reviewedUpdatePaginationControls(totalRows, totalPages, start, end) {
+function reviewedUpdatePaginationControls(totalRows, totalPages) {
     const infoEl = document.getElementById('reviewedPaginationInfo');
-    const pageIndicator = document.getElementById('reviewedPageIndicator');
-    const prevBtn = document.getElementById('reviewedPrevPage');
-    const nextBtn = document.getElementById('reviewedNextPage');
     const paginationWrap = document.getElementById('reviewedPagination');
 
     if (infoEl) {
-        if (totalRows === 0) {
-            infoEl.textContent = 'Showing 0 of 0';
-        } else {
-            const shownStart = start + 1;
-            const shownEnd = Math.min(end, totalRows);
-            infoEl.textContent = `Showing ${shownStart}–${shownEnd} of ${totalRows}`;
-        }
+        infoEl.textContent = `of ${totalRows} result${totalRows === 1 ? '' : 's'}`;
     }
 
-    if (pageIndicator) {
-        pageIndicator.textContent = `Page ${reviewedCurrentPage} of ${totalPages}`;
-    }
-
-    if (prevBtn) prevBtn.disabled = reviewedCurrentPage <= 1;
-    if (nextBtn) nextBtn.disabled = reviewedCurrentPage >= totalPages;
+    renderPageButtons('reviewedPaginationControls', reviewedCurrentPage, totalPages, reviewedGoToPage);
 
     if (paginationWrap) {
-        paginationWrap.style.display = totalRows === 0 && !document.getElementById('reviewedSearchInput')?.value && !document.getElementById('reviewedDecisionFilter')?.value
-            ? 'none'
-            : 'flex';
+        const hasActiveFilter = document.getElementById('reviewedSearchInput')?.value
+            || document.getElementById('reviewedDecisionFilter')?.value;
+        paginationWrap.style.display = (totalRows === 0 && !hasActiveFilter) ? 'none' : 'flex';
     }
 }
 
@@ -206,7 +269,7 @@ function reviewedUpdatePaginationControls(totalRows, totalPages, start, end) {
 // FILTERED VIEW (Approved / Rejected / On Hold) — search + rows-per-page
 // + pagination. Same pattern as the Reviewed tab above, minus the
 // decision filter (the whole table is already one decision, driven by
-// which sidebar link/tab the admin is on).
+// which sidebar link the admin is on).
 // Table rows (<tr data-search>) inside #filteredDetailsTable.
 // ========================================
 let filteredMatchingRows = [];
@@ -235,8 +298,8 @@ function filteredChangeRowsPerPage(select) {
     filteredRenderPage();
 }
 
-function filteredGoToPage(direction) {
-    filteredCurrentPage += direction;
+function filteredGoToPage(page) {
+    filteredCurrentPage = page;
     filteredRenderPage();
 }
 
@@ -258,32 +321,18 @@ function filteredRenderPage() {
         emptyState.style.display = totalRows === 0 ? 'block' : 'none';
     }
 
-    filteredUpdatePaginationControls(totalRows, totalPages, start, end);
+    filteredUpdatePaginationControls(totalRows, totalPages);
 }
 
-function filteredUpdatePaginationControls(totalRows, totalPages, start, end) {
+function filteredUpdatePaginationControls(totalRows, totalPages) {
     const infoEl = document.getElementById('filteredPaginationInfo');
-    const pageIndicator = document.getElementById('filteredPageIndicator');
-    const prevBtn = document.getElementById('filteredPrevPage');
-    const nextBtn = document.getElementById('filteredNextPage');
     const paginationWrap = document.getElementById('filteredPagination');
 
     if (infoEl) {
-        if (totalRows === 0) {
-            infoEl.textContent = 'Showing 0 of 0';
-        } else {
-            const shownStart = start + 1;
-            const shownEnd = Math.min(end, totalRows);
-            infoEl.textContent = `Showing ${shownStart}–${shownEnd} of ${totalRows}`;
-        }
+        infoEl.textContent = `of ${totalRows} result${totalRows === 1 ? '' : 's'}`;
     }
 
-    if (pageIndicator) {
-        pageIndicator.textContent = `Page ${filteredCurrentPage} of ${totalPages}`;
-    }
-
-    if (prevBtn) prevBtn.disabled = filteredCurrentPage <= 1;
-    if (nextBtn) nextBtn.disabled = filteredCurrentPage >= totalPages;
+    renderPageButtons('filteredPaginationControls', filteredCurrentPage, totalPages, filteredGoToPage);
 
     if (paginationWrap) {
         const hasActiveFilter = document.getElementById('filteredSearchInput')?.value;
@@ -397,8 +446,9 @@ function submitDecision(form, action) {
     });
 }
 
-// Run pagination once on load for all three tables so they're already
-// sliced to page 1 even before the user types anything in search/filter.
+// Run pagination once on load for whichever table exists on the current
+// view (pending / reviewed / filtered) so it's already sliced to page 1
+// even before the user types anything in search/filter.
 document.addEventListener('DOMContentLoaded', function () {
     if (document.getElementById('pendingDetailsTable')) {
         filterPendingTable();

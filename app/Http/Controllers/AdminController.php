@@ -260,11 +260,6 @@ class AdminController extends Controller
         $items = collect();
 
         // 1. Borrower verification needing review
-               // 1. Borrower verification needing review
-        // NOTE: borrowerpersonaldetails has no created_at column, so we
-        // can't order/timestamp these by submission time — we just use
-        // now() as a placeholder ts. Sorted by detail_id (newest first)
-        // instead, same as the rest of the list queries in this app.
         $pendingVerifications = DB::table('borrowerpersonaldetails as bpd')
             ->where('bpd.status', 'pending')
             ->whereNotExists(function ($q) use ($adminId) {
@@ -272,7 +267,7 @@ class AdminController extends Controller
                     ->whereColumn('da.detail_id', 'bpd.detail_id')
                     ->where('da.admin_id', $adminId);
             })
-            ->select('bpd.detail_id', 'bpd.first_name', 'bpd.last_name')
+            ->select('bpd.detail_id', 'bpd.first_name', 'bpd.last_name', 'bpd.created_at')
             ->orderByDesc('bpd.detail_id')
             ->limit(20)
             ->get();
@@ -286,7 +281,7 @@ class AdminController extends Controller
                 'icon'     => 'feather-user-check',
                 'color'    => 'warning',
                 'url'      => route('admin.verification-detail', $row->detail_id),
-                'ts'       => now(),
+                'ts'       => $row->created_at ?? now(),
             ]);
         }
 

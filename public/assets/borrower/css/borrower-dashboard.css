@@ -1,29 +1,5 @@
 /* ============================================================
-   BORROWER DASHBOARD — redesign
-   Prefixed with bwl-dash- to avoid clashing with any existing
-   theme classes elsewhere in the app.
-
-   UPDATE: ginawang mas "plain SaaS" yung look (kagaya ng
-   reference screenshot) — icon sa top-right ng widget, mas
-   simple na palette, flat white cards.
-
-   UPDATE 2: font weights binaba (800→600, 700→600, 600→500)
-   para tumugma sa Shadcn Admin reference — mas "light/medium"
-   ang timbang ng text doon, hindi super bold.
-
-   UPDATE 3: tinugma ang card treatment (white bg, border, shadow)
-   sa parehong pattern na ginamit sa apply-loan.css
-   (.pending-section / .bwl-stat-card) — puting page background,
-   border lang ang naghihiwalay sa mga card sa page bg (hindi
-   malakas na background color contrast), banayad na shadow lang
-   para may konting depth.
-
-   UPDATE 4: idinagdag ang .bwl-status-panel — kapalit ng dating
-   malalaking centered card na may 80px icon circle (Complete Your
-   Profile / Under Review / Application Rejected). Left-aligned na,
-   thin border lang, maliit na status dot imbes na malaking
-   kulay-lipad na bilog, at normal-sized na button imbes na
-   px-5 full-width.
+    Borrower Dashboard CSS
 ============================================================ */
 
 :root {
@@ -46,9 +22,6 @@
     --bwl-dash-red-soft: #FEF2F2;
 }
 
-/* Puting page background — parehong treatment ng apply-loan page,
-   para hindi na naiiba ang card mula sa page bg, border/shadow lang
-   ang naghihiwalay sa kanila. */
 .nxl-content {
     background: #fff;
 }

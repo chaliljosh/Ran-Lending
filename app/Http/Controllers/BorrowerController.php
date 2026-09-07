@@ -482,6 +482,7 @@ class BorrowerController extends Controller
                 DB::table('detailsapproval')->where('detail_id', $detailId)->delete();
             } else {
                 $personalData['user_id'] = $userId;
+                $personalData['created_at'] = now();
                 $detailId = DB::table('borrowerpersonaldetails')->insertGetId($personalData, 'detail_id');
 
                 $addressData['detail_id'] = $detailId;

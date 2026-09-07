@@ -3,8 +3,10 @@
 @section('title', 'Dashboard')
 
 @section('page-styles')
-    <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/admin-dashboard.css') }}" />
-    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/admin-dashboard.css') }}?v={{ time() }}" />
 @endsection
 
 @section('content')
@@ -21,140 +23,104 @@
     <div class="main-content">
         <div class="row">
             <div class="col-xxl-3 col-md-6">
-                <div class="card stretch stretch-full">
-                    <div class="card-body">
-                        <div class="d-flex align-items-start justify-content-between mb-4">
-                            <div class="d-flex gap-4 align-items-center">
-                                <div class="avatar-text avatar-lg bg-soft-primary text-primary">
-                                    <i class="feather-file-text"></i>
-                                </div>
-                                <div>
-                                    <div class="fs-13 fw-semibold text-muted text-truncate-1-line">Total Applications</div>
-                                    <h3 class="fw-bold text-dark mt-1">{{ $totalApplications }}</h3>
-                                </div>
-                            </div>
+                <div class="card stretch stretch-full adm-stat-card">
+                    <div class="card-body adm-stat-body">
+                        <div class="adm-stat-top">
+                            <span class="adm-stat-label">Total Applications</span>
+                            <i class="feather-file-text adm-stat-icon"></i>
                         </div>
-                        <div class="pt-4 border-top">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <span class="fs-12 text-muted">Pending Review</span>
-                                <span class="fs-12 fw-semibold text-dark">{{ $pendingApplications }}</span>
-                            </div>
-                            <div class="progress ht-3">
-                                @php
-                                    $pendingPct = $totalApplications > 0 ? round(($pendingApplications / $totalApplications) * 100) : 0;
-                                @endphp
-                                <div class="progress-bar bg-primary" role="progressbar" style="width: {{ $pendingPct }}%"></div>
-                            </div>
-                        </div>
+                        <div class="adm-stat-value">{{ $totalApplications }}</div>
+                        <div class="adm-stat-sub">{{ $pendingApplications }} pending review</div>
                     </div>
                 </div>
             </div>
 
             <div class="col-xxl-3 col-md-6">
-                <div class="card stretch stretch-full">
-                    <div class="card-body">
-                        <div class="d-flex align-items-start justify-content-between mb-4">
-                            <div class="d-flex gap-4 align-items-center">
-                                <div class="avatar-text avatar-lg bg-soft-success text-success">
-                                    <i class="feather-dollar-sign"></i>
-                                </div>
-                                <div>
-                                    <div class="fs-13 fw-semibold text-muted text-truncate-1-line">Active Loans</div>
-                                    <h3 class="fw-bold text-dark mt-1">{{ $activeLoans }}</h3>
-                                </div>
-                            </div>
+                <div class="card stretch stretch-full adm-stat-card">
+                    <div class="card-body adm-stat-body">
+                        <div class="adm-stat-top">
+                            <span class="adm-stat-label">Active Loans</span>
+                            <i class="feather-dollar-sign adm-stat-icon"></i>
                         </div>
-                        <div class="pt-4 border-top">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <span class="fs-12 text-muted">Total Amount</span>
-                                <span class="fs-12 fw-semibold text-dark">&#8369;{{ number_format($totalActiveAmount, 2) }}</span>
-                            </div>
-                            <div class="progress ht-3">
-                                <div class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
-                            </div>
-                        </div>
+                        <div class="adm-stat-value">{{ $activeLoans }}</div>
+                        <div class="adm-stat-sub">&#8369;{{ number_format($totalActiveAmount, 2) }} total amount</div>
                     </div>
                 </div>
             </div>
 
             <div class="col-xxl-3 col-md-6">
-                <div class="card stretch stretch-full">
-                    <div class="card-body">
-                        <div class="d-flex align-items-start justify-content-between mb-4">
-                            <div class="d-flex gap-4 align-items-center">
-                                <div class="avatar-text avatar-lg bg-soft-warning text-warning">
-                                    <i class="feather-users"></i>
-                                </div>
-                                <div>
-                                    <div class="fs-13 fw-semibold text-muted text-truncate-1-line">Total Borrowers</div>
-                                    <h3 class="fw-bold text-dark mt-1">{{ $totalBorrowers }}</h3>
-                                </div>
-                            </div>
+                <div class="card stretch stretch-full adm-stat-card">
+                    <div class="card-body adm-stat-body">
+                        <div class="adm-stat-top">
+                            <span class="adm-stat-label">Total Borrowers</span>
+                            <i class="feather-users adm-stat-icon"></i>
                         </div>
-                        <div class="pt-4 border-top">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <span class="fs-12 text-muted">Active Borrowers</span>
-                                <span class="fs-12 fw-semibold text-dark">{{ $activeBorrowers }}</span>
-                            </div>
-                            <div class="progress ht-3">
-                                @php
-                                    $activePct = $totalBorrowers > 0 ? round(($activeBorrowers / $totalBorrowers) * 100) : 0;
-                                @endphp
-                                <div class="progress-bar bg-warning" role="progressbar" style="width: {{ $activePct }}%"></div>
-                            </div>
-                        </div>
+                        <div class="adm-stat-value">{{ $totalBorrowers }}</div>
+                        <div class="adm-stat-sub">{{ $activeBorrowers }} active borrowers</div>
                     </div>
                 </div>
             </div>
 
             <div class="col-xxl-3 col-md-6">
-                <div class="card stretch stretch-full">
-                    <div class="card-body">
-                        <div class="d-flex align-items-start justify-content-between mb-4">
-                            <div class="d-flex gap-4 align-items-center">
-                                <div class="avatar-text avatar-lg bg-soft-danger text-danger">
-                                    <i class="feather-user-check"></i>
-                                </div>
-                                <div>
-                                    <div class="fs-13 fw-semibold text-muted text-truncate-1-line">Pending Verification</div>
-                                    <h3 class="fw-bold text-dark mt-1">{{ $pendingVerificationCount }}</h3>
-                                </div>
-                            </div>
+                <div class="card stretch stretch-full adm-stat-card">
+                    <div class="card-body adm-stat-body">
+                        <div class="adm-stat-top">
+                            <span class="adm-stat-label">Pending Verification</span>
+                            <i class="feather-user-check adm-stat-icon"></i>
                         </div>
-                        <div class="pt-4 border-top">
-                            <a href="{{ route('admin.borrower-verification') }}" class="fs-12 fw-semibold text-primary">
-                                Review now <i class="feather-arrow-right"></i>
-                            </a>
-                        </div>
+                        <div class="adm-stat-value">{{ $pendingVerificationCount }}</div>
+                        <a href="{{ route('admin.borrower-verification') }}" class="adm-stat-sub adm-stat-link">
+                            Review now
+                        </a>
                     </div>
                 </div>
             </div>
 
+            {{-- ============ RECENT LOAN APPLICATIONS ============ --}}
             <div class="col-lg-8">
-                <div class="card stretch stretch-full">
-                    <div class="card-header d-flex align-items-center justify-content-between">
-                        <h5 class="card-title">Recent Loan Applications</h5>
-                        <a href="{{ route('admin.loan-applications') }}" class="fs-12 fw-semibold text-primary">
-                            View All <i class="feather-arrow-right"></i>
+                <div class="card stretch stretch-full adm-panel">
+                    <div class="card-header adm-panel-header">
+                        <div class="adm-panel-header-left">
+                          
+                            <div>
+                                <h5 class="card-title adm-panel-title">Recent Loan Applications</h5>
+                              
+                            </div>
+                        </div>
+                        <a href="{{ route('admin.loan-applications') }}" class="adm-panel-link">
+                            View all 
                         </a>
                     </div>
                     <div class="card-body custom-card-action p-0">
                         <div class="table-responsive">
-                            <table class="table table-hover mb-0">
+                            <table class="table table-hover mb-0 adm-table">
                                 <thead>
                                     <tr class="border-b">
                                         <th>Borrower</th>
                                         <th>Loan Amount</th>
                                         <th>Date Applied</th>
                                         <th>Status</th>
+                                        <th class="adm-table-chevron-col"></th>
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    @php
+                                        $avatarColors = ['is-blue', 'is-purple', 'is-green', 'is-orange'];
+                                    @endphp
                                     @forelse($recentApplications as $app)
+                                        @php
+                                            $nameParts = preg_split('/\s+/', trim($app->borrower_name));
+                                            $initials = strtoupper(substr($nameParts[0] ?? '', 0, 1) . substr(end($nameParts), 0, 1));
+                                            $avatarColor = $avatarColors[$loop->index % count($avatarColors)];
+                                        @endphp
                                         <tr>
-                                            <td><span class="fw-bold text-dark d-block">{{ $app->borrower_name }}</span></td>
-                                            <td class="fw-bold text-dark">&#8369;{{ number_format($app->total_amount, 2) }}</td>
-                                            <td>{{ \Carbon\Carbon::parse($app->applied_at)->format('M d, Y') }}</td>
+                                            <td>
+                                                <div class="adm-table-borrower">
+                                                    <span class="adm-table-name">{{ $app->borrower_name }}</span>
+                                                </div>
+                                            </td>
+                                            <td class="adm-table-amount">&#8369;{{ number_format($app->total_amount, 2) }}</td>
+                                            <td class="adm-table-date">{{ \Carbon\Carbon::parse($app->applied_at)->format('M d, Y') }}</td>
                                             <td>
                                                 @php
                                                     $statusColors = [
@@ -168,10 +134,13 @@
                                                 @endphp
                                                 <span class="badge bg-soft-{{ $color }} text-{{ $color }}">{{ ucfirst($app->status) }}</span>
                                             </td>
+                                            <td class="adm-table-chevron-col">
+                                                <i class="feather-chevron-right adm-table-chevron"></i>
+                                            </td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="4" class="text-center text-muted py-4">No Pending applications.</td>
+                                            <td colspan="5" class="text-center text-muted py-4">No Pending applications.</td>
                                         </tr>
                                     @endforelse
                                 </tbody>
@@ -181,78 +150,123 @@
                 </div>
             </div>
 
+            {{-- ============ ATTENTION REQUIRED ============ --}}
             <div class="col-lg-4">
-                <div class="card stretch stretch-full">
-                    <div class="card-header">
-                        <h5 class="card-title">Attention Required</h5>
+                <div class="card stretch stretch-full adm-panel adm-attn-card">
+                    <div class="card-header adm-panel-header">
+                        <div class="adm-panel-header-left">
+                        
+                            <div>
+                                <h5 class="card-title adm-panel-title">Attention Required</h5>
+                            </div>
+                        </div>
+                        @if(count($attentionItems) > 0)
+                            <span class="adm-attn-count-badge">{{ count($attentionItems) }}</span>
+                        @endif
                     </div>
-                    <div class="card-body">
+                    <div class="card-body p-0">
                         @foreach($attentionItems as $item)
-                            <div class="attn-item">
-                                <div class="attn-icon bg-soft-{{ $item['color'] }} text-{{ $item['color'] }}">
-                                    <i class="{{ $item['icon'] }}"></i>
+                            <div class="adm-attn-item border-{{ $item['color'] }}">
+                                <div class="adm-attn-item-body">
+                                    <div class="adm-attn-item-title">{{ $item['label'] }}</div>
+                                    @if(!empty($item['description']))
+                                        <div class="adm-attn-item-desc">{{ $item['description'] }}</div>
+                                    @endif
                                 </div>
-                                <div class="attn-text">
-                                    <div class="attn-label">{{ $item['label'] }}</div>
-                                    <div class="attn-count">{{ $item['count'] }} {{ $item['count'] == 1 ? 'item' : 'items' }}</div>
+                                <div class="adm-attn-item-side">
+                                    <a href="{{ $item['url'] }}" class="adm-attn-item-action text-{{ $item['color'] }}">
+                                        {{ $item['action'] }} 
+                                    </a>
+                                    <div class="adm-attn-item-count">{{ $item['count'] }} {{ $item['count'] == 1 ? 'item' : 'items' }}</div>
                                 </div>
-                                <a href="{{ $item['url'] }}" class="attn-action text-{{ $item['color'] }}">
-                                    {{ $item['action'] }} <i class="feather-arrow-right"></i>
-                                </a>
                             </div>
                         @endforeach
                     </div>
                 </div>
             </div>
 
+            {{-- ============ UPCOMING PAYMENTS ============ --}}
             <div class="col-lg-6">
-                <div class="card stretch stretch-full">
-                    <div class="card-header d-flex align-items-center justify-content-between">
-                        <h5 class="card-title">Upcoming Payments</h5>
+                <div class="card stretch stretch-full adm-panel">
+                    <div class="card-header adm-panel-header">
+                        <div class="adm-panel-header-left">
+                           
+                            <div>
+                                <h5 class="card-title adm-panel-title">Upcoming Payments</h5>
+                          
+                            </div>
+                        </div>
+                        <a href="{{ route('admin.ongoing-loans') }}" class="adm-panel-link">
+                            View all
+                        </a>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body p-0">
                         @forelse($upcomingPayments as $payment)
-                            <div class="upcoming-row">
-                                <div>
-                                    <div class="upcoming-name">{{ $payment->borrower_name }}</div>
-                                    <div class="upcoming-due">{{ \Carbon\Carbon::parse($payment->due_date)->format('M d, Y') }}</div>
+                            @php
+                                $dueCarbon = \Carbon\Carbon::parse($payment->due_date);
+                                $daysDiff = now()->startOfDay()->diffInDays($dueCarbon->copy()->startOfDay(), false);
+                            @endphp
+                            <div class="adm-upcoming-row">
+                                <div class="adm-upcoming-date">
+                                    <span class="adm-upcoming-date-month">{{ $dueCarbon->format('M') }}</span>
+                                    <span class="adm-upcoming-date-day">{{ $dueCarbon->format('d') }}</span>
                                 </div>
-                                <div class="upcoming-amount">&#8369;{{ number_format($payment->amount_due, 2) }}</div>
+                                <div class="adm-upcoming-body">
+                                    <div class="adm-upcoming-name">{{ $payment->borrower_name }}</div>
+                                    <div class="adm-upcoming-sub">
+                                        Monthly Amortization
+                                        @if(!empty($payment->loan_number))
+                                            &middot; Loan #{{ $payment->loan_number }}
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="adm-upcoming-side">
+                                    <div class="adm-upcoming-amount">&#8369;{{ number_format($payment->amount_due, 2) }}</div>
+                                    @if($daysDiff < 0)
+                                        <span class="adm-upcoming-pill is-danger">{{ abs($daysDiff) }} {{ abs($daysDiff) == 1 ? 'day' : 'days' }} overdue</span>
+                                    @else
+                                        <span class="adm-upcoming-pill">Due in {{ $daysDiff }} {{ $daysDiff == 1 ? 'day' : 'days' }}</span>
+                                    @endif
+                                </div>
                             </div>
                         @empty
                             <div class="text-center text-muted py-4 fs-13">No upcoming payments</div>
                         @endforelse
                     </div>
-                    @if($upcomingPayments->isNotEmpty())
-                        <div class="card-footer text-center border-top py-3">
-                            <a href="{{ route('admin.ongoing-loans') }}" class="fs-12 fw-semibold text-primary">
-                                View Active Loans <i class="feather-arrow-right"></i>
-                            </a>
-                        </div>
-                    @endif
                 </div>
             </div>
 
+            {{-- ============ RECENT ACTIVITY ============ --}}
             <div class="col-lg-6">
-                <div class="card stretch stretch-full">
-                    <div class="card-header">
-                        <h5 class="card-title">Recent Activity</h5>
+                <div class="card stretch stretch-full adm-panel">
+                    <div class="card-header adm-panel-header">
+                        <div class="adm-panel-header-left">
+                     
+                            <div>
+                                <h5 class="card-title adm-panel-title">Recent Activity</h5>
+                               
+                            </div>
+                        </div>
+                        <a href="{{ route('admin.dashboard') }}" class="adm-panel-link">
+                            View all
+                        </a>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body p-0">
                         @forelse($recentActivity as $activity)
-                            <div class="activity-row">
-                                <div class="activity-dot bg-soft-{{ $activity['color'] }} text-{{ $activity['color'] }}">
-                                    <i class="{{ $activity['icon'] }}"></i>
-                                </div>
-                                <div>
-                                    <div class="activity-text">{{ $activity['text'] }}</div>
-                                    <div class="activity-meta">
+                            <div class="adm-activity-row">
+
+                                <div class="adm-activity-body">
+                                    <div class="adm-activity-text">{{ $activity['text'] }}</div>
+                                    <div class="adm-activity-meta">
                                         @if(!empty($activity['meta']))
                                             {{ $activity['meta'] }} &middot;
                                         @endif
                                         {{ \Carbon\Carbon::parse($activity['ts'])->diffForHumans() }}
                                     </div>
                                 </div>
+                                <span class="adm-activity-pill bg-soft-{{ $activity['color'] }} text-{{ $activity['color'] }}">
+                                    {{ $activity['category'] ?? ucfirst($activity['color']) }}
+                                </span>
                             </div>
                         @empty
                             <div class="text-center text-muted py-4 fs-13">No recent activity yet.</div>
