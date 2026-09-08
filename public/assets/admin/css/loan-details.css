@@ -511,3 +511,15 @@ html.app-skin-dark .ld-schedule-table tbody td {
 html.app-skin-dark .ld-schedule-paid    { background: rgba(22,163,74,.15); color: #6ee7a4; }
 html.app-skin-dark .ld-schedule-late    { background: rgba(220,38,38,.15); color: #f87171; }
 html.app-skin-dark .ld-schedule-pending { background: rgba(148,163,184,.15); color: #cbd5e1; }
+
+/* Alisin ang blur sa modal backdrop */
+.modal-backdrop {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+.modal-modern,
+.modal-modern .modal-content {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}

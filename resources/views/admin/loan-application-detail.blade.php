@@ -395,5 +395,5 @@
 @endpush
 
 @section('page-scripts')
-    <script src="{{ asset('functions/loan-applications.js') }}"></script>
+       <script src="{{ asset('functions/loan-application-detail.js') }}"></script>
 @endsection

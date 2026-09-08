@@ -7,7 +7,7 @@
     --bwl-dash-ink: #0F172A;
     --bwl-dash-gray: #64748B;
     --bwl-dash-gray-light: #94A3B8;
-    --bwl-dash-border: #e5e7eb; /* dati #ECEEF2 — tinugma sa apply-loan.css border color */
+    --bwl-dash-border: #e5e7eb;
     --bwl-dash-bg-soft: #F8FAFC;
 
     --bwl-dash-blue: #2563EB;
@@ -26,7 +26,7 @@
     background: #fff;
 }
 
-/* ---------- Status panel (incomplete / pending / rejected) ---------- */
+/* ---------- Status panel (incomplete / pending / rejected / loan status) ---------- */
 .bwl-status-panel {
     font-family: var(--bwl-dash-font);
     background: #fff;
@@ -40,7 +40,21 @@
 .bwl-status-panel.is-danger {
     border-color: #f3c6c6;
 }
-
+.bwl-status-panel.is-full {
+    max-width: 720px;
+    margin: 48px auto 0;
+    padding: 24px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
+}
+.bwl-status-panel.is-full .bwl-status-title {
+    font-size: 1.15rem;
+}
+.bwl-status-panel.is-full .bwl-status-desc {
+    font-size: 0.9rem;
+}
 .bwl-status-head {
     display: flex;
     align-items: flex-start;
@@ -63,6 +77,31 @@
 
 .bwl-status-head-text { flex: 1; min-width: 0; }
 
+.bwl-status-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--bwl-dash-gray-light);
+    margin: 0 0 10px;
+}
+
+.bwl-status-simple-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+.bwl-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.bwl-status-dot.is-warning { background: var(--bwl-dash-orange); }
+.bwl-status-dot.is-danger  { background: var(--bwl-dash-red); }
+.bwl-status-dot.is-info    { background: var(--bwl-dash-blue); }
+
 .bwl-status-title {
     font-size: 1.08rem;
     font-weight: 600;
@@ -80,6 +119,19 @@
     height: 1px;
     background: var(--bwl-dash-border);
     margin: 20px 0 18px;
+}
+
+.bwl-status-simple-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--bwl-dash-border);
+}
+.bwl-status-meta {
+    font-size: 0.8rem;
+    color: var(--bwl-dash-gray);
 }
 
 .bwl-status-stat {
@@ -121,6 +173,17 @@
     margin: 0;
 }
 
+.bwl-status-link {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--bwl-dash-blue);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.bwl-status-link:hover { text-decoration: underline; }
+
 .bwl-status-btn {
     display: inline-flex;
     align-items: center;
@@ -148,13 +211,6 @@
 .bwl-status-btn.is-danger:hover { background: var(--bwl-dash-red-soft); }
 
 /* ---------- Top widgets row ---------- */
-/* Force Inter kahit may global font-family !important yung theme
-   niyo (karaniwan ganito sa mga NXL/DashUI-style themes — may
-   sariling "Poppins"/"Nunito Sans" silang naka-!important sa body,
-   headings, atbp). Kaya ang wildcard * dito para ma-cover lahat ng
-   child elements (h6, span, strong) na baka may sariling declaration.
-   Idinagdag din ang font-smoothing para mas malapit sa "crisp/thin"
-   na render ng Inter sa mga shadcn/modern SaaS apps. */
 .bwl-dash-widgets,
 .bwl-dash-widgets *,
 .bwl-dash-row,
@@ -169,8 +225,6 @@
     gap: 16px;
     margin-bottom: 20px;
 }
-/* Small stat widget — parehong treatment ng .bwl-stat-card sa
-   apply-loan.css: puti, banayad na border, mahinang shadow lang. */
 .bwl-dash-widget {
     background: #ffffff !important;
     border: 1px solid var(--bwl-dash-border) !important;
@@ -179,7 +233,6 @@
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
 }
 
-/* label (left) + icon (right), parang reference screenshot */
 .bwl-dash-widget-top {
     display: flex;
     align-items: flex-start;
@@ -189,7 +242,7 @@
 }
 .bwl-dash-widget-label {
     font-size: 0.8rem;
-    font-weight: 500; /* dati 600 */
+    font-weight: 500;
     color: var(--bwl-dash-gray);
 }
 .bwl-dash-widget-icon {
@@ -207,7 +260,7 @@
 
 .bwl-dash-widget-value {
     font-size: 1.5rem;
-    font-weight: 600; /* dati 800 */
+    font-weight: 600;
     color: var(--bwl-dash-ink);
     line-height: 1.2;
     margin-bottom: 6px;
@@ -226,7 +279,7 @@
 
 .bwl-dash-pill {
     display: inline-block; padding: 3px 10px; border-radius: 20px;
-    font-size: 0.72rem; font-weight: 600; /* dati 700 */
+    font-size: 0.72rem; font-weight: 600;
 }
 .bwl-dash-pill.is-info   { background: var(--bwl-dash-blue-soft); color: var(--bwl-dash-blue); }
 .bwl-dash-pill.is-danger { background: var(--bwl-dash-red-soft);  color: var(--bwl-dash-red); }
@@ -242,9 +295,6 @@
 .bwl-dash-row.bwl-dash-row-cal {
     grid-template-columns: 1fr auto;
 }
-/* Bigger section card — parehong treatment ng .pending-section sa
-   apply-loan.css: puti, border, at bahagyang mas matingkad na
-   shadow kaysa sa maliliit na widget (dahil mas malaki ang wrapper). */
 .bwl-dash-card {
     background: #ffffff !important;
     border: 1px solid var(--bwl-dash-border) !important;
@@ -257,9 +307,9 @@
     padding: 18px 22px;
     border-bottom: 1px solid var(--bwl-dash-border);
 }
-.bwl-dash-card-header h6 { margin: 0; font-weight: 600; color: var(--bwl-dash-ink); font-size: 0.95rem; } /* dati 700 */
+.bwl-dash-card-header h6 { margin: 0; font-weight: 600; color: var(--bwl-dash-ink); font-size: 0.95rem; }
 .bwl-dash-card-header a {
-    font-size: 0.8rem; font-weight: 600; color: var(--bwl-dash-blue); text-decoration: none; /* dati 700 */
+    font-size: 0.8rem; font-weight: 600; color: var(--bwl-dash-blue); text-decoration: none;
     display: inline-flex; align-items: center; gap: 4px;
 }
 .bwl-dash-card-header a:hover { text-decoration: underline; }
@@ -286,7 +336,7 @@
 }
 .bwl-dash-overview-row:last-child { border-bottom: none; padding-bottom: 0; }
 .bwl-dash-overview-row span { color: var(--bwl-dash-gray); }
-.bwl-dash-overview-row strong { color: var(--bwl-dash-ink); font-weight: 600; } /* dati 700 */
+.bwl-dash-overview-row strong { color: var(--bwl-dash-ink); font-weight: 600; }
 
 .bwl-dash-donut-wrap {
     display: flex; flex-direction: column; align-items: center;
@@ -295,7 +345,7 @@
     min-width: 180px;
     text-align: center;
 }
-.bwl-dash-progress-title { font-size: 0.85rem; font-weight: 600; color: var(--bwl-dash-ink); margin-bottom: 2px; } /* dati 700 */
+.bwl-dash-progress-title { font-size: 0.85rem; font-weight: 600; color: var(--bwl-dash-ink); margin-bottom: 2px; }
 .bwl-dash-progress-sub { font-size: 0.75rem; color: var(--bwl-dash-gray); margin-bottom: 12px; }
 
 .bwl-dash-donut {
@@ -308,7 +358,7 @@
     width: 112px; height: 112px; border-radius: 50%; background: #fff;
     display: flex; align-items: center; justify-content: center;
 }
-.bwl-dash-donut-pct { font-size: 1.5rem; font-weight: 600; color: var(--bwl-dash-ink); } /* dati 800 */
+.bwl-dash-donut-pct { font-size: 1.5rem; font-weight: 600; color: var(--bwl-dash-ink); }
 
 /* ---------- Payment Calendar ---------- */
 .bwl-dash-calendar {
@@ -320,7 +370,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 14px 18px 4px;
-    font-weight: 600; /* dati 700 */
+    font-weight: 600;
     color: var(--bwl-dash-ink);
     font-size: 0.9rem;
 }
@@ -350,7 +400,7 @@
 .bwl-dash-cal-dow {
     text-align: center;
     font-size: 0.68rem;
-    font-weight: 500; /* dati 700 */
+    font-weight: 500;
     color: var(--bwl-dash-gray);
     text-transform: uppercase;
     padding-bottom: 4px;
@@ -369,10 +419,10 @@
 }
 .bwl-dash-cal-day.is-empty { visibility: hidden; }
 .bwl-dash-cal-day.is-today {
-    background: var(--bwl-dash-blue); color: #fff; font-weight: 600; /* dati 700 */
+    background: var(--bwl-dash-blue); color: #fff; font-weight: 600;
 }
 .bwl-dash-cal-day.has-payment:not(.is-today) {
-    background: var(--bwl-dash-blue-soft); color: var(--bwl-dash-blue); font-weight: 500; /* dati 700 */
+    background: var(--bwl-dash-blue-soft); color: var(--bwl-dash-blue); font-weight: 500;
 }
 
 .bwl-dash-cal-next {
@@ -385,7 +435,7 @@
 .bwl-dash-cal-dot {
     width: 8px; height: 8px; border-radius: 50%; background: var(--bwl-dash-blue); flex-shrink: 0;
 }
-.bwl-dash-cal-next-label { font-size: 0.82rem; font-weight: 600; color: var(--bwl-dash-ink); } /* dati 700 */
+.bwl-dash-cal-next-label { font-size: 0.82rem; font-weight: 600; color: var(--bwl-dash-ink); }
 .bwl-dash-cal-next-sub { font-size: 0.72rem; color: var(--bwl-dash-gray); }
 .bwl-dash-cal-next strong { margin-left: auto; color: var(--bwl-dash-ink); font-size: 0.86rem; }
 
@@ -416,10 +466,10 @@
     background: #fff; border: 2px solid var(--bwl-dash-blue);
 }
 .bwl-dash-timeline-body { flex: 1; min-width: 0; }
-.bwl-dash-timeline-title { font-size: 0.87rem; font-weight: 600; color: var(--bwl-dash-ink); } /* dati 700 */
+.bwl-dash-timeline-title { font-size: 0.87rem; font-weight: 600; color: var(--bwl-dash-ink); }
 .bwl-dash-timeline-date { font-size: 0.76rem; color: var(--bwl-dash-gray); margin-top: 1px; }
 .bwl-dash-timeline-badge {
-    font-size: 0.7rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; /* dati 700 */
+    font-size: 0.7rem; font-weight: 600; padding: 3px 10px; border-radius: 20px;
     flex-shrink: 0; align-self: center;
 }
 .bwl-dash-timeline-badge.is-done { background: var(--bwl-dash-green-soft); color: var(--bwl-dash-green); }
@@ -440,10 +490,10 @@
     background: var(--bwl-dash-green-soft); color: var(--bwl-dash-green);
 }
 .bwl-dash-payment-body { flex: 1; min-width: 0; }
-.bwl-dash-payment-title { font-size: 0.84rem; font-weight: 600; color: var(--bwl-dash-ink); } /* dati 700 */
+.bwl-dash-payment-title { font-size: 0.84rem; font-weight: 600; color: var(--bwl-dash-ink); }
 .bwl-dash-payment-date { font-size: 0.76rem; color: var(--bwl-dash-gray); margin-top: 1px; }
 .bwl-dash-payment-amount {
-    font-size: 0.86rem; font-weight: 600; color: var(--bwl-dash-ink); /* dati 700 */
+    font-size: 0.86rem; font-weight: 600; color: var(--bwl-dash-ink);
     white-space: nowrap; flex-shrink: 0;
 }
 
@@ -464,6 +514,7 @@
 }
 @media (max-width: 575.98px) {
     .bwl-dash-widgets { grid-template-columns: 1fr; }
+    .bwl-status-simple-footer { flex-direction: column; align-items: flex-start; gap: 6px; }
 }
 
 /* ---------- Dark mode ---------- */
@@ -508,32 +559,16 @@ html.app-skin-dark .bwl-status-panel {
 html.app-skin-dark .bwl-status-panel.is-danger { border-color: #5a2a2a; }
 html.app-skin-dark .bwl-status-title { color: #E2E8F0; }
 html.app-skin-dark .bwl-status-desc { color: #94A3B8; }
-html.app-skin-dark .bwl-status-meta {
-    background: #16202E;
-    border-color: #2D3F55;
-    color: #E2E8F0;
-}
-html.app-skin-dark .bwl-status-footnote { color: #64748B; }
-html.app-skin-dark .bwl-status-btn.is-danger {
-    background: #1E2A3A;
-    border-color: #5a2a2a;
-}
-
-/* ---------- Dark mode: status panel ---------- */
-html.app-skin-dark .bwl-status-panel {
-    background: #1E2A3A;
-    border-color: #2D3F55;
-}
-html.app-skin-dark .bwl-status-panel.is-danger { border-color: #5a2a2a; }
-html.app-skin-dark .bwl-status-title { color: #E2E8F0; }
-html.app-skin-dark .bwl-status-desc { color: #94A3B8; }
-html.app-skin-dark .bwl-status-divider { background: #2D3F55; }
+html.app-skin-dark .bwl-status-eyebrow { color: #64748B; }
 html.app-skin-dark .bwl-status-stat-icon {
     background: #16202E;
     color: #94A3B8;
 }
 html.app-skin-dark .bwl-status-stat-label { color: #94A3B8; }
 html.app-skin-dark .bwl-status-stat-value { color: #E2E8F0; }
+html.app-skin-dark .bwl-status-divider { background: #2D3F55; }
+html.app-skin-dark .bwl-status-simple-footer { border-color: #2D3F55; }
+html.app-skin-dark .bwl-status-meta { color: #94A3B8; }
 html.app-skin-dark .bwl-status-footnote { color: #64748B; }
 html.app-skin-dark .bwl-status-btn.is-danger {
     background: #1E2A3A;

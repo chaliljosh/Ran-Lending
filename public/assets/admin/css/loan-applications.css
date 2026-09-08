@@ -1,14 +1,48 @@
 /* ========================================
    LOAN APPLICATIONS PAGE - STYLES
    Ginagamit ito sa: loan-applications.blade.php
-   Flat, minimal, muted — walang gradient/heavy shadow/
-   sobrang bilog na corners, sundan ang existing Ran
-   Serenity look (white cards, thin border, blue accent).
+
+   REDESIGN: matched to the Borrower Verification page's
+   final look — white bg + Inter font enforced, fully-
+   rounded borderless badge pills, gray (#F9FAFB) table
+   header, pill-shaped search bar, true-black dark mode
+   (#0d0d0d / #262626), same reviewed-card treatment.
+   Loan-specific pieces (tabs, vote progress, empty
+   states) kept but restyled to match.
+
+   FIX: Toolbar and pagination now match Borrower
+   Verification 1:1 — the "Showing [rpp] of N results"
+   meta now lives in the toolbar (.reviewed-toolbar-meta),
+   not in the pagination bar. The pagination bar itself
+   holds ONLY the centered numbered-page controls, no
+   info text — so simple flex centering works correctly
+   (previously the info text sat inside the pagination
+   bar and pushed the controls off-center).
    ======================================== */
 
+/* ---------- Page-wide: white bg + Inter font
+     (copied 1:1 from borrower-verification.css) ---------- */
+html body .nxl-content {
+    background: #FFFFFF;
+}
+
+html body .main-content,
+html body .main-content * {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+html body .main-content i,
+html body .main-content [class*="feather-"] {
+    font-family: inherit !important;
+}
+html body .main-content i[class*="feather-"]::before {
+    font-family: 'feather' !important;
+}
+
 .app-card {
-    border: 1px solid #e9ecef;
-    border-radius: 10px;
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
     padding: 18px 20px;
     margin-bottom: 14px;
     background: #fff;
@@ -23,8 +57,8 @@
     gap: 10px;
 }
 .la-identity { min-width: 0; }
-.la-name { font-size: 0.95rem; font-weight: 700; color: #1a2a3a; }
-.la-email { font-size: 0.8rem; color: #8a9bb0; margin-top: 2px; }
+.la-name { font-size: 0.95rem; font-weight: 700; color: #0F172A; }
+.la-email { font-size: 0.8rem; color: #94A3B8; margin-top: 2px; }
 
 .la-head-actions {
     display: flex;
@@ -41,18 +75,18 @@
     font-size: 0.8rem;
     font-weight: 600;
     padding: 7px 14px;
-    border-radius: 7px;
+    border-radius: 8px;
     text-decoration: none;
     cursor: pointer;
     border: 1px solid transparent;
     line-height: 1.2;
 }
 .btn-la-outline {
-    border-color: #d7dce3;
-    color: #4a5b73;
+    border-color: #E5E7EB;
+    color: #475569;
     background: #fff;
 }
-.btn-la-outline:hover { border-color: #4a7cf7; color: #4a7cf7; }
+.btn-la-outline:hover { border-color: #2563EB; color: #2563EB; }
 
 /* ---------- Subtle "Pending Your Review" status ---------- */
 .status-subtle {
@@ -61,18 +95,18 @@
     gap: 6px;
     font-size: 0.78rem;
     font-weight: 600;
-    color: #6c7a8f;
-    background: #f5f6f8;
-    border: 1px solid #eef1f6;
+    color: #64748B;
+    background: #F9FAFB;
+    border: 1px solid #E5E7EB;
     padding: 5px 12px;
     border-radius: 20px;
 }
 .status-subtle .dot {
     width: 6px; height: 6px; border-radius: 50%;
-    background: #d9a441;
+    background: #b7791f;
     flex-shrink: 0;
 }
-.status-subtle.is-onhold .dot { background: #b45309; }
+.status-subtle.is-onhold .dot { background: #92720d; }
 
 /* ---------- Vote progress badges (Pending tab) ---------- */
 .progress-mini {
@@ -84,10 +118,10 @@
     font-size: 0.72rem;
     font-weight: 700;
     padding: 3px 10px;
-    border-radius: 20px;
+    border-radius: 999px;
 }
-.pm-item.is-approved { background: #eefbf3; color: #16a34a; }
-.pm-item.is-rejected { background: #fdefef; color: #dc2626; }
+.pm-item.is-approved { background: #ECFDF5; color: #16A34A; }
+.pm-item.is-rejected { background: #FEF2F2; color: #DC2626; }
 
 /* ---------- Votes column inside the Pending table (compact version
    of .pm-item, since the card version is too tall for a table cell) ---------- */
@@ -101,11 +135,24 @@
     padding: 2px 8px;
 }
 
-/* ---------- Badges ---------- */
-.badge-pending  { background: #fff8e1; color: #a3760a; border: 1px solid #eecf8b; }
-.badge-onhold   { background: #fff8e1; color: #b45309; border: 1px solid #f3d99c; }
-.badge-approved { background: #eefbf3; color: #16a34a; border: 1px solid #bfe9ce; }
-.badge-rejected { background: #fdefef; color: #dc2626; border: 1px solid #f3c7c7; }
+/* ---------- Badges — fully-rounded, borderless pills
+   (matched to Borrower Verification's badge treatment) ---------- */
+.badge-pending,
+.badge-approved,
+.badge-rejected,
+.badge-onhold {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    line-height: 1.5;
+    border: none;
+    border-radius: 999px;
+}
+.badge-pending  { background: #FFF7ED; color: #b7791f; }
+.badge-approved { background: #ECFDF5; color: #16A34A; }
+.badge-rejected { background: #FEF2F2; color: #DC2626; }
+.badge-onhold   { background: #FFF7ED; color: #92720d; }
 
 .info-grid {
     display: grid;
@@ -115,17 +162,17 @@
 }
 
 .info-item label {
-    font-size: 0.68rem;
-    font-weight: 700;
-    color: #8a9bb0;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #94A3B8;
     text-transform: uppercase;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.4px;
     display: block;
 }
 
 .info-item span {
     font-size: 0.85rem;
-    color: #1a2a3a;
+    color: #0F172A;
     font-weight: 500;
 }
 
@@ -146,8 +193,8 @@
 .tab-btn {
     cursor: pointer;
     background: #fff;
-    border: 1px solid #e2e5ea;
-    color: #47536b;
+    border: 1px solid #E5E7EB;
+    color: #475569;
     font-size: 0.86rem;
     font-weight: 600;
     padding: 10px 20px;
@@ -158,11 +205,11 @@
     line-height: 1.2;
 }
 
-.tab-btn:hover { border-color: #c7ccd4; }
+.tab-btn:hover { border-color: #CBD5E1; }
 
 .tab-btn.active {
-    background: #4a7cf7;
-    border-color: #4a7cf7;
+    background: #2563EB;
+    border-color: #2563EB;
     color: #fff;
     font-weight: 700;
 }
@@ -175,7 +222,7 @@
     height: 20px;
     padding: 0 6px;
     border-radius: 6px;
-    background: #5b6b82;
+    background: #64748B;
     color: #fff;
     font-size: 0.72rem;
     font-weight: 700;
@@ -186,33 +233,18 @@
     color: #fff;
 }
 
-.tab-count.is-muted { background: #5b6b82; color: #fff; }
-
-html.app-skin-dark .tab-btn {
-    background: #1e2a3a;
-    border-color: #2d3f55;
-    color: #b6c2d1;
-}
-html.app-skin-dark .tab-btn:hover { border-color: #3d5170; }
-html.app-skin-dark .tab-btn.active {
-    background: #4a7cf7;
-    border-color: #4a7cf7;
-    color: #fff;
-}
-html.app-skin-dark .tab-count { background: #324962; color: #dbe4f0; }
-html.app-skin-dark .tab-btn.active .tab-count { background: rgba(255, 255, 255, 0.25); color: #fff; }
-html.app-skin-dark .tab-count.is-muted { background: #324962; color: #dbe4f0; }
+.tab-count.is-muted { background: #64748B; color: #fff; }
 
 /* ---------- Empty states — plain text, no oversized decorative icons ---------- */
 .la-empty {
-    border: 1px solid #eef1f6;
-    border-radius: 10px;
-    background: #fbfbfc;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    background: #F9FAFB;
     padding: 36px 20px;
     text-align: center;
 }
-.la-empty-title { font-size: 0.92rem; font-weight: 700; color: #1a2a3a; margin: 0 0 4px; }
-.la-empty-desc { font-size: 0.82rem; color: #8a9bb0; margin: 0; }
+.la-empty-title { font-size: 0.92rem; font-weight: 700; color: #0F172A; margin: 0 0 4px; }
+.la-empty-desc { font-size: 0.82rem; color: #94A3B8; margin: 0; }
 
 /* ---------- Large centered empty state (Pending / Reviewed tabs) ---------- */
 .la-empty-large {
@@ -222,8 +254,8 @@ html.app-skin-dark .tab-count.is-muted { background: #324962; color: #dbe4f0; }
     justify-content: center;
     text-align: center;
     background: #fff;
-    border: 1px solid #e9ecef;
-    border-radius: 12px;
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
     padding: 56px 20px;
 }
 
@@ -234,61 +266,64 @@ html.app-skin-dark .tab-count.is-muted { background: #324962; color: #dbe4f0; }
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #eafbf0;
-    color: #16a34a;
+    background: #ECFDF5;
+    color: #16A34A;
     margin-bottom: 18px;
 }
 
 .la-empty-icon-lg-muted {
-    background: #f1f3f5;
-    color: #9aa5b3;
+    background: #F1F5F9;
+    color: #94A3B8;
 }
 
 .la-empty-large .la-empty-title {
     font-size: 1.05rem;
     font-weight: 700;
-    color: #1a2a3a;
+    color: #0F172A;
     margin: 0 0 6px;
 }
 
 .la-empty-large .la-empty-desc {
     font-size: 0.88rem;
-    color: #7c8797;
+    color: #64748B;
     margin: 0;
 }
 
 /* ========================================
-   SEARCH BAR (Approved / Rejected / On Hold view)
+   SEARCH BAR — full pill shape, slimmed height/font
+   to match Borrower Verification exactly.
    ======================================== */
 .search-bar-wrap {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     background: #fff;
-    border: 1px solid #e9ecef;
-    border-radius: 10px;
-    padding: 0 14px;
-    margin-bottom: 20px;
+    border: 1px solid #E5E7EB;
+    border-radius: 999px;
+    padding: 0 12px;
+    margin-bottom: 0;
 }
 
 .search-bar-wrap i,
 .search-bar-wrap svg {
-    color: #8a9bb0;
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
+    color: #94A3B8;
+    font-size: 12px;
+    width: 12px;
+    height: 12px;
     flex-shrink: 0;
     pointer-events: none;
 }
 
 .search-bar-wrap input {
     flex: 1;
-    height: 44px;
+    height: 32px;
     border: none;
     box-shadow: none;
     background: transparent;
-    color: #1a2a3a;
-    caret-color: #1a2a3a;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: #0F172A;
+    caret-color: #0F172A;
 }
 
 .search-bar-wrap input:focus {
@@ -298,56 +333,100 @@ html.app-skin-dark .tab-count.is-muted { background: #324962; color: #dbe4f0; }
 
 /* ========================================
    REVIEWED / PENDING TAB — single continuous card
-   (toolbar / table / pagination, divided by borders
-   instead of separate margin-gapped boxes). Matches
-   the Borrower Verification Reviewed table exactly.
+   (toolbar / table / pagination, divided by borders).
+   Matches the Borrower Verification Reviewed table
+   exactly (border, shadow, radius).
    ======================================== */
 
-.reviewed-card {
-    background: #fff;
-    border: 1px solid #e9ecef;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(20, 30, 60, 0.03);
+html body .main-content .reviewed-card {
+    background: #ffffff !important;
+    border: 1px solid #E5E7EB !important;
+    border-radius: 16px !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08) !important;
     overflow: hidden;
 }
 
 .reviewed-toolbar {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 14px 20px;
-    border-bottom: 1px solid #eef1f6;
+    gap: 10px;
+    padding: 14px 22px;
     flex-wrap: wrap;
 }
 
+html body .main-content .reviewed-toolbar {
+    border-bottom: 1px solid #E5E7EB !important;
+}
+
 .reviewed-search-wrap {
-    flex: 1;
+    flex: 0 1 340px;
     min-width: 220px;
     margin-bottom: 0;
 }
 
 .reviewed-decision-filter {
-    height: 44px;
-    min-width: 160px;
-    border: 1px solid #e9ecef;
-    border-radius: 10px;
-    padding: 0 14px;
-    font-size: 0.85rem;
-    color: #1a2a3a;
+    height: 32px;
+    min-width: 120px;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 0 10px;
+    font-size: 0.75rem;
+    color: #0F172A;
+    font-weight: 400;
     background: #fff;
 }
 
 .reviewed-decision-filter:focus {
     outline: none;
-    border-color: #4a7cf7;
+    border-color: #2563EB;
+}
+
+/* Right-hand meta group: "Showing [rpp] of N results", matching
+   Borrower Verification's toolbar layout exactly — this is where
+   the count text lives now, not the pagination bar. */
+.reviewed-toolbar-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.reviewed-count-label {
+    font-size: 0.74rem;
+    color: #94A3B8;
+    white-space: nowrap;
+    font-weight: 400;
+}
+
+.reviewed-count-text {
+    font-size: 0.74rem;
+    color: #94A3B8;
+    white-space: nowrap;
+    font-weight: 400;
+}
+
+.reviewed-rpp-select {
+    height: 30px;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 0 6px;
+    font-size: 0.74rem;
+    color: #64748B;
+    background: #fff;
+}
+
+.reviewed-rpp-select:focus {
+    outline: none;
+    border-color: #2563EB;
 }
 
 .reviewed-empty {
     display: none;
-    padding: 32px 20px;
+    padding: 32px 22px;
     text-align: center;
-    font-size: 0.85rem;
-    color: #8a9bb0;
+    font-size: 0.88rem;
+    color: #94A3B8;
 }
 
 @media (max-width: 900px) {
@@ -358,30 +437,34 @@ html.app-skin-dark .tab-count.is-muted { background: #324962; color: #dbe4f0; }
     .reviewed-decision-filter {
         width: 100%;
     }
+    .reviewed-toolbar-meta {
+        margin-left: 0;
+        justify-content: space-between;
+        width: 100%;
+    }
 }
 
-/* Table itself — natural column sizing (no fixed widths). Short
-   columns (Term, Applied Date, Decision, Action) stay tight because
-   their content is short; Purpose is capped with an ellipsis so it
-   can't balloon the layout the way a long purpose string would. */
+/* Table itself */
 .reviewed-table {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 0;
-    font-size: 0.85rem;
 }
 
-.reviewed-table thead th {
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: #8a9bb0;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    border-bottom: 1px solid #eef1f6;
-    padding: 12px 20px;
-    background: #fff;
+html body .main-content table.reviewed-table thead th {
+    font-weight: 600 !important;
+    color: #0F172A !important;
+    font-size: 0.82rem;
+    text-transform: none;
+    letter-spacing: 0;
+    padding: 14px 22px;
+    background: #F9FAFB;
     white-space: nowrap;
     text-align: left;
+}
+
+html body .main-content .reviewed-table thead th {
+    border-bottom: 1px solid #E5E7EB !important;
 }
 
 .reviewed-table thead th.text-end,
@@ -390,9 +473,13 @@ html.app-skin-dark .tab-count.is-muted { background: #324962; color: #dbe4f0; }
 }
 
 .reviewed-table tbody td {
-    padding: 16px 20px;
+    padding: 14px 22px;
     vertical-align: middle;
-    border-bottom: 1px solid #f1f3f5;
+    font-size: 0.82rem;
+}
+
+html body .main-content .reviewed-table tbody td {
+    border-color: #E5E7EB !important;
 }
 
 .reviewed-table tbody tr:last-child td {
@@ -400,56 +487,69 @@ html.app-skin-dark .tab-count.is-muted { background: #324962; color: #dbe4f0; }
 }
 
 .reviewed-table tbody tr:hover {
-    background: #f8f9fb;
+    background: #F8FAFC;
 }
 
 .rt-name {
-    font-size: 0.87rem;
-    font-weight: 700;
-    color: #1a2a3a;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #0F172A;
     line-height: 1.3;
     white-space: nowrap;
 }
 
 .rt-email {
-    font-size: 0.78rem;
-    color: #8a9bb0;
+    font-size: 0.74rem;
+    font-weight: 400;
+    color: #94A3B8;
     margin-top: 2px;
     white-space: nowrap;
 }
 
 .rt-date {
     font-size: 0.82rem;
-    color: #4a5b73;
+    font-weight: 400;
+    color: #1a2a3a;
     white-space: nowrap;
 }
 
 .rt-remarks {
-    font-size: 0.82rem;
-    color: #4a5b73;
-    max-width: 200px;
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: #64748B;
+    max-width: 220px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.reviewed-table .btn-light {
-    display: inline-flex;
+/* Action button — matched to Borrower Verification's
+   light gray-bordered rounded-rectangle button. The
+   blade here uses .btn-light, so we restyle that class
+   directly instead of renaming markup. */
+html body .main-content .reviewed-table .btn-light,
+html body .main-content .btn-light {
+    display: inline-flex !important;
     align-items: center;
-    font-size: 0.8rem;
-    padding: 6px 14px;
+    justify-content: center;
+    gap: 4px;
+    padding: 7px 16px;
+    border: 1px solid #E5E7EB !important;
     border-radius: 8px;
-    border: 1px solid #e9ecef;
-    color: #4a5b73;
-    background: #fff;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    background: #ffffff;
     text-decoration: none;
     white-space: nowrap;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 
-.reviewed-table .btn-light:hover {
-    border-color: #4a7cf7;
-    color: #4a7cf7;
-    background: #eef3ff;
+html body .main-content .reviewed-table .btn-light:hover,
+html body .main-content .btn-light:hover {
+    background: #F8FAFC !important;
+    color: #1a1a1a !important;
+    border-color: #CBD5E1 !important;
 }
 
 @media (max-width: 900px) {
@@ -459,250 +559,210 @@ html.app-skin-dark .tab-count.is-muted { background: #324962; color: #dbe4f0; }
 }
 
 /* ========================================
-   REVIEWED / PENDING TAB — Rows-per-page + Pagination
-   (border-top, part of the same .reviewed-card,
-   not a separate margin-gapped box)
+   PAGINATION — centered numbered page buttons only.
+   No info text lives here anymore (moved to the
+   toolbar's .reviewed-toolbar-meta), so a plain
+   flex + justify-content: center is enough to keep
+   the controls truly centered regardless of content
+   length elsewhere on the page.
    ======================================== */
-.reviewed-rpp-wrap {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-}
-
-.reviewed-rpp-label {
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: #8a9bb0;
-    white-space: nowrap;
-    margin: 0;
-}
-
-.reviewed-rpp-select {
-    height: 40px;
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
-    padding: 0 10px;
-    font-size: 0.85rem;
-    color: #1a2a3a;
-    background: #fff;
-}
-
-.reviewed-rpp-select:focus {
-    outline: none;
-    border-color: #4a7cf7;
-}
 
 .reviewed-pagination {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
-    padding: 14px 20px;
-    border-top: 1px solid #eef1f6;
-    background: #fafbfd;
+    justify-content: center;
+    padding: 14px 22px;
+    background: #fff;
 }
 
-.reviewed-pagination-info {
-    font-size: 0.8rem;
-    color: #8a9bb0;
+html body .main-content .reviewed-pagination {
+    border-top: 1px solid #E5E7EB !important;
 }
 
 .reviewed-pagination-controls {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 6px;
 }
 
-.reviewed-page-indicator {
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: #4a5b73;
-    white-space: nowrap;
-}
-
+/* Pagination buttons — unified 1:1 with borrower-verification.css
+   (#E5E7EB border, #2563EB hover accent, 28px sizing). */
 .btn-page {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    height: 36px;
-    padding: 0 14px;
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 1px solid #E5E7EB;
+    border-radius: 6px;
     background: #fff;
-    color: #4a5b73;
-    font-size: 0.82rem;
-    font-weight: 600;
+    color: #64748B;
     cursor: pointer;
     transition: all 0.15s;
 }
 
+.btn-page i {
+    font-size: 12px;
+}
+
 .btn-page:hover:not(:disabled) {
-    border-color: #4a7cf7;
-    color: #4a7cf7;
-    background: #eef3ff;
+    border-color: #2563EB;
+    color: #2563EB;
+    background: #EFF6FF;
 }
 
 .btn-page:disabled {
-    opacity: 0.45;
+    opacity: 0.4;
     cursor: not-allowed;
 }
 
-@media (max-width: 900px) {
-    .reviewed-pagination {
-        flex-direction: column;
-        align-items: stretch;
-        text-align: center;
-    }
-    .reviewed-pagination-controls {
-        justify-content: center;
-    }
-}
-
 /* ========================================
-   DARK MODE STYLES
+   DARK MODE STYLES — true black page bg + dark
+   card, matched 1:1 to Borrower Verification.
    ======================================== */
-html.app-skin-dark .app-card {
-    background: #1e2a3a;
-    border-color: #2d3f55;
+
+html.app-skin-dark body .nxl-content {
+    background: #000000 !important;
 }
 
-html.app-skin-dark .la-name { color: #e2e8f0; }
-html.app-skin-dark .la-email { color: #94a3b8; }
+html.app-skin-dark .app-card {
+    background: #0d0d0d;
+    border-color: #262626;
+}
+
+html.app-skin-dark .la-name { color: #EDEDED; }
+html.app-skin-dark .la-email { color: #8A8A8A; }
 
 html.app-skin-dark .btn-la-outline {
-    background: #1e2a3a;
-    border-color: #2d3f55;
-    color: #cbd5e1;
+    background: #0d0d0d;
+    border-color: #262626;
+    color: #EDEDED;
 }
-html.app-skin-dark .btn-la-outline:hover { border-color: #4a7cf7; color: #6c9bff; }
+html.app-skin-dark .btn-la-outline:hover { border-color: #2563EB; color: #6ea8fe; }
 
 html.app-skin-dark .status-subtle {
-    background: #16202e;
-    border-color: #2d3f55;
-    color: #94a3b8;
+    background: #0d0d0d;
+    border-color: #262626;
+    color: #8A8A8A;
 }
 
-html.app-skin-dark .info-item label { color: #8a9bb0; }
-html.app-skin-dark .info-item span { color: #e2e8f0; }
+html.app-skin-dark .info-item label { color: #8A8A8A; }
+html.app-skin-dark .info-item span { color: #EDEDED; }
 
-html.app-skin-dark .la-empty { background: #16202e; border-color: #2d3f55; }
-html.app-skin-dark .la-empty-title { color: #e2e8f0; }
-html.app-skin-dark .la-empty-desc { color: #94a3b8; }
+html.app-skin-dark .tab-btn {
+    background: #0d0d0d;
+    border-color: #262626;
+    color: #EDEDED;
+}
+html.app-skin-dark .tab-btn:hover { border-color: #3a3a3a; }
+html.app-skin-dark .tab-btn.active {
+    background: #2563EB;
+    border-color: #2563EB;
+    color: #fff;
+}
+html.app-skin-dark .tab-count { background: #3a3a3a; color: #EDEDED; }
+html.app-skin-dark .tab-btn.active .tab-count { background: rgba(255, 255, 255, 0.25); color: #fff; }
+html.app-skin-dark .tab-count.is-muted { background: #3a3a3a; color: #EDEDED; }
 
-html.app-skin-dark .la-empty-large { background: #1e2a3a; border-color: #2d3f55; }
-html.app-skin-dark .la-empty-icon-lg { background: #12251c; color: #4ade80; }
-html.app-skin-dark .la-empty-icon-lg-muted { background: #24344a; color: #7c8797; }
-html.app-skin-dark .la-empty-large .la-empty-title { color: #e2e8f0; }
-html.app-skin-dark .la-empty-large .la-empty-desc { color: #94a3b8; }
+html.app-skin-dark .la-empty { background: #0d0d0d; border-color: #262626; }
+html.app-skin-dark .la-empty-title { color: #EDEDED; }
+html.app-skin-dark .la-empty-desc { color: #8A8A8A; }
+
+html.app-skin-dark .la-empty-large { background: #0d0d0d; border-color: #262626; }
+html.app-skin-dark .la-empty-icon-lg { background: rgba(22, 163, 74, 0.18); color: #4ade80; }
+html.app-skin-dark .la-empty-icon-lg-muted { background: #262626; color: #8A8A8A; }
+html.app-skin-dark .la-empty-large .la-empty-title { color: #EDEDED; }
+html.app-skin-dark .la-empty-large .la-empty-desc { color: #8A8A8A; }
 
 html.app-skin-dark .search-bar-wrap {
-    background: #1e2a3a;
-    border-color: #2d3f55;
+    background: #0d0d0d;
+    border-color: #262626;
 }
-
 html.app-skin-dark .search-bar-wrap input {
-    color: #e2e8f0;
-    caret-color: #e2e8f0;
+    color: #EDEDED;
+    caret-color: #EDEDED;
 }
-
 html.app-skin-dark .search-bar-wrap input::placeholder {
-    color: #64748b;
+    color: #8A8A8A;
+}
+html.app-skin-dark .search-bar-wrap i,
+html.app-skin-dark .search-bar-wrap svg {
+    color: #8A8A8A;
 }
 
-html.app-skin-dark .card {
-    background: #1e2a3a;
-    border-color: #2d3f55;
+html.app-skin-dark body .main-content .reviewed-card {
+    background: #0d0d0d !important;
+    border: 1px solid #262626 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
 }
 
-html.app-skin-dark .card .text-muted {
-    color: #94a3b8 !important;
+html.app-skin-dark body .main-content .reviewed-toolbar,
+html.app-skin-dark body .main-content .reviewed-table thead th,
+html.app-skin-dark body .main-content .reviewed-pagination,
+html.app-skin-dark body .main-content .reviewed-table tbody td {
+    border-color: #262626 !important;
 }
 
-html.app-skin-dark .reviewed-card {
-    background: #1e2a3a;
-    border-color: #2d3f55;
+html.app-skin-dark .reviewed-decision-filter,
+html.app-skin-dark .reviewed-rpp-select {
+    background: #0d0d0d;
+    border-color: #262626;
+    color: #EDEDED;
 }
 
-html.app-skin-dark .reviewed-toolbar {
-    border-color: #2d3f55;
+html.app-skin-dark .reviewed-count-label,
+html.app-skin-dark .reviewed-count-text {
+    color: #8A8A8A;
 }
 
-html.app-skin-dark .reviewed-decision-filter {
-    background: #16202e;
-    border-color: #2d3f55;
-    color: #e2e8f0;
-}
+html.app-skin-dark .reviewed-empty { color: #8A8A8A; }
 
-html.app-skin-dark .reviewed-empty {
-    color: #94a3b8;
-}
-
-html.app-skin-dark .reviewed-table thead th {
-    background: #1e2a3a;
-    color: #94a3b8;
-    border-color: #2d3f55;
-}
-
-html.app-skin-dark .reviewed-table tbody td {
-    border-color: #2d3f55;
+html.app-skin-dark body .main-content table.reviewed-table thead th {
+    background: #0d0d0d !important;
+    color: #EDEDED !important;
 }
 
 html.app-skin-dark .reviewed-table tbody tr:hover {
-    background: #22314580;
+    background: #16202e;
 }
 
-html.app-skin-dark .rt-name { color: #e2e8f0; }
-html.app-skin-dark .rt-email { color: #94a3b8; }
+html.app-skin-dark .rt-name { color: #EDEDED; }
+html.app-skin-dark .rt-email { color: #8A8A8A; }
 html.app-skin-dark .rt-date,
 html.app-skin-dark .rt-remarks { color: #cbd5e1; }
 
-html.app-skin-dark .reviewed-table .btn-light {
-    background: #16202e;
-    border-color: #2d3f55;
-    color: #e2e8f0;
+html.app-skin-dark body .main-content .reviewed-table .btn-light,
+html.app-skin-dark body .main-content .btn-light {
+    border-color: #3a3a3a !important;
+    color: #EDEDED !important;
+    background-color: #3a3a3a !important;
+    background: #3a3a3a !important;
 }
-html.app-skin-dark .reviewed-table .btn-light:hover {
-    border-color: #4a7cf7;
-    color: #6c9bff;
-    background: #22314580;
-}
-
-html.app-skin-dark .reviewed-rpp-label {
-    color: #94a3b8;
-}
-
-html.app-skin-dark .reviewed-rpp-select {
-    background: #16202e;
-    border-color: #2d3f55;
-    color: #e2e8f0;
-}
-
-html.app-skin-dark .reviewed-pagination {
-    background: #16202e;
-    border-color: #2d3f55;
-}
-
-html.app-skin-dark .reviewed-pagination-info {
-    color: #94a3b8;
-}
-
-html.app-skin-dark .reviewed-page-indicator {
-    color: #cbd5e1;
+html.app-skin-dark body .main-content .reviewed-table .btn-light:hover,
+html.app-skin-dark body .main-content .btn-light:hover {
+    background-color: #4a4a4a !important;
+    background: #4a4a4a !important;
+    border-color: #4a4a4a !important;
+    color: #EDEDED !important;
 }
 
 html.app-skin-dark .btn-page {
-    background: #1e2a3a;
-    border-color: #2d3f55;
+    background: #0d0d0d;
+    border-color: #262626;
     color: #cbd5e1;
 }
-
 html.app-skin-dark .btn-page:hover:not(:disabled) {
-    border-color: #4a7cf7;
-    color: #4a7cf7;
-    background: #22314580;
+    border-color: #2563EB;
+    color: #6ea8fe;
+    background: #16202e;
 }
+
+/* Status badges — deeper tints against the black card */
+html.app-skin-dark .badge-pending  { background: rgba(183, 121, 31, 0.18); color: #f0b756; }
+html.app-skin-dark .badge-approved { background: rgba(22, 163, 74, 0.18);  color: #4ade80; }
+html.app-skin-dark .badge-rejected { background: rgba(220, 38, 38, 0.18);  color: #f87171; }
+html.app-skin-dark .badge-onhold   { background: rgba(146, 114, 13, 0.18); color: #eab308; }
 
 /* ========================================
    FOOTER SA IBABA
@@ -733,12 +793,87 @@ html.app-skin-dark .btn-page:hover:not(:disabled) {
    (Loan Applications dropdown sa sidebar)
    ======================================== */
 .nxl-submenu li[data-current="true"] > a.nxl-link {
-    background: rgba(74, 124, 247, 0.1) !important;
-    color: #4a7cf7 !important;
+    background: rgba(37, 99, 235, 0.1) !important;
+    color: #2563EB !important;
     font-weight: 600 !important;
     border-radius: 6px;
 }
 
 .nxl-submenu li[data-current="false"].active > a.nxl-link:not(:hover) {
     background: transparent !important;
+}
+
+/* ========================================
+   NO BLUR ON ANY MODAL — global safety net.
+   Some vendor theme CSS sets backdrop-filter on
+   .modal-backdrop which tanks FPS on open/close.
+   This kills it everywhere this stylesheet loads,
+   regardless of which modal fires.
+   ======================================== */
+.modal-backdrop,
+.modal-backdrop.show,
+.modal-backdrop.fade {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    filter: none !important;
+}
+
+/* ========================================
+   NUMBERED PAGE BUTTONS (1, 2, 3 ...) — colors/sizes
+   unified 1:1 with borrower-verification.css so both
+   pages' pagination controls look identical.
+   ======================================== */
+.rv-page-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 6px;
+    border: 1px solid #E5E7EB;
+    border-radius: 6px;
+    background: #fff;
+    color: #64748B;
+    font-size: 0.76rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.rv-page-num:hover {
+    border-color: #2563EB;
+    color: #2563EB;
+    background: #EFF6FF;
+}
+
+.rv-page-num.active {
+    background: #2563EB;
+    border-color: #2563EB;
+    color: #fff;
+}
+
+.rv-page-ellipsis {
+    padding: 0 4px;
+    color: #94A3B8;
+    font-size: 0.85rem;
+    user-select: none;
+}
+
+html.app-skin-dark .rv-page-num {
+    background: #0d0d0d;
+    border-color: #262626;
+    color: #cbd5e1;
+}
+html.app-skin-dark .rv-page-num:hover {
+    border-color: #2563EB;
+    color: #6ea8fe;
+    background: #16202e;
+}
+html.app-skin-dark .rv-page-num.active {
+    background: #2563EB;
+    border-color: #2563EB;
+    color: #fff;
+}
+html.app-skin-dark .rv-page-ellipsis {
+    color: #8A8A8A;
 }

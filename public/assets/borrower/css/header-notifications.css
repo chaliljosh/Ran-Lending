@@ -139,6 +139,14 @@
     margin-top: 2px;
 }
 
+/* ---------- Timestamp — "3 hours ago" style, gamit
+     $n['ts']->diffForHumans(), ilalim ng subtitle ---------- */
+.bwl-notif-item-time {
+    font-size: 0.7rem;
+    color: #a8b5c7;
+    margin-top: 4px;
+}
+
 .bwl-notif-dot {
     width: 7px; height: 7px; border-radius: 50%;
     background: #2563EB;
@@ -173,5 +181,6 @@ html.app-skin-dark .bwl-notif-item:hover { background: rgba(255, 255, 255, 0.05)
 html.app-skin-dark .bwl-notif-item.is-unread { background: rgba(37, 99, 235, 0.1); }
 html.app-skin-dark .bwl-notif-item-title { color: #E2E8F0; }
 html.app-skin-dark .bwl-notif-item-sub { color: #94A3B8; }
+html.app-skin-dark .bwl-notif-item-time { color: #64748B; }
 html.app-skin-dark .bwl-notif-item-icon { background: #16202E; color: #94A3B8; }
 html.app-skin-dark .bwl-notif-empty { color: #94A3B8; }

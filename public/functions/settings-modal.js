@@ -104,10 +104,27 @@ document.addEventListener('DOMContentLoaded', function () {
         reader.readAsDataURL(file);
     });
 
+    // FIX: i-hide muna ang Settings modal bago ipakita ang Crop modal
+    // (dati sabay silang naka-open, kaya nagpapatong-patong).
     function openCropModal(dataUrl) {
         cropImage.src = dataUrl;
+
         var cropModal = bootstrap.Modal.getOrCreateInstance(cropModalEl);
-        cropModal.show();
+
+        function showCropModal() {
+            cropModal.show();
+        }
+
+        if (settingsModalEl.classList.contains('show')) {
+            var settingsModal = bootstrap.Modal.getOrCreateInstance(settingsModalEl);
+            settingsModalEl.addEventListener('hidden.bs.modal', function onSettingsHidden() {
+                settingsModalEl.removeEventListener('hidden.bs.modal', onSettingsHidden);
+                showCropModal();
+            });
+            settingsModal.hide();
+        } else {
+            showCropModal();
+        }
 
         cropModalEl.addEventListener('shown.bs.modal', function onShown() {
             cropModalEl.removeEventListener('shown.bs.modal', onShown);
@@ -116,15 +133,33 @@ document.addEventListener('DOMContentLoaded', function () {
                 aspectRatio: 1,
                 viewMode: 1,
                 dragMode: 'move',
-                autoCropArea: 0.8,
+                autoCropArea: 1,
                 cropBoxMovable: false,
                 cropBoxResizable: false,
                 background: false,
                 responsive: true,
                 guides: false,
+                // FIX: buong litrato muna makikita sa loob ng crop circle
+                // pagbukas (dati kailangan pang i-zoom out manually).
+                ready: function () {
+                    var canvasData = cropper.getCanvasData();
+                    var cropBoxData = cropper.getCropBoxData();
+                    var fitScale = Math.min(
+                        cropBoxData.width / canvasData.naturalWidth,
+                        cropBoxData.height / canvasData.naturalHeight
+                    );
+                    cropper.zoomTo(fitScale);
+                },
             });
         });
     }
+
+    // Pag na-close ang Crop modal (Cancel, X, o pagkatapos mag-Apply),
+    // ibalik ang Settings modal.
+    cropModalEl.addEventListener('hidden.bs.modal', function () {
+        var settingsModal = bootstrap.Modal.getOrCreateInstance(settingsModalEl);
+        settingsModal.show();
+    });
 
     function closeCropModal() {
         if (cropper) { cropper.destroy(); cropper = null; }
@@ -190,6 +225,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ---- Remove photo: opens the confirm modal instead of native confirm() ----
+    // FIX: i-hide muna ang Settings modal bago ipakita ang confirm modal
+    // (dati sabay silang naka-open, kaya nagpapatong-patong). Ibalik din
+    // ang Settings modal pag na-close na ang confirm modal (Cancel, X,
+    // o matapos mag-Remove).
     var removeConfirmModalEl  = document.getElementById('bwlRemovePhotoConfirmModal');
     var confirmRemoveBtn      = document.getElementById('bwlConfirmRemovePhotoBtn');
     var confirmRemoveText     = document.getElementById('bwlConfirmRemovePhotoText');
@@ -197,14 +236,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (removePhotoBtn && removeConfirmModalEl) {
         removePhotoBtn.addEventListener('click', function () {
-            var modal = bootstrap.Modal.getOrCreateInstance(removeConfirmModalEl);
-            modal.show();
+            var settingsModal = bootstrap.Modal.getOrCreateInstance(settingsModalEl);
+
+            settingsModalEl.addEventListener('hidden.bs.modal', function onSettingsHidden() {
+                settingsModalEl.removeEventListener('hidden.bs.modal', onSettingsHidden);
+                var confirmModal = bootstrap.Modal.getOrCreateInstance(removeConfirmModalEl);
+                confirmModal.show();
+            });
+
+            settingsModal.hide();
+        });
+
+        removeConfirmModalEl.addEventListener('hidden.bs.modal', function () {
+            var settingsModal = bootstrap.Modal.getOrCreateInstance(settingsModalEl);
+            settingsModal.show();
         });
     }
 
     if (confirmRemoveBtn) {
         confirmRemoveBtn.addEventListener('click', function () {
             confirmRemoveBtn.disabled = true;
+            confirmRemoveBtn.classList.add('is-loading');
             confirmRemoveText.classList.add('d-none');
             confirmRemoveSpinner.classList.remove('d-none');
 
@@ -236,6 +288,7 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .finally(function () {
                 confirmRemoveBtn.disabled = false;
+                confirmRemoveBtn.classList.remove('is-loading');
                 confirmRemoveText.classList.remove('d-none');
                 confirmRemoveSpinner.classList.add('d-none');
             });

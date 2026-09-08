@@ -446,3 +446,10 @@ html.app-skin-dark .bwl-pw-checklist li.is-met { color: #E5E9F0; }
 .bwl-acct-btn-save.is-loading #bwlSetSavePasswordSpinner {
     margin-left: 0; /* remove ms-2 offset since text is hidden */
 }
+
+.bwl-acct-modal-sm {
+    max-width: 380px !important;
+}
+.bwl-acct-btn-save.is-loading .spinner-border {
+    margin-left: 0;
+}

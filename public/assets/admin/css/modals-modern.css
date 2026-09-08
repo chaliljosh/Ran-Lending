@@ -212,3 +212,12 @@
 .modal-modern .btn-ok-warning {
     background: #d97706;
 }
+
+/* Alisin ang blur sa modal backdrop (override ng theme.min.css) */
+.modal-backdrop,
+.modal-backdrop.show,
+.modal-backdrop.fade {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    filter: none !important;
+}

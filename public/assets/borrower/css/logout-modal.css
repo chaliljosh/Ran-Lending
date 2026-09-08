@@ -171,7 +171,6 @@ html.app-skin-dark .logout-cancel-btn:hover { background: #101929 !important; }
     inset: 0;
     z-index: 99999;
     background: rgba(241, 245, 249, 0.85);
-    backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
     justify-content: center;

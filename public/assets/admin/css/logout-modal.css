@@ -1,135 +1,226 @@
-/* Modal */
-.logout-modal{
-    border:none;
-    border-radius:16px;
-    overflow:hidden;
-    box-shadow:0 15px 35px rgba(0,0,0,.15);
+/* ============================================================
+   LOGOUT CONFIRM MODAL — redesigned to match the floating-card
+   style: no header bar, floating X close button, centered pill
+   buttons (outlined Cancel + solid black Log out).
+============================================================ */
+
+/* Modal card */
+.logout-modal {
+    position: relative;
+    border: none;
+    border-radius: 20px;
+    overflow: visible;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, .18);
+    padding-top: 8px;
 }
 
-/* Modal Width */
-#logoutConfirmModal .modal-dialog{
-    max-width:400px;
+/* Modal width */
+#logoutConfirmModal .modal-dialog {
+    max-width: 400px;
 }
 
-/* Header */
-.logout-modal .modal-header{
-    padding:18px 24px;
-    border-bottom:1px solid #E5E7EB;
+/* Floating close (X) button — top right corner */
+.logout-close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid #E5E7EB;
+    background: #fff;
+    cursor: pointer;
+    transition: all .15s ease;
+    z-index: 2;
+}
+.logout-close-btn:hover {
+    background: #F1F5F9;
+    border-color: #CBD5E1;
+}
+.logout-close-btn::before,
+.logout-close-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 13px;
+    height: 1.6px;
+    background: #64748B;
+    border-radius: 1px;
+}
+.logout-close-btn::before {
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+.logout-close-btn::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
+}
+.logout-close-btn:hover::before,
+.logout-close-btn:hover::after {
+    background: #1E293B;
+}
+.logout-modal .modal-body {
+    padding: 20px 32px 8px;
 }
 
-.logout-modal .modal-title{
-    font-size:20px;
-    font-weight:700;
-    color:#1E293B;
+.logout-icon {
+    width: 84px;
+    height: 84px;
+    margin: 0 auto 20px;
+    border-radius: 24px;
+    background: #EFF6FF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* Body */
-.logout-modal .modal-body{
-    padding:24px 24px 18px;
+.logout-icon i {
+    font-size: 36px;
+    color: #2563EB;
 }
 
-.logout-icon{
-    width:68px;
-    height:68px;
-    margin:0 auto 16px;
-    border-radius:50%;
-    background:#EFF6FF;
-    display:flex;
-    align-items:center;
-    justify-content:center;
+.logout-modal .modal-body h5 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1E293B;
+    margin-bottom: 8px;
 }
 
-.logout-icon i{
-    font-size:32px;
-    color:#2563EB;
+.logout-modal .modal-body p {
+    font-size: 14.5px;
+    color: #64748B;
+    line-height: 1.5;
+    margin-bottom: 0;
+    padding: 0 8px;
 }
 
-.logout-modal .modal-body h5{
-    font-size:18px;
-    font-weight:700;
-    color:#1E293B;
-    margin-bottom:8px;
+/* Footer — centered, auto-width pill buttons (not stretched) */
+.logout-modal .modal-footer {
+    border-top: none;
+    padding: 24px 32px 32px;
+    gap: 12px;
+    justify-content: center;
 }
 
-.logout-modal .modal-body p{
-    font-size:15px;
-    color:#64748B;
-    line-height:1.5;
-    margin-bottom:22px;
-}
-
-/* Footer */
-.logout-modal .modal-footer{
-    border-top:none;
-    padding:0 24px 24px;
-    gap:12px;
-}
-
-/* Shared Button Style */
 .logout-cancel-btn,
-.logout-danger-btn{
-    flex:1;
-    height:48px;
-    border-radius:10px !important;
-    font-weight:600;
-    transition:all .2s ease;
+.logout-danger-btn {
+    height: 46px;
+    min-width: 130px;
+    padding: 0 24px;
+    border-radius: 999px !important;
+    font-weight: 600;
+    font-size: 14.5px;
+        text-transform: none !important;
+    transition: all .2s ease;
 }
 
-/* Cancel Button */
-.logout-cancel-btn{
-    background:#F8FAFC !important;
-    color:#475569 !important;
-    border:1px solid #E2E8F0 !important;
+/* Cancel — outlined pill */
+.logout-cancel-btn {
+    background: #fff !important;
+    color: #1E293B !important;
+    border: 1.5px solid #E2E8F0 !important;
+}
+.logout-cancel-btn:hover {
+    background: #F8FAFC !important;
+    border-color: #CBD5E1 !important;
+    box-shadow: none !important;
+}
+.logout-cancel-btn:focus {
+    box-shadow: 0 0 0 .15rem rgba(148, 163, 184, .25) !important;
+}
+.logout-cancel-btn:active {
+    background: #F1F5F9 !important;
 }
 
-.logout-cancel-btn:hover{
-    background:#E2E8F0 !important;
-    color:#334155 !important;
-    border-color:#CBD5E1 !important;
-    box-shadow:none !important;
+/* Log out — solid black pill */
+.logout-danger-btn {
+    background: #0F172A !important;
+    color: #fff !important;
+    border: none !important;
+}
+.logout-danger-btn:hover {
+    background: #000 !important;
+    color: #fff !important;
+}
+.logout-danger-btn:focus {
+    background: #000 !important;
+    box-shadow: 0 0 0 .15rem rgba(15, 23, 42, .25) !important;
+}
+.logout-danger-btn:active {
+    background: #000 !important;
 }
 
-.logout-cancel-btn:focus{
-    background:#E2E8F0 !important;
-    color:#334155 !important;
-    border-color:#CBD5E1 !important;
-    box-shadow:0 0 0 .2rem rgba(37,99,235,.15) !important;
+/* Dark mode */
+html.app-skin-dark .logout-modal { background: #17202F; }
+html.app-skin-dark .logout-close-btn { background: #1E293B; border-color: #2A3648; color: #94A3B8; }
+html.app-skin-dark .logout-close-btn:hover { background: #101929; color: #E5E9F0; }
+html.app-skin-dark .logout-icon { background: rgba(37, 99, 235, 0.15); }
+html.app-skin-dark .logout-modal .modal-body h5 { color: #E5E9F0; }
+html.app-skin-dark .logout-modal .modal-body p { color: #94A3B8; }
+html.app-skin-dark .logout-cancel-btn { background: #1E293B !important; color: #E5E9F0 !important; border-color: #2A3648 !important; }
+html.app-skin-dark .logout-cancel-btn:hover { background: #101929 !important; }
+
+/* ============================================================
+   CROSS-TAB LOGOUT OVERLAY
+   Shown in a tab that was left open (e.g. dashboard) when the
+   user logs out from another tab. Full-screen, blocks all
+   interaction with the stale page underneath.
+============================================================ */
+.logged-out-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: rgba(241, 245, 249, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.logout-cancel-btn:active{
-    background:#CBD5E1 !important;
-    color:#1E293B !important;
-    border-color:#94A3B8 !important;
+.logged-out-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, .18);
+    width: 320px;
+    max-width: calc(100vw - 40px);
+    text-align: center;
+    overflow: hidden;
+    padding: 32px 24px 0;
 }
 
-/* Logout Button */
-.logout-danger-btn{
-    background:#2563EB !important;
-    color:#FFFFFF !important;
-    border:none !important;
+.logged-out-card h4 {
+    font-size: 19px;
+    font-weight: 700;
+    color: #1E293B;
+    margin-bottom: 8px;
 }
 
-.logout-danger-btn:hover{
-    background:#1D4ED8 !important;
-    color:#FFFFFF !important;
+.logged-out-card p {
+    font-size: 14.5px;
+    color: #64748B;
+    margin-bottom: 24px;
 }
 
-.logout-danger-btn:focus{
-    background:#1D4ED8 !important;
-    color:#FFFFFF !important;
-    box-shadow:0 0 0 .2rem rgba(37,99,235,.25) !important;
+.logged-out-divider {
+    height: 1px;
+    background: #E5E7EB;
+    margin: 0 -24px;
 }
 
-.logout-danger-btn:active{
-    background:#1E40AF !important;
-    color:#FFFFFF !important;
+.logged-out-link {
+    display: block;
+    padding: 14px 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: #2563EB;
+    text-decoration: none;
+}
+.logged-out-link:hover {
+    color: #1D4ED8;
 }
 
-.logout-danger-btn{
-    background:#2563EB !important;
-    color:#FFFFFF !important;
-    border:none !important;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-}
+/* Dark mode */
+html.app-skin-dark .logged-out-overlay { background: rgba(15, 23, 42, 0.85); }
+html.app-skin-dark .logged-out-card { background: #17202F; }
+html.app-skin-dark .logged-out-card h4 { color: #E5E9F0; }
+html.app-skin-dark .logged-out-card p { color: #94A3B8; }
+html.app-skin-dark .logged-out-divider { background: #2A3648; }

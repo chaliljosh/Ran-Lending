@@ -7,6 +7,7 @@
       force-closes any other open header dropdown FIRST, before
       the browser opens the clicked one.
    3. Click-outside-to-close for both dropdowns.
+   4. aria-expanded sync for accessibility.
    ============================================================ */
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -25,12 +26,22 @@ document.addEventListener('DOMContentLoaded', function () {
         var summary = el.querySelector('summary');
         if (!summary) return;
 
+        // Initialize aria-expanded state
+        summary.setAttribute('aria-expanded', el.hasAttribute('open'));
+
         summary.addEventListener('click', function () {
             headerDropdowns.forEach(function (other) {
                 if (other !== el && other.hasAttribute('open')) {
                     other.removeAttribute('open');
                 }
             });
+        });
+
+        // Keep aria-expanded in sync whenever <details> opens/closes,
+        // whether triggered by click, keyboard, or the mutual-exclusion
+        // logic above.
+        el.addEventListener('toggle', function () {
+            summary.setAttribute('aria-expanded', el.hasAttribute('open'));
         });
     });
 
@@ -57,7 +68,17 @@ document.addEventListener('DOMContentLoaded', function () {
     btn.addEventListener('click', function (e) {
         e.preventDefault();
 
-        fetch(btn.getAttribute('data-url'), {
+        if (btn.disabled) return; // guard against double-click / double-fire
+
+        var url = btn.getAttribute('data-url');
+        if (!url) {
+            console.error('[admin-header.js] No data-url on mark-all-read button.');
+            return;
+        }
+
+        btn.disabled = true;
+
+        fetch(url, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': csrfToken,
@@ -75,6 +96,7 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log('[admin-header.js] mark-all-read response:', data);
             if (!data || !data.success) {
                 console.error('[admin-header.js] server did not return success:true');
+                btn.disabled = false;
                 return;
             }
 
@@ -91,6 +113,7 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .catch(function (err) {
             console.error('[admin-header.js] mark-all-read fetch error:', err);
+            btn.disabled = false;
         });
     });
 });

@@ -317,6 +317,7 @@ class BorrowerController extends Controller
                 $paidCount = $schedule->filter(fn($s) => !is_null($s->paid_at))->count();
                 $progressPct = $totalCount > 0 ? (int) round(($paidCount / $totalCount) * 100) : 0;
                 $outstandingAmount = max(0, (float) $app->total_amount - (float) $schedule->sum('amount_paid'));
+                $amountPaid = (float) $schedule->sum('amount_paid');
 
                 $nextUnpaid = $schedule->first(fn($s) => is_null($s->paid_at));
                 if ($nextUnpaid) {
@@ -374,7 +375,7 @@ class BorrowerController extends Controller
             'userName', 'initials', 'profilePicture', 'detailsStatus', 'approvedCount',
             'isFullyApproved', 'latestLoan', 'loanStatus', 'app', 'notifications', 'recentPayments',
             'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
-            'outstandingAmount', 'progressPct', 'totalCount', 'paidCount', 'nextUnpaid',
+            'outstandingAmount', 'amountPaid', 'progressPct', 'totalCount', 'paidCount', 'nextUnpaid',
             'isOverdue', 'daysOverdue', 'approvedAt', 'activatedAt',
             'calMonth', 'calDaysWithPayments', 'calPrevMonth', 'calNextMonth',
             'headerNotifications', 'unreadNotifCount'

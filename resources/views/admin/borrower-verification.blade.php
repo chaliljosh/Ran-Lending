@@ -6,18 +6,6 @@
     <link rel="stylesheet" href="{{ asset('assets/admin/css/modals-modern.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/admin/css/borrower-verification.css') }}">
 
-      <style>
-        html.app-skin-dark body .main-content a.action-link-btn.action-link-btn.action-link-btn {
-            background-color: #3a3a3a !important;
-            border-color: #3a3a3a !important;
-            color: #EDEDED !important;
-        }
-        html.app-skin-dark body .main-content a.action-link-btn.action-link-btn.action-link-btn:hover {
-            background-color: #4a4a4a !important;
-            border-color: #4a4a4a !important;
-            color: #EDEDED !important;
-        }
-    </style>
 @endsection
 
 

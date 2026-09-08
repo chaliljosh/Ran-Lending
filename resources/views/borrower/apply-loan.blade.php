@@ -82,7 +82,7 @@
 
                         <a href="{{ route('borrower.loan-details') }}" class="pending-card__cta">
                             View Application Status
-                            <i class="feather-arrow-right"></i>
+                           
                         </a>
                     </div>
 

@@ -17,7 +17,8 @@
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/theme.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/admin/css/logout-modal.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/admin-shared-modals.css') }}" />
-    
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/admin-header-dropdown.css') }}" />
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/admin-toast.css') }}" />
     {{-- Page-specific stylesheets (e.g. admin-dashboard.css) go here --}}
@@ -94,19 +95,22 @@
                             <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
                         </a>
                         <ul class="nxl-submenu">
-                            <li class="nxl-item" data-current="{{ $loanStatusTab === 'pending' ? 'true' : 'false' }}">
-                                <a class="nxl-link" href="{{ route('admin.loan-applications') }}">Pending Applications</a>
-                            </li>
-                            <li class="nxl-item" data-current="{{ $loanStatusTab === 'approved' ? 'true' : 'false' }}">
-                                <a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'approved']) }}">Approved</a>
-                            </li>
-                            <li class="nxl-item" data-current="{{ $loanStatusTab === 'rejected' ? 'true' : 'false' }}">
-                                <a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'rejected']) }}">Rejected</a>
-                            </li>
-                            <li class="nxl-item" data-current="{{ $loanStatusTab === 'on_hold' ? 'true' : 'false' }}">
-                                <a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'on_hold']) }}">On Hold</a>
-                            </li>
-                        </ul>
+    <li class="nxl-item" data-current="{{ $loanStatusTab === 'pending' ? 'true' : 'false' }}">
+        <a class="nxl-link" href="{{ route('admin.loan-applications') }}">Pending Applications</a>
+    </li>
+    <li class="nxl-item" data-current="{{ $loanStatusTab === 'reviewed' ? 'true' : 'false' }}">
+        <a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'reviewed']) }}">Reviewed</a>
+    </li>
+    <li class="nxl-item" data-current="{{ $loanStatusTab === 'approved' ? 'true' : 'false' }}">
+        <a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'approved']) }}">Approved</a>
+    </li>
+    <li class="nxl-item" data-current="{{ $loanStatusTab === 'rejected' ? 'true' : 'false' }}">
+        <a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'rejected']) }}">Rejected</a>
+    </li>
+    <li class="nxl-item" data-current="{{ $loanStatusTab === 'on_hold' ? 'true' : 'false' }}">
+        <a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'on_hold']) }}">On Hold</a>
+    </li>
+</ul>
                     </li>
                     <li class="nxl-item nxl-hasmenu">
                         <a href="javascript:void(0);" class="nxl-link">
@@ -316,15 +320,15 @@
                         </div>
 
                         <div class="nxl-profile-modal-actions">
-                            <button type="button" class="nxl-avatar-upload-text-btn" id="nxlAvatarUploadTriggerText">
-                                <i class="feather-upload"></i> Upload Profile Picture
-                            </button>
-                        </div>
-                        <button type="button" class="nxl-avatar-remove-btn" id="nxlAvatarRemoveBtn"
-                                data-remove-url="{{ route('admin.account-settings.profile-picture.remove') }}"
-                                style="{{ ($adminProfilePicture ?? false) ? '' : 'display:none;' }}">
-                            Remove photo
-                        </button>
+    <button type="button" class="nxl-avatar-upload-text-btn" id="nxlAvatarUploadTriggerText">
+        <i class="feather-user"></i> Upload Profile Picture
+    </button>
+    <button type="button" class="nxl-avatar-remove-btn" id="nxlAvatarRemoveBtn"
+            data-remove-url="{{ route('admin.account-settings.profile-picture.remove') }}"
+            style="{{ ($adminProfilePicture ?? false) ? '' : 'display:none;' }}">
+        Remove photo
+    </button>
+</div>
                     </div>
                 </div>
 
@@ -532,31 +536,31 @@
             </div>
             <div class="modal-footer nxl-pw-modal-footer">
                 <button type="button" class="nxl-pw-btn-discard" id="nxlCropCancelBtn">Cancel</button>
-                <button type="button" class="nxl-pw-btn-apply" id="nxlCropApplyBtn">Apply</button>
+                <button type="button" class="nxl-pw-btn-apply" id="nxlCropApplyBtn">
+                    <span id="nxlCropApplyText">Apply</span>
+                    <span id="nxlCropApplySpinner" class="spinner-border spinner-border-sm ms-2 d-none"></span>
+                </button>
             </div>
         </div>
     </div>
 </div>
 
-{{-- ============================================================
-     REMOVE PHOTO — CONFIRMATION MODAL
-     Pinapalitan nito yung native browser confirm() na dati
-     ginagamit ng admin-profile-picture.js.
-============================================================ --}}
+
+
 <div class="modal fade nxl-account-modal" id="nxlRemovePhotoConfirmModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-body text-center py-4">
-                <div class="nxl-remove-confirm-icon"><i class="feather-alert-triangle"></i></div>
+    <div class="modal-dialog modal-dialog-centered nxl-account-modal-sm">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
                 <div class="nxl-remove-confirm-title">Remove profile picture?</div>
                 <div class="nxl-remove-confirm-desc">
-                    Your profile picture will be removed and your avatar
-                    will return to your initials.
+                      This action will permanently delete the current photo from your account. You can upload a new photo later if you wish.
                 </div>
             </div>
             <div class="modal-footer nxl-pw-modal-footer">
                 <button type="button" class="nxl-pw-btn-discard" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="nxl-pw-btn-apply nxl-btn-danger-fill" id="nxlConfirmRemovePhotoBtn">
-                    Remove
+                    <span id="nxlConfirmRemovePhotoText">Remove</span>
+                    <span id="nxlConfirmRemovePhotoSpinner" class="spinner-border spinner-border-sm ms-2 d-none"></span>
                 </button>
             </div>
         </div>
@@ -574,6 +578,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
     <script src="{{ asset('functions/admin-toast.js') }}"></script>
     <script src="{{ asset('functions/admin-profile-picture.js') }}"></script>
+    <script src="{{ asset('functions/admin-remove-blur.js') }}"></script>
 
     {{-- ============================================================
          DEEP-LINK MODAL OPENER

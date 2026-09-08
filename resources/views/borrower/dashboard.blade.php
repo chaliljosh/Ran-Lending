@@ -4,9 +4,6 @@
 
 @section('page-head-links')
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/borrower-dashboard.css') }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 @endsection
 
 @section('content')
@@ -23,53 +20,63 @@
     <div class="main-content">
 
         @if($detailsStatus === 'incomplete')
-        <div class="bwl-status-panel">
-            <div class="bwl-status-head">
-                <div class="bwl-status-icon is-blue"><i class="feather-user-check"></i></div>
-                <div class="bwl-status-head-text">
-                    <h5 class="bwl-status-title">Complete Your Profile</h5>
-                    <p class="bwl-status-desc">Please fill up your personal details first before you can access the full dashboard and apply for a loan.</p>
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="card text-center">
+                    <div class="card-body py-5">
+                        <div style="width:80px; height:80px; background:#e8f0fe; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
+                            <i class="feather-user-check" style="font-size:36px; color:#4a7cf7;"></i>
+                        </div>
+                        <h4 class="fw-bold mb-2">Complete Your Profile</h4>
+                        <p class="text-muted mb-4">Please fill up your personal details first before you can access the full dashboard and apply for a loan.</p>
+                        <a href="{{ route('borrower.personal-details') }}" class="btn btn-primary px-5">
+                            <i class="feather-edit me-2"></i>Fill Up Personal Details
+                        </a>
+                    </div>
                 </div>
             </div>
-            <div class="bwl-status-divider"></div>
-            <a href="{{ route('borrower.personal-details') }}" class="bwl-status-btn is-primary">
-                <i class="feather-edit me-2"></i>Fill Up Personal Details
-            </a>
         </div>
 
         @elseif($detailsStatus === 'pending')
-        <div class="bwl-status-panel">
-            <div class="bwl-status-head">
-                <div class="bwl-status-icon is-orange"><i class="feather-clock"></i></div>
-                <div class="bwl-status-head-text">
-                    <h5 class="bwl-status-title">Under Review</h5>
-                    <p class="bwl-status-desc">Your personal details have been submitted and are currently being reviewed by our admins. Please wait for approval.</p>
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="card bwl-status-card">
+                    <div class="bwl-status-header">
+                        <div class="bwl-status-icon is-orange"><i class="feather-clock"></i></div>
+                        <div class="bwl-status-title-wrap">
+                            <p class="bwl-status-title">Under Review</p>
+                            <p class="bwl-status-desc">Your personal details have been submitted and are currently being reviewed by our admins. Please wait for approval.</p>
+                        </div>
+                    </div>
+                    <div class="bwl-status-divider"></div>
+                    <div class="bwl-status-approvals">
+                        <div class="bwl-status-approvals-icon"><i class="feather-file-text"></i></div>
+                        <div>
+                            <div class="bwl-status-approvals-label">Admin Approvals</div>
+                            <div class="bwl-status-approvals-value">{{ $approvedCount }} / 3</div>
+                        </div>
+                    </div>
+                    <p class="bwl-status-note">You will be notified once your account is fully approved.</p>
                 </div>
             </div>
-            <div class="bwl-status-divider"></div>
-            <div class="bwl-status-stat">
-                <div class="bwl-status-stat-icon"><i class="feather-file-text"></i></div>
-                <div>
-                    <div class="bwl-status-stat-label">Admin Approvals</div>
-                    <div class="bwl-status-stat-value">{{ $approvedCount }} / 3</div>
-                </div>
-            </div>
-            <p class="bwl-status-footnote">You will be notified once your account is fully approved.</p>
         </div>
 
         @elseif($detailsStatus === 'rejected')
-        <div class="bwl-status-panel is-danger">
-            <div class="bwl-status-head">
-                <div class="bwl-status-icon is-red"><i class="feather-x-circle"></i></div>
-                <div class="bwl-status-head-text">
-                    <h5 class="bwl-status-title">Application Rejected</h5>
-                    <p class="bwl-status-desc">Unfortunately, your personal details were not approved. Please update your information and resubmit.</p>
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="card text-center" style="border: 2px solid #e74c3c;">
+                    <div class="card-body py-5">
+                        <div style="width:80px; height:80px; background:#fee2e2; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
+                            <i class="feather-x-circle" style="font-size:36px; color:#e74c3c;"></i>
+                        </div>
+                        <h4 class="fw-bold mb-2">Application Rejected</h4>
+                        <p class="text-muted mb-4">Unfortunately, your personal details were not approved. Please update your information and resubmit.</p>
+                        <a href="{{ route('borrower.personal-details') }}" class="btn btn-danger px-5">
+                            <i class="feather-edit me-2"></i>Update Personal Details
+                        </a>
+                    </div>
                 </div>
             </div>
-            <div class="bwl-status-divider"></div>
-            <a href="{{ route('borrower.personal-details') }}" class="bwl-status-btn is-danger">
-                <i class="feather-edit me-2"></i>Update Personal Details
-            </a>
         </div>
 
         @elseif(!$app)
@@ -157,11 +164,14 @@
 
             <div class="bwl-dash-widget">
                 <div class="bwl-dash-widget-top">
-                    <div class="bwl-dash-widget-label">Loan Progress</div>
-                    <div class="bwl-dash-widget-icon"><i class="feather-trending-up"></i></div>
+                    <div class="bwl-dash-widget-label">Total Amount Paid</div>
+                    <div class="bwl-dash-widget-icon"><i class="feather-check-circle"></i></div>
                 </div>
-                <div class="bwl-dash-widget-value fs-16">{{ $paidCount }} of {{ $totalCount }} payments</div>
-                <div class="bwl-dash-widget-sub">{{ $progressPct }}% completed</div>
+                <div class="bwl-dash-widget-value">₱{{ number_format($amountPaid, 2) }}</div>
+                <div class="bwl-dash-widget-sub">{{ $paidCount }} of {{ $totalCount }} payments</div>
+                <div class="bwl-dash-progress-track">
+                    <div class="bwl-dash-progress-fill" style="width:{{ $progressPct }}%"></div>
+                </div>
             </div>
 
             <div class="bwl-dash-widget">
@@ -245,6 +255,8 @@
                 </div>
             </div>
         </div>
+        {{-- ↑ dati dito hindi naka-close yung .bwl-dash-row, kaya nagnest
+             yung sunod na row sa loob nito at nasira yung buong grid. --}}
 
         {{-- ============ APPLICATION TIMELINE + RECENT PAYMENTS ============ --}}
         <div class="bwl-dash-row">
@@ -313,7 +325,10 @@
                         <div class="bwl-dash-payment-item">
                             <div class="bwl-dash-payment-body">
                                 <div class="bwl-dash-payment-title">Installment #{{ $p->installment_no }}</div>
-                                <div class="bwl-dash-payment-date">{{ \Carbon\Carbon::parse($p->paid_at)->format('F j, Y') }}</div>
+                                <div class="bwl-dash-payment-date">
+                                    Due {{ \Carbon\Carbon::parse($p->due_date)->format('M j, Y') }}
+                                    &middot; Paid {{ \Carbon\Carbon::parse($p->paid_at)->format('M j, Y') }}
+                                </div>
                             </div>
                             <span class="bwl-dash-payment-amount">₱{{ number_format($p->amount_paid, 2) }}</span>
                         </div>
@@ -327,8 +342,7 @@
         @endif
 
         @section('page-scripts')
-         <script src="{{ asset('functions/borrower-dashboard-calendar.js') }}"></script>
-            <script src="{{ asset('functions/borrower-header-notification.js') }}?v={{ time() }}"></script>
+<script src="{{ asset('functions/borrower-dashboard.js') }}"></script>
         @endsection
 
     </div>

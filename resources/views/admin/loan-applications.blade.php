@@ -30,23 +30,10 @@
     <div class="main-content">
 
         @if(($viewStatus ?? 'pending') === 'pending')
-        {{-- ================= PENDING VIEW (Pending / Reviewed tabs) ================= --}}
+        {{-- ================= PENDING VIEW ================= --}}
+        {{-- Tabs removed — "Reviewed" is now its own sidebar link,
+             same pattern as Borrower Verification. --}}
 
-        <div class="la-tabs">
-            <button class="tab-btn active" onclick="showLoanTab('pending', this)">
-                Pending
-                @if($pendingLoanCount > 0)
-                    <span class="tab-count">{{ $pendingLoanCount }}</span>
-                @endif
-            </button>
-            <button class="tab-btn" onclick="showLoanTab('reviewed', this)">
-                Reviewed
-                <span class="tab-count is-muted">{{ count($reviewedApplications) }}</span>
-            </button>
-        </div>
-
-        <!-- PENDING TAB -->
-        <div id="loantab-pending">
             @if(count($pendingApplications) === 0)
             <div class="la-empty-large">
                 <span class="la-empty-icon-lg">
@@ -65,13 +52,14 @@
                                placeholder="Search borrower name or email..."
                                onkeyup="filterLoanPending()">
                     </div>
-                    <div class="reviewed-rpp-wrap">
-                        <label for="pendingRowsPerPage" class="reviewed-rpp-label">Rows per page</label>
+                    <div class="reviewed-toolbar-meta">
+                        <span class="reviewed-count-label">Showing</span>
                         <select id="pendingRowsPerPage" class="reviewed-rpp-select" onchange="pendingChangeRowsPerPage(this)">
                             <option value="10" selected>10</option>
                             <option value="25">25</option>
                             <option value="50">50</option>
                         </select>
+                        <span class="reviewed-count-text" id="pendingPaginationInfo">of {{ count($pendingApplications) }} results</span>
                     </div>
                 </div>
 
@@ -120,9 +108,7 @@
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    <a href="{{ route('admin.loan-application-detail', $app['application_id']) }}" class="btn-light">
-                                        <i class="feather-eye me-1"></i> View Details
-                                    </a>
+                                    <a href="{{ route('admin.loan-application-detail', $app['application_id']) }}" class="btn-light">View Details</a>
                                 </td>
                             </tr>
                             @endforeach
@@ -134,25 +120,16 @@
                 </div>
 
                 <div class="reviewed-pagination" id="pendingPagination">
-                    <span class="reviewed-pagination-info" id="pendingPaginationInfo">
-                        Showing 1&ndash;{{ min(10, count($pendingApplications)) }} of {{ count($pendingApplications) }}
-                    </span>
-                    <div class="reviewed-pagination-controls">
-                        <button type="button" class="btn-page" id="pendingPrevPage" onclick="pendingGoToPage(-1)">
-                            <i class="feather-chevron-left"></i> Prev
-                        </button>
-                        <span class="reviewed-page-indicator" id="pendingPageIndicator">Page 1 of 1</span>
-                        <button type="button" class="btn-page" id="pendingNextPage" onclick="pendingGoToPage(1)">
-                            Next <i class="feather-chevron-right"></i>
-                        </button>
-                    </div>
+                    <div class="reviewed-pagination-controls" id="pendingPaginationControls"></div>
                 </div>
             </div>
             @endif
-        </div>
 
-        <!-- REVIEWED TAB -->
-        <div id="loantab-reviewed" style="display:none;">
+        @elseif($viewStatus === 'reviewed')
+        {{-- ================= REVIEWED VIEW ================= --}}
+        {{-- Previously a JS-toggled tab inside Pending; now its own
+             page/sidebar link, same pattern as Borrower Verification. --}}
+
             @if(count($reviewedApplications) === 0)
             <div class="la-empty-large">
                 <span class="la-empty-icon-lg la-empty-icon-lg-muted">
@@ -175,13 +152,14 @@
                         <option value="approved">Approved</option>
                         <option value="rejected">Rejected</option>
                     </select>
-                    <div class="reviewed-rpp-wrap">
-                        <label for="loanReviewedRowsPerPage" class="reviewed-rpp-label">Rows per page</label>
+                    <div class="reviewed-toolbar-meta">
+                        <span class="reviewed-count-label">Showing</span>
                         <select id="loanReviewedRowsPerPage" class="reviewed-rpp-select" onchange="loanReviewedChangeRowsPerPage(this)">
                             <option value="10" selected>10</option>
                             <option value="25">25</option>
                             <option value="50">50</option>
                         </select>
+                        <span class="reviewed-count-text" id="loanReviewedPaginationInfo">of {{ count($reviewedApplications) }} results</span>
                     </div>
                 </div>
 
@@ -215,14 +193,12 @@
                               <td class="rt-date">{{ $r->loan_term ?? '—' }} months</td>
                               <td class="rt-date">{{ $r->applied_at ? \Carbon\Carbon::parse($r->applied_at)->format('M d, Y') : '—' }}</td>
                               <td>
-                                  <span class="badge {{ $decisionLower === 'approved' ? 'badge-approved' : 'badge-rejected' }} px-3 py-2">
+                                  <span class="badge {{ $decisionLower === 'approved' ? 'badge-approved' : 'badge-rejected' }}">
                                       {{ ucfirst($r->decision) }}
                                   </span>
                               </td>
                               <td class="text-end">
-                                  <a href="{{ route('admin.loan-application-detail', $r->application_id) }}" class="btn-light">
-                                      <i class="feather-eye me-1"></i> View Details
-                                  </a>
+                                  <a href="{{ route('admin.loan-application-detail', $r->application_id) }}" class="btn-light">View Details</a>
                               </td>
                           </tr>
                           @endforeach
@@ -234,22 +210,10 @@
                 </div>
 
                 <div class="reviewed-pagination" id="loanReviewedPagination">
-                    <span class="reviewed-pagination-info" id="loanReviewedPaginationInfo">
-                        Showing 1&ndash;{{ min(10, count($reviewedApplications)) }} of {{ count($reviewedApplications) }}
-                    </span>
-                    <div class="reviewed-pagination-controls">
-                        <button type="button" class="btn-page" id="loanReviewedPrevPage" onclick="loanReviewedGoToPage(-1)">
-                            <i class="feather-chevron-left"></i> Prev
-                        </button>
-                        <span class="reviewed-page-indicator" id="loanReviewedPageIndicator">Page 1 of 1</span>
-                        <button type="button" class="btn-page" id="loanReviewedNextPage" onclick="loanReviewedGoToPage(1)">
-                            Next <i class="feather-chevron-right"></i>
-                        </button>
-                    </div>
+                    <div class="reviewed-pagination-controls" id="loanReviewedPaginationControls"></div>
                 </div>
             </div>
             @endif
-        </div>
 
         @else
         {{-- ================= FILTERED VIEW: Approved / Rejected / On Hold ================= --}}
@@ -292,13 +256,14 @@
                                placeholder="Search by name or email..."
                                onkeyup="filterLoanFiltered()">
                     </div>
-                    <div class="reviewed-rpp-wrap">
-                        <label for="filteredRowsPerPage" class="reviewed-rpp-label">Rows per page</label>
+                    <div class="reviewed-toolbar-meta">
+                        <span class="reviewed-count-label">Showing</span>
                         <select id="filteredRowsPerPage" class="reviewed-rpp-select" onchange="filteredChangeRowsPerPage(this)">
                             <option value="10" selected>10</option>
                             <option value="25">25</option>
                             <option value="50">50</option>
                         </select>
+                        <span class="reviewed-count-text" id="filteredPaginationInfo">of {{ count($filteredApplications) }} results</span>
                     </div>
                 </div>
 
@@ -332,17 +297,15 @@
                                 <td class="rt-date">{{ date('M d, Y', strtotime($app->applied_at)) }}</td>
                                 <td>
                                     @if($viewStatus === 'approved')
-                                        <span class="badge badge-approved px-3 py-2">Approved</span>
+                                        <span class="badge badge-approved">Approved</span>
                                     @elseif($viewStatus === 'rejected')
-                                        <span class="badge badge-rejected px-3 py-2">Rejected</span>
+                                        <span class="badge badge-rejected">Rejected</span>
                                     @else
-                                        <span class="badge badge-onhold px-3 py-2">On Hold</span>
+                                        <span class="badge badge-onhold">On Hold</span>
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    <a href="{{ route('admin.loan-application-detail', $app->application_id) }}" class="btn-light">
-                                        <i class="feather-eye me-1"></i> View Details
-                                    </a>
+                                    <a href="{{ route('admin.loan-application-detail', $app->application_id) }}" class="btn-light">View Details</a>
                                 </td>
                             </tr>
                             @endforeach
@@ -354,18 +317,7 @@
                 </div>
 
                 <div class="reviewed-pagination" id="filteredPagination">
-                    <span class="reviewed-pagination-info" id="filteredPaginationInfo">
-                        Showing 1&ndash;{{ min(10, count($filteredApplications)) }} of {{ count($filteredApplications) }}
-                    </span>
-                    <div class="reviewed-pagination-controls">
-                        <button type="button" class="btn-page" id="filteredPrevPage" onclick="filteredGoToPage(-1)">
-                            <i class="feather-chevron-left"></i> Prev
-                        </button>
-                        <span class="reviewed-page-indicator" id="filteredPageIndicator">Page 1 of 1</span>
-                        <button type="button" class="btn-page" id="filteredNextPage" onclick="filteredGoToPage(1)">
-                            Next <i class="feather-chevron-right"></i>
-                        </button>
-                    </div>
+                    <div class="reviewed-pagination-controls" id="filteredPaginationControls"></div>
                 </div>
             </div>
             @endif

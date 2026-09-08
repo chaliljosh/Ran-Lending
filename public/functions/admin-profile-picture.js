@@ -11,19 +11,59 @@ document.addEventListener('DOMContentLoaded', function () {
     var uploadUrl = trigger.dataset.uploadUrl;
     var removeUrl = removeBtn ? removeBtn.dataset.removeUrl : '';
 
+    // FIX: reference to the parent "My Profile" modal, needed for
+    // the hide-then-show handoff so modals don't stack on top of
+    // each other.
+    var profileModalEl = document.getElementById('nxlMyProfileModal');
+
     // ---- Crop modal elements ----
-    var cropModalEl   = document.getElementById('nxlCropPhotoModal');
-    var cropImage      = document.getElementById('nxlCropImage');
-    var cropApplyBtn   = document.getElementById('nxlCropApplyBtn');
-    var cropCancelBtn  = document.getElementById('nxlCropCancelBtn');
-    var cropCloseX     = document.getElementById('nxlCropCloseX');
+    var cropModalEl      = document.getElementById('nxlCropPhotoModal');
+    var cropImage         = document.getElementById('nxlCropImage');
+    var cropApplyBtn      = document.getElementById('nxlCropApplyBtn');
+    var cropApplyText     = document.getElementById('nxlCropApplyText');     // FIX: new
+    var cropApplySpinner  = document.getElementById('nxlCropApplySpinner'); // FIX: new
+    var cropCancelBtn     = document.getElementById('nxlCropCancelBtn');
+    var cropCloseX        = document.getElementById('nxlCropCloseX');
     var cropper = null;
+
+    // ============================================================
+    // FIX: modal hand-off helpers — hide the My Profile modal
+    // first, wait for it to fully close (hidden.bs.modal), THEN
+    // show the crop/confirm modal. Prevents both from being open
+    // (and both backdrops stacking) at the same time.
+    // ============================================================
+    function hideThenShow(hideEl, showEl) {
+        if (!hideEl) {
+            bootstrap.Modal.getOrCreateInstance(showEl).show();
+            return;
+        }
+        var hideModal = bootstrap.Modal.getOrCreateInstance(hideEl);
+        var showModal = bootstrap.Modal.getOrCreateInstance(showEl);
+
+        function onHidden() {
+            hideEl.removeEventListener('hidden.bs.modal', onHidden);
+            showModal.show();
+        }
+
+        if (hideEl.classList.contains('show')) {
+            hideEl.addEventListener('hidden.bs.modal', onHidden);
+            hideModal.hide();
+        } else {
+            showModal.show();
+        }
+    }
+
+    function restoreProfileModal() {
+        if (!profileModalEl) return;
+        bootstrap.Modal.getOrCreateInstance(profileModalEl).show();
+    }
 
     function openCropModal(dataUrl) {
         cropImage.src = dataUrl;
 
-        var modal = bootstrap.Modal.getOrCreateInstance(cropModalEl);
-        modal.show();
+        // FIX: hide My Profile modal first instead of showing crop
+        // modal directly on top of it.
+        hideThenShow(profileModalEl, cropModalEl);
 
         cropModalEl.addEventListener('shown.bs.modal', function onShown() {
             cropModalEl.removeEventListener('shown.bs.modal', onShown);
@@ -38,10 +78,31 @@ document.addEventListener('DOMContentLoaded', function () {
                 viewMode: 1,
                 dragMode: 'move',
                 autoCropArea: 1,
+                cropBoxMovable: false,   // FIX: fixed crop circle, matched sa borrower
+                cropBoxResizable: false, // FIX: fixed crop circle, matched sa borrower
                 background: false,
                 responsive: true,
                 guides: false,
+                // FIX: buong litrato muna makikita sa loob ng crop circle
+                // pagbukas (dati kailangan pang i-zoom out manually).
+                ready: function () {
+                    var canvasData = cropper.getCanvasData();
+                    var cropBoxData = cropper.getCropBoxData();
+                    var fitScale = Math.min(
+                        cropBoxData.width / canvasData.naturalWidth,
+                        cropBoxData.height / canvasData.naturalHeight
+                    );
+                    cropper.zoomTo(fitScale);
+                },
             });
+        });
+    }
+
+    // FIX: whenever the crop modal fully closes (Cancel, X, or after
+    // a successful upload), bring the My Profile modal back.
+    if (cropModalEl) {
+        cropModalEl.addEventListener('hidden.bs.modal', function () {
+            restoreProfileModal();
         });
     }
 
@@ -119,8 +180,11 @@ document.addEventListener('DOMContentLoaded', function () {
         var formData = new FormData();
         formData.append('profile_picture', blob, 'profile.jpg');
 
+        // FIX: loading state = spinner icon lang, walang "Uploading..." text
+        // (matched sa borrower pattern — d-none toggle sa text/spinner spans)
         cropApplyBtn.disabled = true;
-        cropApplyBtn.textContent = 'Uploading...';
+        cropApplyText.classList.add('d-none');
+        cropApplySpinner.classList.remove('d-none');
         trigger.disabled = true;
         if (triggerText) triggerText.disabled = true;
 
@@ -181,20 +245,33 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .finally(function () {
             cropApplyBtn.disabled = false;
-            cropApplyBtn.textContent = 'Apply';
+            cropApplyText.classList.remove('d-none');
+            cropApplySpinner.classList.add('d-none');
             trigger.disabled = false;
             if (triggerText) triggerText.disabled = false;
         });
     }
 
     // ---- Remove photo — uses the confirmation modal instead of confirm() ----
-    var removeConfirmModalEl = document.getElementById('nxlRemovePhotoConfirmModal');
-    var confirmRemoveBtn = document.getElementById('nxlConfirmRemovePhotoBtn');
+    var removeConfirmModalEl   = document.getElementById('nxlRemovePhotoConfirmModal');
+    var confirmRemoveBtn       = document.getElementById('nxlConfirmRemovePhotoBtn');
+    var confirmRemoveText      = document.getElementById('nxlConfirmRemovePhotoText');     // FIX: new
+    var confirmRemoveSpinner   = document.getElementById('nxlConfirmRemovePhotoSpinner');  // FIX: new
+
+    // FIX: whenever the remove-confirm modal fully closes (Cancel, X,
+    // or after a successful/failed remove), bring My Profile back.
+    if (removeConfirmModalEl) {
+        removeConfirmModalEl.addEventListener('hidden.bs.modal', function () {
+            restoreProfileModal();
+        });
+    }
 
     if (removeBtn) {
         removeBtn.addEventListener('click', function () {
             if (removeConfirmModalEl) {
-                bootstrap.Modal.getOrCreateInstance(removeConfirmModalEl).show();
+                // FIX: hide My Profile modal first instead of showing
+                // the confirm modal directly on top of it.
+                hideThenShow(profileModalEl, removeConfirmModalEl);
             } else if (confirm('Remove your profile picture?')) {
                 doRemovePhoto();
             }
@@ -208,6 +285,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function doRemovePhoto() {
+        // FIX: loading state = spinner icon lang, walang "Removing..." text
+        confirmRemoveBtn.disabled = true;
+        if (confirmRemoveText) confirmRemoveText.classList.add('d-none');
+        if (confirmRemoveSpinner) confirmRemoveSpinner.classList.remove('d-none');
+
         fetch(removeUrl, {
             method: 'POST',
             headers: {
@@ -264,6 +346,11 @@ document.addEventListener('DOMContentLoaded', function () {
             } else {
                 alert('Failed to remove photo: ' + err.message);
             }
+        })
+        .finally(function () {
+            confirmRemoveBtn.disabled = false;
+            if (confirmRemoveText) confirmRemoveText.classList.remove('d-none');
+            if (confirmRemoveSpinner) confirmRemoveSpinner.classList.add('d-none');
         });
     }
 });

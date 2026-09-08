@@ -165,14 +165,12 @@
      REMOVE PHOTO — CONFIRMATION MODAL (replaces native confirm())
 ============================================================ --}}
 <div class="modal fade bwl-acct-modal" id="bwlRemovePhotoConfirmModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered bwl-acct-modal-sm">
         <div class="modal-content">
             <div class="modal-body text-center py-4">
-                <div class="bwl-remove-confirm-icon"><i class="feather-alert-triangle"></i></div>
-                <div class="bwl-remove-confirm-title">Remove profile picture?</div>
+                <div class="bwl-remove-confirm-title">Remove Profile Picture</div>
                 <div class="bwl-remove-confirm-desc">
-                    Your profile picture will be removed and your avatar
-                    will return to your initials.
+                    This action will permanently delete the current photo from your account. You can upload a new photo later if you wish.
                 </div>
             </div>
             <div class="modal-footer bwl-acct-footer">
