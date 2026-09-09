@@ -877,7 +877,7 @@ class AdminController extends Controller
         ));
     }
 
-    public function verificationDetail(Request $request, $id)
+       public function verificationDetail(Request $request, $id)
     {
         $adminId = Session::get('user_id');
         $detailId = (int) $id;
@@ -912,6 +912,7 @@ class AdminController extends Controller
             'd' => $d,
             'detailId' => $detailId,
             'adminId' => $adminId,
+            'borrowerProfilePicture' => $this->getProfilePictureUrl($d), // NEW — reuses the same private helper the admin header already uses, since it only touches ->profile_picture
             'myReview' => $this->getMyReview($detailId, $adminId),
             'allReviews' => $this->getAllReviews($detailId),
             'comments' => $this->getComments($detailId),
@@ -1020,25 +1021,32 @@ class AdminController extends Controller
     }
 
     private function refreshDetailStatus($detailId)
-    {
-        $counts = DB::table('detailsapproval')
-            ->where('detail_id', $detailId)
-            ->selectRaw("SUM(CASE WHEN decision = 'approved' THEN 1 ELSE 0 END) as a, SUM(CASE WHEN decision = 'rejected' THEN 1 ELSE 0 END) as r")
-            ->first();
+{
+    $counts = DB::table('detailsapproval')
+        ->where('detail_id', $detailId)
+        ->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN decision = 'approved' THEN 1 ELSE 0 END) as a,
+            SUM(CASE WHEN decision = 'rejected' THEN 1 ELSE 0 END) as r
+        ")
+        ->first();
 
-        if ($counts->a >= 3) {
-            $status = 'approved';
-        } elseif ($counts->r >= 3) {
-            $status = 'rejected';
-        } elseif ($counts->r > 0) {
-            $status = 'on_hold';
-        } else {
-            $status = 'pending';
-        }
+    $requiredReviewers = 3;
 
-        DB::table('borrowerpersonaldetails')->where('detail_id', $detailId)->update(['status' => $status]);
+    if ($counts->total < $requiredReviewers) {
+        $status = 'pending';
+    } elseif ($counts->a >= 3) {
+        $status = 'approved';
+    } elseif ($counts->r >= 3) {
+        $status = 'rejected';
+    } elseif ($counts->r > 0) {
+        $status = 'on_hold';
+    } else {
+        $status = 'pending';
     }
 
+    DB::table('borrowerpersonaldetails')->where('detail_id', $detailId)->update(['status' => $status]);
+}
     private function saveComment($detailId, $adminId, $comment)
     {
         DB::table('detailscomments')->insert([
@@ -1049,7 +1057,7 @@ class AdminController extends Controller
         ]);
     }
 
-    private function getBorrowerDetail($detailId)
+        private function getBorrowerDetail($detailId)
     {
         return DB::table('borrowerpersonaldetails as bpd')
             ->join('users as u', 'bpd.user_id', '=', 'u.user_id')
@@ -1061,6 +1069,7 @@ class AdminController extends Controller
                 'bpd.*',
                 'u.email as reg_email',
                 'u.created_at as registered_at',
+                'u.profile_picture', // NEW — needed for the avatar image
                 'ba.region', 'ba.province', 'ba.city', 'ba.barangay', 'ba.zipcode', 'ba.home_address',
                 'bwi.employment_status', 'bwi.company_name', 'bwi.position', 'bwi.years_in_company',
                 'ci.last_name as co_last', 'ci.first_name as co_first', 'ci.middle_name as co_middle',
@@ -1490,29 +1499,38 @@ class AdminController extends Controller
         $this->refreshLoanApplicationStatus($applicationId);
     }
 
-   private function refreshLoanApplicationStatus($applicationId)
-    {
-        $counts = DB::table('loan_approvals')
-            ->where('application_id', $applicationId)
-            ->selectRaw("SUM(CASE WHEN decision = 'approved' THEN 1 ELSE 0 END) as a, SUM(CASE WHEN decision = 'rejected' THEN 1 ELSE 0 END) as r")
-            ->first();
+  private function refreshLoanApplicationStatus($applicationId)
+{
+    $counts = DB::table('loan_approvals')
+        ->where('application_id', $applicationId)
+        ->selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN decision = 'approved' THEN 1 ELSE 0 END) as a,
+            SUM(CASE WHEN decision = 'rejected' THEN 1 ELSE 0 END) as r
+        ")
+        ->first();
 
-        if ($counts->a >= 3) {
-            $status = 'approved';
-        } elseif ($counts->r >= 3) {
-            $status = 'rejected';
-        } elseif ($counts->r > 0) {
-            $status = 'on_hold';
-        } else {
-            $status = 'pending';
-        }
+    $requiredReviewers = 3;
 
-        DB::table('loan_applications')->where('application_id', $applicationId)->update(['status' => $status]);
-
-        if ($status === 'approved') {
-            LoanActivationService::activate($applicationId);
-        }
+   
+    if ($counts->total < $requiredReviewers) {
+        $status = 'pending';
+    } elseif ($counts->a >= 3) {
+        $status = 'approved';
+    } elseif ($counts->r >= 3) {
+        $status = 'rejected';
+    } elseif ($counts->r > 0) {
+        $status = 'on_hold';
+    } else {
+        $status = 'pending';
     }
+
+    DB::table('loan_applications')->where('application_id', $applicationId)->update(['status' => $status]);
+
+    if ($status === 'approved') {
+        LoanActivationService::activate($applicationId);
+    }
+}
 
     private function getLoanApplication($applicationId)
     {

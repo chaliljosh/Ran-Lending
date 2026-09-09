@@ -59,15 +59,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
-document.addEventListener('DOMContentLoaded', function () {
-    const successModalEl = document.getElementById('successModal');
-    if (successModalEl) {
-        const successModal = new bootstrap.Modal(successModalEl, { backdrop: 'static' });
-        successModal.show();
-        setTimeout(() => successModal.hide(), 2000);
-    }
-});
-
 /* ============================================
    VALID ID VIEWER — zoom + rotate + fullscreen
 ============================================ */

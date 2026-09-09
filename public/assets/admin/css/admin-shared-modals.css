@@ -31,6 +31,15 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
+/* FIX: exclude feather icon <i> tags from the Inter font override —
+   the wildcard above was overriding the feather icon font, causing
+   icon glyphs (camera, upload, etc.) to render as missing boxes
+   instead of the actual icon. */
+.nxl-account-modal i[class^="feather-"],
+.nxl-account-modal i[class*=" feather-"] {
+    font-family: feather !important;
+}
+
 .nxl-account-modal .modal-dialog { max-width: 640px; }
 
 .nxl-account-modal .modal-content {

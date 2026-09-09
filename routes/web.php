@@ -10,18 +10,19 @@ Route::get('/', function () {
     return view('landing');
 });
 
-Route::get('/login', function () {
-    return view('login');
-})->name('login');
+Route::middleware('guest')->group(function () {
+    Route::get('/login', function () {
+        return view('login');
+    })->name('login');
 
+    Route::get('/register', function () {
+        return view('register');
+    })->name('register');
 
-Route::get('/register', function () {
-    return view('register');
-})->name('register');
-
-Route::get('/forgot-password', function () {
-    return view('forgot-password');
-})->name('forgot-password');
+    Route::get('/forgot-password', function () {
+        return view('forgot-password');
+    })->name('forgot-password');
+});
 
 Route::post('/api/register',            [AuthController::class, 'register'])->middleware('throttle:5,10');
 Route::post('/api/register/verify-otp', [AuthController::class, 'verifyRegisterOtp'])->middleware('throttle:5,10');

@@ -4,12 +4,15 @@
 
 @section('page-head-links')
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/profile.css') }}?v={{ time() }}">
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/avatar-placeholder.css') }}" />
 @endsection
 
 @section('content')
     <div class="page-header">
         <div class="page-header-left d-flex align-items-center">
-            <div class="page-header-title"><h5 class="m-b-10">My Profile</h5></div>
+            <div class="page-header-title">
+                <h5 class="m-b-10">My Profile</h5>
+            </div>
             <ul class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('borrower.dashboard') }}">Home</a></li>
                 <li class="breadcrumb-item">Profile</li>
@@ -25,9 +28,9 @@
                 <div class="profile-card">
                     <div class="d-flex align-items-center gap-3">
                         <div class="avatar-circle js-borrower-avatar" data-initials="{{ $initials }}">
-                            @if($profilePicture ?? false)
+                            @if ($profilePicture ?? false)
                                 <img src="{{ $profilePicture }}" alt="{{ $userName }}"
-                                     onerror="this.closest('.js-borrower-avatar').textContent = this.closest('.js-borrower-avatar').dataset.initials;">
+                                    onerror="this.closest('.js-borrower-avatar').textContent = this.closest('.js-borrower-avatar').dataset.initials;">
                             @else
                                 {{ $initials }}
                             @endif
@@ -38,10 +41,12 @@
                             </h5>
                             <p class="text-muted mb-2" style="font-size:0.85rem;">{{ $profileData['email'] ?? '' }}</p>
                             <div class="d-flex gap-2">
-                                <span class="badge" style="background:#dcfce7;color:#16a34a;border:1px solid #bbf7d0;font-size:0.75rem;">
+                                <span class="badge"
+                                    style="background:#dcfce7;color:#16a34a;border:1px solid #bbf7d0;font-size:0.75rem;">
                                     <i class="feather-check-circle me-1"></i>Active Account
                                 </span>
-                                <span class="badge" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;font-size:0.75rem;">
+                                <span class="badge"
+                                    style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;font-size:0.75rem;">
                                     <i class="feather-shield me-1"></i>Verified
                                 </span>
                             </div>
@@ -58,7 +63,8 @@
                             <i class="feather-user"></i>
                             <span>Personal Information</span>
                         </div>
-                        <a href="javascript:void(0);" class="section-edit-link" id="editLink-personal" onclick="toggleSectionEdit('personal')">
+                        <a href="javascript:void(0);" class="section-edit-link" id="editLink-personal"
+                            onclick="toggleSectionEdit('personal')">
                             <i class="feather-edit-2"></i> Edit
                         </a>
                     </div>
@@ -78,11 +84,15 @@
                         </div>
                         <div class="col-md-4">
                             <div class="field-label-custom">Birthday</div>
-                            <div class="field-box">{{ !empty($profileData['birthday']) ? \Carbon\Carbon::parse($profileData['birthday'])->format('F d, Y') : '—' }}</div>
+                            <div class="field-box">
+                                {{ !empty($profileData['birthday']) ? \Carbon\Carbon::parse($profileData['birthday'])->format('F d, Y') : '—' }}
+                            </div>
                         </div>
                         <div class="col-md-4">
                             <div class="field-label-custom">Age</div>
-                            <div class="field-box">{{ !empty($profileData['birthday']) ? \Carbon\Carbon::parse($profileData['birthday'])->age : '—' }}</div>
+                            <div class="field-box">
+                                {{ !empty($profileData['birthday']) ? \Carbon\Carbon::parse($profileData['birthday'])->age : '—' }}
+                            </div>
                         </div>
                         <div class="col-md-4">
                             <div class="field-label-custom">Gender</div>
@@ -91,8 +101,10 @@
                         <div class="col-md-4">
                             <div class="field-label-custom">Civil Status</div>
                             <select class="form-select profile-editable" id="civilStatus" data-section="personal" disabled>
-                                @foreach(['single','taken','married','widowed','separated'] as $cs)
-                                <option value="{{ $cs }}" {{ ($profileData['civil_status'] ?? '') === $cs ? 'selected' : '' }}>{{ ucfirst($cs) }}</option>
+                                @foreach (['single', 'taken', 'married', 'widowed', 'separated'] as $cs)
+                                    <option value="{{ $cs }}"
+                                        {{ ($profileData['civil_status'] ?? '') === $cs ? 'selected' : '' }}>
+                                        {{ ucfirst($cs) }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -102,7 +114,8 @@
                         </div>
                         <div class="col-md-4">
                             <div class="field-label-custom">Cellphone Number</div>
-                            <input type="tel" class="form-control profile-editable" id="phone" data-section="personal" value="{{ $profileData['cellphone_num'] ?? '' }}" disabled>
+                            <input type="tel" class="form-control profile-editable" id="phone"
+                                data-section="personal" value="{{ $profileData['cellphone_num'] ?? '' }}" disabled>
                         </div>
                         <div class="col-md-6">
                             <div class="field-label-custom">Email Address</div>
@@ -110,7 +123,8 @@
                         </div>
                         <div class="col-md-6">
                             <div class="field-label-custom">Monthly Income</div>
-                            <div class="field-box">₱{{ number_format((float) ($profileData['monthly_income'] ?? 0), 2) }}</div>
+                            <div class="field-box">₱{{ number_format((float) ($profileData['monthly_income'] ?? 0), 2) }}
+                            </div>
                         </div>
                     </div>
 
@@ -133,7 +147,8 @@
                             <i class="feather-map-pin"></i>
                             <span>Present Address</span>
                         </div>
-                        <a href="javascript:void(0);" class="section-edit-link" id="editLink-address" onclick="toggleSectionEdit('address')">
+                        <a href="javascript:void(0);" class="section-edit-link" id="editLink-address"
+                            onclick="toggleSectionEdit('address')">
                             <i class="feather-edit-2"></i> Edit
                         </a>
                     </div>
@@ -149,23 +164,29 @@
                         </div>
                         <div class="col-md-4">
                             <div class="field-label-custom">Province</div>
-                            <input type="text" class="form-control profile-editable" id="province" data-section="address" value="{{ $profileData['province'] ?? '' }}" disabled>
+                            <input type="text" class="form-control profile-editable" id="province"
+                                data-section="address" value="{{ $profileData['province'] ?? '' }}" disabled>
                         </div>
                         <div class="col-md-4">
                             <div class="field-label-custom">City / Municipality</div>
-                            <input type="text" class="form-control profile-editable" id="city" data-section="address" value="{{ $profileData['city'] ?? '' }}" disabled>
+                            <input type="text" class="form-control profile-editable" id="city"
+                                data-section="address" value="{{ $profileData['city'] ?? '' }}" disabled>
                         </div>
                         <div class="col-md-4">
                             <div class="field-label-custom">Barangay</div>
-                            <input type="text" class="form-control profile-editable" id="barangay" data-section="address" value="{{ $profileData['barangay'] ?? '' }}" disabled>
+                            <input type="text" class="form-control profile-editable" id="barangay"
+                                data-section="address" value="{{ $profileData['barangay'] ?? '' }}" disabled>
                         </div>
                         <div class="col-md-4">
                             <div class="field-label-custom">Zipcode</div>
-                            <input type="text" class="form-control profile-editable" id="zipcode" data-section="address" value="{{ $profileData['zipcode'] ?? '' }}" maxlength="4" disabled>
+                            <input type="text" class="form-control profile-editable" id="zipcode"
+                                data-section="address" value="{{ $profileData['zipcode'] ?? '' }}" maxlength="4"
+                                disabled>
                         </div>
                         <div class="col-12">
                             <div class="field-label-custom">Home Address</div>
-                            <textarea class="form-control profile-editable" id="homeAddress" data-section="address" rows="2" disabled style="resize:none;">{{ $profileData['home_address'] ?? '' }}</textarea>
+                            <textarea class="form-control profile-editable" id="homeAddress" data-section="address" rows="2" disabled
+                                style="resize:none;">{{ $profileData['home_address'] ?? '' }}</textarea>
                         </div>
                     </div>
 
@@ -193,7 +214,8 @@
                     <div class="row g-3">
                         <div class="col-12">
                             <div class="field-label-custom">Employment Status</div>
-                            <div class="field-box">{{ ucfirst(str_replace('_', ' ', $profileData['employment_status'] ?? '—')) }}</div>
+                            <div class="field-box">
+                                {{ ucfirst(str_replace('_', ' ', $profileData['employment_status'] ?? '—')) }}</div>
                         </div>
                         <div class="col-12">
                             <div class="field-label-custom">Company / Business Name</div>
@@ -207,11 +229,12 @@
                             <div class="field-label-custom">Duration in Company</div>
                             @php
                                 $yic = (float) ($profileData['years_in_company'] ?? 0);
-                                $yicYears  = floor($yic);
+                                $yicYears = floor($yic);
                                 $yicMonths = round(($yic - $yicYears) * 12);
                             @endphp
                             <div class="field-box">
-                                {{ (int) $yicYears }} year{{ $yicYears != 1 ? 's' : '' }}, {{ (int) $yicMonths }} month{{ $yicMonths != 1 ? 's' : '' }}
+                                {{ (int) $yicYears }} year{{ $yicYears != 1 ? 's' : '' }}, {{ (int) $yicMonths }}
+                                month{{ $yicMonths != 1 ? 's' : '' }}
                             </div>
                         </div>
                     </div>
@@ -259,7 +282,7 @@
     <script>
         window.PROFILE_CONFIG = {
             csrfToken: '{{ csrf_token() }}',
-            updateSectionUrl: '{{ url("/api/borrower/profile/update-section") }}',
+            updateSectionUrl: '{{ url('/api/borrower/profile/update-section') }}',
         };
     </script>
     <script src="{{ asset('functions/profile.js') }}"></script>

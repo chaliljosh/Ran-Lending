@@ -9,7 +9,9 @@
 @section('content')
     <div class="page-header">
         <div class="page-header-left d-flex align-items-center">
-            <div class="page-header-title"><h5 class="m-b-10">Dashboard</h5></div>
+            <div class="page-header-title">
+                <h5 class="m-b-10">Dashboard</h5>
+            </div>
             <ul class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('borrower.dashboard') }}">Home</a></li>
                 <li class="breadcrumb-item">Dashboard</li>
@@ -19,330 +21,426 @@
 
     <div class="main-content">
 
-        @if($detailsStatus === 'incomplete')
-        <div class="row justify-content-center">
-            <div class="col-lg-6">
-                <div class="card text-center">
-                    <div class="card-body py-5">
-                        <div style="width:80px; height:80px; background:#e8f0fe; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
-                            <i class="feather-user-check" style="font-size:36px; color:#4a7cf7;"></i>
+        @if ($detailsStatus === 'incomplete')
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <div class="card text-center">
+                        <div class="card-body py-5">
+                            <div
+                                style="width:80px; height:80px; background:#e8f0fe; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
+                                <i class="feather-user-check" style="font-size:36px; color:#4a7cf7;"></i>
+                            </div>
+                            <h4 class="fw-bold mb-2">Complete Your Profile</h4>
+                            <p class="text-muted mb-4">Please fill up your personal details first before you can access the
+                                full dashboard and apply for a loan.</p>
+                            <a href="{{ route('borrower.personal-details') }}" class="btn btn-primary px-5">
+                                <i class="feather-edit me-2"></i>Fill Up Personal Details
+                            </a>
                         </div>
-                        <h4 class="fw-bold mb-2">Complete Your Profile</h4>
-                        <p class="text-muted mb-4">Please fill up your personal details first before you can access the full dashboard and apply for a loan.</p>
-                        <a href="{{ route('borrower.personal-details') }}" class="btn btn-primary px-5">
-                            <i class="feather-edit me-2"></i>Fill Up Personal Details
-                        </a>
                     </div>
                 </div>
             </div>
-        </div>
-
         @elseif($detailsStatus === 'pending')
-        <div class="row justify-content-center">
-            <div class="col-lg-6">
-                <div class="card bwl-status-card">
-                    <div class="bwl-status-header">
-                        <div class="bwl-status-icon is-orange"><i class="feather-clock"></i></div>
-                        <div class="bwl-status-title-wrap">
-                            <p class="bwl-status-title">Under Review</p>
-                            <p class="bwl-status-desc">Your personal details have been submitted and are currently being reviewed by our admins. Please wait for approval.</p>
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <div class="card bwl-status-card">
+                        <div class="bwl-status-header">
+                            <div class="bwl-status-icon is-orange"><i class="feather-clock"></i></div>
+                            <div class="bwl-status-title-wrap">
+                                <p class="bwl-status-title">Under Review</p>
+                                <p class="bwl-status-desc">Your personal details have been submitted and are currently being
+                                    reviewed by our admins. Please wait for approval.</p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="bwl-status-divider"></div>
-                    <div class="bwl-status-approvals">
-                        <div class="bwl-status-approvals-icon"><i class="feather-file-text"></i></div>
-                        <div>
-                            <div class="bwl-status-approvals-label">Admin Approvals</div>
-                            <div class="bwl-status-approvals-value">{{ $approvedCount }} / 3</div>
+                        <div class="bwl-status-divider"></div>
+                        <div class="bwl-status-approvals">
+                            <div class="bwl-status-approvals-icon"><i class="feather-file-text"></i></div>
+                            <div>
+                                <div class="bwl-status-approvals-label">Admin Approvals</div>
+                                <div class="bwl-status-approvals-value">{{ $approvedCount }} / 3</div>
+                            </div>
                         </div>
+                        <p class="bwl-status-note">You will be notified once your account is fully approved.</p>
                     </div>
-                    <p class="bwl-status-note">You will be notified once your account is fully approved.</p>
                 </div>
             </div>
-        </div>
-
         @elseif($detailsStatus === 'rejected')
-        <div class="row justify-content-center">
-            <div class="col-lg-6">
-                <div class="card text-center" style="border: 2px solid #e74c3c;">
-                    <div class="card-body py-5">
-                        <div style="width:80px; height:80px; background:#fee2e2; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
-                            <i class="feather-x-circle" style="font-size:36px; color:#e74c3c;"></i>
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <div class="card bwl-status-card is-danger">
+                        <div class="bwl-status-header">
+                            <div class="bwl-status-icon is-red"><i class="feather-x-circle"></i></div>
+                            <div class="bwl-status-title-wrap">
+                                <p class="bwl-status-title">Application Rejected</p>
+                                <p class="bwl-status-desc">Unfortunately, your personal details were not approved. Please
+                                    update your information and resubmit.</p>
+                            </div>
                         </div>
-                        <h4 class="fw-bold mb-2">Application Rejected</h4>
-                        <p class="text-muted mb-4">Unfortunately, your personal details were not approved. Please update your information and resubmit.</p>
-                        <a href="{{ route('borrower.personal-details') }}" class="btn btn-danger px-5">
+                        <div class="bwl-status-divider"></div>
+                        <a href="{{ route('borrower.personal-details') }}" class="bwl-status-btn is-danger">
                             <i class="feather-edit me-2"></i>Update Personal Details
                         </a>
                     </div>
                 </div>
             </div>
-        </div>
-
         @elseif(!$app)
-        {{-- Fully approved, pero walang active loan schedule pa (walang
-             application, o may application pero pending/on_hold/rejected/
-             approved-but-not-activated-yet). Panatilihin simple. --}}
-        <div class="row">
-            <div class="col-xxl-3 col-md-6">
-                <div class="card stretch stretch-full">
-                    <div class="card-body">
-                        <div class="d-flex gap-4 align-items-center mb-4">
-                            <div class="avatar-text avatar-lg bg-gray-200"><i class="feather-file-text"></i></div>
-                            <div><span class="fs-13 fw-semibold text-muted">Loan Application</span><h3>{{ $loanStatus['label'] }}</h3></div>
+            {{-- Fully approved account, may o walang application pa, pero
+     walang active loan schedule pa. Redesigned: horizontal step
+     tracker (Submitted → Under Review → Decision) instead of a
+     stat-box card, para hindi ito parehong-pareho ng "pending"
+     card sa Apply for a Loan page. --}}
+            @php
+                $isRejectedLoan = ($loanStatus['bar'] ?? '') === 'bg-danger';
+                $isApprovedLoan = ($loanStatus['bar'] ?? '') === 'bg-success';
+            @endphp
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+
+                    @if (!$latestLoan)
+                        {{-- Walang application pa — simpleng prompt lang, hindi
+                         kailangan ng tracker dahil wala pang nangyayaring
+                         "progress" na ipapakita. --}}
+                        <div class="bwl-tracker-card bwl-tracker-empty">
+                            <p class="bwl-tracker-eyebrow">Loan Application</p>
+                            <h5 class="bwl-tracker-empty-title">No Active Application</h5>
+                            <p class="bwl-tracker-message">You haven't applied for a loan yet.</p>
+                            <a href="{{ route('borrower.apply-loan') }}" class="bwl-tracker-link">
+                                Apply for a Loan <span class="bwl-tracker-link-arrow">→</span>
+                            </a>
                         </div>
-                        <div class="progress ht-3">
-                            <div class="progress-bar {{ $loanStatus['bar'] }}" style="width:{{ $loanStatus['progress'] }}%"></div>
+                    @else
+                        <div class="bwl-tracker-card">
+                            <p class="bwl-tracker-eyebrow">Loan Application</p>
+
+                            <div class="bwl-tracker-steps">
+                                <div class="bwl-tracker-step is-done">
+                                    <span class="bwl-tracker-dot">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="3" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                        </svg>
+                                    </span>
+                                    <span class="bwl-tracker-label">Application Submitted</span>
+                                </div>
+
+                                <div class="bwl-tracker-line is-done"></div>
+
+                                <div
+                                    class="bwl-tracker-step {{ $isRejectedLoan ? 'is-done' : ($isApprovedLoan ? 'is-done' : 'is-current') }}">
+                                    <span class="bwl-tracker-dot">
+                                        @if ($isRejectedLoan || $isApprovedLoan)
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="3" stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <polyline points="20 6 9 17 4 12"></polyline>
+                                            </svg>
+                                        @else
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <polyline points="12 6 12 12 16 14"></polyline>
+                                            </svg>
+                                        @endif
+                                    </span>
+                                    <span class="bwl-tracker-label">Under Review</span>
+                                </div>
+
+                                <div
+                                    class="bwl-tracker-line {{ $isRejectedLoan ? 'is-rejected' : ($isApprovedLoan ? 'is-done' : '') }}">
+                                </div>
+
+                                <div
+                                    class="bwl-tracker-step {{ $isRejectedLoan ? 'is-rejected' : ($isApprovedLoan ? 'is-done' : '') }}">
+                                    <span class="bwl-tracker-dot">
+                                        @if ($isApprovedLoan)
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="3" stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <polyline points="20 6 9 17 4 12"></polyline>
+                                            </svg>
+                                        @elseif ($isRejectedLoan)
+                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="3" stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <line x1="18" y1="6" x2="6" y2="18">
+                                                </line>
+                                                <line x1="6" y1="6" x2="18" y2="18">
+                                                </line>
+                                            </svg>
+                                        @endif
+                                    </span>
+                                    <span class="bwl-tracker-label">
+                                        {{ $isRejectedLoan ? 'Rejected' : ($isApprovedLoan ? 'Approved' : 'Decision') }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="bwl-tracker-summary">
+                                Application #{{ $latestLoan->application_id }}
+                                <span class="bwl-tracker-dot-sep">&middot;</span>
+                                ₱{{ number_format($latestLoan->loan_amount, 2) }}
+                                <span class="bwl-tracker-dot-sep">&middot;</span>
+                                Submitted {{ \Carbon\Carbon::parse($latestLoan->applied_at)->format('M j, Y') }}
+                            </div>
+
+                            <p class="bwl-tracker-message">
+                                @if ($isRejectedLoan)
+                                    Your loan application was not approved. You may review your application details or apply
+                                    again when eligible.
+                                @elseif ($isApprovedLoan)
+                                    Your application has been approved. Your loan will be activated shortly.
+                                @else
+                                    Your application is currently being reviewed. We'll notify you once a decision has been
+                                    made.
+                                @endif
+                            </p>
+
+                            @if ($isRejectedLoan)
+                                <a href="{{ route('borrower.apply-loan') }}" class="bwl-tracker-link">
+                                    Apply Again </a>
+                            @else
+                                <a href="{{ route('borrower.loan-details') }}" class="bwl-tracker-link">
+                                    View Application Status
+                                </a>
+                            @endif
                         </div>
+                    @endif
+
+                </div>
+            </div>
+        @else
+            {{-- ============ FULL REDESIGNED DASHBOARD (may active loan) ============ --}}
+
+            {{-- ============ TOP STAT WIDGETS ============ --}}
+            {{-- Icon ngayon nasa top-right ng bawat widget, kagaya ng
+             reference screenshot (label left, icon right, value below). --}}
+            <div class="bwl-dash-widgets">
+                <div class="bwl-dash-widget">
+                    <div class="bwl-dash-widget-top">
+                        <div class="bwl-dash-widget-label">Outstanding Balance</div>
+                        <div class="bwl-dash-widget-icon"><i class="feather-credit-card"></i></div>
+                    </div>
+                    <div class="bwl-dash-widget-value">₱{{ number_format($outstandingAmount, 2) }}</div>
+                    <div class="bwl-dash-widget-sub">Loan #{{ str_pad($app->application_id, 5, '0', STR_PAD_LEFT) }}</div>
+                    <div class="bwl-dash-progress-track">
+                        <div class="bwl-dash-progress-fill" style="width:{{ $progressPct }}%"></div>
+                    </div>
+                </div>
+
+                <div class="bwl-dash-widget">
+                    <div class="bwl-dash-widget-top">
+                        <div class="bwl-dash-widget-label">Next Payment</div>
+                        <div class="bwl-dash-widget-icon"><i class="feather-calendar"></i></div>
+                    </div>
+                    <div class="bwl-dash-widget-value">
+                        {{ $nextUnpaid ? '₱' . number_format($nextUnpaid->amount_due, 2) : '—' }}
+                    </div>
+                    @if ($nextUnpaid)
+                        @php
+                            $dueCarbon = \Carbon\Carbon::parse($nextUnpaid->due_date);
+                            $daysDiff = now()
+                                ->startOfDay()
+                                ->diffInDays($dueCarbon->copy()->startOfDay(), false);
+                        @endphp
+                        <div class="bwl-dash-widget-sub">Due on {{ $dueCarbon->format('M d, Y') }}</div>
+                        <span class="bwl-dash-pill {{ $daysDiff < 0 ? 'is-danger' : 'is-info' }}">
+                            {{ $daysDiff < 0 ? abs($daysDiff) . ' ' . (abs($daysDiff) == 1 ? 'day' : 'days') . ' overdue' : $daysDiff . ' ' . ($daysDiff == 1 ? 'day' : 'days') . ' remaining' }}
+                        </span>
+                    @else
+                        <div class="bwl-dash-widget-sub">Loan fully paid</div>
+                    @endif
+                </div>
+
+                <div class="bwl-dash-widget">
+                    <div class="bwl-dash-widget-top">
+                        <div class="bwl-dash-widget-label">Total Amount Paid</div>
+                        <div class="bwl-dash-widget-icon"><i class="feather-check-circle"></i></div>
+                    </div>
+                    <div class="bwl-dash-widget-value">₱{{ number_format($amountPaid, 2) }}</div>
+                    <div class="bwl-dash-widget-sub">{{ $paidCount }} of {{ $totalCount }} payments</div>
+                    <div class="bwl-dash-progress-track">
+                        <div class="bwl-dash-progress-fill" style="width:{{ $progressPct }}%"></div>
+                    </div>
+                </div>
+
+                <div class="bwl-dash-widget">
+                    <div class="bwl-dash-widget-top">
+                        <div class="bwl-dash-widget-label">Payment Status</div>
+                        <div class="bwl-dash-widget-icon {{ $isOverdue ? 'is-red' : 'is-green' }}">
+                            <i class="feather-{{ $isOverdue ? 'alert-circle' : 'check-circle' }}"></i>
+                        </div>
+                    </div>
+                    <div class="bwl-dash-widget-value {{ $isOverdue ? 'text-danger' : 'text-success' }}">
+                        {{ $isOverdue ? 'Overdue' : 'Up to date' }}
+                    </div>
+                    <div class="bwl-dash-widget-sub">
+                        {{ $isOverdue ? $daysOverdue . ' ' . ($daysOverdue == 1 ? 'day' : 'days') . ' overdue' : 'No overdue payment' }}
                     </div>
                 </div>
             </div>
-            <div class="col-xxl-9">
-                <div class="card stretch stretch-full">
-                    <div class="card-header"><h5 class="card-title">Application Timeline</h5></div>
-                    <div class="card-body fs-13">
-                        @if(!$latestLoan)
-                            <p class="text-muted mb-0">You haven't applied for a loan yet.</p>
+
+            {{-- ============ CURRENT LOAN OVERVIEW + PAYMENT CALENDAR ============ --}}
+            <div class="bwl-dash-row bwl-dash-row-cal">
+                <div class="bwl-dash-card bwl-dash-overview">
+                    <div class="bwl-dash-card-header">
+                        <h6>Current Loan Overview</h6>
+                    </div>
+                    <div class="bwl-dash-overview-body">
+                        <div class="bwl-dash-overview-list">
+                            <div class="bwl-dash-overview-row">
+                                <span>Original Amount</span>
+                                <strong>₱{{ number_format($app->loan_amount, 2) }}</strong>
+                            </div>
+                            <div class="bwl-dash-overview-row">
+                                <span>Outstanding Balance</span>
+                                <strong>₱{{ number_format($outstandingAmount, 2) }}</strong>
+                            </div>
+                            <div class="bwl-dash-overview-row">
+                                <span>Monthly Payment</span>
+                                <strong>₱{{ number_format($totalCount > 0 ? $app->total_amount / $totalCount : 0, 2) }}</strong>
+                            </div>
+                            <div class="bwl-dash-overview-row">
+                                <span>Interest Rate</span>
+                                <strong>{{ number_format($app->interest_rate, 0) }}% monthly</strong>
+                            </div>
+                            <div class="bwl-dash-overview-row">
+                                <span>Loan Term</span>
+                                <strong>{{ $app->loan_term }} months</strong>
+                            </div>
+                            <div class="bwl-dash-overview-row">
+                                <span>Payments Made</span>
+                                <strong>{{ $paidCount }} / {{ $totalCount }}</strong>
+                            </div>
+                            <div class="bwl-dash-overview-row">
+                                <span>Next Due Date</span>
+                                <strong>{{ $nextUnpaid ? \Carbon\Carbon::parse($nextUnpaid->due_date)->format('M d, Y') : '—' }}</strong>
+                            </div>
+                        </div>
+
+                        <div class="bwl-dash-donut-wrap">
+                            <div class="bwl-dash-progress-title">Loan Progress</div>
+                            <div class="bwl-dash-progress-sub">{{ $paidCount }} of {{ $totalCount }} payments
+                                completed</div>
+                            <div class="bwl-dash-donut" style="--pct: {{ $progressPct }};">
+                                <div class="bwl-dash-donut-inner">
+                                    <span class="bwl-dash-donut-pct">{{ $progressPct }}%</span>
+                                </div>
+                            </div>
+                            <div class="bwl-dash-progress-sub">
+                                @if ($activatedAt)
+                                    Started on {{ \Carbon\Carbon::parse($activatedAt)->format('M d, Y') }}
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bwl-dash-card bwl-dash-calendar" id="bwl-dash-calendar-card"
+                    data-calendar-url="{{ route('borrower.dashboard.calendar') }}">
+                    <div class="bwl-dash-card-header">
+                        <h6>Payment Calendar</h6>
+                    </div>
+                    <div id="bwl-cal-content">
+                        @include('borrower.partials.payment-calendar')
+                    </div>
+                </div>
+            </div>
+            {{-- ↑ dati dito hindi naka-close yung .bwl-dash-row, kaya nagnest
+             yung sunod na row sa loob nito at nasira yung buong grid. --}}
+
+            {{-- ============ APPLICATION TIMELINE + RECENT PAYMENTS ============ --}}
+            <div class="bwl-dash-row">
+                <div class="bwl-dash-card bwl-dash-timeline">
+                    <div class="bwl-dash-card-header">
+                        <h6>Application Timeline</h6>
+                    </div>
+                    <div class="bwl-dash-timeline-list">
+                        <div class="bwl-dash-timeline-item is-done">
+                            <span class="bwl-dash-timeline-dot"></span>
+                            <div class="bwl-dash-timeline-body">
+                                <div class="bwl-dash-timeline-title">Application Submitted</div>
+                                <div class="bwl-dash-timeline-date">
+                                    {{ \Carbon\Carbon::parse($app->applied_at)->format('F j, Y') }}</div>
+                            </div>
+                            <span class="bwl-dash-timeline-badge is-done">Completed</span>
+                        </div>
+
+                        @if ($approvedAt)
+                            <div class="bwl-dash-timeline-item is-done">
+                                <span class="bwl-dash-timeline-dot"></span>
+                                <div class="bwl-dash-timeline-body">
+                                    <div class="bwl-dash-timeline-title">Application Approved</div>
+                                    <div class="bwl-dash-timeline-date">
+                                        {{ \Carbon\Carbon::parse($approvedAt)->format('F j, Y') }}</div>
+                                </div>
+                                <span class="bwl-dash-timeline-badge is-done">Completed</span>
+                            </div>
+                        @endif
+
+                        @if ($activatedAt)
+                            <div class="bwl-dash-timeline-item is-done">
+                                <span class="bwl-dash-timeline-dot"></span>
+                                <div class="bwl-dash-timeline-body">
+                                    <div class="bwl-dash-timeline-title">Loan Activated</div>
+                                    <div class="bwl-dash-timeline-date">
+                                        {{ \Carbon\Carbon::parse($activatedAt)->format('F j, Y') }}</div>
+                                </div>
+                                <span class="bwl-dash-timeline-badge is-done">Completed</span>
+                            </div>
+                        @endif
+
+                        @if ($nextUnpaid)
+                            <div class="bwl-dash-timeline-item is-upcoming">
+                                <span class="bwl-dash-timeline-dot"></span>
+                                <div class="bwl-dash-timeline-body">
+                                    <div class="bwl-dash-timeline-title">Next Payment</div>
+                                    <div class="bwl-dash-timeline-date">
+                                        {{ \Carbon\Carbon::parse($nextUnpaid->due_date)->format('F j, Y') }}</div>
+                                </div>
+                                <span class="bwl-dash-timeline-badge is-upcoming">Upcoming</span>
+                            </div>
                         @else
-                            <ul class="list-unstyled mb-0">
-                                <li class="mb-2">
-                                    <i class="feather-check-circle text-success me-2"></i>
-                                    Application Submitted —
-                                    <span class="text-muted">{{ \Carbon\Carbon::parse($latestLoan->applied_at)->format('F j, Y') }}</span>
-                                </li>
-                                <li class="mb-0">
-                                    <i class="feather-info me-2"></i>
-                                    Current Status: <strong>{{ $loanStatus['label'] }}</strong>
-                                </li>
-                            </ul>
+                            <div class="bwl-dash-timeline-item is-done">
+                                <span class="bwl-dash-timeline-dot"></span>
+                                <div class="bwl-dash-timeline-body">
+                                    <div class="bwl-dash-timeline-title">Loan Fully Paid</div>
+                                </div>
+                                <span class="bwl-dash-timeline-badge is-done">Completed</span>
+                            </div>
                         @endif
                     </div>
                 </div>
-            </div>
-        </div>
 
-        @else
-        {{-- ============ FULL REDESIGNED DASHBOARD (may active loan) ============ --}}
-
-        {{-- ============ TOP STAT WIDGETS ============ --}}
-        {{-- Icon ngayon nasa top-right ng bawat widget, kagaya ng
-             reference screenshot (label left, icon right, value below). --}}
-        <div class="bwl-dash-widgets">
-            <div class="bwl-dash-widget">
-                <div class="bwl-dash-widget-top">
-                    <div class="bwl-dash-widget-label">Outstanding Balance</div>
-                    <div class="bwl-dash-widget-icon"><i class="feather-credit-card"></i></div>
-                </div>
-                <div class="bwl-dash-widget-value">₱{{ number_format($outstandingAmount, 2) }}</div>
-                <div class="bwl-dash-widget-sub">Loan #{{ str_pad($app->application_id, 5, '0', STR_PAD_LEFT) }}</div>
-                <div class="bwl-dash-progress-track">
-                    <div class="bwl-dash-progress-fill" style="width:{{ $progressPct }}%"></div>
-                </div>
-            </div>
-
-            <div class="bwl-dash-widget">
-                <div class="bwl-dash-widget-top">
-                    <div class="bwl-dash-widget-label">Next Payment</div>
-                    <div class="bwl-dash-widget-icon"><i class="feather-calendar"></i></div>
-                </div>
-                <div class="bwl-dash-widget-value">
-                    {{ $nextUnpaid ? '₱' . number_format($nextUnpaid->amount_due, 2) : '—' }}
-                </div>
-                @if($nextUnpaid)
-                    @php
-                        $dueCarbon = \Carbon\Carbon::parse($nextUnpaid->due_date);
-                        $daysDiff = now()->startOfDay()->diffInDays($dueCarbon->copy()->startOfDay(), false);
-                    @endphp
-                    <div class="bwl-dash-widget-sub">Due on {{ $dueCarbon->format('M d, Y') }}</div>
-                    <span class="bwl-dash-pill {{ $daysDiff < 0 ? 'is-danger' : 'is-info' }}">
-                        {{ $daysDiff < 0 ? abs($daysDiff) . ' ' . (abs($daysDiff) == 1 ? 'day' : 'days') . ' overdue' : $daysDiff . ' ' . ($daysDiff == 1 ? 'day' : 'days') . ' remaining' }}
-                    </span>
-                @else
-                    <div class="bwl-dash-widget-sub">Loan fully paid</div>
-                @endif
-            </div>
-
-            <div class="bwl-dash-widget">
-                <div class="bwl-dash-widget-top">
-                    <div class="bwl-dash-widget-label">Total Amount Paid</div>
-                    <div class="bwl-dash-widget-icon"><i class="feather-check-circle"></i></div>
-                </div>
-                <div class="bwl-dash-widget-value">₱{{ number_format($amountPaid, 2) }}</div>
-                <div class="bwl-dash-widget-sub">{{ $paidCount }} of {{ $totalCount }} payments</div>
-                <div class="bwl-dash-progress-track">
-                    <div class="bwl-dash-progress-fill" style="width:{{ $progressPct }}%"></div>
-                </div>
-            </div>
-
-            <div class="bwl-dash-widget">
-                <div class="bwl-dash-widget-top">
-                    <div class="bwl-dash-widget-label">Payment Status</div>
-                    <div class="bwl-dash-widget-icon {{ $isOverdue ? 'is-red' : 'is-green' }}">
-                        <i class="feather-{{ $isOverdue ? 'alert-circle' : 'check-circle' }}"></i>
+                <div class="bwl-dash-card bwl-dash-payments">
+                    <div class="bwl-dash-card-header">
+                        <h6>Recent Payments</h6>
+                        <a href="{{ route('borrower.loan-details') }}">View All →</a>
                     </div>
-                </div>
-                <div class="bwl-dash-widget-value {{ $isOverdue ? 'text-danger' : 'text-success' }}">
-                    {{ $isOverdue ? 'Overdue' : 'Up to date' }}
-                </div>
-                <div class="bwl-dash-widget-sub">
-                    {{ $isOverdue ? $daysOverdue . ' ' . ($daysOverdue == 1 ? 'day' : 'days') . ' overdue' : 'No overdue payment' }}
-                </div>
-            </div>
-        </div>
-
-        {{-- ============ CURRENT LOAN OVERVIEW + PAYMENT CALENDAR ============ --}}
-        <div class="bwl-dash-row bwl-dash-row-cal">
-            <div class="bwl-dash-card bwl-dash-overview">
-                <div class="bwl-dash-card-header">
-                    <h6>Current Loan Overview</h6>
-                </div>
-                <div class="bwl-dash-overview-body">
-                    <div class="bwl-dash-overview-list">
-                        <div class="bwl-dash-overview-row">
-                            <span>Original Amount</span>
-                            <strong>₱{{ number_format($app->loan_amount, 2) }}</strong>
-                        </div>
-                        <div class="bwl-dash-overview-row">
-                            <span>Outstanding Balance</span>
-                            <strong>₱{{ number_format($outstandingAmount, 2) }}</strong>
-                        </div>
-                        <div class="bwl-dash-overview-row">
-                            <span>Monthly Payment</span>
-                            <strong>₱{{ number_format($totalCount > 0 ? $app->total_amount / $totalCount : 0, 2) }}</strong>
-                        </div>
-                        <div class="bwl-dash-overview-row">
-                            <span>Interest Rate</span>
-                            <strong>{{ number_format($app->interest_rate, 0) }}% monthly</strong>
-                        </div>
-                        <div class="bwl-dash-overview-row">
-                            <span>Loan Term</span>
-                            <strong>{{ $app->loan_term }} months</strong>
-                        </div>
-                        <div class="bwl-dash-overview-row">
-                            <span>Payments Made</span>
-                            <strong>{{ $paidCount }} / {{ $totalCount }}</strong>
-                        </div>
-                        <div class="bwl-dash-overview-row">
-                            <span>Next Due Date</span>
-                            <strong>{{ $nextUnpaid ? \Carbon\Carbon::parse($nextUnpaid->due_date)->format('M d, Y') : '—' }}</strong>
-                        </div>
-                    </div>
-
-                    <div class="bwl-dash-donut-wrap">
-                        <div class="bwl-dash-progress-title">Loan Progress</div>
-                        <div class="bwl-dash-progress-sub">{{ $paidCount }} of {{ $totalCount }} payments completed</div>
-                        <div class="bwl-dash-donut" style="--pct: {{ $progressPct }};">
-                            <div class="bwl-dash-donut-inner">
-                                <span class="bwl-dash-donut-pct">{{ $progressPct }}%</span>
-                            </div>
-                        </div>
-                        <div class="bwl-dash-progress-sub">
-                            @if($activatedAt)
-                                Started on {{ \Carbon\Carbon::parse($activatedAt)->format('M d, Y') }}
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bwl-dash-card bwl-dash-calendar" id="bwl-dash-calendar-card"
-                 data-calendar-url="{{ route('borrower.dashboard.calendar') }}">
-                <div class="bwl-dash-card-header">
-                    <h6>Payment Calendar</h6>
-                </div>
-                <div id="bwl-cal-content">
-                    @include('borrower.partials.payment-calendar')
-                </div>
-            </div>
-        </div>
-        {{-- ↑ dati dito hindi naka-close yung .bwl-dash-row, kaya nagnest
-             yung sunod na row sa loob nito at nasira yung buong grid. --}}
-
-        {{-- ============ APPLICATION TIMELINE + RECENT PAYMENTS ============ --}}
-        <div class="bwl-dash-row">
-            <div class="bwl-dash-card bwl-dash-timeline">
-                <div class="bwl-dash-card-header"><h6>Application Timeline</h6></div>
-                <div class="bwl-dash-timeline-list">
-                    <div class="bwl-dash-timeline-item is-done">
-                        <span class="bwl-dash-timeline-dot"></span>
-                        <div class="bwl-dash-timeline-body">
-                            <div class="bwl-dash-timeline-title">Application Submitted</div>
-                            <div class="bwl-dash-timeline-date">{{ \Carbon\Carbon::parse($app->applied_at)->format('F j, Y') }}</div>
-                        </div>
-                        <span class="bwl-dash-timeline-badge is-done">Completed</span>
-                    </div>
-
-                    @if($approvedAt)
-                    <div class="bwl-dash-timeline-item is-done">
-                        <span class="bwl-dash-timeline-dot"></span>
-                        <div class="bwl-dash-timeline-body">
-                            <div class="bwl-dash-timeline-title">Application Approved</div>
-                            <div class="bwl-dash-timeline-date">{{ \Carbon\Carbon::parse($approvedAt)->format('F j, Y') }}</div>
-                        </div>
-                        <span class="bwl-dash-timeline-badge is-done">Completed</span>
-                    </div>
-                    @endif
-
-                    @if($activatedAt)
-                    <div class="bwl-dash-timeline-item is-done">
-                        <span class="bwl-dash-timeline-dot"></span>
-                        <div class="bwl-dash-timeline-body">
-                            <div class="bwl-dash-timeline-title">Loan Activated</div>
-                            <div class="bwl-dash-timeline-date">{{ \Carbon\Carbon::parse($activatedAt)->format('F j, Y') }}</div>
-                        </div>
-                        <span class="bwl-dash-timeline-badge is-done">Completed</span>
-                    </div>
-                    @endif
-
-                    @if($nextUnpaid)
-                    <div class="bwl-dash-timeline-item is-upcoming">
-                        <span class="bwl-dash-timeline-dot"></span>
-                        <div class="bwl-dash-timeline-body">
-                            <div class="bwl-dash-timeline-title">Next Payment</div>
-                            <div class="bwl-dash-timeline-date">{{ \Carbon\Carbon::parse($nextUnpaid->due_date)->format('F j, Y') }}</div>
-                        </div>
-                        <span class="bwl-dash-timeline-badge is-upcoming">Upcoming</span>
-                    </div>
-                    @else
-                    <div class="bwl-dash-timeline-item is-done">
-                        <span class="bwl-dash-timeline-dot"></span>
-                        <div class="bwl-dash-timeline-body">
-                            <div class="bwl-dash-timeline-title">Loan Fully Paid</div>
-                        </div>
-                        <span class="bwl-dash-timeline-badge is-done">Completed</span>
-                    </div>
-                    @endif
-                </div>
-            </div>
-
-            <div class="bwl-dash-card bwl-dash-payments">
-                <div class="bwl-dash-card-header">
-                    <h6>Recent Payments</h6>
-                    <a href="{{ route('borrower.loan-details') }}">View All →</a>
-                </div>
-                <div class="bwl-dash-payment-list">
-                    @forelse($recentPayments as $p)
-                        <div class="bwl-dash-payment-item">
-                            <div class="bwl-dash-payment-body">
-                                <div class="bwl-dash-payment-title">Installment #{{ $p->installment_no }}</div>
-                                <div class="bwl-dash-payment-date">
-                                    Due {{ \Carbon\Carbon::parse($p->due_date)->format('M j, Y') }}
-                                    &middot; Paid {{ \Carbon\Carbon::parse($p->paid_at)->format('M j, Y') }}
+                    <div class="bwl-dash-payment-list">
+                        @forelse($recentPayments as $p)
+                            <div class="bwl-dash-payment-item">
+                                <div class="bwl-dash-payment-body">
+                                    <div class="bwl-dash-payment-title">Installment #{{ $p->installment_no }}</div>
+                                    <div class="bwl-dash-payment-date">
+                                        Due {{ \Carbon\Carbon::parse($p->due_date)->format('M j, Y') }}
+                                        &middot; Paid {{ \Carbon\Carbon::parse($p->paid_at)->format('M j, Y') }}
+                                    </div>
                                 </div>
+                                <span class="bwl-dash-payment-amount">₱{{ number_format($p->amount_paid, 2) }}</span>
                             </div>
-                            <span class="bwl-dash-payment-amount">₱{{ number_format($p->amount_paid, 2) }}</span>
-                        </div>
-                    @empty
-                        <p class="text-muted mb-0 p-3">No payments recorded yet.</p>
-                    @endforelse
+                        @empty
+                            <p class="text-muted mb-0 p-3">No payments recorded yet.</p>
+                        @endforelse
+                    </div>
                 </div>
             </div>
-        </div>
 
         @endif
 
         @section('page-scripts')
-<script src="{{ asset('functions/borrower-dashboard.js') }}"></script>
+            <script src="{{ asset('functions/borrower-dashboard.js') }}"></script>
         @endsection
 
     </div>

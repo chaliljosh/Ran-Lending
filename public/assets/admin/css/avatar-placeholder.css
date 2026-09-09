@@ -1,0 +1,42 @@
+/* ============================================================
+   DEFAULT AVATAR PLACEHOLDER
+   Ginagamit sa lahat ng avatar circles na walang profile picture
+   — admin (.js-admin-avatar) at borrower (.js-borrower-avatar)
+   side, parehong pattern kaya iisang file lang.
+
+   Paano gumagana: itinatago lang yung initials TEXT (color:
+   transparent + font-size:0) sa halip na alisin ito sa markup,
+   tapos pinapalitan ng generic person-silhouette bilang
+   background-image (SVG). Kaya:
+   - Gumagana kahit saang laki ng avatar circle (header 36px,
+     modal 64px, atbp) — automatic na sumusukat.
+   - Gumagana kahit sa "broken image" fallback case (JS na
+     nagse-set ng textContent = initials pag na-fail mag-load
+     yung <img>) — hindi na kailangang baguhin ang JS, dahil
+     itinatago pa rin ng CSS na ito yung text kahit kailan.
+   - Walang kailangang baguhin sa Blade o JS — CSS lang ito.
+============================================================ */
+
+.js-admin-avatar,
+.js-borrower-avatar {
+    background-color: #CBD5E1 !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='36' r='18' fill='white'/%3E%3Ccircle cx='50' cy='104' r='38' fill='white'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: 100% 100% !important;
+    color: transparent !important;
+    font-size: 0 !important;
+}
+
+/* Note: hindi na kailangan ng z-index/position rule para sa <img> —
+   normal na palaging nasa ibabaw ng background ng parent niya ang
+   child element, kaya ang <img> ay lumalabas na sa itaas ng
+   silhouette background nang walang extra CSS. (Dating may
+   z-index:1 dito na nagdulot ng bug — tinaas nito ang img papasok
+   sa stacking context na dapat pag-aari ng camera badge button,
+   kaya natatakpan yung icon.) */
+
+html.app-skin-dark .js-admin-avatar,
+html.app-skin-dark .js-borrower-avatar {
+    background-color: #334155 !important;
+}

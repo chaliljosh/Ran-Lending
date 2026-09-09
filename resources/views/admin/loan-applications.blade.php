@@ -72,7 +72,7 @@
                                 <th>Term</th>
                                 <th>Purpose</th>
                                 <th>Applied Date</th>
-                                <th>Votes</th>
+                                <th>Reviews</th>
                                 <th>Status</th>
                                 <th class="text-end">Action</th>
                             </tr>

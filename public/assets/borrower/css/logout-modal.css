@@ -161,30 +161,80 @@ html.app-skin-dark .logout-cancel-btn { background: #1E293B !important; color: #
 html.app-skin-dark .logout-cancel-btn:hover { background: #101929 !important; }
 
 /* ============================================================
-   CROSS-TAB LOGOUT OVERLAY
+   CROSS-TAB LOGOUT OVERLAY — iOS style
    Shown in a tab that was left open (e.g. dashboard) when the
    user logs out from another tab. Full-screen, blocks all
    interaction with the stale page underneath.
+
+   Redesign notes: card used to be flat solid white (#fff), which
+   looked plain/dated. Swapped to a frosted-glass look (translucent
+   bg + backdrop-filter blur) like an iOS alert/sheet, with a subtle
+   border for depth instead of relying only on shadow.
 ============================================================ */
 .logged-out-overlay {
     position: fixed;
     inset: 0;
     z-index: 99999;
-    background: rgba(241, 245, 249, 0.85);
+    background: rgba(241, 245, 249, 0.6);
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .logged-out-card {
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, .18);
+    position: relative;
+    background: rgba(255, 255, 255, 0.28);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 18px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, .12);
     width: 320px;
     max-width: calc(100vw - 40px);
     text-align: center;
-    overflow: hidden;
-    padding: 32px 24px 0;
+    overflow: visible;
+    padding: 28px 24px 24px;
+}
+
+/* Floating close (X) button — top right corner, same treatment as
+   the logout confirm modal's close button */
+.logged-out-close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid #E5E7EB;
+    background: #fff;
+    cursor: pointer;
+    transition: all .15s ease;
+}
+.logged-out-close-btn:hover {
+    background: #F1F5F9;
+    border-color: #CBD5E1;
+}
+.logged-out-close-btn::before,
+.logged-out-close-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 13px;
+    height: 1.6px;
+    background: #64748B;
+    border-radius: 1px;
+}
+.logged-out-close-btn::before {
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+.logged-out-close-btn::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
+}
+.logged-out-close-btn:hover::before,
+.logged-out-close-btn:hover::after {
+    background: #1E293B;
 }
 
 .logged-out-card h4 {
@@ -197,30 +247,41 @@ html.app-skin-dark .logout-cancel-btn:hover { background: #101929 !important; }
 .logged-out-card p {
     font-size: 14.5px;
     color: #64748B;
-    margin-bottom: 24px;
-}
-
-.logged-out-divider {
-    height: 1px;
-    background: #E5E7EB;
-    margin: 0 -24px;
+    margin-bottom: 20px;
 }
 
 .logged-out-link {
-    display: block;
-    padding: 14px 0;
-    font-size: 15px;
+    display: inline-block;
+    min-width: 130px;
+    height: 42px;
+    line-height: 42px;
+    padding: 0 24px;
+    border-radius: 999px;
+    background: #0F172A;
+    color: #fff;
+    font-size: 14px;
     font-weight: 600;
-    color: #2563EB;
+    text-align: center;
     text-decoration: none;
+    border: none;
+    transition: background .15s ease;
 }
 .logged-out-link:hover {
-    color: #1D4ED8;
+    background: #000;
+    color: #fff;
 }
 
 /* Dark mode */
-html.app-skin-dark .logged-out-overlay { background: rgba(15, 23, 42, 0.85); }
-html.app-skin-dark .logged-out-card { background: #17202F; }
+html.app-skin-dark .logged-out-overlay { background: rgba(15, 23, 42, 0.6); }
+html.app-skin-dark .logged-out-card {
+    background: rgba(23, 32, 47, 0.32);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+html.app-skin-dark .logged-out-close-btn { background: #1E293B; border-color: #2A3648; }
+html.app-skin-dark .logged-out-close-btn::before,
+html.app-skin-dark .logged-out-close-btn::after { background: #94A3B8; }
+html.app-skin-dark .logged-out-close-btn:hover { background: #101929; }
+html.app-skin-dark .logged-out-close-btn:hover::before,
+html.app-skin-dark .logged-out-close-btn:hover::after { background: #E5E9F0; }
 html.app-skin-dark .logged-out-card h4 { color: #E5E9F0; }
 html.app-skin-dark .logged-out-card p { color: #94A3B8; }
-html.app-skin-dark .logged-out-divider { background: #2A3648; }

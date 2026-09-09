@@ -26,13 +26,19 @@ function showLoggedOutOverlay() {
     overlay.className = 'logged-out-overlay';
     overlay.innerHTML = `
         <div class="logged-out-card">
+            <button type="button" class="logged-out-close-btn" id="loggedOutCloseBtn" aria-label="Close"></button>
             <h4>You've been logged out</h4>
             <p>Please log in again.</p>
-            <div class="logged-out-divider"></div>
             <a href="/login" class="logged-out-link">Log in</a>
         </div>
     `;
     document.body.appendChild(overlay);
+
+    // Close just dismisses the notice — doesn't try to keep the stale
+    // session alive, it only lets the user stop looking at it.
+    document.getElementById('loggedOutCloseBtn').addEventListener('click', function () {
+        overlay.remove();
+    });
 }
 
 function confirmLogout() {

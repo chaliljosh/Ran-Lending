@@ -275,6 +275,7 @@ class BorrowerController extends Controller
 
         $app = null;
         $outstandingAmount = 0;
+        $amountPaid = 0;
         $progressPct = 0;
         $totalCount = 0;
         $paidCount = 0;

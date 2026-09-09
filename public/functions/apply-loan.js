@@ -1,97 +1,132 @@
 // Apply for a Loan — optimized form validation,
-// live summary calculator, and AJAX submission.
+// live summary calculator, AJAX submission, and the
+// post-submit success toast check.
 //
-// Expects:
-// window.APPLY_LOAN_CONFIG = {
-//     csrfToken,
-//     submitUrl
-// };
+// Config comes from data-* attributes on this <script> tag itself
+// (set server-side in apply-loan.blade.php), so no separate inline
+// <script> block is needed in the view:
+//   <script src="...apply-loan.js" data-csrf="..." data-submit-url="..."></script>
 
 (function () {
-    'use strict';
+    "use strict";
+
+    // =========================================================
+    // CONFIG — read from this script tag's own attributes
+    // =========================================================
+
+    const scriptTag = document.currentScript;
+    const CSRF_TOKEN = scriptTag ? scriptTag.dataset.csrf : "";
+    const SUBMIT_URL = scriptTag ? scriptTag.dataset.submitUrl : "";
+
+    // =========================================================
+    // POST-SUBMIT SUCCESS TOAST
+    // =========================================================
+    //
+    // Runs unconditionally (not gated behind the form-exists check
+    // below) because after a successful submission the page reloads
+    // into the "pending application" view — the form (and
+    // loanAmountInput) won't exist on that reloaded page, but the
+    // toast still needs to show there.
+
+    document.addEventListener("DOMContentLoaded", function () {
+        if (sessionStorage.getItem("loanApplicationSubmitted") === "1") {
+            sessionStorage.removeItem("loanApplicationSubmitted");
+
+            const overlay = document.getElementById("successOverlay");
+            if (overlay) {
+                // Small delay so the toast animates in after paint,
+                // instead of appearing already-visible on load.
+                requestAnimationFrame(function () {
+                    overlay.classList.add("show");
+                });
+
+                setTimeout(function () {
+                    overlay.classList.remove("show");
+                }, 6000);
+            }
+        }
+    });
 
     // =========================================================
     // DOM ELEMENTS
     // =========================================================
 
-    const loanAmountInput   = document.getElementById('loanAmount');
-    const loanTermSelect    = document.getElementById('loanTerm');
-    const loanPurposeSelect = document.getElementById('loanPurpose');
-    const referralSelect    = document.getElementById('referralSource');
+    const loanAmountInput = document.getElementById("loanAmount");
+    const loanTermSelect = document.getElementById("loanTerm");
+    const loanPurposeSelect = document.getElementById("loanPurpose");
+    const referralSelect = document.getElementById("referralSource");
 
-    const referralNameField = document.getElementById('referralNameField');
-    const referralNameInput = document.getElementById('referralName');
+    const referralNameField = document.getElementById("referralNameField");
+    const referralNameInput = document.getElementById("referralName");
 
-    const submitBtn         = document.getElementById('submitBtn');
-    const agreeCheckbox     = document.getElementById('agreeTerms');
-    const finalSubmitBtn    = document.getElementById('finalSubmitBtn');
+    const submitBtn = document.getElementById("submitBtn");
+    const agreeCheckbox = document.getElementById("agreeTerms");
+    const finalSubmitBtn = document.getElementById("finalSubmitBtn");
 
     // Summary elements
-    const displayPrincipal       = document.getElementById('displayPrincipal');
-    const displayTotalInterest   = document.getElementById('displayTotalInterest');
-    const displayTotalAmount     = document.getElementById('displayTotalAmount');
-    const displayTerm            = document.getElementById('displayTerm');
-    const displayMonthlyPayment  = document.getElementById('displayMonthlyPayment');
-
-    // Modal / overlay
-    const termsModalElement = document.getElementById('termsModal');
-    const successOverlay    = document.getElementById('successOverlay');
-
+    const displayPrincipal = document.getElementById("displayPrincipal");
+    const displayTotalInterest = document.getElementById(
+        "displayTotalInterest",
+    );
+    const displayTotalAmount = document.getElementById("displayTotalAmount");
+    const displayTerm = document.getElementById("displayTerm");
+    const displayMonthlyPayment = document.getElementById(
+        "displayMonthlyPayment",
+    );
 
     // =========================================================
-    // STOP IF FORM DOES NOT EXIST
+    // STOP HERE IF FORM DOES NOT EXIST
     // =========================================================
+    //
+    // (e.g. the borrower already has a pending/active application,
+    // so the blade view rendered the pending-status card instead of
+    // the form — the toast check above already ran regardless.)
 
     if (!loanAmountInput) {
         return;
     }
 
-
     // =========================================================
     // CONSTANTS
     // =========================================================
 
-    const INTEREST_RATE = 0.05; // 5% monthly
     const MIN_AMOUNT = 1000;
     const MAX_AMOUNT = 10000;
-
+    const INTEREST_RATE = 0.05; // 5% monthly
 
     // =========================================================
     // NUMBER FORMATTER
     // =========================================================
 
-    const pesoFormatter = new Intl.NumberFormat('en-PH', {
+    const pesoFormatter = new Intl.NumberFormat("en-PH", {
         minimumFractionDigits: 2,
-        maximumFractionDigits: 2
+        maximumFractionDigits: 2,
     });
 
     function formatPeso(value) {
-        return '₱' + pesoFormatter.format(value);
+        return "₱" + pesoFormatter.format(value);
     }
-
 
     // =========================================================
     // CLAMP LOAN AMOUNT
     // =========================================================
 
     function clampLoanAmount() {
-
         const value = loanAmountInput.value;
 
-        if (value === '') {
+        if (value === "") {
             return 0;
         }
 
         // Only allow a reasonable number of digits.
         if (value.length > String(MAX_AMOUNT).length) {
-            loanAmountInput.value =
-                value.slice(0, String(MAX_AMOUNT).length);
+            loanAmountInput.value = value.slice(0, String(MAX_AMOUNT).length);
         }
 
         let amount = parseFloat(loanAmountInput.value);
 
         if (Number.isNaN(amount)) {
-            loanAmountInput.value = '';
+            loanAmountInput.value = "";
             return 0;
         }
 
@@ -108,38 +143,25 @@
         return amount;
     }
 
-
     // =========================================================
     // FORM VALIDATION
     // =========================================================
 
     function validateForm() {
-
         const amount = parseFloat(loanAmountInput.value) || 0;
 
-        const validAmount =
-            amount >= MIN_AMOUNT &&
-            amount <= MAX_AMOUNT;
+        const validAmount = amount >= MIN_AMOUNT && amount <= MAX_AMOUNT;
 
-        const validTerm =
-            loanTermSelect &&
-            !!loanTermSelect.value;
+        const validTerm = loanTermSelect && !!loanTermSelect.value;
 
-        const validPurpose =
-            loanPurposeSelect &&
-            !!loanPurposeSelect.value;
+        const validPurpose = loanPurposeSelect && !!loanPurposeSelect.value;
 
-        const validReferral =
-            referralSelect &&
-            !!referralSelect.value;
+        const validReferral = referralSelect && !!referralSelect.value;
 
         const validReferralName =
             !referralSelect ||
-            referralSelect.value !== 'friend_family' ||
-            (
-                referralNameInput &&
-                referralNameInput.value.trim().length > 0
-            );
+            referralSelect.value !== "friend_family" ||
+            (referralNameInput && referralNameInput.value.trim().length > 0);
 
         const isValid =
             validAmount &&
@@ -155,64 +177,47 @@
         return isValid;
     }
 
-
     // =========================================================
     // UPDATE SUMMARY
     // =========================================================
 
     function updateSummary() {
-
         const amount = clampLoanAmount();
 
         const term =
-            loanTermSelect &&
-            loanTermSelect.value
+            loanTermSelect && loanTermSelect.value
                 ? parseInt(loanTermSelect.value, 10)
                 : 0;
 
-        const totalInterest =
-            amount * INTEREST_RATE * term;
+        const totalInterest = amount * INTEREST_RATE * term;
 
-        const totalAmount =
-            amount + totalInterest;
+        const totalAmount = amount + totalInterest;
 
-        const monthlyPayment =
-            term > 0
-                ? totalAmount / term
-                : 0;
-
+        const monthlyPayment = term > 0 ? totalAmount / term : 0;
 
         // Only update elements that exist.
         if (displayPrincipal) {
-            displayPrincipal.textContent =
-                formatPeso(amount);
+            displayPrincipal.textContent = formatPeso(amount);
         }
 
         if (displayTotalInterest) {
-            displayTotalInterest.textContent =
-                formatPeso(totalInterest);
+            displayTotalInterest.textContent = formatPeso(totalInterest);
         }
 
         if (displayTotalAmount) {
-            displayTotalAmount.textContent =
-                formatPeso(totalAmount);
+            displayTotalAmount.textContent = formatPeso(totalAmount);
         }
 
         if (displayTerm) {
-            displayTerm.textContent =
-                term > 0
-                    ? term + ' months'
-                    : '— months';
+            displayTerm.textContent = term > 0 ? term + " months" : "— months";
         }
 
         if (displayMonthlyPayment) {
-            displayMonthlyPayment.textContent =
-                formatPeso(monthlyPayment);
+            displayMonthlyPayment.textContent = formatPeso(monthlyPayment);
         }
 
         validateForm();
     }
-
 
     // =========================================================
     // REQUEST ANIMATION FRAME
@@ -225,7 +230,6 @@
     let summaryFrame = null;
 
     function scheduleSummaryUpdate() {
-
         if (summaryFrame !== null) {
             cancelAnimationFrame(summaryFrame);
         }
@@ -236,94 +240,63 @@
         });
     }
 
-
     // =========================================================
     // EVENT LISTENERS
     // =========================================================
 
     // Loan amount
-    loanAmountInput.addEventListener(
-        'input',
-        scheduleSummaryUpdate,
-        { passive: true }
-    );
-
+    loanAmountInput.addEventListener("input", scheduleSummaryUpdate, {
+        passive: true,
+    });
 
     // Loan term
     if (loanTermSelect) {
-        loanTermSelect.addEventListener(
-            'change',
-            updateSummary
-        );
+        loanTermSelect.addEventListener("change", updateSummary);
     }
-
 
     // Loan purpose
     if (loanPurposeSelect) {
-        loanPurposeSelect.addEventListener(
-            'change',
-            validateForm
-        );
+        loanPurposeSelect.addEventListener("change", validateForm);
     }
-
 
     // Referral name
     if (referralNameInput) {
-        referralNameInput.addEventListener(
-            'input',
-            validateForm,
-            { passive: true }
-        );
+        referralNameInput.addEventListener("input", validateForm, {
+            passive: true,
+        });
     }
-
 
     // Referral source
     if (referralSelect) {
+        referralSelect.addEventListener("change", function () {
+            const isFriendFamily = this.value === "friend_family";
 
-        referralSelect.addEventListener(
-            'change',
-            function () {
-
-                const isFriendFamily =
-                    this.value === 'friend_family';
-
-                if (referralNameField) {
-                    referralNameField.style.display =
-                        isFriendFamily
-                            ? 'block'
-                            : 'none';
-                }
-
-                if (!isFriendFamily && referralNameInput) {
-                    referralNameInput.value = '';
-                }
-
-                validateForm();
+            if (referralNameField) {
+                referralNameField.style.display = isFriendFamily
+                    ? "block"
+                    : "none";
             }
-        );
-    }
 
+            if (!isFriendFamily && referralNameInput) {
+                referralNameInput.value = "";
+            }
+
+            validateForm();
+        });
+    }
 
     // Terms checkbox
     if (agreeCheckbox && finalSubmitBtn) {
-
-        agreeCheckbox.addEventListener(
-            'change',
-            function () {
-
-                finalSubmitBtn.disabled =
-                    !this.checked;
-            }
-        );
+        agreeCheckbox.addEventListener("change", function () {
+            finalSubmitBtn.disabled = !this.checked;
+        });
     }
-
 
     // =========================================================
     // SUBMIT APPLICATION
     // =========================================================
 
     window.submitApplication = function () {
-
         if (!finalSubmitBtn) {
             return;
         }
@@ -332,13 +305,7 @@
         finalSubmitBtn.disabled = true;
 
         finalSubmitBtn.innerHTML =
-            '<span class="spinner-border spinner-border-sm me-2"></span>' +
-            'Submitting...';
-
-
-        const config =
-            window.APPLY_LOAN_CONFIG || {};
-
+            '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
 
         // =====================================================
         // FORM DATA
@@ -346,147 +313,108 @@
 
         const formData = new FormData();
 
+        formData.append("loanAmount", loanAmountInput.value);
+
+        formData.append("loanTerm", loanTermSelect ? loanTermSelect.value : "");
+
         formData.append(
-            'loanAmount',
-            loanAmountInput.value
+            "loanPurpose",
+            loanPurposeSelect ? loanPurposeSelect.value : "",
         );
 
         formData.append(
-            'loanTerm',
-            loanTermSelect
-                ? loanTermSelect.value
-                : ''
+            "referralSource",
+            referralSelect ? referralSelect.value : "",
         );
 
         formData.append(
-            'loanPurpose',
-            loanPurposeSelect
-                ? loanPurposeSelect.value
-                : ''
+            "referralName",
+            referralNameInput ? referralNameInput.value : "",
         );
 
-        formData.append(
-            'referralSource',
-            referralSelect
-                ? referralSelect.value
-                : ''
-        );
-
-        formData.append(
-            'referralName',
-            referralNameInput
-                ? referralNameInput.value
-                : ''
-        );
-
-        formData.append(
-            '_token',
-            config.csrfToken || ''
-        );
-
+        formData.append("_token", CSRF_TOKEN || "");
 
         // =====================================================
         // AJAX REQUEST
         // =====================================================
 
-        fetch(config.submitUrl, {
-            method: 'POST',
+        fetch(SUBMIT_URL, {
+            method: "POST",
 
             headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
+                "X-Requested-With": "XMLHttpRequest",
+                Accept: "application/json",
             },
 
-            body: formData
+            body: formData,
         })
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error(
+                        "Request failed with status " + response.status,
+                    );
+                }
 
-        .then(function (response) {
+                return response.json();
+            })
 
-            if (!response.ok) {
-                throw new Error(
-                    'Request failed with status ' +
-                    response.status
-                );
-            }
-
-            return response.json();
-        })
-
-        .then(function (data) {
-
-            if (data.success) {
-
-                // Hide terms modal
-                if (termsModalElement) {
-
-                    const modal =
-                        bootstrap.Modal.getInstance(
-                            termsModalElement
+            .then(function (data) {
+                if (data.success) {
+                    // Flag the toast to show after reload, since the
+                    // page needs to reload anyway to re-render the
+                    // "pending application" card from the server
+                    // (hasPendingApplication is computed server-side).
+                    try {
+                        sessionStorage.setItem(
+                            "loanApplicationSubmitted",
+                            "1",
                         );
-
-                    if (modal) {
-                        modal.hide();
+                    } catch (err) {
+                        // sessionStorage unavailable (private mode, etc.)
+                        // — not critical, the reload still happens.
                     }
+
+                    window.location.reload();
+                } else {
+                    alert(
+                        data.message ||
+                            "Something went wrong. Please try again.",
+                    );
+
+                    resetSubmitButton();
                 }
+            })
 
-
-                // Show success overlay
-                if (successOverlay) {
-                    successOverlay.style.display = 'flex';
-                }
-
-            } else {
+            .catch(function (error) {
+                console.error("Loan submission error:", error);
 
                 alert(
-                    data.message ||
-                    'Something went wrong. Please try again.'
+                    "Something went wrong. Please check your connection and try again.",
                 );
 
                 resetSubmitButton();
-            }
-        })
-
-        .catch(function (error) {
-
-            console.error(
-                'Loan submission error:',
-                error
-            );
-
-            alert(
-                'Something went wrong. Please check your connection and try again.'
-            );
-
-            resetSubmitButton();
-        });
+            });
     };
-
 
     // =========================================================
     // RESET SUBMIT BUTTON
     // =========================================================
 
     function resetSubmitButton() {
-
         if (!finalSubmitBtn) {
             return;
         }
 
-        finalSubmitBtn.disabled =
-            agreeCheckbox
-                ? !agreeCheckbox.checked
-                : false;
+        finalSubmitBtn.disabled = agreeCheckbox
+            ? !agreeCheckbox.checked
+            : false;
 
-        finalSubmitBtn.innerHTML =
-            '<i class="feather-check me-2"></i>' +
-            'Accept & Submit';
+        finalSubmitBtn.textContent = "Accept & Submit";
     }
-
 
     // =========================================================
     // INITIAL STATE
     // =========================================================
 
     updateSummary();
-
 })();

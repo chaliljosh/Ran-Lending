@@ -10,7 +10,9 @@
 
     <div class="page-header">
         <div class="page-header-left d-flex align-items-center">
-            <div class="page-header-title"><h5 class="m-b-10">Apply for a Loan</h5></div>
+            <div class="page-header-title">
+                <h5 class="m-b-10">Apply for a Loan</h5>
+            </div>
             <ul class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('borrower.dashboard') }}">Home</a></li>
                 <li class="breadcrumb-item">Apply for a Loan</li>
@@ -20,110 +22,98 @@
 
     <div class="main-content">
         <div class="row justify-content-center">
-            <div class="{{ $hasPendingApplication ? 'col-lg-8' : 'col-lg-10' }}">
+            <div class="{{ $hasPendingApplication ? 'col-lg-8' : 'col-lg-9' }}">
 
-                @if($hasPendingApplication)
-
+                @if ($hasPendingApplication)
                     @php
-                        $cardTitle   = 'Application In Review';
+                        $cardEyebrow = 'Loan Application';
+                        $cardTitle = 'Pending Review';
                         $cardSubtext = "You'll be notified once a decision is made.";
-                        $cardNote    = 'A new application can be submitted once this one is approved or rejected.';
+                        $cardNote = 'A new application can be submitted once this one is approved or rejected.';
 
-                        if (
-                            $existingApplication->status === 'approved' ||
-                            $existingApplication->status === 'active'
-                        ) {
-                            $cardTitle   = 'You Have an Active Loan';
+                        if ($existingApplication->status === 'approved' || $existingApplication->status === 'active') {
+                            $cardEyebrow = 'Active Loan';
+                            $cardTitle = 'Loan Active';
                             $cardSubtext = 'Your current loan is active and being repaid.';
-                            $cardNote    = 'You can apply for a new loan once your active loan has been fully paid off.';
+                            $cardNote = 'You can apply for a new loan once your active loan has been fully paid off.';
                         }
                     @endphp
 
                     {{-- Pending / Active Loan Notice --}}
-                    <div class="pending-section">
-                        <div class="pending-section__head">
-                            <div class="pending-section__head-text">
-                                <span class="pending-eyebrow">Current Loan</span>
-                                <h5 class="mb-0">{{ $cardTitle }}</h5>
-                                <p class="mb-0">{{ $cardSubtext }}</p>
+                    <section class="aln-section">
+                        <div class="aln-section__head">
+                            <div>
+                                <span class="aln-eyebrow">{{ $cardEyebrow }}</span>
+                                <h5 class="aln-title">{{ $cardTitle }}</h5>
+                                <p class="aln-subtext">{{ $cardSubtext }}</p>
                             </div>
-                            <span class="status-badge {{ $existingApplication->status }}">
+                            <span class="aln-status aln-status--{{ $existingApplication->status }}">
+                                <span class="aln-status-dot"></span>
                                 {{ ucfirst(str_replace('_', ' ', $existingApplication->status)) }}
                             </span>
                         </div>
 
-                        <div class="bwl-stat-grid">
-                            <div class="bwl-stat-card">
-                                <div class="bwl-stat-top">
-                                    <span class="bwl-stat-label">Application ID</span>
-                            
-                                </div>
-                                <div class="bwl-stat-value">#{{ $existingApplication->application_id }}</div>
+                        <div class="aln-info-row">
+                            <div class="aln-info-item">
+                                <span class="aln-info-label">Application ID</span>
+                                <span class="aln-info-value">#{{ $existingApplication->application_id }}</span>
                             </div>
-
-                            <div class="bwl-stat-card">
-                                <div class="bwl-stat-top">
-                                    <span class="bwl-stat-label">Loan Amount</span>
-                                  
-                                </div>
-                                <div class="bwl-stat-value">₱{{ number_format($existingApplication->loan_amount, 2) }}</div>
+                            <div class="aln-info-item">
+                                <span class="aln-info-label">Loan Amount</span>
+                                <span
+                                    class="aln-info-value">₱{{ number_format($existingApplication->loan_amount, 2) }}</span>
                             </div>
-
-                            <div class="bwl-stat-card">
-                                <div class="bwl-stat-top">
-                                    <span class="bwl-stat-label">Date Applied</span>
-                                 
-                                </div>
-                                <div class="bwl-stat-value">{{ \Carbon\Carbon::parse($existingApplication->applied_at)->format('M d, Y') }}</div>
+                            <div class="aln-info-item">
+                                <span class="aln-info-label">Date Applied</span>
+                                <span
+                                    class="aln-info-value">{{ \Carbon\Carbon::parse($existingApplication->applied_at)->format('M d, Y') }}</span>
                             </div>
                         </div>
 
-                        <p class="pending-note">{{ $cardNote }}</p>
+                        <p class="aln-note">{{ $cardNote }}</p>
 
-                        <a href="{{ route('borrower.loan-details') }}" class="pending-card__cta">
+                        <a href="{{ route('borrower.loan-details') }}" class="aln-link">
                             View Application Status
-                           
                         </a>
-                    </div>
-
+                    </section>
                 @else
-
-                    {{-- INFO BANNER --}}
-                    <div class="info-banner">
-                        <i class="feather-info me-2"></i>
+                    {{-- INFO NOTICE --}}
+                    <div class="aln-notice">
                         <strong>First-Time Borrowers:</strong>
-                        Maximum loan amount is ₱10,000.
-                        After successful repayment, you may apply for higher amounts up to ₱100,000.
+                        Maximum loan amount is ₱10,000. After successful repayment, you may apply for higher amounts up to
+                        ₱100,000.
                     </div>
 
                     {{-- LOAN APPLICATION FORM --}}
                     <form id="loanApplicationForm" onsubmit="return false;">
 
                         {{-- Loan Details --}}
-                        <div class="form-section">
-                            <p class="form-section-title">Loan Details</p>
+                        <section class="aln-section">
+                            <h6 class="aln-section-title">Loan Details</h6>
+                            <div class="aln-hr aln-hr--tight"></div>
 
                             <div class="row g-3">
 
                                 {{-- Loan Amount --}}
                                 <div class="col-md-6">
-                                    <label class="form-label">
-                                        Loan Amount <span class="text-danger">*</span>
+                                    <label class="aln-label">
+                                        Loan Amount <span class="aln-required">*</span>
                                     </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">₱</span>
-                                        <input type="number" class="form-control" id="loanAmount"
-                                               placeholder="1,000 – 10,000" min="1000" max="10000" step="100" required>
+                                    <div class="input-group aln-input-group">
+                                        <span class="input-group-text aln-input-prefix">₱</span>
+                                        <input type="number" class="form-control aln-input" id="loanAmount"
+                                            placeholder="1,000 – 10,000" min="1000" max="10000" step="100"
+                                            required>
                                     </div>
-                                    <small class="text-muted">Min: ₱1,000 &nbsp;|&nbsp; Max: ₱10,000</small>
+                                    <small class="aln-hint">Min: ₱1,000 &nbsp;|&nbsp; Max: ₱10,000</small>
                                 </div>
 
                                 {{-- Loan Term --}}
                                 <div class="col-md-6">
-                                    <label class="form-label">
-                                        Term <span class="text-danger">*</span>
+                                    <label class="aln-label">
+                                        Term <span class="aln-required">*</span>
                                     </label>
-                                    <select class="form-select" id="loanTerm" required>
+                                    <select class="form-select aln-input" id="loanTerm" required>
                                         <option value="">Select term</option>
                                         <option value="3">3 Months</option>
                                         <option value="6">6 Months</option>
@@ -133,10 +123,10 @@
 
                                 {{-- Loan Purpose --}}
                                 <div class="col-12">
-                                    <label class="form-label">
-                                        Purpose of the Loan <span class="text-danger">*</span>
+                                    <label class="aln-label">
+                                        Purpose of the Loan <span class="aln-required">*</span>
                                     </label>
-                                    <select class="form-select" id="loanPurpose" required>
+                                    <select class="form-select aln-input" id="loanPurpose" required>
                                         <option value="">Select purpose</option>
                                         <option value="business_capital">Business Capital</option>
                                         <option value="education">Education</option>
@@ -155,10 +145,10 @@
 
                                 {{-- Referral --}}
                                 <div class="col-12">
-                                    <label class="form-label">
-                                        Where did you find us? <span class="text-danger">*</span>
+                                    <label class="aln-label">
+                                        Where did you find us? <span class="aln-required">*</span>
                                     </label>
-                                    <select class="form-select" id="referralSource" required>
+                                    <select class="form-select aln-input" id="referralSource" required>
                                         <option value="">Select an option</option>
                                         <option value="facebook">Facebook</option>
                                         <option value="instagram">Instagram</option>
@@ -173,75 +163,73 @@
 
                                 {{-- Referral Name --}}
                                 <div class="col-12" id="referralNameField" style="display:none;">
-                                    <label class="form-label">
-                                        Who referred you? <span class="text-danger">*</span>
+                                    <label class="aln-label">
+                                        Who referred you? <span class="aln-required">*</span>
                                     </label>
-                                    <input type="text" class="form-control" id="referralName"
-                                           placeholder="Enter the name of the person who referred you">
+                                    <input type="text" class="form-control aln-input" id="referralName"
+                                        placeholder="Enter the name of the person who referred you">
                                 </div>
 
                             </div>
-                        </div>
+                        </section>
 
                         {{-- LOAN SUMMARY --}}
-                        <div class="form-section">
-                            <p class="form-section-title">Loan Summary</p>
+                        <section class="aln-section">
+                            <h6 class="aln-section-title">Loan Summary</h6>
+                            <div class="aln-hr aln-hr--tight"></div>
 
-                            <div class="summary-card">
-                                <div class="row g-3">
-                                    <div class="col-6 col-md-3 summary-item">
-                                        <label>Principal</label>
-                                        <span class="value blue" id="displayPrincipal">₱0.00</span>
-                                    </div>
-                                    <div class="col-6 col-md-3 summary-item">
-                                        <label>Interest Rate</label>
-                                        <span class="value">5% / month</span>
-                                    </div>
-                                    <div class="col-6 col-md-3 summary-item">
-                                        <label>Total Interest</label>
-                                        <span class="value orange" id="displayTotalInterest">₱0.00</span>
-                                    </div>
-                                    <div class="col-6 col-md-3 summary-item">
-                                        <label>Total to Pay</label>
-                                        <span class="value red" id="displayTotalAmount">₱0.00</span>
-                                    </div>
+                            <div class="aln-summary-row">
+                                <div class="aln-summary-item">
+                                    <span class="aln-summary-label">Principal</span>
+                                    <span class="aln-summary-value" id="displayPrincipal">₱0.00</span>
                                 </div>
-
-                                <div class="summary-divider"></div>
-
-                                <div class="row g-3">
-                                    <div class="col-6 col-md-4 summary-item">
-                                        <label>Term</label>
-                                        <span class="value" id="displayTerm">— months</span>
-                                    </div>
-                                    <div class="col-6 col-md-4 summary-item">
-                                        <label>Monthly Payment</label>
-                                        <span class="value green" id="displayMonthlyPayment">₱0.00</span>
-                                    </div>
-                                    <div class="col-6 col-md-4 summary-item">
-                                        <label>Due Date</label>
-                                        <span class="value">15th of each month</span>
-                                    </div>
+                                <div class="aln-summary-item">
+                                    <span class="aln-summary-label">Interest Rate</span>
+                                    <span class="aln-summary-value">5% / month</span>
+                                </div>
+                                <div class="aln-summary-item">
+                                    <span class="aln-summary-label">Total Interest</span>
+                                    <span class="aln-summary-value" id="displayTotalInterest">₱0.00</span>
+                                </div>
+                                <div class="aln-summary-item">
+                                    <span class="aln-summary-label">Total to Pay</span>
+                                    <span class="aln-summary-value aln-summary-value--strong"
+                                        id="displayTotalAmount">₱0.00</span>
                                 </div>
                             </div>
-                        </div>
+
+                            <div class="aln-hr aln-hr--tight"></div>
+
+                            <div class="aln-summary-row">
+                                <div class="aln-summary-item">
+                                    <span class="aln-summary-label">Term</span>
+                                    <span class="aln-summary-value" id="displayTerm">— months</span>
+                                </div>
+                                <div class="aln-summary-item">
+                                    <span class="aln-summary-label">Monthly Payment</span>
+                                    <span class="aln-summary-value aln-summary-value--strong"
+                                        id="displayMonthlyPayment">₱0.00</span>
+                                </div>
+                                <div class="aln-summary-item">
+                                    <span class="aln-summary-label">Due Date</span>
+                                    <span class="aln-summary-value">15th of each month</span>
+                                </div>
+                            </div>
+                        </section>
 
                         {{-- FORM BUTTONS --}}
-                        <div class="d-flex gap-3 mb-4">
-                            <button type="button" class="btn btn-primary flex-fill" id="submitBtn"
-                                    data-bs-toggle="modal" data-bs-target="#termsModal" disabled>
-                                <i class="feather-send me-2"></i>
+                        <div class="aln-actions">
+                            <button type="button" class="aln-btn aln-btn--primary" id="submitBtn"
+                                data-bs-toggle="modal" data-bs-target="#termsModal" disabled>
                                 Submit Application
                             </button>
 
-                            <a href="{{ route('borrower.dashboard') }}" class="btn btn-outline-secondary flex-fill">
-                                <i class="feather-x me-2"></i>
+                            <a href="{{ route('borrower.dashboard') }}" class="aln-btn aln-btn--secondary">
                                 Cancel
                             </a>
                         </div>
 
                     </form>
-
                 @endif
 
             </div>
@@ -250,60 +238,60 @@
 
 @endsection
 
-@unless($hasPendingApplication)
-
-    @push('modals')
-
-        {{-- SUCCESS OVERLAY --}}
-        <div id="successOverlay">
-            <div class="success-modal">
-                <div class="success-modal-top"></div>
-                <div class="success-modal-body">
-                    <i class="feather-check-circle success-icon"></i>
-                    <h5>Application Submitted!</h5>
-                    <p>Your loan application is now being reviewed by our admins. Please wait for approval.</p>
-                    <div class="waiting-box">
-                        <p><i class="feather-clock me-2 text-warning"></i> Waiting for admin approval...</p>
-                    </div>
-                    <a href="{{ route('borrower.loan-details') }}" class="status-link">View Application Status</a>
-                </div>
+@push('modals')
+    <div id="successOverlay" class="aln-toast">
+        <button type="button" class="aln-toast-close"
+            onclick="document.getElementById('successOverlay').classList.remove('show')">&times;</button>
+        <div class="aln-toast-body">
+            <div class="aln-toast-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </div>
+            <div class="aln-toast-text">
+                <h6>Application Submitted</h6>
+                <p>Your loan application is now under review.</p>
             </div>
         </div>
+    </div>
+@endpush
 
+@unless ($hasPendingApplication)
+    @push('modals')
         {{-- TERMS MODAL --}}
         <div class="modal fade" id="termsModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered modal-lg">
-                <div class="modal-content">
+                <div class="modal-content aln-modal">
 
                     <div class="modal-body">
-                        <h6 class="fw-bold text-primary mb-3">LOAN TERMS AND CONDITIONS</h6>
+                        <h6 class="aln-modal-title">Loan Terms and Conditions</h6>
                         <p>Please read these terms carefully before submitting your loan application.</p>
 
-                        <h6 class="fw-bold mt-4 mb-2">1. Loan Agreement</h6>
+                        <h6 class="aln-modal-subtitle">1. Loan Agreement</h6>
                         <p>The borrower agrees to repay the loan amount plus interest within the specified term.</p>
 
-                        <h6 class="fw-bold mt-4 mb-2">2. Interest Rate</h6>
+                        <h6 class="aln-modal-subtitle">2. Interest Rate</h6>
                         <p>Fixed at <strong>5% monthly</strong> on the principal loan amount.</p>
 
-                        <h6 class="fw-bold mt-4 mb-2">3. Repayment</h6>
+                        <h6 class="aln-modal-subtitle">3. Repayment</h6>
                         <p>Payments are due on the <strong>15th of each month</strong>.</p>
 
-                        <h6 class="fw-bold mt-4 mb-2">4. Late Payment Penalty</h6>
+                        <h6 class="aln-modal-subtitle">4. Late Payment Penalty</h6>
                         <p>A <strong>2% penalty</strong> will be charged on any late payment.</p>
 
-                        <h6 class="fw-bold mt-4 mb-2">5. Default</h6>
+                        <h6 class="aln-modal-subtitle">5. Default</h6>
                         <p>In the event of default, the lender reserves the right to initiate legal proceedings.</p>
 
-                        <h6 class="fw-bold mt-4 mb-2">6. Co-Maker</h6>
+                        <h6 class="aln-modal-subtitle">6. Co-Maker</h6>
                         <p>The co-maker is jointly and severally liable for the loan.</p>
 
-                        <div class="alert alert-info mt-4 mb-0">
-                            <i class="feather-info me-2"></i>
+                        <div class="aln-modal-notice">
                             By accepting, you agree to be bound by these terms.
                         </div>
                     </div>
 
-                    <div class="modal-footer">
+                    <div class="modal-footer aln-modal-footer">
                         <div class="form-check mb-0 me-auto">
                             <input class="form-check-input" type="checkbox" id="agreeTerms">
                             <label class="form-check-label" for="agreeTerms">
@@ -311,31 +299,29 @@
                             </label>
                         </div>
 
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                            <i class="feather-x me-2"></i>
+                        <button type="button" class="aln-btn aln-btn--secondary" data-bs-dismiss="modal">
                             Cancel
                         </button>
 
-                        <button type="button" class="btn btn-primary" id="finalSubmitBtn" onclick="submitApplication()" disabled>
-                            <i class="feather-check me-2"></i>
-                            Accept & Submit
+                        <button type="button" class="aln-btn aln-btn--primary" id="finalSubmitBtn"
+                            onclick="submitApplication()" disabled>
+                            Accept &amp; Submit
                         </button>
                     </div>
 
                 </div>
             </div>
         </div>
-
     @endpush
-
-    @section('page-scripts')
-        <script>
-            window.APPLY_LOAN_CONFIG = {
-                csrfToken: '{{ csrf_token() }}',
-                submitUrl: '{{ url("/api/borrower/apply-loan") }}'
-            };
-        </script>
-        <script src="{{ asset('functions/apply-loan.js') }}"></script>
-    @endsection
-
 @endunless
+
+{{-- Single script, always rendered (regardless of $hasPendingApplication) —
+     apply-loan.js reads its config from these data-* attributes instead of
+     a separate inline <script> block, and it self-guards: the form-wiring
+     part of the file exits early when #loanAmount isn't on the page
+     (pending-application view), but the post-submit toast check inside it
+     still runs on every load. --}}
+@section('page-scripts')
+    <script src="{{ asset('functions/apply-loan.js') }}" data-csrf="{{ csrf_token() }}"
+        data-submit-url="{{ url('/api/borrower/apply-loan') }}"></script>
+@endsection

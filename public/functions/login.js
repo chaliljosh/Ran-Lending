@@ -13,6 +13,43 @@ function togglePw(id, btn) {
 
 let pendingLoginEmail = '';
 
+/* ── CROSS-TAB LOGIN SYNC ──
+   Mirror of the logout broadcast in logout-modal.js, but the other
+   way around: when this tab successfully logs in, any other open
+   tab still sitting on /login gets redirected automatically instead
+   of staying on the login form until the user manually refreshes. */
+const LOGIN_BROADCAST_KEY = 'ran_login_broadcast';
+
+function broadcastLogin(redirectUrl) {
+    // Wrapped in try/catch: some browsers block localStorage in
+    // certain contexts (private mode, etc.) — that should never
+    // block the actual login redirect of THIS tab.
+    try {
+        localStorage.setItem(LOGIN_BROADCAST_KEY, JSON.stringify({
+            redirect: redirectUrl,
+            ts: Date.now(),
+        }));
+    } catch (err) {
+        console.error('[login.js] cross-tab broadcast failed (ignoring):', err);
+    }
+}
+
+// Fires in OTHER tabs when this key changes in localStorage.
+// (The 'storage' event never fires in the tab that made the change,
+// only in other tabs — same behavior the logout sync relies on.)
+window.addEventListener('storage', function (e) {
+    if (e.key === LOGIN_BROADCAST_KEY && e.newValue) {
+        try {
+            const data = JSON.parse(e.newValue);
+            if (data.redirect) {
+                window.location.href = data.redirect;
+            }
+        } catch (err) {
+            console.error('[login.js] failed to parse login broadcast:', err);
+        }
+    }
+});
+
 document.addEventListener('DOMContentLoaded', function () {
 
     const loginForm     = document.getElementById('loginForm');
@@ -85,6 +122,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 pendingLoginEmail = email;
                 openLoginOtpModal(data.masked_email);
             } else {
+                broadcastLogin(data.redirect);
                 window.location.href = data.redirect;
             }
         })
@@ -126,6 +164,7 @@ function openLoginOtpModal(maskedEmail) {
                 });
         },
         onSuccess: function (data) {
+            broadcastLogin(data.redirect);
             window.location.href = data.redirect;
         }
     });
