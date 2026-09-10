@@ -1,9 +1,6 @@
 /* ========================================
    ALL BORROWERS PAGE - STYLES
    Ginagamit ito sa: borrowers.blade.php
-   Redesigned to match a clean enterprise dashboard aesthetic
-   (Stripe / Linear / Notion style) while keeping every class name
-   the existing JS (filterBorrowers) depends on.
    ======================================== */
 
 :root {
@@ -17,6 +14,11 @@
     --rs-warning: #f59e0b;
     --rs-danger: #ef4444;
 }
+
+html:not(.app-skin-dark) .nxl-content {
+    background: #fff;
+}
+
 
 body {
     font-family: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -67,57 +69,49 @@ body {
 }
 
 .stat-card {
-    background: var(--rs-card);
-    border: 1px solid var(--rs-border);
-    border-radius: 14px;
-    padding: 24px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    background: #ffffff !important;
+    border: 1px solid var(--rs-border) !important;
+    border-radius: 12px !important;
+    padding: 20px 22px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05) !important;
     transition: box-shadow 0.15s ease, transform 0.15s ease;
 }
 .stat-card:hover {
-    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08) !important;
     transform: translateY(-1px);
 }
-.stat-card .stat-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
+.stat-card-head {
     display: flex;
     align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    font-size: 19px;
+    justify-content: space-between;
+    margin-bottom: 14px;
 }
-.stat-card .stat-icon.total     { background: #eff6ff; color: var(--rs-primary); }
-.stat-card .stat-icon.active    { background: #ecfdf3; color: var(--rs-success); }
-.stat-card .stat-icon.no-loan   { background: #f1f5f9; color: var(--rs-muted); }
-.stat-card .stat-icon.suspended { background: #fef2f2; color: var(--rs-danger); }
 .stat-card .stat-label {
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: var(--rs-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    margin-bottom: 4px;
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: #334155;
+    text-transform: none;
+    letter-spacing: normal;
+    margin-bottom: 0;
+}
+.stat-card .stat-icon {
+    color: #94a3b8;
+    font-size: 18px;
+    flex-shrink: 0;
 }
 .stat-card .stat-value {
-    font-size: 1.6rem;
+    font-size: 2rem;
     font-weight: 700;
     color: var(--rs-text);
     line-height: 1.1;
+    margin-bottom: 6px;
+}
+.stat-card .stat-sub {
+    font-size: 0.8rem;
+    color: #94a3b8;
 }
 
-/* ── Filter toolbar (search + status + sort, single row) ──
-   Structure expected in the Blade:
-   .filter-bar
-     .search-bar-wrap        (search input, grows to fill space)
-     .filter-bar-actions     (status + sort, pinned to the right)
-       select#statusFilter
-       select.sort-select
-   Class names / element IDs used by filterBorrowers() are unchanged. */
+/* ── Filter toolbar ── */
 .filter-bar {
     display: flex;
     align-items: center;
@@ -137,7 +131,7 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
-    background: var(--rs-card);
+    background: #ffffff;
     border: 1px solid var(--rs-border);
     border-radius: 10px;
     padding: 0 14px;
@@ -187,7 +181,7 @@ body {
     flex: 0 0 176px;
     border-radius: 10px;
     border: 1px solid var(--rs-border);
-    background-color: var(--rs-card);
+    background-color: #ffffff;
     color: var(--rs-text);
     font-size: 0.84rem;
     font-weight: 500;
@@ -220,9 +214,10 @@ body {
 
 /* ── Table card ── */
 .card {
-    border: 1px solid var(--rs-border);
-    border-radius: 14px;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    background: #ffffff !important;
+    border: 1px solid var(--rs-border) !important;
+    border-radius: 14px !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15) !important;
 }
 
 .borrower-table thead th {
@@ -233,7 +228,7 @@ body {
     letter-spacing: 0.5px;
     border-bottom: 1px solid var(--rs-border);
     padding: 16px 20px;
-    background: var(--rs-card);
+    background: #ffffff;
 }
 .borrower-table tbody td {
     padding: 18px 20px;
@@ -253,7 +248,6 @@ body {
     border-bottom: none;
 }
 
-/* Borrower cell: avatar + name + Borrower ID + email, no separate column */
 .borrower-cell {
     display: flex;
     align-items: center;
@@ -292,7 +286,6 @@ body {
     line-height: 1.4;
 }
 
-/* ── View Details button — pill style, matched to Active Borrowers ── */
 .borrower-table .btn-view {
     display: inline-flex;
     align-items: center;
@@ -300,7 +293,7 @@ body {
     padding: 8px 16px;
     border-radius: 20px;
     border: 1px solid var(--rs-border);
-    background: var(--rs-card);
+    background: #ffffff;
     font-size: 0.78rem;
     font-weight: 600;
     color: var(--rs-text);
@@ -319,38 +312,7 @@ body {
     pointer-events: none;
 }
 
-/* ── Table footer (rows-per-page + pagination) ──
-   Structure expected in the Blade, placed right after .table-responsive
-   inside the same .card that wraps .borrower-table:
-
-   <div class="table-footer">
-     <div class="rows-per-page">
-       <span>Rows per page</span>
-       <select class="per-page-select">
-         <option value="10">10</option>
-         <option value="25" selected>25</option>
-         <option value="50">50</option>
-         <option value="100">100</option>
-       </select>
-     </div>
-
-     <div class="table-footer-info">
-       Showing <strong>1–25</strong> of <strong>248</strong>
-     </div>
-
-     <div class="pagination-controls">
-       <button class="page-btn" data-action="first" disabled><i class="feather-chevrons-left"></i></button>
-       <button class="page-btn" data-action="prev" disabled><i class="feather-chevron-left"></i></button>
-       <button class="page-btn active">1</button>
-       <button class="page-btn">2</button>
-       <button class="page-btn">3</button>
-       <span class="page-ellipsis">…</span>
-       <button class="page-btn">10</button>
-       <button class="page-btn" data-action="next"><i class="feather-chevron-right"></i></button>
-       <button class="page-btn" data-action="last"><i class="feather-chevrons-right"></i></button>
-     </div>
-   </div>
-*/
+/* ── Table footer ── */
 .table-footer {
     display: flex;
     align-items: center;
@@ -359,7 +321,7 @@ body {
     flex-wrap: wrap;
     padding: 16px 20px;
     border-top: 1px solid var(--rs-border);
-    background: var(--rs-card);
+    background: #ffffff;
 }
 
 .rows-per-page {
@@ -376,7 +338,7 @@ body {
     height: 34px;
     border-radius: 8px;
     border: 1px solid var(--rs-border);
-    background-color: var(--rs-card);
+    background-color: #ffffff;
     color: var(--rs-text);
     font-size: 0.8rem;
     font-weight: 600;
@@ -460,8 +422,9 @@ body {
     }
 }
 
-/* Dark mode */
+/* ══════════════════ Dark mode ══════════════════ */
 html.app-skin-dark body { background: #0f172a; }
+
 html.app-skin-dark .search-bar-wrap {
     background: #1e2a3a;
     border-color: #2d3f55;
@@ -472,20 +435,36 @@ html.app-skin-dark .search-bar-wrap input {
 html.app-skin-dark .search-bar-wrap input::placeholder {
     color: #64748b;
 }
+
+/* Status/Sort dropdowns — forced with !important + ID selectors
+   kasi may global dark-mode rule na nangyayaring mas matimbang
+   at nagpapawala sa text (blangko lumalabas). */
+html.app-skin-dark .filter-bar select.form-select,
+html.app-skin-dark #statusFilter,
+html.app-skin-dark #sortFilter {
+    background-color: #1e2a3a !important;
+    border-color: #2d3f55 !important;
+    color: #e2e8f0 !important;
+}
+html.app-skin-dark .filter-bar select.form-select option,
+html.app-skin-dark #statusFilter option,
+html.app-skin-dark #sortFilter option {
+    background-color: #1e2a3a !important;
+    color: #e2e8f0 !important;
+}
+
 html.app-skin-dark .card {
-    background: #1e2a3a;
-    border-color: #2d3f55;
+    background: #1e2a3a !important;
+    border-color: #2d3f55 !important;
 }
 html.app-skin-dark .stat-card {
-    background: #1e2a3a;
-    border-color: #2d3f55;
+    background: #1e2a3a !important;
+    border-color: #2d3f55 !important;
 }
+html.app-skin-dark .stat-card .stat-label { color: #cbd5e1; }
 html.app-skin-dark .stat-card .stat-value { color: #e2e8f0; }
-html.app-skin-dark .filter-bar select.form-select {
-    background-color: #1e2a3a;
-    border-color: #2d3f55;
-    color: #e2e8f0;
-}
+html.app-skin-dark .stat-card .stat-sub { color: #94a3b8; }
+
 html.app-skin-dark .borrower-table thead th {
     background: #1e2a3a;
     border-bottom-color: #2d3f55;
@@ -519,6 +498,12 @@ html.app-skin-dark .table-footer-info strong { color: #e2e8f0; }
 html.app-skin-dark .pagination-controls .page-btn:hover:not(:disabled) {
     background: #24334a;
     border-color: #2d3f55;
+}
+html.app-skin-dark .nxl-content {
+    background: #0f172a;
+}
+html.app-skin-dark .filter-bar {
+    background: transparent;
 }
 
 /* Footer sa ibaba, kahit konti lang laman ng page */

@@ -151,7 +151,7 @@
                 <!-- Personal Information -->
                 <div class="card mb-3">
                     <div class="card-body">
-                        <div class="section-title"><i class="feather-user"></i>Personal Information</div>
+                        <div class="section-title">Personal Information</div>
                         <div class="info-row">
                             <div class="info-item"><label>Last Name</label><span>{{ $d->last_name }}</span></div>
                             <div class="info-item"><label>First Name</label><span>{{ $d->first_name }}</span></div>
@@ -180,7 +180,7 @@
                 <!-- Birth Place -->
                 <div class="card mb-3">
                     <div class="card-body">
-                        <div class="section-title"><i class="feather-map-pin"></i>Birth Place</div>
+                        <div class="section-title">Birth Place</div>
                         <div class="info-row">
                             <div class="info-item"><label>Country</label><span>{{ $d->birth_country ?? '—' }}</span></div>
                             <div class="info-item"><label>Province</label><span>{{ $d->birth_province ?? '—' }}</span>
@@ -193,7 +193,7 @@
                 <!-- Present Address -->
                 <div class="card mb-3">
                     <div class="card-body">
-                        <div class="section-title"><i class="feather-home"></i>Present Address</div>
+                        <div class="section-title">Present Address</div>
                         <div class="info-row">
                             <div class="info-item"><label>Region</label><span>{{ $d->region ?? '—' }}</span></div>
                             <div class="info-item"><label>Province</label><span>{{ $d->province ?? '—' }}</span></div>
@@ -209,7 +209,7 @@
                 <!-- Work Information -->
                 <div class="card mb-3">
                     <div class="card-body">
-                        <div class="section-title"><i class="feather-briefcase"></i>Work Information</div>
+                        <div class="section-title">Work Information</div>
                         <div class="info-row">
                             <div class="info-item"><label>Employment
                                     Status</label><span>{{ ucfirst(str_replace('_', ' ', $d->employment_status ?? '—')) }}</span>
@@ -227,7 +227,7 @@
                 <!-- Co-Maker Information -->
                 <div class="card mb-3">
                     <div class="card-body">
-                        <div class="section-title"><i class="feather-users"></i>Co-Maker Information</div>
+                        <div class="section-title">Co-Maker Information</div>
                         <div class="info-row">
                             <div class="info-item"><label>Last Name</label><span>{{ $d->co_last ?? '—' }}</span></div>
                             <div class="info-item"><label>First Name</label><span>{{ $d->co_first ?? '—' }}</span></div>
@@ -244,7 +244,7 @@
                 <!-- Valid ID / Attached ID -->
                 <div class="card mb-3">
                     <div class="card-body">
-                        <div class="section-title"><i class="feather-credit-card"></i>Valid ID</div>
+                        <div class="section-title">Valid ID</div>
                         <div class="info-row">
                             <div class="info-item"><label>ID Type</label><span>{{ $d->id_type ?? '—' }}</span></div>
                             <div class="info-item"><label>ID Number</label><span>{{ $d->id_number ?? '—' }}</span></div>
@@ -301,7 +301,7 @@
                 <!-- Admin Review History (was: Admin Discussion) -->
                 <div class="card mb-3">
                     <div class="card-header">
-                        <h6 class="card-title mb-0"><i class="feather-message-square me-2"></i>Admin Review History</h6>
+                        <h6 class="card-title mb-0">Admin Review History</h6>
                     </div>
                     <div class="card-body">
 
@@ -386,57 +386,88 @@
         </div>
     </div>
 
-    <!-- Review Borrower Verification Modal -->
+    {{-- ============================================================
+         MAKE DECISION MODAL — 2-step (remarks → confirmation),
+         same design as loan-application-detail.blade.php's
+         #decisionModal. Uses the shared modals-modern.css classes
+         (.modal-header-clean, .modal-icon-circle, .modal-detail-card)
+         plus the .btn-decision-* / .modal-subtext-text /
+         .decision-char-counter overrides scoped to #decisionModal
+         in verification-detail.css.
+    ============================================================ --}}
     @if ($d->status !== 'rejected' && $d->status !== 'approved')
-        <div class="modal fade" id="decisionModal" tabindex="-1" aria-labelledby="decisionModalLabel"
+        <div class="modal fade modal-modern" id="decisionModal" tabindex="-1" aria-labelledby="decisionModalLabel"
             aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-review-decision">
+            <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <form method="POST" action="{{ route('admin.verification-detail', $detailId) }}" id="decisionForm">
                         @csrf
                         <input type="hidden" name="action" id="decisionActionInput" value="">
-                        <div class="modal-header">
-                            <div>
-                                <h6 class="modal-title" id="decisionModalLabel">Review Borrower Verification</h6>
 
+                        <div class="modal-header-clean">
+                            <div class="header-left">
+                                <h6 id="decisionModalLabel">Review Borrower Verification</h6>
                             </div>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                aria-label="Close"></button>
+                            <button type="button" class="btn-close-clean" data-bs-dismiss="modal"
+                                aria-label="Close">&times;</button>
                         </div>
+
                         <div class="modal-body">
 
-                            <label class="form-label fw-semibold" for="decisionRemarks">Remarks <span
-                                    class="text-muted fw-normal">(optional)</span></label>
-                            <textarea name="remarks" id="decisionRemarks" class="form-control" rows="3"
-                                placeholder="Add notes or reason...">{{ $myReview->remarks ?? '' }}</textarea>
+                            <!-- Step 1: remarks -->
+                            <div id="decisionStep1">
+                                <label class="form-label fw-semibold" style="font-size:0.85rem;">Review Remarks <span
+                                        class="text-muted fw-normal">(optional)</span></label>
+                                <textarea name="remarks" id="decisionRemarks" class="form-control" rows="3" maxlength="500"
+                                    placeholder="Provide additional comments or reason for your decision...">{{ $myReview->remarks ?? '' }}</textarea>
+                                <div class="decision-char-counter">
+                                    <span id="decisionRemarksCount">{{ strlen($myReview->remarks ?? '') }}</span>/500
+                                </div>
+                            </div>
+
+                            <!-- Step 2: confirmation -->
+                            <div id="decisionStep2" style="display:none;">
+                                <div class="modal-icon-circle icon-success" id="decisionConfirmIconWrap">
+                                    <i id="decisionConfirmIcon" class="feather-check"></i>
+                                </div>
+                                <p id="decisionConfirmText" class="modal-title-text"></p>
+                                <p id="decisionConfirmSubtext" class="modal-subtext-text"></p>
+
+                                <div class="modal-detail-card">
+                                    <div class="modal-detail-row">
+                                        <span class="modal-detail-label">Borrower</span>
+                                        <span class="modal-detail-value">{{ $d->first_name }} {{ $d->last_name }}</span>
+                                    </div>
+                                    <div class="modal-detail-row">
+                                        <span class="modal-detail-label">Borrower ID</span>
+                                        <span class="modal-detail-value">#{{ $detailId }}</span>
+                                    </div>
+                                    <div class="modal-detail-row">
+                                        <span class="modal-detail-label">Current status</span>
+                                        <span
+                                            class="modal-detail-value">{{ ucfirst(str_replace('_', ' ', $d->status)) }}</span>
+                                    </div>
+                                </div>
+
+                            </div>
+
                         </div>
-                        <div class="modal-footer">
+
+                        <div class="modal-footer" id="decisionFooterStep1">
                             <button type="button" class="btn-decision btn-decision-cancel"
                                 data-bs-dismiss="modal">Cancel</button>
                             <button type="button" class="btn-decision btn-decision-reject"
-                                onclick="submitDecision('rejected')">Reject</button>
-                            <button type="button" class="btn-decision btn-decision-approve"
-                                onclick="submitDecision('approved')">Approve</button>
+                                onclick="decisionShowConfirm('rejected')">Reject</button>
+                            <button type="button" class="btn-decision btn-decision-black"
+                                onclick="decisionShowConfirm('approved')">Approve</button>
+                        </div>
+                        <div class="modal-footer" id="decisionFooterStep2" style="display:none;">
+                            <button type="button" class="btn-decision btn-decision-cancel"
+                                onclick="decisionBackToStep1()">Cancel</button>
+                            <button type="submit" class="btn-decision btn-decision-black"
+                                id="decisionConfirmBtn"></button>
                         </div>
                     </form>
-                </div>
-            </div>
-        </div>
-
-        {{-- Small styled confirmation modal — replaces the native browser
-         confirm() alert. --}}
-        <div class="modal fade" id="decisionConfirmModal" tabindex="-1" aria-labelledby="decisionConfirmModalLabel"
-            aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-confirm-decision">
-                <div class="modal-content">
-                    <div class="modal-body">
-                        <p class="confirm-decision-text" id="confirmDecisionText"></p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn-decision btn-decision-cancel"
-                            id="confirmDecisionCancelBtn">Cancel</button>
-                        <button type="button" class="btn-decision" id="confirmDecisionOkBtn"></button>
-                    </div>
                 </div>
             </div>
         </div>

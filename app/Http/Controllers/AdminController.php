@@ -894,18 +894,25 @@ class AdminController extends Controller
                 return redirect()->route('admin.verification-detail', $detailId);
             }
 
-            if ($request->filled('action')) {
-                $this->saveDecision($request->merge(['detail_id' => $detailId]), $adminId);
+           if ($request->filled('action')) {
+    $this->saveDecision($request->merge(['detail_id' => $detailId]), $adminId);
 
-                if ($request->ajax() || $request->wantsJson()) {
-                    return response()->json([
-                        'success' => true,
-                        'redirect' => route('admin.borrower-verification'),
-                    ]);
-                }
+    $newStatus = DB::table('borrowerpersonaldetails')
+        ->where('detail_id', $detailId)
+        ->value('status');
 
-                return redirect()->route('admin.borrower-verification')->with('success', true);
-            }
+    if ($request->ajax() || $request->wantsJson()) {
+        return response()->json([
+            'success' => true,
+            'status' => $newStatus,
+            'redirect' => route('admin.borrower-verification'),
+        ]);
+    }
+
+    return redirect()->route('admin.borrower-verification')
+        ->with('success', true)
+        ->with('decisionStatus', $newStatus);
+}
         }
 
         return view('admin.verification-detail', [
@@ -1234,6 +1241,7 @@ class AdminController extends Controller
             'work' => $this->getBorrowerWork($app->detail_id),
             'applicationId' => $applicationId,
             'adminId' => $adminId,
+            'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
             'myReview' => $this->getMyLoanReview($applicationId, $adminId),
             'allReviews' => $this->getAllLoanReviews($applicationId),
             'approvedCount' => $this->getLoanApprovedCount($applicationId),
@@ -1532,7 +1540,7 @@ class AdminController extends Controller
     }
 }
 
-    private function getLoanApplication($applicationId)
+        private function getLoanApplication($applicationId)
     {
         return DB::table('loan_applications as la')
             ->join('users as u', 'la.user_id', '=', 'u.user_id')
@@ -1541,10 +1549,11 @@ class AdminController extends Controller
             ->select(
                 'la.*',
                 'u.email',
+                'u.profile_picture', // NEW — needed for the avatar image
                 'bpd.detail_id', 'bpd.first_name', 'bpd.last_name', 'bpd.middle_name', 'bpd.suffix',
                 'bpd.birthday', 'bpd.gender', 'bpd.civil_status', 'bpd.citizenship',
                 'bpd.cellphone_num', 'bpd.monthly_income',
-                'bpd.id_type', 'bpd.id_number', 'bpd.id_file_path',
+                'bpd.id_type', 'bpd.id_number', 'bpd.id_file_path', 'bpd.id_file_path_back',
                 'bpd.birth_country', 'bpd.birth_province', 'bpd.birth_city'
             )
             ->first();

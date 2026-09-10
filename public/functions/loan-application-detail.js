@@ -13,21 +13,24 @@ function decisionShowConfirm(action) {
     const iconWrap = document.getElementById('decisionConfirmIconWrap');
     const icon = document.getElementById('decisionConfirmIcon');
     const text = document.getElementById('decisionConfirmText');
+    const subtext = document.getElementById('decisionConfirmSubtext');
     const confirmBtn = document.getElementById('decisionConfirmBtn');
 
     if (action === 'approved') {
         headerTitle.textContent = 'Approve loan application';
         iconWrap.className = 'modal-icon-circle icon-success';
         icon.className = 'feather-check';
-        text.textContent = 'Are you sure you want to approve this loan application?';
-        confirmBtn.className = 'btn btn-modal-primary btn-approve';
+        text.textContent = 'Approve loan application?';
+        subtext.textContent = 'Are you sure you want to approve this loan application? This action cannot be undone.';
+        confirmBtn.className = 'btn-decision btn-decision-black';
         confirmBtn.textContent = 'Approve';
     } else {
         headerTitle.textContent = 'Reject loan application';
         iconWrap.className = 'modal-icon-circle icon-danger';
         icon.className = 'feather-x';
-        text.textContent = 'Are you sure you want to reject this loan application?';
-        confirmBtn.className = 'btn btn-modal-primary btn-reject';
+        text.textContent = 'Reject loan application?';
+        subtext.textContent = 'Are you sure you want to reject this loan application? This action cannot be undone.';
+        confirmBtn.className = 'btn-decision btn-decision-black';
         confirmBtn.textContent = 'Reject';
     }
 }
@@ -38,7 +41,7 @@ function decisionBackToStep1() {
     document.getElementById('decisionFooterStep1').style.display = 'flex';
     document.getElementById('decisionFooterStep2').style.display = 'none';
     document.getElementById('decisionActionInput').value = '';
-    document.getElementById('decisionModalLabel').textContent = 'Make a decision';
+    document.getElementById('decisionModalLabel').textContent = 'Review Loan Application';
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -47,10 +50,12 @@ document.addEventListener('DOMContentLoaded', function () {
         decisionModalEl.addEventListener('hidden.bs.modal', decisionBackToStep1);
     }
 
-    const successModalEl = document.getElementById('successModal');
-    if (successModalEl) {
-        const successModal = new bootstrap.Modal(successModalEl, { backdrop: 'static' });
-        successModal.show();
-        setTimeout(() => successModal.hide(), 2000);
+    // Live character counter for the remarks textarea.
+    const remarksInput = document.getElementById('decisionRemarks');
+    const remarksCount = document.getElementById('decisionRemarksCount');
+    if (remarksInput && remarksCount) {
+        remarksInput.addEventListener('input', function () {
+            remarksCount.textContent = remarksInput.value.length;
+        });
     }
 });

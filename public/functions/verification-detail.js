@@ -1,66 +1,74 @@
 // public/functions/verification-detail.js
 // Used by: resources/views/admin/verification-detail.blade.php
+//
+// REDESIGN: the old single-step "Review" modal + separate native-ish
+// confirm modal have been replaced with a 2-step decision modal
+// (remarks → confirmation) matching loan-application-detail.js
+// exactly. decisionForm now submits normally on step 2 — no AJAX,
+// same as the loan application flow.
 
-/**
- * Review Borrower Verification modal is a single step (Cancel / Reject /
- * Approve). Clicking Reject or Approve hides that modal and shows a small
- * styled confirmation modal (not the native browser confirm()) — Cancel
- * there brings the review modal back with remarks intact; the confirm
- * button submits the form.
- */
-let pendingDecisionAction = null;
+function decisionShowConfirm(action) {
+    document.getElementById('decisionActionInput').value = action;
 
-function submitDecision(action) {
-    pendingDecisionAction = action;
+    document.getElementById('decisionStep1').style.display = 'none';
+    document.getElementById('decisionStep2').style.display = 'block';
+    document.getElementById('decisionFooterStep1').style.display = 'none';
+    document.getElementById('decisionFooterStep2').style.display = 'flex';
 
-    const label = action === 'approved' ? 'approve' : 'reject';
-    document.getElementById('confirmDecisionText').textContent =
-        `Are you sure you want to ${label} this borrower's verification?`;
+    const headerTitle = document.getElementById('decisionModalLabel');
+    const iconWrap = document.getElementById('decisionConfirmIconWrap');
+    const icon = document.getElementById('decisionConfirmIcon');
+    const text = document.getElementById('decisionConfirmText');
+    const subtext = document.getElementById('decisionConfirmSubtext');
+    const confirmBtn = document.getElementById('decisionConfirmBtn');
 
-    const okBtn = document.getElementById('confirmDecisionOkBtn');
-    okBtn.textContent = action === 'approved' ? 'Yes, Approve' : 'Yes, Reject';
-    okBtn.className = 'btn-decision ' + (action === 'approved' ? 'btn-decision-approve' : 'btn-decision-reject');
+    if (action === 'approved') {
+        headerTitle.textContent = 'Approve borrower verification';
+        iconWrap.className = 'modal-icon-circle icon-success';
+        icon.className = 'feather-check';
+        text.textContent = 'Approve this borrower?';
+        subtext.textContent = "Are you sure you want to approve this borrower's verification? This action cannot be undone.";
+        confirmBtn.className = 'btn-decision btn-decision-black';
+        confirmBtn.textContent = 'Approve';
+    } else {
+        headerTitle.textContent = 'Reject borrower verification';
+        iconWrap.className = 'modal-icon-circle icon-danger';
+        icon.className = 'feather-x';
+        text.textContent = 'Reject this borrower?';
+        subtext.textContent = "Are you sure you want to reject this borrower's verification? This action cannot be undone.";
+        confirmBtn.className = 'btn-decision btn-decision-black';
+        confirmBtn.textContent = 'Reject';
+    }
+}
 
-    const decisionModalEl = document.getElementById('decisionModal');
-    const decisionModal = bootstrap.Modal.getInstance(decisionModalEl);
-
-    decisionModalEl.addEventListener('hidden.bs.modal', function onHidden() {
-        decisionModalEl.removeEventListener('hidden.bs.modal', onHidden);
-        const confirmModal = new bootstrap.Modal(document.getElementById('decisionConfirmModal'));
-        confirmModal.show();
-    }, { once: true });
-
-    decisionModal.hide();
+function decisionBackToStep1() {
+    document.getElementById('decisionStep1').style.display = 'block';
+    document.getElementById('decisionStep2').style.display = 'none';
+    document.getElementById('decisionFooterStep1').style.display = 'flex';
+    document.getElementById('decisionFooterStep2').style.display = 'none';
+    document.getElementById('decisionActionInput').value = '';
+    document.getElementById('decisionModalLabel').textContent = 'Review Borrower Verification';
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    const confirmOkBtn = document.getElementById('confirmDecisionOkBtn');
-    if (confirmOkBtn) {
-        confirmOkBtn.addEventListener('click', function () {
-            document.getElementById('decisionActionInput').value = pendingDecisionAction;
-            document.getElementById('decisionForm').submit();
-        });
+    const decisionModalEl = document.getElementById('decisionModal');
+    if (decisionModalEl) {
+        decisionModalEl.addEventListener('hidden.bs.modal', decisionBackToStep1);
     }
 
-    const confirmCancelBtn = document.getElementById('confirmDecisionCancelBtn');
-    if (confirmCancelBtn) {
-        confirmCancelBtn.addEventListener('click', function () {
-            const confirmModalEl = document.getElementById('decisionConfirmModal');
-            const confirmModal = bootstrap.Modal.getInstance(confirmModalEl);
-
-            confirmModalEl.addEventListener('hidden.bs.modal', function onHidden() {
-                confirmModalEl.removeEventListener('hidden.bs.modal', onHidden);
-                const decisionModal = new bootstrap.Modal(document.getElementById('decisionModal'));
-                decisionModal.show();
-            }, { once: true });
-
-            confirmModal.hide();
+    // Live character counter for the remarks textarea.
+    const remarksInput = document.getElementById('decisionRemarks');
+    const remarksCount = document.getElementById('decisionRemarksCount');
+    if (remarksInput && remarksCount) {
+        remarksInput.addEventListener('input', function () {
+            remarksCount.textContent = remarksInput.value.length;
         });
     }
 });
 
 /* ============================================
    VALID ID VIEWER — zoom + rotate + fullscreen
+   (unchanged)
 ============================================ */
 let idViewerScale = 1;
 let idViewerRotation = 0;

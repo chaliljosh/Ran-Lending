@@ -27,12 +27,12 @@
     --rs-amber-soft: #fffbeb;
     --rs-amber-border: #fde68a;
 
-    --rs-radius: 16px;
+    --rs-radius: 14px;
     --rs-radius-sm: 10px;
-    --rs-shadow: 0 1px 2px rgba(15,23,42,.04), 0 10px 24px -14px rgba(15,23,42,.12);
+    --rs-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
 }
 
-body { background: var(--rs-bg); }
+body { background: #fff; }
 
 .page-header-title h5 { color: var(--rs-ink); font-weight: 700; }
 .breadcrumb, .breadcrumb .breadcrumb-item { font-size: 0.8rem; color: var(--rs-muted); }
@@ -62,75 +62,98 @@ body { background: var(--rs-bg); }
 }
 .btn-primary:hover { background: #3a6ae0; border-color: #3a6ae0; }
 
+/* Decision button — solid black, sentence case (not the uppercase
+   default some Bootstrap themes force on .btn). */
+.btn-decision-black {
+    background: #0f172a;
+    border: 1px solid #0f172a;
+    color: #fff;
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 11px 16px;
+    font-size: 0.87rem;
+    text-transform: none;
+}
+.btn-decision-black:hover {
+    background: #000;
+    border-color: #000;
+    color: #fff;
+}
+
 /* ============================================================
-   APPLICATION TIMELINE
+   HEADER CARD — borrower profile (left) + loan stats (right)
+   Wide card at the top of the page, replacing the old sidebar
+   profile block. Avatar + name/email/status on the left, a
+   row of key loan figures on the right — same pattern as the
+   Borrower Verification detail header.
    ============================================================ */
-.ld-timeline {
+.ld-header-card {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
     background: #fff;
     border: 1px solid var(--rs-border);
     border-radius: var(--rs-radius);
     box-shadow: var(--rs-shadow);
-    padding: 24px 32px;
-    margin-bottom: 28px;
+    padding: 24px 28px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
 }
-.ld-timeline-step {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    min-width: 96px;
-}
-.ld-timeline-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+
+.ld-header-left {
     display: flex;
     align-items: center;
-    justify-content: center;
-    background: #f1f5f9;
-    color: var(--rs-muted);
-    border: 2px solid var(--rs-border);
-    font-size: 16px;
-    flex-shrink: 0;
+    gap: 16px;
+    min-width: 0;
 }
-.ld-timeline-label {
-    font-size: 0.78rem;
-    font-weight: 600;
+
+.ld-header-info {
+    min-width: 0;
+}
+.ld-header-info h6 {
+    color: var(--rs-ink);
+    font-size: 1.05rem;
+}
+.ld-header-meta {
+    font-size: 0.83rem;
     color: var(--rs-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.ld-header-meta a { color: var(--rs-brand); text-decoration: none; }
+.ld-header-meta a:hover { text-decoration: underline; }
+.ld-header-meta-sep { color: var(--rs-border); }
+
+.ld-header-stats {
+    display: flex;
+    align-items: center;
+    gap: 36px;
+    flex-wrap: wrap;
+}
+.ld-stat {
     text-align: center;
+    min-width: 90px;
+}
+.ld-stat-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--rs-ink);
     white-space: nowrap;
 }
-.ld-timeline-step.is-complete .ld-timeline-icon {
-    background: var(--rs-brand-soft);
-    color: var(--rs-brand);
-    border-color: var(--rs-brand);
+.ld-stat-label {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--rs-muted);
+    margin-top: 2px;
 }
-.ld-timeline-step.is-current .ld-timeline-icon {
-    background: var(--rs-brand);
-    color: #fff;
-    border-color: var(--rs-brand);
-    box-shadow: 0 0 0 4px var(--rs-brand-soft);
-}
-.ld-timeline-step.is-rejected .ld-timeline-icon {
-    background: var(--rs-red-soft);
-    color: var(--rs-red);
-    border-color: var(--rs-red-border);
-}
-.ld-timeline-step.is-complete .ld-timeline-label,
-.ld-timeline-step.is-current .ld-timeline-label {
-    color: var(--rs-ink);
-}
-.ld-timeline-step.is-rejected .ld-timeline-label { color: var(--rs-red); }
 
-.ld-timeline-line {
-    flex: 1;
-    height: 2px;
-    background: var(--rs-border);
-    margin-top: 19px;
+@media (max-width: 767.98px) {
+    .ld-header-card { flex-direction: column; align-items: flex-start; }
+    .ld-header-stats { width: 100%; justify-content: space-between; gap: 16px; }
 }
-.ld-timeline-line.is-complete { background: var(--rs-brand); }
 
 /* ============================================================
    SECTION CARDS
@@ -149,7 +172,7 @@ body { background: var(--rs-bg); }
     display: flex;
     align-items: center;
     font-size: 0.95rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--rs-ink);
     margin: 0 0 20px;
     padding-bottom: 14px;
@@ -168,29 +191,42 @@ body { background: var(--rs-bg); }
     align-self: flex-start;
 }
 
-/* Sticky left column — borrower profile + loan summary stay
-   visible while scrolling the right column content. */
+/* Sticky left column — Loan Summary + Application Status stay
+   visible while scrolling the right column content. transform:
+   translateZ(0) promotes this to its own compositing layer so
+   it's isolated from ancestor filter/repaint issues in Chrome
+   (see admin-remove-blur.js for the related detach/reattach
+   fix for the stale-paint bug this can trigger). */
 .ld-sticky-col {
     position: sticky;
     top: 96px; /* clears the fixed top nav — adjust if header height changes */
+    transform: translateZ(0);
+    will-change: transform;
 }
 @media (max-width: 991.98px) {
     .ld-sticky-col { position: static; }
 }
 
-/* ── Borrower profile card ── */
 .borrower-avatar {
-    width: 72px;
-    height: 72px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
-    margin: 0 auto 16px;
     background: linear-gradient(135deg, var(--rs-brand), #7ea3ff);
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 1.4rem;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    overflow: hidden;
+    position: relative;
+}
+.borrower-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
 }
 
 /* ── Badges ── */
@@ -213,23 +249,7 @@ body { background: var(--rs-bg); }
 }
 .table-loan-summary tr:last-child td { border-bottom: none; }
 .table-loan-summary .info-label { color: var(--rs-muted); font-weight: 500; }
-.table-loan-summary .info-value { font-weight: 600; color: var(--rs-ink); }
-
-/* Emphasized figures — Loan Amount, Total Interest, Total to Pay,
-   Monthly Payment — get a subtle color-accented pill instead of
-   plain colored text, so they're easier to scan at a glance. */
-.ld-value-pill {
-    display: inline-block;
-    padding: 5px 12px;
-    border-radius: 8px;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    font-size: 0.85rem;
-}
-.ld-pill-primary { background: var(--rs-brand-soft); color: var(--rs-brand); }
-.ld-pill-warning { background: var(--rs-amber-soft); color: var(--rs-amber); }
-.ld-pill-danger  { background: var(--rs-red-soft); color: var(--rs-red); }
-.ld-pill-success { background: var(--rs-green-soft); color: var(--rs-green); }
+.table-loan-summary .info-value { font-weight: 500; color: var(--rs-ink); }
 
 /* ============================================================
    INFO FIELDS (Personal Info / Address / Work Info)
@@ -240,16 +260,18 @@ body { background: var(--rs-bg); }
     gap: 8px;
     padding: 10px 0;
 }
+.ld-field.compact {
+    gap: 4px;
+    padding: 4px 0;
+}
 .info-label {
     font-size: 0.72rem;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--rs-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
 }
 .info-value {
     font-size: 0.88rem;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--rs-ink);
     line-height: 1.4;
 }
@@ -294,49 +316,75 @@ body { background: var(--rs-bg); }
 .btn-id-action:hover { border-color: var(--rs-brand); color: var(--rs-brand); background: var(--rs-brand-soft); }
 
 /* ============================================================
-   ADMIN REVIEW STATUS
+   VALID ID — CLICKABLE THUMBNAIL + FULLSCREEN VIEWER
+   Same pattern as verification-detail.css, para consistent
+   ang Valid ID display sa Loan Applications at Borrower
+   Verification.
    ============================================================ */
-.review-box {
-    border: 1px solid var(--rs-border);
-    border-radius: var(--rs-radius-sm);
-    background: #fbfcfe;
-    padding: 20px 16px;
-    text-align: center;
-    height: 100%;
+.id-thumb-wrap { display: inline-block; cursor: zoom-in; }
+.id-thumb-wrap img {
+    max-width: 300px; border-radius: 10px; border: 1px solid var(--rs-border);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.review-box.approved { border-color: var(--rs-green-border); background: #f7fefb; }
-.review-box.rejected { border-color: var(--rs-red-border); background: #fffafa; }
-.review-box.awaiting { border-color: var(--rs-border); background: #fbfcfe; }
-
-.review-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 12px;
+.id-thumb-wrap:hover img {
+    transform: scale(1.02);
+    box-shadow: 0 6px 18px rgba(20, 30, 60, 0.12);
 }
-.review-box p { margin-bottom: 6px; }
-.review-box .badge { margin-bottom: 4px; }
+.id-viewer-overlay {
+    display: none; position: fixed; inset: 0; z-index: 2000;
+    background: rgba(10, 14, 25, 0.92);
+    align-items: center; justify-content: center;
+}
+.id-viewer-overlay.show { display: flex; }
+.id-viewer-overlay img {
+    max-width: 85vw; max-height: 75vh;
+    transition: transform 0.15s ease;
+    user-select: none;
+}
+.id-viewer-toolbar {
+    position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 10px; background: rgba(255,255,255,0.08);
+    padding: 10px 14px; border-radius: 40px; backdrop-filter: blur(6px);
+}
+.id-viewer-toolbar button {
+    width: 40px; height: 40px; border-radius: 50%; border: none;
+    background: rgba(255,255,255,0.12); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s ease;
+}
+.id-viewer-toolbar button:hover { background: rgba(255,255,255,0.25); }
+.id-viewer-close {
+    position: absolute; top: 22px; right: 26px;
+    width: 42px; height: 42px; border-radius: 50%; border: none;
+    background: rgba(255,255,255,0.12); color: #fff; font-size: 1.1rem;
+}
+.id-viewer-close:hover { background: rgba(255,255,255,0.25); }
 
-.ld-review-remark {
-    background: #fff;
-    border: 1px solid var(--rs-border);
-    border-radius: 8px;
+html.app-skin-dark .id-thumb-wrap img { border-color: #2d3f55; }
+
+/* ============================================================
+   ADMIN REVIEW STATUS — plain table, same visual language as
+   the Payment Schedule table below it (no colored icon boxes).
+   ============================================================ */
+.ld-review-table thead th {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: #8a9bb0;
+    border-bottom: 1px solid #e9ecef;
     padding: 10px 12px;
-    margin-top: 10px;
-    font-size: 0.78rem;
-    color: var(--rs-body);
-    font-style: italic;
-    text-align: left;
-    line-height: 1.4;
+    white-space: nowrap;
 }
-.ld-review-time {
-    font-size: 0.72rem;
-    color: var(--rs-muted);
-    margin-top: 8px;
+.ld-review-table tbody td {
+    padding: 12px;
+    font-size: 0.84rem;
+    color: var(--rs-ink);
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f3f5;
 }
+.ld-review-table tbody tr:last-child td { border-bottom: none; }
+
+html.app-skin-dark .ld-review-table thead th { color: #94a3b8; border-color: #2d3f55; }
+html.app-skin-dark .ld-review-table tbody td { color: #e2e8f0; border-color: #2d3f55; }
 
 /* ============================================================
    DISCUSSION (formerly plain Comments box)
@@ -375,7 +423,7 @@ body { background: var(--rs-bg); }
     gap: 10px;
     margin-bottom: 4px;
 }
-.ld-comment-name { font-weight: 700; font-size: 0.83rem; color: var(--rs-ink); }
+.ld-comment-name { font-weight: 600; font-size: 0.83rem; color: var(--rs-ink); }
 .ld-comment-time { font-size: 0.72rem; color: var(--rs-muted); white-space: nowrap; }
 .ld-comment-text { margin: 0; font-size: 0.84rem; color: var(--rs-body); line-height: 1.55; }
 
@@ -412,11 +460,146 @@ body { background: var(--rs-bg); }
 .btn-post-comment:hover { background: #3a6ae0; }
 
 /* ============================================================
+   MAKE DECISION MODAL — retheme to match the review-decision
+   style used on Borrower Verification (white content, thin
+   #e5e7eb border, soft shadow, 600-weight buttons instead of
+   the heavier bootstrap/modals-modern defaults). Scoped to
+   #decisionModal only so it doesn't affect modal-modern usage
+   elsewhere in the app.
+
+   Buttons are solid black (matching .btn-decision-black used
+   for the "Make a decision" trigger) instead of blue/red — the
+   icon circle color (green check / red x) is what carries the
+   approve-vs-reject visual meaning, not the button color.
+   ============================================================ */
+#decisionModal .modal-content {
+    border: 1px solid var(--rs-border);
+    border-radius: 12px;
+    box-shadow: 0 8px 28px rgba(20, 30, 60, 0.12);
+}
+#decisionModal .modal-header-clean {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--rs-border);
+}
+#decisionModal .modal-header-clean h6 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--rs-ink);
+    margin: 0;
+}
+#decisionModal .btn-close-clean {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    line-height: 1;
+    color: var(--rs-muted);
+    cursor: pointer;
+}
+#decisionModal .btn-close-clean:hover { color: var(--rs-ink); }
+#decisionModal .modal-body {
+    padding: 22px 24px 10px;
+}
+#decisionModal .modal-footer {
+    padding: 16px 24px 20px;
+    border-top: 1px solid var(--rs-border);
+    gap: 8px;
+}
+
+#decisionModal label.form-label {
+    font-weight: 500;
+    color: var(--rs-ink);
+}
+
+.decision-char-counter {
+    text-align: right;
+    font-size: 0.74rem;
+    color: var(--rs-muted);
+    margin-top: 6px;
+}
+
+#decisionModal .modal-icon-circle {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 4px auto 16px;
+    font-size: 1.2rem;
+}
+#decisionModal .modal-icon-circle.icon-success { background: var(--rs-green-soft); color: var(--rs-green); }
+#decisionModal .modal-icon-circle.icon-danger  { background: var(--rs-red-soft); color: var(--rs-red); }
+#decisionModal .modal-title-text {
+    text-align: center;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--rs-ink);
+    margin-bottom: 6px;
+}
+#decisionModal .modal-subtext-text {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--rs-muted);
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+#decisionModal .modal-detail-card {
+    border: 1px solid var(--rs-border);
+    border-radius: 10px;
+    background: #f8f9fb;
+    padding: 14px 16px;
+}
+#decisionModal .modal-detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 0.84rem;
+}
+#decisionModal .modal-detail-label { color: var(--rs-muted); font-weight: 500; }
+#decisionModal .modal-detail-value { color: var(--rs-ink); font-weight: 600; }
+
+.btn-decision {
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 9px 18px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+.btn-decision-cancel {
+    background: #fff;
+    border-color: var(--rs-border);
+    color: #4a5b73;
+}
+.btn-decision-cancel:hover { border-color: #c7ccd4; }
+.btn-decision-reject {
+    background: #fff;
+    border-color: var(--rs-red-border);
+    color: var(--rs-red);
+}
+.btn-decision-reject:hover { background: var(--rs-red-soft); }
+
+#decisionModal textarea#decisionRemarks {
+    border-radius: 10px;
+    border: 1px solid var(--rs-border);
+    font-size: 0.85rem;
+}
+#decisionModal textarea#decisionRemarks:focus {
+    border-color: var(--rs-brand);
+    box-shadow: 0 0 0 3px var(--rs-brand-soft);
+    outline: none;
+}
+
+/* ============================================================
    DARK MODE
    ============================================================ */
 html.app-skin-dark body { background: #0f172a; }
 html.app-skin-dark .section-card,
-html.app-skin-dark .ld-timeline { background: #1e2a3a; border-color: #2d3f55; }
+html.app-skin-dark .ld-header-card { background: #1e2a3a; border-color: #2d3f55; }
 html.app-skin-dark .section-title { color: #e2e8f0; border-color: #2d3f55; }
 html.app-skin-dark .info-value,
 html.app-skin-dark .table-loan-summary .info-value { color: #e2e8f0; }
@@ -431,8 +614,24 @@ html.app-skin-dark .ld-review-remark { background: #1e2a3a; border-color: #2d3f5
 html.app-skin-dark .ld-comment-body { background: #16202e; border-color: #2d3f55; }
 html.app-skin-dark .ld-comment-name { color: #e2e8f0; }
 html.app-skin-dark .ld-comment-text { color: #cbd5e1; }
-html.app-skin-dark .ld-timeline-icon { background: #16202e; border-color: #2d3f55; }
-html.app-skin-dark .ld-timeline-label { color: #94a3b8; }
+html.app-skin-dark .ld-header-info h6 { color: #e2e8f0; }
+html.app-skin-dark .ld-stat-value { color: #e2e8f0; }
+
+html.app-skin-dark #decisionModal .modal-content { background: #1e2a3a; border-color: #2d3f55; }
+html.app-skin-dark #decisionModal .modal-header-clean,
+html.app-skin-dark #decisionModal .modal-footer { border-color: #2d3f55; }
+html.app-skin-dark #decisionModal .modal-header-clean h6,
+html.app-skin-dark #decisionModal .modal-title-text,
+html.app-skin-dark #decisionModal .modal-detail-value { color: #e2e8f0; }
+html.app-skin-dark #decisionModal .modal-subtext-text { color: #94a3b8; }
+html.app-skin-dark #decisionModal .modal-detail-card { background: #16202e; border-color: #2d3f55; }
+html.app-skin-dark #decisionModal textarea#decisionRemarks { background: #16202e; border-color: #2d3f55; color: #e2e8f0; }
+html.app-skin-dark .decision-char-counter { color: #64748b; }
+
+html.app-skin-dark .btn-decision-cancel { background: #1e2a3a; border-color: #2d3f55; color: #cbd5e1; }
+html.app-skin-dark .btn-decision-cancel:hover { border-color: #3d5170; }
+html.app-skin-dark .btn-decision-reject { background: #1e2a3a; border-color: #4a2020; color: #f87171; }
+html.app-skin-dark .btn-decision-reject:hover { background: #2a1616; }
 
 /* ============================================================
    FOOTER
@@ -442,9 +641,11 @@ html.app-skin-dark .ld-timeline-label { color: #94a3b8; }
     display: flex !important;
     flex-direction: column !important;
 }
-.nxl-content { flex: 1 !important; display: flex !important; flex-direction: column !important; }
+.nxl-content { flex: 1 !important; display: flex !important; flex-direction: column !important; background: #fff; }
 .nxl-content .main-content { flex: 1 !important; }
 .footer { flex-shrink: 0 !important; margin-top: auto !important; }
+
+html.app-skin-dark .nxl-content { background: #14202e; }
 
 /* ============================================================
    SIDEBAR SUBMENU HIGHLIGHT
@@ -468,10 +669,8 @@ html.app-skin-dark .ld-timeline-label { color: #94a3b8; }
 
 .ld-schedule-table thead th {
     font-size: 0.7rem;
-    font-weight: 700;
+    font-weight: 500;
     color: #8a9bb0;
-    text-transform: uppercase;
-    letter-spacing: .4px;
     border-bottom: 1px solid #e9ecef;
     padding: 10px 12px;
     white-space: nowrap;
@@ -492,7 +691,7 @@ html.app-skin-dark .ld-timeline-label { color: #94a3b8; }
     padding: 3px 11px;
     border-radius: 20px;
     font-size: 0.72rem;
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .ld-schedule-paid    { background: #dcfce7; color: #16a34a; }
@@ -522,4 +721,26 @@ html.app-skin-dark .ld-schedule-pending { background: rgba(148,163,184,.15); col
 .modal-modern .modal-content {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
+}
+
+/* ============================================================
+   FORCE-DISABLE PAGE BLUR WHILE A MODAL IS OPEN
+   Ang theme mismo ang naglalagay ng filter:blur() sa content
+   pag may bukas na Bootstrap modal (class na "modal-open" sa
+   body). Mas reliable itong CSS override kaysa JS kasi hindi
+   siya umaasa sa event timing — laging mananalo ang !important
+   rule na ito sa sandaling ma-toggle ang class.
+   ============================================================ */
+body.modal-open .nxl-container,
+body.modal-open .nxl-navigation,
+body.modal-open .nxl-header,
+body.modal-open .navbar-wrapper,
+body.modal-open .header-wrapper,
+body.modal-open .nxl-content,
+body.modal-open main,
+body.modal-open .page-header,
+body.modal-open .main-content,
+body.modal-open .footer {
+    filter: none !important;
+    -webkit-filter: none !important;
 }

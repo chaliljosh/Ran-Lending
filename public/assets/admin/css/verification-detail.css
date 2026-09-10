@@ -2,6 +2,13 @@
    Borrower Details — page styles
    Retheme lang, same class names — walang
    binago sa structure/JS hooks.
+
+   REDESIGN: old .modal-review-decision +
+   .modal-confirm-decision (single-step + separate
+   confirm modal) removed — replaced with a
+   #decisionModal-scoped 2-step design copied
+   from loan-details.css, matching the Loan
+   Applications "Make a decision" modal exactly.
    ══════════════════════════════════════════ */
 
 .nxl-content {
@@ -214,124 +221,6 @@
         }
 
         /* ============================================
-           REVIEW BORROWER VERIFICATION MODAL
-           500–550px, single step, minimal chrome.
-        ============================================ */
-        .modal-review-decision {
-            max-width: 520px;
-        }
-        .modal-review-decision .modal-content {
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            box-shadow: 0 8px 28px rgba(20, 30, 60, 0.12);
-        }
-        .modal-review-decision .modal-header {
-            align-items: flex-start;
-            padding: 20px 24px 16px;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        .modal-review-decision .modal-title {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #0f172a;
-        }
-        .modal-review-decision .modal-subtitle {
-            font-size: 0.82rem;
-            color: #8a9bb0;
-            margin: 4px 0 0;
-            line-height: 1.4;
-        }
-        .modal-review-decision .modal-body {
-            padding: 20px 24px;
-        }
-        .modal-review-decision .modal-footer {
-            padding: 16px 24px 20px;
-            border-top: 1px solid #e5e7eb;
-            gap: 8px;
-        }
-
-        .review-borrower-context {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 14px;
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-            background: #f8f9fb;
-            margin-bottom: 18px;
-        }
-        .rbc-avatar {
-            width: 36px; height: 36px; border-radius: 50%;
-            background: linear-gradient(135deg, #4a7cf7, #6c5ce7);
-            color: #fff; font-weight: 700; font-size: 0.8rem;
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
-        }
-        .rbc-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-        .rbc-name { font-size: 0.86rem; font-weight: 700; color: #0f172a; }
-        .rbc-meta { font-size: 0.76rem; color: #8a9bb0; }
-
-        .btn-decision {
-            font-size: 0.82rem;
-            font-weight: 600;
-            padding: 8px 16px;
-            border-radius: 8px;
-            border: 1px solid transparent;
-            cursor: pointer;
-            transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-        }
-        .btn-decision-cancel {
-            background: #fff;
-            border-color: #e5e7eb;
-            color: #4a5b73;
-        }
-        .btn-decision-cancel:hover { border-color: #c7ccd4; }
-        .btn-decision-reject {
-            background: #fff;
-            border-color: #f3c7c7;
-            color: #dc2626;
-        }
-        .btn-decision-reject:hover { background: #fef2f2; }
-        .btn-decision-approve {
-            background: #4a7cf7;
-            border-color: #4a7cf7;
-            color: #fff;
-        }
-        .btn-decision-approve:hover { background: #3866e0; }
-
-        /* ============================================
-           CONFIRMATION MODAL — small, centered text,
-           shown after Reject/Approve in the review modal.
-           Same visual language (radius, shadow, borders)
-           as the review modal, just compact.
-        ============================================ */
-        .modal-confirm-decision {
-            max-width: 380px;
-        }
-        .modal-confirm-decision .modal-content {
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            box-shadow: 0 8px 28px rgba(20, 30, 60, 0.12);
-        }
-        .modal-confirm-decision .modal-body {
-            padding: 28px 24px 8px;
-            text-align: center;
-        }
-        .modal-confirm-decision .confirm-decision-text {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #0f172a;
-            margin: 0;
-            line-height: 1.4;
-        }
-        .modal-confirm-decision .modal-footer {
-            padding: 18px 24px 22px;
-            border-top: none;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        /* ============================================
            PROGRESS TIMELINE
         ============================================ */
         .verify-timeline {
@@ -455,7 +344,6 @@
             .bsc-stats { flex-wrap: wrap; gap: 10px 0; }
             .bsc-stat { min-width: 45%; flex: 1 1 45%; border-right: none !important; padding: 6px 0; }
             .btn-review-decision { width: 100%; text-align: center; }
-            .modal-review-decision { max-width: calc(100vw - 24px); }
         }
         /* ============================================
    BACK BUTTON — matched from loan-details.css
@@ -474,6 +362,147 @@
     border-color: #4a7cf7;
     color: #4a7cf7;
     background: #eef3ff;
+}
+
+/* ============================================================
+   MAKE DECISION MODAL — matched 1:1 to loan-details.css's
+   #decisionModal treatment: white content, thin #e5e7eb border,
+   soft shadow, 2-step flow (remarks → confirmation), solid
+   black buttons for both Approve and Reject-confirm (the icon
+   circle color, not the button color, carries the meaning).
+   Scoped to #decisionModal only.
+   ============================================================ */
+#decisionModal .modal-content {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 8px 28px rgba(20, 30, 60, 0.12);
+}
+#decisionModal .modal-header-clean {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+#decisionModal .modal-header-clean h6 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+#decisionModal .btn-close-clean {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    line-height: 1;
+    color: #8a9bb0;
+    cursor: pointer;
+}
+#decisionModal .btn-close-clean:hover { color: #0f172a; }
+#decisionModal .modal-body {
+    padding: 22px 24px 10px;
+}
+#decisionModal .modal-footer {
+    padding: 16px 24px 20px;
+    border-top: 1px solid #e5e7eb;
+    gap: 8px;
+}
+
+#decisionModal label.form-label {
+    font-weight: 500;
+    color: #0f172a;
+}
+
+.decision-char-counter {
+    text-align: right;
+    font-size: 0.74rem;
+    color: #8a9bb0;
+    margin-top: 6px;
+}
+
+#decisionModal .modal-icon-circle {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 4px auto 16px;
+    font-size: 1.2rem;
+}
+#decisionModal .modal-icon-circle.icon-success { background: #dcfce7; color: #16a34a; }
+#decisionModal .modal-icon-circle.icon-danger  { background: #fee2e2; color: #dc2626; }
+#decisionModal .modal-title-text {
+    text-align: center;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 6px;
+}
+#decisionModal .modal-subtext-text {
+    text-align: center;
+    font-size: 0.85rem;
+    color: #8a9bb0;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+#decisionModal .modal-detail-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #f8f9fb;
+    padding: 14px 16px;
+}
+#decisionModal .modal-detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 0.84rem;
+}
+#decisionModal .modal-detail-label { color: #8a9bb0; font-weight: 500; }
+#decisionModal .modal-detail-value { color: #0f172a; font-weight: 600; }
+
+.btn-decision {
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 9px 18px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+.btn-decision-cancel {
+    background: #fff;
+    border-color: #e5e7eb;
+    color: #4a5b73;
+}
+.btn-decision-cancel:hover { border-color: #c7ccd4; }
+.btn-decision-reject {
+    background: #fff;
+    border-color: #f3c7c7;
+    color: #dc2626;
+}
+.btn-decision-reject:hover { background: #fef2f2; }
+
+.btn-decision-black {
+    background: #0f172a;
+    border: 1px solid #0f172a;
+    color: #fff;
+}
+.btn-decision-black:hover {
+    background: #000;
+    border-color: #000;
+    color: #fff;
+}
+
+#decisionModal textarea#decisionRemarks {
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    font-size: 0.85rem;
+}
+#decisionModal textarea#decisionRemarks:focus {
+    border-color: #4a7cf7;
+    box-shadow: 0 0 0 3px #eef3ff;
+    outline: none;
 }
 
 /* ============================================
@@ -553,41 +582,54 @@ html.app-skin-dark .btn-review-decision {
 }
 html.app-skin-dark .btn-review-decision:hover { border-color: #4a7cf7; color: #6c9bff; }
 
-html.app-skin-dark .modal-review-decision .modal-content {
-    background: #1e2a3a;
-    border-color: #2d3f55;
-}
-html.app-skin-dark .modal-review-decision .modal-header,
-html.app-skin-dark .modal-review-decision .modal-footer {
-    border-color: #2d3f55;
-}
-html.app-skin-dark .modal-review-decision .modal-title { color: #e2e8f0; }
-html.app-skin-dark .modal-review-decision .modal-subtitle { color: #94a3b8; }
+html.app-skin-dark #decisionModal .modal-content { background: #1e2a3a; border-color: #2d3f55; }
+html.app-skin-dark #decisionModal .modal-header-clean,
+html.app-skin-dark #decisionModal .modal-footer { border-color: #2d3f55; }
+html.app-skin-dark #decisionModal .modal-header-clean h6,
+html.app-skin-dark #decisionModal .modal-title-text,
+html.app-skin-dark #decisionModal .modal-detail-value { color: #e2e8f0; }
+html.app-skin-dark #decisionModal .modal-subtext-text { color: #94a3b8; }
+html.app-skin-dark #decisionModal .modal-detail-card { background: #16202e; border-color: #2d3f55; }
+html.app-skin-dark #decisionModal textarea#decisionRemarks { background: #16202e; border-color: #2d3f55; color: #e2e8f0; }
+html.app-skin-dark .decision-char-counter { color: #64748b; }
 
-html.app-skin-dark .review-borrower-context {
-    background: #16202e;
-    border-color: #2d3f55;
-}
-html.app-skin-dark .rbc-name { color: #e2e8f0; }
-html.app-skin-dark .rbc-meta { color: #94a3b8; }
-
-html.app-skin-dark .btn-decision-cancel {
-    background: #1e2a3a;
-    border-color: #2d3f55;
-    color: #cbd5e1;
-}
+html.app-skin-dark .btn-decision-cancel { background: #1e2a3a; border-color: #2d3f55; color: #cbd5e1; }
 html.app-skin-dark .btn-decision-cancel:hover { border-color: #3d5170; }
-html.app-skin-dark .btn-decision-reject {
-    background: #1e2a3a;
-    border-color: #4a2020;
-    color: #f87171;
-}
+html.app-skin-dark .btn-decision-reject { background: #1e2a3a; border-color: #4a2020; color: #f87171; }
 html.app-skin-dark .btn-decision-reject:hover { background: #2a1616; }
-html.app-skin-dark .btn-decision-approve { background: #4a7cf7; color: #fff; }
-html.app-skin-dark .btn-decision-approve:hover { background: #6c9bff; }
 
-html.app-skin-dark .modal-confirm-decision .modal-content {
-    background: #1e2a3a;
-    border-color: #2d3f55;
+/* ============================================================
+   FORCE-DISABLE PAGE BLUR WHILE A MODAL IS OPEN
+   Ang theme mismo ang naglalagay ng filter:blur() sa content
+   pag may bukas na Bootstrap modal (class na "modal-open" sa
+   body). Mas reliable itong CSS override kaysa JS kasi hindi
+   siya umaasa sa event timing — laging mananalo ang !important
+   rule na ito sa sandaling ma-toggle ang class.
+   ============================================================ */
+body.modal-open .nxl-container,
+body.modal-open .nxl-navigation,
+body.modal-open .nxl-header,
+body.modal-open .navbar-wrapper,
+body.modal-open .header-wrapper,
+body.modal-open .nxl-content,
+body.modal-open main,
+body.modal-open .page-header,
+body.modal-open .main-content,
+body.modal-open .footer {
+    filter: none !important;
+    -webkit-filter: none !important;
 }
-html.app-skin-dark .modal-confirm-decision .confirm-decision-text { color: #e2e8f0; }
+
+/* ============================================================
+   REMOVE BACKDROP BLUR (hiwalay sa content-blur fix sa itaas)
+   ============================================================ */
+.modal-backdrop {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+.modal-modern,
+.modal-modern .modal-content {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
