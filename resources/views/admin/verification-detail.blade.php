@@ -21,8 +21,10 @@
                 <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Home</a></li>
                 @if ($cameFrom === 'verification')
                     <li class="breadcrumb-item">
-                        href="{{ route('admin.borrower-verification', ($viewStatus ?? 'pending') !== 'pending' ? ['status' => $viewStatus] : []) }}">Borrower
-                        Verification</a></li>
+                        <a
+                            href="{{ route('admin.borrower-verification', ($viewStatus ?? 'pending') !== 'pending' ? ['status' => $viewStatus] : []) }}">Borrower
+                            Verification</a>
+                    </li>
                 @else
                     <li class="breadcrumb-item"><a href="{{ route('admin.borrowers') }}">All Borrowers</a></li>
                 @endif

@@ -1,172 +1,247 @@
 /* ============================================================
    overdue-payments.css
-   Styles for admin.overdue-payments — this file was referenced
-   by the blade but never created, which is why the page rendered
-   unstyled (plain text, no cards, no table borders).
-   Matches the existing Ran Serenity admin look: white cards,
-   light gray page background, subtle borders, blue accent,
-   red/orange for overdue emphasis.
+   REDESIGN: matched 1:1 sa Ongoing Loans' design tokens — white
+   bg, Inter font enforced sa buong .main-content, stat cards na
+   walang colored icon badge (label + muted icon sa taas, malaking
+   bold number sa baba, parehong hover lift), .rs-table/.btn-view-v2/
+   .pagination-bar-v2 na parehong shape at spacing. Overdue-specific
+   pieces (days-late pill, overdue amount color, status pills)
+   pinanatili pero ginawang katulad ng tono ng bagong palette.
 ============================================================ */
 
-/* ---------- Shared card shell ---------- */
-.rs-card {
-    background: #FFFFFF;
-    border: 1px solid #E5E7EB;
-    border-radius: 12px;
-    padding: 20px 22px;
+:root {
+    --rs-brand: #4a7cf7;
+    --rs-brand-soft: #eef3ff;
+    --rs-ink: #0f172a;
+    --rs-body: #475569;
+    --rs-muted: #94a3b8;
+    --rs-border: #e7eaf0;
+    --rs-bg: #f8fafc;
+
+    --rs-green: #16a34a;
+    --rs-green-soft: #ecfdf5;
+    --rs-green-border: #bbf7d0;
+
+    --rs-amber: #b45309;
+    --rs-amber-soft: #fffbeb;
+    --rs-amber-border: #fde68a;
+
+    --rs-red: #dc2626;
+    --rs-red-soft: #fef2f2;
+
+    --rs-radius: 16px;
+    --rs-radius-sm: 10px;
+    --rs-shadow: 0 1px 3px rgba(15,23,42,.15);
+
+    --rs-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* ---------- Stats row ---------- */
+html:not(.app-skin-dark) .nxl-content { background: #fff; }
+
+/* ── Inter font — applied to the whole page content area,
+     matched sa Ongoing Loans / admin-dashboard.css. Icon classes
+     excluded (feather-*) ── */
+html body .main-content,
+html body .main-content * {
+    font-family: var(--rs-font) !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+html body .main-content i,
+html body .main-content [class*="feather-"] {
+    font-family: inherit !important;
+}
+html body .main-content i[class*="feather-"]::before {
+    font-family: 'feather' !important;
+}
+
+.page-header .page-header-title h5 { color: var(--rs-ink); font-weight: 700; }
+
+.rs-card {
+    background: #fff;
+    border: 1px solid var(--rs-border);
+    border-radius: var(--rs-radius);
+    box-shadow: var(--rs-shadow);
+}
+
+/* ── Stat cards — label+icon header row, walang colored icon
+     badge, malaking number sa baba (eksaktong parehong shape ng
+     Ongoing Loans' .stat-card-v2) ── */
 .stats-grid-v2 {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 16px;
-    margin-bottom: 20px;
+    margin-bottom: 28px;
 }
 .stat-card-v2 {
+    padding: 20px 22px;
+    transition: box-shadow .15s ease, transform .15s ease;
+}
+.stat-card-v2:hover {
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12) !important;
+    transform: translateY(-1px);
+}
+.stat-card-head-v2 {
     display: flex;
     align-items: center;
-    gap: 14px;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+.stat-label-v2 {
+    font-size: 0.86rem;
+    font-weight: 500;
+    color: var(--rs-ink);
 }
 .stat-icon-v2 {
-    width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.1rem;
+    font-size: 1rem;
+    color: var(--rs-muted);
+    flex-shrink: 0;
 }
-.stat-icon-v2.total { background: #FEF2F2; color: #DC2626; }
-.stat-icon-v2.amount { background: #FFF7ED; color: #EA580C; }
-.stat-icon-v2.avg { background: #EFF6FF; color: #2563EB; }
-
-.stat-label-v2 {
-    font-size: 0.76rem; font-weight: 600; color: #64748B;
-    text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px;
+.stat-value-v2 {
+    font-size: 1.7rem; font-weight: 700; color: var(--rs-ink);
+    font-variant-numeric: tabular-nums;
 }
-.stat-value-v2 { font-size: 1.375rem; font-weight: 800; color: #0F172A; letter-spacing: -0.02em; }
 
-/* ---------- Filter toolbar ---------- */
+/* ── Filter bar ── */
 .filter-bar-v2 {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 20px; flex-wrap: wrap;
 }
 .search-wrap-v2 {
-    position: relative;
-    flex: 1 1 280px;
-    min-width: 220px;
+    flex: 1; min-width: 260px;
+    display: flex; align-items: center; gap: 10px;
+    background: #fff; border: 1px solid var(--rs-border);
+    border-radius: var(--rs-radius-sm); padding: 0 16px;
 }
-.search-wrap-v2 i {
-    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-    color: #94A3B8; font-size: 0.9rem;
+.search-wrap-v2 i, .search-wrap-v2 svg {
+    color: var(--rs-muted); font-size: 15px; width: 15px; height: 15px;
+    flex-shrink: 0; pointer-events: none;
 }
 .search-wrap-v2 input {
-    width: 100%; height: 42px; border: 1px solid #E5E7EB; border-radius: 8px;
-    padding: 0 14px 0 38px; font-size: 0.85rem; color: #0F172A; background: #F8FAFC;
-    transition: border-color .15s ease, background .15s ease;
+    flex: 1; height: 46px; border: none; box-shadow: none;
+    background: transparent; font-size: 0.86rem;
 }
-.search-wrap-v2 input::placeholder { color: #94A3B8; }
-.search-wrap-v2 input:focus {
-    outline: none; border-color: #2563EB; background: #FFFFFF;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
-}
-.sort-select-v2 {
-    height: 42px; border: 1px solid #E5E7EB; border-radius: 8px;
-    padding: 0 32px 0 14px; font-size: 0.83rem; color: #0F172A; background: #F8FAFC;
-    min-width: 170px;
-}
-.sort-select-v2:focus { outline: none; border-color: #2563EB; }
+.search-wrap-v2 input:focus { outline: none; box-shadow: none; }
 
-/* ---------- Rows-per-page (part of the filter bar) ---------- */
+.sort-select-v2 {
+    height: 46px; border: 1px solid var(--rs-border); border-radius: var(--rs-radius-sm);
+    font-size: 0.83rem; font-weight: 500; color: var(--rs-ink);
+    padding: 0 16px; background: #fff;
+}
+.sort-select-v2:focus { border-color: var(--rs-brand); box-shadow: 0 0 0 3px var(--rs-brand-soft); }
+
+/* ── Rows-per-page (part of the filter bar) ── */
 .rows-per-page-v2 {
     display: flex; align-items: center; gap: 8px; flex-shrink: 0;
 }
 .rows-per-page-label-v2 {
-    font-size: 0.78rem; font-weight: 600; color: #64748B; white-space: nowrap;
+    font-size: 0.78rem; font-weight: 600; color: var(--rs-muted); white-space: nowrap;
 }
 .rows-per-page-select-v2 {
-    height: 42px; border: 1px solid #E5E7EB; border-radius: 8px;
-    padding: 0 14px; font-size: 0.83rem; color: #0F172A; background: #F8FAFC;
+    height: 46px; border: 1px solid var(--rs-border); border-radius: var(--rs-radius-sm);
+    font-size: 0.83rem; font-weight: 500; color: var(--rs-ink);
+    padding: 0 14px; background: #fff;
 }
-.rows-per-page-select-v2:focus { outline: none; border-color: #2563EB; }
+.rows-per-page-select-v2:focus { border-color: var(--rs-brand); box-shadow: 0 0 0 3px var(--rs-brand-soft); }
 
-/* ---------- Empty / no-results states ---------- */
-.empty-state-v2 { text-align: center; padding: 60px 20px; }
-.empty-state-v2 i { font-size: 1.7rem; color: #94A3B8; display: block; margin-bottom: 10px; }
-.empty-state-v2 .feather-check-circle { color: #16A34A; }
-.empty-state-v2 h6 { font-weight: 700; color: #0F172A; margin-bottom: 4px; font-size: 0.92rem; }
-.empty-state-v2 p { color: #94A3B8; font-size: 0.83rem; margin: 0; }
-
-/* ---------- Table ---------- */
-.rs-table-card { padding: 0; overflow: hidden; }
-.rs-table { width: 100%; border-collapse: collapse; }
+/* ── Table ── */
+.rs-table-card { overflow: hidden; }
 .rs-table thead th {
-    text-align: left; font-size: 0.7rem; font-weight: 700; color: #64748B;
-    text-transform: uppercase; letter-spacing: 0.4px;
-    padding: 14px 20px; border-bottom: 1px solid #E5E7EB; background: #F8FAFC;
-    white-space: nowrap;
+    background: #fbfcfe; color: var(--rs-muted);
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .4px; border-bottom: 1px solid var(--rs-border);
+    padding: 14px 20px; white-space: nowrap;
 }
-.rs-table tbody td { padding: 16px 20px; border-bottom: 1px solid #F1F5F9; vertical-align: middle; }
+.rs-table tbody td {
+    padding: 16px 20px; border-bottom: 1px solid var(--rs-border);
+    vertical-align: middle; font-size: 0.85rem;
+}
 .rs-table tbody tr:last-child td { border-bottom: none; }
-.rs-table tbody tr:hover { background: #F8FAFC; }
+.rs-table tbody tr:hover { background: #fafbfd; }
 
 .borrower-cell-v2 { display: flex; align-items: center; gap: 12px; }
 .borrower-avatar-v2 {
     width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--rs-brand), #7ea3ff);
     display: flex; align-items: center; justify-content: center;
-    font-size: 0.78rem; font-weight: 700; color: #2563EB; background: #EFF6FF;
+    color: #fff; font-weight: 700; font-size: 0.78rem;
 }
-.borrower-name-v2 { font-size: 0.87rem; font-weight: 700; color: #0F172A; }
-.borrower-id-v2 { font-size: 0.74rem; color: #2563EB; font-weight: 600; }
-.borrower-email-v2 { font-size: 0.74rem; color: #94A3B8; }
+.borrower-name-v2 { font-weight: 700; color: var(--rs-ink); font-size: 0.87rem; }
+.borrower-id-v2 { font-size: 0.7rem; color: var(--rs-brand); font-weight: 600; margin: 1px 0; }
+.borrower-email-v2 { font-size: 0.76rem; color: var(--rs-muted); }
 
-.loan-amount-v2 { font-size: 0.87rem; font-weight: 700; color: #0F172A; white-space: nowrap; }
-.loan-meta-v2 { font-size: 0.83rem; color: #64748B; white-space: nowrap; }
+.loan-amount-v2 { font-weight: 700; color: var(--rs-ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.loan-meta-v2 { color: var(--rs-body); font-size: 0.83rem; white-space: nowrap; }
 
+/* ── Days late pill — orange normally, red when severe (30+ days),
+     same pill shape as .purpose-pill in Ongoing Loans ── */
 .days-late-pill {
-    display: inline-block; font-size: 0.76rem; font-weight: 700;
-    padding: 4px 12px; border-radius: 20px; white-space: nowrap;
-    background: #FFF7ED; color: #EA580C;
+    display: inline-block; padding: 4px 12px; border-radius: 20px;
+    background: var(--rs-amber-soft); color: var(--rs-amber);
+    font-size: 0.74rem; font-weight: 700; white-space: nowrap;
 }
-.days-late-pill.severe { background: #FEF2F2; color: #DC2626; }
+.days-late-pill.severe { background: var(--rs-red-soft); color: var(--rs-red); }
 
-.overdue-amount-v2 { font-size: 0.87rem; font-weight: 800; color: #DC2626; white-space: nowrap; }
+.overdue-amount-v2 { font-weight: 700; color: var(--rs-red); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ── Status pills (Overdue / Defaulted) ── */
+.ov-status-pill,
+.dl-status-pill {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.ov-status-pill { background: var(--rs-amber-soft); color: var(--rs-amber); }
+.dl-status-pill { background: var(--rs-red-soft); color: var(--rs-red); }
 
 .btn-view-v2 {
     display: inline-flex; align-items: center; gap: 6px;
-    font-size: 0.8rem; font-weight: 600; color: #0F172A; white-space: nowrap;
-    padding: 7px 14px; border: 1px solid #E5E7EB; border-radius: 20px;
-    background: #FFFFFF; transition: background .15s ease, border-color .15s ease;
+    padding: 8px 16px; border-radius: 20px;
+    border: 1px solid var(--rs-border); background: #fff;
+    font-size: 0.78rem; font-weight: 600; color: var(--rs-ink);
+    transition: all .15s ease;
 }
-.btn-view-v2:hover { background: #F8FAFC; color: #0F172A; border-color: #CBD5E1; }
-.btn-view-v2 i { font-size: 0.85rem; }
+.btn-view-v2:hover { border-color: var(--rs-brand); color: var(--rs-brand); background: var(--rs-brand-soft); }
 
-/* ---------- Rows-per-page + Pagination bar (below the table) ---------- */
+/* ── Empty / no-results state ── */
+.empty-state-v2 { text-align: center; padding: 64px 20px; }
+.empty-state-v2 i { font-size: 42px; color: var(--rs-muted); }
+.empty-state-v2 .feather-check-circle { color: var(--rs-green); }
+.empty-state-v2 h6 { margin-top: 14px; font-weight: 700; color: var(--rs-ink); }
+.empty-state-v2 p { color: var(--rs-muted); font-size: 0.85rem; margin: 0; }
+
+/* ── Rows-per-page + Pagination bar (below the table) ── */
 .pagination-bar-v2 {
     display: flex; align-items: center; justify-content: space-between;
     gap: 12px; flex-wrap: wrap;
     padding: 14px 20px;
-    border-top: 1px solid #E5E7EB;
-    background: #F8FAFC;
+    border-top: 1px solid var(--rs-border);
+    background: #fbfcfe;
 }
-.pagination-info-v2 { font-size: 0.8rem; color: #64748B; }
+.pagination-info-v2 { font-size: 0.8rem; color: var(--rs-muted); }
 .pagination-controls-v2 { display: flex; align-items: center; gap: 12px; }
-.page-indicator-v2 { font-size: 0.82rem; font-weight: 600; color: #0F172A; white-space: nowrap; }
+.page-indicator-v2 { font-size: 0.82rem; font-weight: 600; color: var(--rs-body); white-space: nowrap; }
 
 .btn-page-v2 {
     display: inline-flex; align-items: center; gap: 6px;
     height: 36px; padding: 0 14px;
-    border: 1px solid #E5E7EB; border-radius: 20px;
-    background: #FFFFFF; color: #0F172A;
+    border: 1px solid var(--rs-border); border-radius: 20px;
+    background: #fff; color: var(--rs-body);
     font-size: 0.8rem; font-weight: 600; cursor: pointer;
     transition: all .15s ease;
 }
-.btn-page-v2:hover:not(:disabled) { border-color: #2563EB; color: #2563EB; background: #EFF6FF; }
+.btn-page-v2:hover:not(:disabled) { border-color: var(--rs-brand); color: var(--rs-brand); background: var(--rs-brand-soft); }
 .btn-page-v2:disabled { opacity: .45; cursor: not-allowed; }
 
-/* ---------- Responsive ---------- */
+/* ── Responsive ── */
 @media (max-width: 991px) {
     .stats-grid-v2 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 767.98px) {
+    .rs-table { min-width: 720px; }
 }
 @media (max-width: 575px) {
     .stats-grid-v2 { grid-template-columns: 1fr; }
@@ -176,18 +251,10 @@
     .pagination-bar-v2 { flex-direction: column; align-items: stretch; text-align: center; }
     .pagination-controls-v2 { justify-content: center; }
 }
-@media (max-width: 767.98px) {
-    .rs-table { min-width: 720px; }
-}
 
 /* ============================================================
    FOOTER — stick to bottom kahit maikli ang laman ng page.
-   Parehong fix na ginamit sa penalty-tracking.css — dito rin
-   kailangan dahil parehong theme shell (.nxl-container /
-   .nxl-content) ang ginagamit ng lahat ng admin pages, pero
-   walang page-level CSS na nag-fo-force sa container na mag-stretch
-   hanggang ibaba ng viewport, kaya "naka-angat" ang footer pag
-   maikli lang ang laman (e.g. 1 lang ang overdue loan).
+   Parehong fix na ginamit sa ongoing-loans.css / loan-applications.css.
 ============================================================ */
 .nxl-container {
     min-height: calc(100vh - 80px) !important;
@@ -199,123 +266,56 @@
     display: flex !important;
     flex-direction: column !important;
 }
-.nxl-content .main-content {
-    flex: 1 !important;
-}
-.footer {
-    flex-shrink: 0 !important;
-    margin-top: auto !important;
-}
+.nxl-content .main-content { flex: 1 !important; }
+.footer { flex-shrink: 0 !important; margin-top: auto !important; }
 
 /* ============================================================
-   DARK MODE OVERRIDES
-   NXL theme adds class="app-skin-dark" sa <html> pag na-toggle
-   yung moon/sun icon sa header. Wala pang dark rules dati dito,
-   kaya nananatiling naka-light-mode colors ang mga cards/table/
-   text kahit naka-dark theme na yung ibang bahagi ng page —
-   dahil dito halos invisible yung table header at borrower info
-   sa dark background.
+   DARK MODE — matched sa Ongoing Loans' dark tokens (#1e2a3a
+   card bg, #2d3f55 border, #e2e8f0 ink, #94a3b8 muted).
 ============================================================ */
-html.app-skin-dark .rs-card {
-    background: #17202F;
-    border-color: #2A3648;
-}
+html.app-skin-dark body { background: #0f172a; }
+html.app-skin-dark .rs-card { background: #1e2a3a; border-color: #2d3f55; }
 
-html.app-skin-dark .stat-label-v2 { color: #94A3B8; }
-html.app-skin-dark .stat-value-v2 { color: #E5E9F0; }
+html.app-skin-dark .stat-value-v2,
+html.app-skin-dark .stat-label-v2,
+html.app-skin-dark .borrower-name-v2,
+html.app-skin-dark .loan-amount-v2,
+html.app-skin-dark .btn-view-v2,
+html.app-skin-dark .empty-state-v2 h6,
+html.app-skin-dark .page-indicator-v2 { color: #e2e8f0; }
 
-html.app-skin-dark .stat-icon-v2.total { background: rgba(220, 38, 38, 0.16); color: #F87171; }
-html.app-skin-dark .stat-icon-v2.amount { background: rgba(234, 88, 12, 0.16); color: #FB923C; }
-html.app-skin-dark .stat-icon-v2.avg { background: rgba(37, 99, 235, 0.16); color: #60A5FA; }
+html.app-skin-dark .borrower-email-v2,
+html.app-skin-dark .loan-meta-v2,
+html.app-skin-dark .pagination-info-v2,
+html.app-skin-dark .rows-per-page-label-v2,
+html.app-skin-dark .empty-state-v2 p { color: #94a3b8; }
 
-html.app-skin-dark .search-wrap-v2 input,
+html.app-skin-dark .stat-icon-v2 { color: #94a3b8; }
+
+html.app-skin-dark .search-wrap-v2,
 html.app-skin-dark .sort-select-v2,
-html.app-skin-dark .rows-per-page-select-v2 {
-    background: #0B1220;
-    color: #E5E9F0;
-    border-color: #2A3648;
-}
-html.app-skin-dark .rows-per-page-label-v2 { color: #94A3B8; }
-html.app-skin-dark .search-wrap-v2 input::placeholder { color: #64748B; }
-html.app-skin-dark .search-wrap-v2 i { color: #64748B; }
-html.app-skin-dark .search-wrap-v2 input:focus,
-html.app-skin-dark .sort-select-v2:focus,
-html.app-skin-dark .rows-per-page-select-v2:focus {
-    background: #101929;
-    border-color: #2563EB;
-}
+html.app-skin-dark .rows-per-page-select-v2 { background: #16202e; border-color: #2d3f55; color: #e2e8f0; }
 
-html.app-skin-dark .empty-state-v2 h6 { color: #E5E9F0; }
-html.app-skin-dark .empty-state-v2 p { color: #64748B; }
-html.app-skin-dark .empty-state-v2 i { color: #64748B; }
-html.app-skin-dark .empty-state-v2 .feather-check-circle { color: #16A34A; }
+html.app-skin-dark .rs-table thead th { background: #16202e; border-color: #2d3f55; color: #94a3b8; }
+html.app-skin-dark .rs-table tbody td { border-color: #2d3f55; color: #e2e8f0; }
+html.app-skin-dark .rs-table tbody tr:hover { background: #16202e; }
 
-html.app-skin-dark .rs-table-card { background: #17202F; }
-html.app-skin-dark .rs-table thead th {
-    background: #101929;
-    color: #94A3B8;
-    border-color: #2A3648;
-}
-html.app-skin-dark .rs-table tbody td {
-    border-color: #212C3D;
-    color: #E5E9F0;
-}
-html.app-skin-dark .rs-table tbody tr:hover { background: rgba(37, 99, 235, 0.08); }
+html.app-skin-dark .borrower-avatar-v2 { background: linear-gradient(135deg, var(--rs-brand), #7ea3ff); }
+html.app-skin-dark .borrower-id-v2 { color: #93c5fd; }
 
-html.app-skin-dark .borrower-avatar-v2 {
-    background: rgba(37, 99, 235, 0.16);
-    color: #60A5FA;
-}
-html.app-skin-dark .borrower-name-v2 { color: #E5E9F0; }
-html.app-skin-dark .borrower-id-v2 { color: #60A5FA; }
-html.app-skin-dark .borrower-email-v2 { color: #64748B; }
+html.app-skin-dark .days-late-pill { background: rgba(180, 83, 9, 0.18); color: #fbbf24; }
+html.app-skin-dark .days-late-pill.severe { background: rgba(220, 38, 38, 0.18); color: #f87171; }
+html.app-skin-dark .overdue-amount-v2 { color: #f87171; }
 
-html.app-skin-dark .loan-amount-v2 { color: #E5E9F0; }
-html.app-skin-dark .loan-meta-v2 { color: #94A3B8; }
+html.app-skin-dark .ov-status-pill { background: rgba(180, 83, 9, 0.18); color: #fbbf24; }
+html.app-skin-dark .dl-status-pill { background: rgba(220, 38, 38, 0.18); color: #f87171; }
 
-html.app-skin-dark .days-late-pill { background: rgba(234, 88, 12, 0.16); color: #FB923C; }
-html.app-skin-dark .days-late-pill.severe { background: rgba(220, 38, 38, 0.16); color: #F87171; }
+html.app-skin-dark .btn-view-v2 { background: #1e2a3a; border-color: #2d3f55; color: #e2e8f0; }
+html.app-skin-dark .btn-view-v2:hover { border-color: var(--rs-brand); color: #93c5fd; background: rgba(74,124,247,.15); }
 
-html.app-skin-dark .overdue-amount-v2 { color: #F87171; }
+html.app-skin-dark .empty-state-v2 i { color: #94a3b8; }
+html.app-skin-dark .empty-state-v2 .feather-check-circle { color: #16a34a; }
 
-html.app-skin-dark .btn-view-v2 {
-    background: #17202F;
-    border-color: #2A3648;
-    color: #E5E9F0;
-}
-html.app-skin-dark .btn-view-v2:hover {
-    background: #0B1220;
-    border-color: #3A4A61;
-    color: #E5E9F0;
-}
-
-html.app-skin-dark .pagination-bar-v2 {
-    background: #101929;
-    border-color: #2A3648;
-}
-html.app-skin-dark .pagination-info-v2 { color: #94A3B8; }
-html.app-skin-dark .page-indicator-v2 { color: #E5E9F0; }
-html.app-skin-dark .btn-page-v2 {
-    background: #17202F;
-    border-color: #2A3648;
-    color: #E5E9F0;
-}
-html.app-skin-dark .btn-page-v2:hover:not(:disabled) {
-    border-color: #2563EB;
-    color: #60A5FA;
-    background: rgba(37, 99, 235, 0.12);
-}
-html.app-skin-dark .ov-status-pill { background: rgba(234, 88, 12, 0.16); color: #FB923C; }
-html.app-skin-dark .dl-status-pill { background: rgba(220, 38, 38, 0.16); color: #F87171; }
-
-.ov-status-pill,
-.dl-status-pill {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.76rem;
-    font-weight: 700;
-    white-space: nowrap;
-}
-.ov-status-pill { background: #FFF7ED; color: #EA580C; }
-.dl-status-pill { background: #FEF2F2; color: #DC2626; }
+html.app-skin-dark .pagination-bar-v2 { background: #16202e; border-color: #2d3f55; }
+html.app-skin-dark .btn-page-v2 { background: #1e2a3a; border-color: #2d3f55; color: #cbd5e1; }
+html.app-skin-dark .btn-page-v2:hover:not(:disabled) { border-color: var(--rs-brand); color: #93c5fd; background: rgba(74,124,247,.15); }

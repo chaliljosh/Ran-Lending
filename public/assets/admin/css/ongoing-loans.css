@@ -24,10 +24,29 @@
 
             --rs-radius: 16px;
             --rs-radius-sm: 10px;
-            --rs-shadow: 0 1px 2px rgba(15,23,42,.04), 0 10px 24px -14px rgba(15,23,42,.12);
+            --rs-shadow: 0 1px 3px rgba(15,23,42,.15);
+
+            --rs-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
-        body { background: var(--rs-bg); }
+        html:not(.app-skin-dark) .nxl-content { background: #fff; }
+
+        /* ── Inter font — applied to the whole page content area,
+             matched sa admin-dashboard.css. Icon classes excluded
+             (feather-*, gaya rin ng dashboard) ── */
+        html body .main-content,
+        html body .main-content * {
+            font-family: var(--rs-font) !important;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        html body .main-content i,
+        html body .main-content [class*="feather-"] {
+            font-family: inherit !important;
+        }
+        html body .main-content i[class*="feather-"]::before {
+            font-family: 'feather' !important;
+        }
 
         .page-header .page-header-title h5 { color: var(--rs-ink); font-weight: 700; }
 
@@ -45,24 +64,35 @@
             gap: 16px;
             margin-bottom: 28px;
         }
+        /* ── Stat cards — label+icon header row, walang colored icon
+             badge, malaking number sa baba, gaya ng .pt-summary-card
+             sa Penalty Tracking ── */
         .stat-card-v2 {
-            display: flex; align-items: center; gap: 16px;
-            padding: 22px 24px;
+            padding: 20px 22px;
+            transition: box-shadow .15s ease, transform .15s ease;
+        }
+        .stat-card-v2:hover {
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12) !important;
+            transform: translateY(-1px);
+        }
+        .stat-card-head-v2 {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+        .stat-label-v2 {
+            font-size: 0.86rem;
+            font-weight: 500;
+            color: var(--rs-ink);
         }
         .stat-icon-v2 {
-            width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 19px;
-        }
-        .stat-icon-v2.total  { background: var(--rs-brand-soft); color: var(--rs-brand); }
-        .stat-icon-v2.amount { background: var(--rs-green-soft); color: var(--rs-green); }
-        .stat-icon-v2.avg    { background: var(--rs-amber-soft); color: var(--rs-amber); }
-        .stat-label-v2 {
-            font-size: 0.72rem; font-weight: 600; color: var(--rs-muted);
-            text-transform: uppercase; letter-spacing: .4px; margin-bottom: 4px;
+            font-size: 1rem;
+            color: var(--rs-muted);
+            flex-shrink: 0;
         }
         .stat-value-v2 {
-            font-size: 1.4rem; font-weight: 700; color: var(--rs-ink);
+            font-size: 1.7rem; font-weight: 700; color: var(--rs-ink);
             font-variant-numeric: tabular-nums;
         }
 
@@ -198,11 +228,11 @@
         html.app-skin-dark body { background: #0f172a; }
         html.app-skin-dark .rs-card { background: #1e2a3a; border-color: #2d3f55; }
         html.app-skin-dark .stat-value-v2,
+        html.app-skin-dark .stat-label-v2,
         html.app-skin-dark .borrower-name-v2,
         html.app-skin-dark .loan-amount-v2,
         html.app-skin-dark .btn-view-v2,
         html.app-skin-dark .empty-state-v2 h6 { color: #e2e8f0; }
-        html.app-skin-dark .stat-label-v2,
         html.app-skin-dark .borrower-email-v2,
         html.app-skin-dark .loan-meta-v2,
         html.app-skin-dark .next-due-amount-v2,

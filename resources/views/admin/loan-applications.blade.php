@@ -381,15 +381,16 @@
                 } else if (status === 'rejected') {
                     title = 'Application rejected';
                     message = 'The loan application has been rejected by all administrators.';
-                    type = 'danger';
-                } else if (status === 'on_hold') {
-                    title = 'Application on hold';
-                    message =
-                        'The administrators have reached different decisions. The application has been placed on hold for further discussion.';
-                    type = 'warning';
+                    type = 'error'; // ✅ tamang type
                 }
+            } else if (status === 'on_hold') {
+                title = 'Application on hold';
+                message =
+                    'The administrators have reached different decisions. The application has been placed on hold for further discussion.';
+                type = 'warning';
+            }
 
-                window.showAdminToast(type, title, message);
+            window.showAdminToast(type, title, message);
             });
         </script>
     @endif

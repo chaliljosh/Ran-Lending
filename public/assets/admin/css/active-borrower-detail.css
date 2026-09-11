@@ -1,12 +1,11 @@
 /* ══════════════════════════════════════════
    ACTIVE BORROWER DETAIL — page-specific additions
+   Top summary card + horizontal Loan Summary info grid,
+   modeled on the Borrower Verification Details page layout
+   (vertical dividers between profile block and each stat).
    White bg / thicker border / visible shadow, matched to
-   the same treatment used on Borrowers, Active Borrowers,
-   and Loan Details. Uppercase labels turned off across
-   this page. !important + higher-specificity selectors used
-   throughout since .section-card / .card.stretch.stretch-full /
-   .info-label live in the shared loan-details.css / theme base
-   that this page reuses.
+   Borrowers, Active Borrowers, and Loan Details. Uppercase
+   labels turned off across this page.
    ══════════════════════════════════════════ */
 
 html:not(.app-skin-dark) .nxl-content {
@@ -15,68 +14,137 @@ html:not(.app-skin-dark) .nxl-content {
 
 /* ---------- Card shell: white bg, 1px border, visible shadow ---------- */
 .section-card,
-.card.stretch.stretch-full.abd-stat-card,
-.abd-stat-card.card {
+.abd-summary-card {
     background: #ffffff !important;
     border: 1px solid #e5e7eb !important;
     border-radius: 14px !important;
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15) !important;
 }
 
-.abd-stat-row {
-    margin-top: 0;
-}
-.abd-stat-row > [class*="col-"] {
-    margin-bottom: 16px;
-}
-
 /* ---------- Kill uppercase/letter-spacing on labels ---------- */
 .info-label,
-.abd-stat-label,
+.abd-summary-stat-label,
 .abd-next-payment-label,
 .section-title,
-.ld-schedule-table thead th {
+.ld-schedule-table thead th,
+.abd-info-item label {
     text-transform: none !important;
     letter-spacing: normal !important;
 }
 
-/* ---------- Borrower profile — compact horizontal layout ---------- */
-.abd-profile-card {
-    text-align: left;
-    padding: 20px 22px;
+/* ---------- Top summary card ---------- */
+.abd-summary-card {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 22px 26px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
 }
-.abd-profile-row {
+
+.abd-summary-left {
     display: flex;
     align-items: center;
     gap: 16px;
+    flex: 0 1 auto;
+    min-width: 0;
+    padding-right: 24px;
+    border-right: 1px solid #e5e7eb;
 }
-.abd-profile-avatar {
+
+.abd-summary-avatar {
     margin: 0 !important;
     flex-shrink: 0;
-    width: 52px;
-    height: 52px;
-    font-size: 1.02rem;
+    width: 64px;
+    height: 64px;
+    font-size: 1.1rem;
 }
-.abd-profile-info { min-width: 0; }
-.abd-profile-name {
+
+.abd-summary-info { min-width: 0; }
+.abd-summary-info h5 {
     font-weight: 700;
-    font-size: 0.94rem;
+    font-size: 1.05rem;
     color: #0f172a;
-    line-height: 1.3;
+    margin-bottom: 4px;
 }
-.abd-profile-email {
-    font-size: 0.76rem;
-    color: #64748b;
-    margin-top: 2px;
+.abd-summary-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    font-size: 0.82rem;
+    color: #475569;
+    margin-bottom: 10px;
 }
-.abd-profile-badges {
+.abd-summary-meta strong { color: #0f172a; font-weight: 600; }
+
+.abd-summary-badges {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-top: 10px;
     flex-wrap: wrap;
 }
-.abd-profile-badges .badge { margin: 0; }
+.abd-summary-badges .badge { margin: 0; }
+
+/* Stats — vertical divider between each stat, centered text,
+   matched to the Borrower Verification Details layout width/spacing. */
+.abd-summary-right {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex: 1 1 auto;
+}
+
+.abd-summary-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 0 28px;
+    border-left: 1px solid #e5e7eb;
+}
+.abd-summary-stat:first-child {
+    border-left: none;
+    padding-left: 0;
+}
+.abd-summary-stat-value {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+.abd-summary-stat-label {
+    font-size: 0.78rem;
+    color: #94a3b8;
+    margin-top: 4px;
+}
+
+@media (max-width: 991.98px) {
+    .abd-summary-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .abd-summary-left {
+        border-right: none;
+        padding-right: 0;
+        padding-bottom: 18px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .abd-summary-right {
+        padding-top: 18px;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+    .abd-summary-stat {
+        border-left: none;
+        padding: 0 12px;
+        flex: 1 1 45%;
+    }
+    .abd-summary-stat:first-child {
+        padding-left: 12px;
+    }
+}
 
 /* ---------- Borrower standing badge ---------- */
 .abd-standing {
@@ -91,11 +159,40 @@ html:not(.app-skin-dark) .nxl-content {
 .abd-standing.is-delayed { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
 .abd-standing.is-risk    { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
 
-/* ---------- Loan Summary — emphasize key figures only ---------- */
-.ld-value-pill.abd-pill-emphasis {
-    font-size: 0.92rem;
-    padding: 6px 14px;
+/* ---------- Loan Summary — horizontal info grid ----------
+   Matched to the Personal Information layout style:
+   label on top (muted, small), value below (dark, bold-ish),
+   wrapping into rows of several columns. */
+.abd-info-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 22px 40px;
 }
+.abd-info-item {
+    min-width: 140px;
+    flex: 1 1 160px;
+}
+.abd-info-item label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #94a3b8;
+    margin-bottom: 6px;
+}
+.abd-info-item span {
+    display: block;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #0f172a;
+}
+.abd-info-item.abd-info-highlight {
+    background: #eff6ff;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin: -8px -12px;
+}
+.abd-info-item.abd-info-highlight label { color: #2563eb; }
+.abd-info-item.abd-info-highlight span { color: #2563eb; font-weight: 700; }
 
 /* ---------- Payment progress ---------- */
 .abd-progress-head {
@@ -158,63 +255,42 @@ html:not(.app-skin-dark) .nxl-content {
     color: #0f172a;
 }
 
-/* ---------- Payment Schedule — slightly more prominent as the main section ---------- */
+/* ---------- Payment Schedule ---------- */
 .abd-schedule-card .section-title { margin-bottom: 16px; }
 .abd-schedule-card .ld-schedule-table thead th { padding: 10px 14px; font-size: 0.72rem; }
 .abd-schedule-card .ld-schedule-table tbody td { padding: 12px 14px; font-size: 0.82rem; }
 .abd-schedule-card .ld-schedule-table tbody td:first-child { font-weight: 600; color: #0f172a; }
 
-/* ---------- Stat cards row (Total to Pay / Total Paid / Remaining / Due In) ──
-   Plain white card, outline icon top-right, bold number, no colored
-   circle bg — same pattern used on Borrowers / Active Borrowers. ---------- */
-.abd-stat-card .card-body { padding: 20px 22px; }
-.abd-stat-card-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 14px;
-}
-.abd-stat-label {
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: #334155;
-    margin-bottom: 0;
-}
-.abd-stat-icon {
-    color: #94a3b8;
-    font-size: 18px;
-    flex-shrink: 0;
-}
-.abd-stat-value {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #0f172a;
-}
-
-/* ---------- Loan Summary — highlighted "Monthly Payment" row ---------- */
-.abd-summary-highlight td {
-    background: #eff6ff;
-    border-radius: 8px;
-    padding-top: 10px;
-    padding-bottom: 10px;
-}
-.abd-summary-highlight .info-label { color: #2563eb; font-weight: 600; }
-
 /* ---------- Dark mode ---------- */
 html.app-skin-dark .nxl-content { background: #0f172a; }
 
 html.app-skin-dark .section-card,
-html.app-skin-dark .card.stretch.stretch-full.abd-stat-card,
-html.app-skin-dark .abd-stat-card.card {
+html.app-skin-dark .abd-summary-card {
     background: #1e2a3a !important;
     border-color: #2d3f55 !important;
 }
 
-html.app-skin-dark .abd-profile-name { color: #e2e8f0; }
-html.app-skin-dark .abd-profile-email { color: #94a3b8; }
+html.app-skin-dark .abd-summary-info h5 { color: #e2e8f0; }
+html.app-skin-dark .abd-summary-meta { color: #94a3b8; }
+html.app-skin-dark .abd-summary-meta strong { color: #e2e8f0; }
+html.app-skin-dark .abd-summary-left { border-right-color: #2d3f55; }
+html.app-skin-dark .abd-summary-stat { border-left-color: #2d3f55; }
+html.app-skin-dark .abd-summary-stat-value { color: #e2e8f0; }
+html.app-skin-dark .abd-summary-stat-label { color: #94a3b8; }
+@media (max-width: 991.98px) {
+    html.app-skin-dark .abd-summary-left { border-bottom-color: #2d3f55; }
+}
+
 html.app-skin-dark .abd-standing.is-good    { background: rgba(22,163,74,.15); color: #6ee7a4; border-color: rgba(22,163,74,.3); }
 html.app-skin-dark .abd-standing.is-delayed { background: rgba(180,83,9,.18); color: #fbbf24; border-color: rgba(180,83,9,.35); }
 html.app-skin-dark .abd-standing.is-risk    { background: rgba(220,38,38,.15); color: #f87171; border-color: rgba(220,38,38,.3); }
+
+html.app-skin-dark .abd-info-item label { color: #94a3b8; }
+html.app-skin-dark .abd-info-item span { color: #e2e8f0; }
+html.app-skin-dark .abd-info-item.abd-info-highlight { background: rgba(37, 99, 235, 0.1); }
+html.app-skin-dark .abd-info-item.abd-info-highlight label,
+html.app-skin-dark .abd-info-item.abd-info-highlight span { color: #60a5fa; }
+
 html.app-skin-dark .abd-progress-label { color: #e2e8f0; }
 html.app-skin-dark .abd-progress-count { color: #94a3b8; }
 html.app-skin-dark .abd-progress-track { background: #16202e; }
@@ -222,7 +298,3 @@ html.app-skin-dark .abd-next-payment { border-color: #2d3f55; }
 html.app-skin-dark .abd-next-payment-date,
 html.app-skin-dark .abd-next-payment-amount { color: #e2e8f0; }
 html.app-skin-dark .abd-next-payment-label { color: #94a3b8; }
-html.app-skin-dark .abd-stat-label { color: #cbd5e1; }
-html.app-skin-dark .abd-stat-value { color: #e2e8f0; }
-html.app-skin-dark .abd-summary-highlight td { background: rgba(37, 99, 235, 0.1); }
-html.app-skin-dark .abd-summary-highlight .info-label { color: #60a5fa; }

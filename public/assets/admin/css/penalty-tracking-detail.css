@@ -3,7 +3,19 @@
    Ito na lang ang isang CSS file na kailangan mong i-link —
    pinagsama na ang lahat: card shell (.pd-card, .pd-table,
    .pd-info-grid, modal reuse) + bagong design (header card,
-   summary grid, status boxes, footer links).
+   status boxes, footer links).
+
+   Penalty Summary is no longer its own card — merged into
+   .pd-header-card as a plain stat row (.pd-header-block-right
+   > .pd-stat-item), matching the Borrower Detail header
+   reference (name/status left, stat numbers right).
+
+   White bg / thicker border / visible shadow, matched to
+   Borrowers, Active Borrowers, and Active Borrower Detail.
+   Uppercase labels turned off across this page. Avatar now
+   supports an uploaded profile picture instead of always
+   showing initials (js-borrower-avatar handles the no-photo
+   placeholder — shared rule already defined elsewhere).
 
    NOTE: .pd-table ngayon ay ginayahan (copied) mula sa
    .opd-table (overdue-payment-detail.css) — parehong font
@@ -11,11 +23,33 @@
    magkaibang page sila, pareho na ang tingnan ng tables.
    ══════════════════════════════════════════ */
 
-/* ── Page header row (title+breadcrumb kaliwa, back button kanan)
-   Same split pattern as overdue-payment-detail: page-header-left
-   and page-header-right are separate flex children of .page-header,
-   so the ms-auto on the RIGHT side pushes the back button away
-   naturally instead of everything sitting cramped in one row. ── */
+:root {
+    --pd-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+html:not(.app-skin-dark) .nxl-content {
+    background: #fff;
+}
+
+/* ---------- Inter font — applied to the whole page content area,
+     matched sa admin-dashboard.css. Icon classes excluded (bi-*
+     dito imbes na feather-*, dahil Bootstrap Icons ang gamit ng
+     page na ito) ---------- */
+html body .main-content,
+html body .main-content * {
+    font-family: var(--pd-font) !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+html body .main-content i,
+html body .main-content [class*="bi-"] {
+    font-family: inherit !important;
+}
+html body .main-content i[class*="bi-"]::before {
+    font-family: 'bootstrap-icons' !important;
+}
+
+/* ── Page header row (title+breadcrumb kaliwa, back button kanan) ── */
 .page-header-right {
     display: flex;
     align-items: center;
@@ -57,6 +91,14 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    overflow: hidden;
+}
+.pd-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
 }
 .pd-borrower-name {
     font-size: 1rem;
@@ -83,13 +125,12 @@
 .pd-badge-waived  { background: #f1f5f9; color: #64748b; }
 .pd-badge-unpaid  { background: #fef2f2; color: #dc2626; }
 
-/* ── Section Cards (.pd-card shell — dito gumagana ang lahat ng
-   card headers gaya ng Penalty Summary / Breakdown / Status) ── */
+/* ── Section Cards (.pd-card shell) ── */
 .pd-card {
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 14px !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15) !important;
     overflow: hidden;
 }
 .pd-card-header {
@@ -118,7 +159,7 @@
     padding: 20px;
 }
 
-/* ── Info Grid (ginagamit ng ibang pahina, at ng waived-reason box) ── */
+/* ── Info Grid ── */
 .pd-info-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -128,8 +169,8 @@
 .pd-info-label {
     font-size: 0.7rem;
     font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    text-transform: none;
+    letter-spacing: normal;
     color: #94a3b8;
     margin-bottom: 4px;
 }
@@ -145,10 +186,7 @@
 }
 
 /* ══════════════════════════════════════════
-   BREAKDOWN TABLE — copied to match .opd-table
-   (overdue-payment-detail.css) design tokens exactly:
-   same header uppercase/letter-spacing/color, same
-   cell padding/font-size/text color, same border tones.
+   BREAKDOWN TABLE
    ══════════════════════════════════════════ */
 .pd-table {
     width: 100%;
@@ -161,8 +199,8 @@
     color: #64748b;
     font-size: 0.7rem;
     font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
+    text-transform: none;
+    letter-spacing: normal;
     padding: 10px 12px;
     border-bottom: 1px solid #e2e8f0;
     white-space: nowrap;
@@ -182,9 +220,6 @@
     border-top: 1.5px solid #e2e8f0;
 }
 
-/* Penalty points pill — restyled to match .opd-badge pill look
-   (rounded, uppercase, soft-tint background) instead of the old
-   solid-blue rectangle badge. */
 .pd-point-badge {
     display: inline-block;
     background: #eff6ff;
@@ -193,14 +228,12 @@
     font-weight: 700;
     padding: 3px 10px;
     border-radius: 20px;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
+    text-transform: none;
+    letter-spacing: normal;
 }
 .fw-600 { font-weight: 600; }
 .fw-700 { font-weight: 700; }
 
-/* Table horizontal scroll wrapper — same pattern as opd-table-scroll,
-   in case the breakdown table has many columns on small screens. */
 .pd-table-scroll {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -262,14 +295,15 @@
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
-    background: #f8faff;
-    border: 1px solid #e8f0fe;
-    border-radius: 14px;
+    background: #f8faff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 14px !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15) !important;
     padding: 18px 20px;
 }
 .pt-info-label {
     font-size: 0.72rem; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.5px;
+    text-transform: none; letter-spacing: normal;
     color: #94a3b8; margin-bottom: 4px;
 }
 .pt-info-value { font-size: 0.9rem; font-weight: 600; color: #1e293b; }
@@ -312,22 +346,21 @@
 }
 
 /* ══════════════════════════════════════════
-   BAHAGING V2 — bagong layout (header card,
-   summary grid, status boxes, footer links)
+   BAHAGING V2 — header card, summary grid,
+   status boxes, footer links
    ══════════════════════════════════════════ */
 
-/* ── Unified header card (identity + info grid sa iisang card) ── */
 .pd-header-card {
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 24px;
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 16px;
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 14px !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15) !important;
     padding: 22px 26px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 .pd-header-block-left {
     display: flex;
@@ -353,115 +386,50 @@
 }
 .pd-meta-row i { color: #94a3b8; margin-right: 4px; }
 
+/* ── Header stat row (Days Late / Penalty Points / Per Point /
+     Total Penalty) — plain number-over-label style with thin
+     vertical dividers between items, ginaya sa borrower-detail
+     header reference ── */
 .pd-header-block-right {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(160px, 1fr));
-    gap: 18px 40px;
-    flex: 1 1 380px;
-    max-width: 480px;
-}
-.pd-mini-info {
     display: flex;
     align-items: center;
-    gap: 12px;
+    justify-content: flex-end;
+    gap: 0;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
 }
-.pd-mini-icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-    background: #eef2ff;
-    color: #4a7cf7;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 15px;
-    flex-shrink: 0;
+.pd-stat-item {
+    text-align: center;
+    min-width: 76px;
+    padding: 0 26px;
+    border-left: 1px solid #e5e7eb;
 }
-.pd-mini-label {
-    font-size: 0.72rem;
-    color: #94a3b8;
-    font-weight: 600;
-    margin-bottom: 2px;
+.pd-stat-item:first-child {
+    border-left: none;
+    padding-left: 0;
 }
-.pd-mini-value {
-    font-size: 0.9rem;
+.pd-stat-value {
+    font-size: 1.25rem;
     font-weight: 700;
     color: #1e293b;
+    line-height: 1.2;
 }
-.pd-mini-value.is-paid { color: #16a34a; }
-.pd-mini-value.is-waived { color: #64748b; }
-.pd-mini-value.is-unpaid { color: #dc2626; }
+.pd-stat-value.is-danger { color: #dc2626; }
+.pd-stat-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #94a3b8;
+    margin-top: 3px;
+}
 
 @media (max-width: 767.98px) {
     .pd-header-card { flex-direction: column; align-items: flex-start; }
-    .pd-header-block-right { max-width: 100%; }
+    .pd-header-block-right { width: 100%; max-width: 100%; justify-content: flex-start; }
+    .pd-stat-item { padding: 0 18px; }
+    .pd-stat-item:first-child { padding-left: 0; }
 }
-
-/* ── Penalty Summary — 4-column icon boxes + calc line ── */
-.pd-summary-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-    margin-bottom: 14px;
-}
-@media (max-width: 991.98px) { .pd-summary-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 480px) { .pd-summary-grid { grid-template-columns: 1fr; } }
-
-.pd-summary-box {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: #f8faff;
-    border: 1px solid #eef2ff;
-    border-radius: 12px;
-    padding: 14px 16px;
-}
-.pd-summary-box.is-total {
-    background: #fef2f2;
-    border-color: #fecaca;
-}
-.pd-summary-icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    flex-shrink: 0;
-    background: #e8f0fe;
-    color: #4a7cf7;
-}
-.pd-summary-box.is-total .pd-summary-icon {
-    background: #fee2e2;
-    color: #dc2626;
-}
-.pd-summary-label {
-    font-size: 0.72rem;
-    color: #94a3b8;
-    font-weight: 600;
-    margin-bottom: 2px;
-}
-.pd-summary-value {
-    font-size: 1.05rem;
-    font-weight: 800;
-    color: #1e293b;
-}
-.pd-summary-box.is-total .pd-summary-value { color: #dc2626; }
-
-.pd-calc-line {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: #f8faff;
-    border: 1px solid #eef2ff;
-    border-radius: 10px;
-    padding: 12px 16px;
-    font-size: 0.82rem;
-    color: #475569;
-    font-weight: 500;
-}
-.pd-calc-line i { color: #4a7cf7; }
 
 /* ── Penalty Status — side-by-side icon boxes ── */
 .pd-status-grid {
@@ -476,9 +444,9 @@
     display: flex;
     align-items: flex-start;
     gap: 14px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
     padding: 16px 18px;
 }
 .pd-status-box-icon {
@@ -496,7 +464,7 @@
 .pd-status-box-icon.is-gray  { background: #f1f5f9; color: #64748b; }
 .pd-status-box-icon.is-red   { background: #fef2f2; color: #dc2626; }
 
-.pd-status-box-label { font-size: 0.76rem; color: #64748b; font-weight: 600; margin-bottom: 2px; }
+.pd-status-box-label { font-size: 0.76rem; color: #64748b; font-weight: 600; text-transform: none; letter-spacing: normal; margin-bottom: 2px; }
 .pd-status-box-value { font-size: 0.95rem; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
 .pd-status-box-value.is-green { color: #16a34a; }
 .pd-status-box-value.is-gray { color: #64748b; }
@@ -521,7 +489,7 @@
 }
 .pd-footer-links a:hover { color: #4a7cf7; text-decoration: underline; }
 
-/* ── Footer stick-to-bottom (parehong pattern sa ibang pages) ── */
+/* ── Footer stick-to-bottom ── */
 .nxl-container {
     min-height: calc(100vh - 80px) !important;
     display: flex !important;
@@ -539,3 +507,49 @@
     flex-shrink: 0 !important;
     margin-top: auto !important;
 }
+
+/* ══════════════════════════════════════════
+   DARK MODE
+   ══════════════════════════════════════════ */
+html.app-skin-dark .nxl-content { background: #0f172a; }
+
+html.app-skin-dark .pd-card,
+html.app-skin-dark .pd-header-card,
+html.app-skin-dark .pt-info-card,
+html.app-skin-dark .pd-status-box {
+    background: #1e2a3a !important;
+    border-color: #2d3f55 !important;
+}
+html.app-skin-dark .pd-back-btn {
+    background: #1e2a3a;
+    border-color: #2d3f55;
+    color: #e2e8f0;
+}
+html.app-skin-dark .pd-card-header { border-bottom-color: #2d3f55; }
+html.app-skin-dark .pd-card-title,
+html.app-skin-dark .pd-borrower-name,
+html.app-skin-dark .pd-stat-value,
+html.app-skin-dark .pd-status-box-value,
+html.app-skin-dark .pt-info-value,
+html.app-skin-dark .pt-modal-title,
+html.app-skin-dark .pd-info-value {
+    color: #e2e8f0;
+}
+html.app-skin-dark .pd-stat-value.is-danger { color: #f87171; }
+html.app-skin-dark .pd-borrower-sub,
+html.app-skin-dark .pd-meta-row,
+html.app-skin-dark .pd-stat-label,
+html.app-skin-dark .pd-status-box-label,
+html.app-skin-dark .pd-status-box-desc,
+html.app-skin-dark .pd-info-label,
+html.app-skin-dark .pt-info-label,
+html.app-skin-dark .pt-modal-subtitle,
+html.app-skin-dark .pd-footer,
+html.app-skin-dark .pd-footer-links a {
+    color: #94a3b8;
+}
+html.app-skin-dark .pd-table thead th { border-bottom-color: #2d3f55; color: #94a3b8; }
+html.app-skin-dark .pd-table tbody td { border-bottom-color: #2d3f55; color: #e2e8f0; }
+html.app-skin-dark .pd-table tfoot td { background: #16202e; border-top-color: #2d3f55; color: #e2e8f0; }
+html.app-skin-dark .pt-modal .modal-content { background: #1e2a3a; }
+html.app-skin-dark .pt-textarea { background: #16202e; border-color: #2d3f55; color: #e2e8f0; }

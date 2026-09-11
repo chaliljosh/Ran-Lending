@@ -9,12 +9,15 @@
     <link rel="stylesheet" href="{{ asset('assets/admin/css/loan-details.css') }}">
     {{-- Standalone stylesheet for this page only — not shared with loan-details.css --}}
     <link rel="stylesheet" href="{{ asset('assets/admin/css/overdue-payment-detail.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/avatar-placeholder.css') }}">
 @endsection
 
 @section('content')
     <div class="page-header">
         <div class="page-header-left d-flex align-items-center">
-            <div class="page-header-title"><h5 class="m-b-10">Overdue Payment Detail</h5></div>
+            <div class="page-header-title">
+                <h5 class="m-b-10">Overdue Payment Detail</h5>
+            </div>
             <ul class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Home</a></li>
                 <li class="breadcrumb-item"><a href="{{ route('admin.overdue-payments') }}">Overdue Payments</a></li>
@@ -27,7 +30,7 @@
     </div>
 
     <div class="main-content">
-        @if(session('success'))
+        @if (session('success'))
             <div class="alert alert-success mb-3">{{ session('success') }}</div>
         @endif
 
@@ -39,15 +42,21 @@
 
             {{-- ============ 1. BORROWER HEADER ============ --}}
             <div class="section-card opd-borrower-header mb-3">
-                <div class="borrower-avatar">
-                    {{ strtoupper(substr($app->first_name ?? '', 0, 1) . substr($app->last_name ?? '', 0, 1)) }}
+                <div class="borrower-avatar js-borrower-avatar"
+                    data-initials="{{ strtoupper(substr($app->first_name ?? '', 0, 1) . substr($app->last_name ?? '', 0, 1)) }}">
+                    @if ($borrowerProfilePicture)
+                        <img src="{{ $borrowerProfilePicture }}" alt="{{ $fullName }}" class="borrower-avatar-img">
+                    @else
+                        {{ strtoupper(substr($app->first_name ?? '', 0, 1) . substr($app->last_name ?? '', 0, 1)) }}
+                    @endif
                 </div>
                 <div class="opd-borrower-right">
                     <h6 class="fw-bold mb-1">{{ $fullName !== '' ? $fullName : '—' }}</h6>
-                    <p class="text-muted mb-0" style="font-size:0.83rem;">{{ $app->email }}</p>
+                    <p class="opd-borrower-email mb-0"><strong>Email:</strong> {{ $app->email }}</p>
                     <div class="opd-borrower-meta">
                         <span class="badge badge-rejected px-3 py-2">Overdue</span>
-                        <span class="opd-days-overdue-text">{{ $daysLate }} day{{ $daysLate == 1 ? '' : 's' }} overdue</span>
+                        <span class="opd-days-overdue-text">{{ $daysLate }} day{{ $daysLate == 1 ? '' : 's' }}
+                            overdue</span>
                     </div>
                 </div>
             </div>
@@ -60,7 +69,7 @@
             <div class="opd-card opd-overdue-card">
                 <div class="opd-card-title"><i class="feather-alert-triangle"></i> Overdue Payment</div>
 
-                @if($oldestOverdue)
+                @if ($oldestOverdue)
                     <div class="opd-overdue-strip">
                         <div class="opd-field">
                             <div class="opd-field-label">Installment</div>
@@ -68,7 +77,8 @@
                         </div>
                         <div class="opd-field">
                             <div class="opd-field-label">Due Date</div>
-                            <div class="opd-field-value">{{ \Carbon\Carbon::parse($oldestOverdue->due_date)->format('M d, Y') }}</div>
+                            <div class="opd-field-value">
+                                {{ \Carbon\Carbon::parse($oldestOverdue->due_date)->format('M d, Y') }}</div>
                         </div>
                         <div class="opd-field">
                             <div class="opd-field-label">Days Overdue</div>
@@ -91,10 +101,12 @@
                         </div>
 
                         <div class="opd-actions">
-                            <button type="button" class="opd-btn opd-btn-mark-paid" data-bs-toggle="modal" data-bs-target="#opdConfirmPaidModal">
+                            <button type="button" class="opd-btn opd-btn-mark-paid" data-bs-toggle="modal"
+                                data-bs-target="#opdConfirmPaidModal">
                                 <i class="feather-check"></i> Mark as Paid
                             </button>
-                            <button type="button" class="opd-btn opd-btn-waive" data-bs-toggle="modal" data-bs-target="#opdWaiveModal" {{ !$penaltyId ? 'disabled' : '' }}>
+                            <button type="button" class="opd-btn opd-btn-waive" data-bs-toggle="modal"
+                                data-bs-target="#opdWaiveModal" {{ !$penaltyId ? 'disabled' : '' }}>
                                 <i class="feather-slash"></i> Waive Penalty
                             </button>
                         </div>
@@ -119,20 +131,27 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($paymentSchedule as $s)
+                            @foreach ($paymentSchedule as $s)
                                 @php
                                     $isPaid = !is_null($s->paid_at);
                                     $isOverdue = !$isPaid && \Carbon\Carbon::parse($s->due_date)->isPast();
-                                    $badgeClass = $isPaid ? 'opd-badge-paid' : ($isOverdue ? 'opd-badge-overdue' : 'opd-badge-upcoming');
+                                    $badgeClass = $isPaid
+                                        ? 'opd-badge-paid'
+                                        : ($isOverdue
+                                            ? 'opd-badge-overdue'
+                                            : 'opd-badge-upcoming');
                                     $badgeLabel = $isPaid ? 'Paid' : ($isOverdue ? 'Overdue' : 'Upcoming');
                                     $isCurrentRow = $oldestOverdue && $s->id === $oldestOverdue->id;
                                 @endphp
                                 <tr class="{{ $isCurrentRow ? 'is-current-overdue' : '' }}">
                                     <td data-label="#">{{ $s->installment_no }}</td>
-                                    <td data-label="Due Date">{{ \Carbon\Carbon::parse($s->due_date)->format('M d, Y') }}</td>
+                                    <td data-label="Due Date">{{ \Carbon\Carbon::parse($s->due_date)->format('M d, Y') }}
+                                    </td>
                                     <td data-label="Amount Due">₱{{ number_format($s->amount_due, 2) }}</td>
-                                    <td data-label="Paid On">{{ $s->paid_at ? \Carbon\Carbon::parse($s->paid_at)->format('M d, Y') : '—' }}</td>
-                                    <td data-label="Status"><span class="opd-badge {{ $badgeClass }}">{{ $badgeLabel }}</span></td>
+                                    <td data-label="Paid On">
+                                        {{ $s->paid_at ? \Carbon\Carbon::parse($s->paid_at)->format('M d, Y') : '—' }}</td>
+                                    <td data-label="Status"><span
+                                            class="opd-badge {{ $badgeClass }}">{{ $badgeLabel }}</span></td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -192,10 +211,9 @@
     {{-- Config for overdue-payment-detail.js — reads URLs/CSRF from here
          instead of having them embedded as inline PHP-generated JS. --}}
     <div id="opd-config"
-         data-mark-paid-url="{{ $oldestOverdue ? route('admin.installment-mark-paid', $oldestOverdue->id) : '' }}"
-         data-waive-url="{{ $penaltyId ? route('admin.penalty-waive', $penaltyId) : '' }}"
-         data-csrf="{{ csrf_token() }}"
-         style="display:none;"></div>
+        data-mark-paid-url="{{ $oldestOverdue ? route('admin.installment-mark-paid', $oldestOverdue->id) : '' }}"
+        data-waive-url="{{ $penaltyId ? route('admin.penalty-waive', $penaltyId) : '' }}"
+        data-csrf="{{ csrf_token() }}" style="display:none;"></div>
 
     {{-- ============ CONFIRM: Mark as Paid ============ --}}
     <div class="modal fade opd-modal" id="opdConfirmPaidModal" tabindex="-1">
@@ -205,18 +223,19 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-    
+
                     <div class="opd-modal-title">Mark Payment as Paid?</div>
                     <div class="opd-modal-desc">Are you sure you want to mark this overdue payment as paid?</div>
-                <div class="modal-footer">
-                     <button type="button" class="opd-btn opd-btn-mark-paid" id="opdConfirmPaidBtn">
-                        <i class="feather-check"></i> Yes, Mark as Paid
-                    </button>
-                    <button type="button" class="opd-btn opd-btn-waive" data-bs-dismiss="modal">Cancel</button>
+                    <div class="modal-footer">
+
+                        <button type="button" class="opd-btn opd-btn-waive" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="opd-btn opd-btn-mark-paid" id="opdConfirmPaidBtn">
+                            Mark as Paid
+                        </button>
+                    </div>
+
                 </div>
-                    
-                </div>
-             
+
             </div>
         </div>
     </div>

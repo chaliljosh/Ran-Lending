@@ -33,8 +33,15 @@ document.addEventListener('DOMContentLoaded', function () {
         const btn = pendingBtn;
         const row = table.querySelector(`tr[data-schedule-row="${scheduleId}"]`);
 
+        // Loading state: icon only, no text — swap the check icon for a
+        // spinning one and hide the label rather than changing the text.
         confirmBtn.disabled = true;
-        confirmBtn.textContent = 'Marking...';
+        confirmBtn.classList.add('is-loading');
+        if (!confirmBtn.querySelector('.spin-icon')) {
+            const spinner = document.createElement('i');
+            spinner.className = 'feather-loader spin-icon';
+            confirmBtn.insertBefore(spinner, confirmBtn.firstChild);
+        }
 
         fetch(`/admin/installments/${scheduleId}/mark-paid`, {
             method: 'POST',
@@ -86,6 +93,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const modal = bootstrap.Modal.getInstance(confirmModalEl);
             if (modal) modal.hide();
+
+            // Toast confirmation, matching the pattern already used on
+            // Loan Applications / Loan Application Detail.
+            if (typeof window.showAdminToast === 'function') {
+                window.showAdminToast('success', 'Payment Recorded', 'Payment recorded successfully.');
+            }
         })
         .catch(err => {
             console.error('[ongoing-loan-detail.js] mark-paid error:', err);
@@ -93,7 +106,9 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .finally(() => {
             confirmBtn.disabled = false;
-            confirmBtn.innerHTML = '<i class="feather-check"></i> Yes, Mark as Paid';
+            confirmBtn.classList.remove('is-loading');
+            const spinner = confirmBtn.querySelector('.spin-icon');
+            if (spinner) spinner.remove();
             pendingScheduleId = null;
             pendingBtn = null;
         });

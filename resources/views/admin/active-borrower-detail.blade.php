@@ -7,7 +7,8 @@
          / borrower-avatar / badges / sidebar-highlight / dark-mode / footer
          rules already defined here — nothing below duplicates them. --}}
     <link rel="stylesheet" href="{{ asset('assets/admin/css/loan-details.css') }}">
-    {{-- Standalone, page-specific additions only (stat cards + standing badge + progress bar) --}}
+    {{-- Standalone, page-specific additions only (top summary card,
+         horizontal loan summary grid, standing badge, progress bar) --}}
     <link rel="stylesheet" href="{{ asset('assets/admin/css/active-borrower-detail.css') }}">
 @endsection
 
@@ -41,218 +42,179 @@
 
     <div class="main-content">
 
-        {{-- ============ TOP ROW: Profile (left) + Stat Cards (right) ============ --}}
-        <div class="row">
-
-            <!-- LEFT COLUMN: Borrower Profile + Loan Summary -->
-            <div class="col-lg-4 ld-left-col">
-                <div class="ld-sticky-col">
-
-                    <!-- 1. BORROWER PROFILE -->
-                    <div class="section-card abd-profile-card mb-3">
-                        <div class="abd-profile-row">
-                            <div class="borrower-avatar abd-profile-avatar">
-                                {{ strtoupper(substr($app->first_name ?? '', 0, 1) . substr($app->last_name ?? '', 0, 1)) }}
-                            </div>
-                            <div class="abd-profile-info">
-                                <div class="abd-profile-name">{{ $app->first_name }} {{ $app->last_name }}</div>
-                                <div class="abd-profile-email">{{ $app->email }}</div>
-                                <div class="abd-profile-badges">
-                                    <span class="badge badge-approved px-3 py-2">Active</span>
-                                    <span class="abd-standing is-{{ $standing }}">{{ $standingLabel }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 2. LOAN SUMMARY (compact) -->
-                    <div class="section-card">
-                        <p class="section-title"><i class="feather-file-text me-2"></i>Loan Summary</p>
-                        <table class="table table-sm table-borderless table-loan-summary mb-0">
-                            <tr>
-                                <td class="info-label">Application ID</td>
-                                <td class="text-end info-value">#{{ $app->application_id }}</td>
-                            </tr>
-                            <tr>
-                                <td class="info-label">Loan Amount</td>
-                                <td class="text-end info-value">₱{{ number_format($app->loan_amount, 2) }}</td>
-                            </tr>
-                            <tr>
-                                <td class="info-label">Term</td>
-                                <td class="text-end info-value">{{ $app->loan_term }} months</td>
-                            </tr>
-                            <tr>
-                                <td class="info-label">Interest Rate</td>
-                                <td class="text-end info-value">5% / month</td>
-                            </tr>
-                            <tr>
-                                <td class="info-label">Total Interest</td>
-                                <td class="text-end info-value">₱{{ number_format($app->total_interest ?? 0, 2) }}</td>
-                            </tr>
-                            <tr>
-                                <td class="info-label">Total to Pay</td>
-                                <td class="text-end info-value">₱{{ number_format($totalToPay, 2) }}</td>
-                            </tr>
-                            <tr class="abd-summary-highlight">
-                                <td class="info-label">Monthly Payment</td>
-                                <td class="text-end"><span
-                                        class="ld-value-pill abd-pill-emphasis">₱{{ number_format($app->monthly_payment ?? 0, 2) }}</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="info-label">Purpose</td>
-                                <td class="text-end info-value">{{ ucfirst(str_replace('_', ' ', $app->loan_purpose)) }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="info-label">Applied On</td>
-                                <td class="text-end info-value">{{ date('M d, Y', strtotime($app->applied_at)) }}</td>
-                            </tr>
-                        </table>
-                    </div>
-
+        {{-- ============================================
+             TOP SUMMARY CARD
+             Left: avatar + name + Application ID/Email + badges
+             Right: stat row (Total to Pay / Total Paid / Remaining / Due In),
+             evenly spaced across the full remaining width.
+        ============================================ --}}
+        <div class="abd-summary-card">
+            <div class="abd-summary-left">
+                <div class="borrower-avatar abd-summary-avatar js-borrower-avatar">
+                    @if (!empty($borrowerProfilePicture))
+                        <img src="{{ $borrowerProfilePicture }}" alt="{{ $app->first_name }} {{ $app->last_name }}">
+                    @else
+                        {{ strtoupper(substr($app->first_name ?? '', 0, 1) . substr($app->last_name ?? '', 0, 1)) }}
+                    @endif
                 </div>
-            </div>
-
-            <!-- RIGHT COLUMN -->
-            <div class="col-lg-8">
-
-
-                {{-- 3. STAT CARDS ROW: Total to Pay / Total Paid / Remaining Balance / Due In --}}
-                <div class="row abd-stat-row">
-                    <div class="col-6 col-xl-3">
-                        <div class="card stretch stretch-full abd-stat-card">
-                            <div class="card-body">
-                                <div class="abd-stat-card-head">
-                                    <span class="abd-stat-label">Total to Pay</span>
-                                    <i class="feather-file-text abd-stat-icon"></i>
-                                </div>
-                                <div class="abd-stat-value">₱{{ number_format($totalToPay, 2) }}</div>
-                            </div>
-                        </div>
+                <div class="abd-summary-info">
+                    <h5>{{ $app->first_name }} {{ $app->last_name }}</h5>
+                    <div class="abd-summary-meta">
+                        <span><strong>Application ID:</strong> #{{ $app->application_id }}</span>
+                        <span><strong>Email:</strong> {{ $app->email }}</span>
                     </div>
-
-                    <div class="col-6 col-xl-3">
-                        <div class="card stretch stretch-full abd-stat-card">
-                            <div class="card-body">
-                                <div class="abd-stat-card-head">
-                                    <span class="abd-stat-label">Total Paid</span>
-                                    <i class="feather-check-circle abd-stat-icon"></i>
-                                </div>
-                                <div class="abd-stat-value">₱{{ number_format($totalPaidAmount, 2) }}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-6 col-xl-3">
-                        <div class="card stretch stretch-full abd-stat-card">
-                            <div class="card-body">
-                                <div class="abd-stat-card-head">
-                                    <span class="abd-stat-label">Remaining Balance</span>
-                                    <i class="feather-repeat abd-stat-icon"></i>
-                                </div>
-                                <div class="abd-stat-value">₱{{ number_format($remainingBalance, 2) }}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-6 col-xl-3">
-                        <div class="card stretch stretch-full abd-stat-card">
-                            <div class="card-body">
-                                <div class="abd-stat-card-head">
-                                    <span class="abd-stat-label">Due In</span>
-                                    <i class="feather-calendar abd-stat-icon"></i>
-                                </div>
-                                <div class="abd-stat-value">
-                                    @if (!$nextPayment)
-                                        —
-                                    @elseif($nextIsOverdue)
-                                        Overdue
-                                    @else
-                                        {{ $dueInDays }} {{ $dueInDays == 1 ? 'day' : 'days' }}
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
+                    <div class="abd-summary-badges">
+                        <span class="badge badge-approved px-3 py-2">Active</span>
+                        <span class="abd-standing is-{{ $standing }}">{{ $standingLabel }}</span>
                     </div>
                 </div>
             </div>
-
-            {{-- 4. PAYMENT SCHEDULE --}}
-            <div class="section-card abd-schedule-card mb-3">
-                <p class="section-title"><i class="feather-calendar me-2"></i>Payment Schedule</p>
-                <div class="table-responsive">
-                    <table class="table table-sm ld-schedule-table mb-0">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Due Date</th>
-                                <th>Amount Due</th>
-                                <th>Amount Paid</th>
-                                <th>Paid On</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($paymentSchedule as $s)
-                                @php
-                                    $isOverdue = is_null($s->paid_at) && \Carbon\Carbon::parse($s->due_date)->isPast();
-                                    $isPaid = !is_null($s->paid_at);
-                                    $scheduleBadge = $isPaid
-                                        ? 'ld-schedule-paid'
-                                        : ($isOverdue
-                                            ? 'ld-schedule-late'
-                                            : 'ld-schedule-pending');
-                                    $scheduleLabel = $isPaid ? 'Paid' : ($isOverdue ? 'Overdue' : 'Pending');
-                                @endphp
-                                <tr>
-                                    <td>{{ $s->installment_no }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($s->due_date)->format('M d, Y') }}</td>
-                                    <td>₱{{ number_format($s->amount_due, 2) }}</td>
-                                    <td>₱{{ number_format($s->amount_paid, 2) }}</td>
-                                    <td>{{ $s->paid_at ? \Carbon\Carbon::parse($s->paid_at)->format('M d, Y') : '—' }}</td>
-                                    <td><span class="ld-schedule-badge {{ $scheduleBadge }}">{{ $scheduleLabel }}</span>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">No payment schedule generated
-                                        yet.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+            <div class="abd-summary-right">
+                <div class="abd-summary-stat">
+                    <span class="abd-summary-stat-value">₱{{ number_format($totalToPay, 2) }}</span>
+                    <span class="abd-summary-stat-label">Total to Pay</span>
+                </div>
+                <div class="abd-summary-stat">
+                    <span class="abd-summary-stat-value">₱{{ number_format($totalPaidAmount, 2) }}</span>
+                    <span class="abd-summary-stat-label">Total Paid</span>
+                </div>
+                <div class="abd-summary-stat">
+                    <span class="abd-summary-stat-value">₱{{ number_format($remainingBalance, 2) }}</span>
+                    <span class="abd-summary-stat-label">Remaining Balance</span>
+                </div>
+                <div class="abd-summary-stat">
+                    <span class="abd-summary-stat-value">
+                        @if (!$nextPayment)
+                            —
+                        @elseif($nextIsOverdue)
+                            Overdue
+                        @else
+                            {{ $dueInDays }} {{ $dueInDays == 1 ? 'day' : 'days' }}
+                        @endif
+                    </span>
+                    <span class="abd-summary-stat-label">Due In</span>
                 </div>
             </div>
-
-            {{-- 5. PAYMENT PROGRESS --}}
-            <div class="section-card">
-                <div class="abd-progress-head">
-                    <span class="abd-progress-label">Payment Progress</span>
-                    <span class="abd-progress-count">{{ $paidCount }} of {{ $totalCount }} payments completed</span>
-                </div>
-                <div class="abd-progress-track">
-                    <div class="abd-progress-fill {{ $progressPct >= 100 ? 'is-complete' : '' }}"
-                        style="width: {{ $progressPct }}%;"></div>
-                </div>
-
-                @if ($nextPayment)
-                    <div class="abd-next-payment">
-                        <div>
-                            <div class="abd-next-payment-label">Next Payment</div>
-                            <div class="abd-next-payment-date">
-                                {{ \Carbon\Carbon::parse($nextPayment->due_date)->format('M d, Y') }}</div>
-                        </div>
-                        <div class="abd-next-payment-amount">₱{{ number_format($nextPayment->amount_due, 2) }}</div>
-                        <span class="ld-schedule-badge {{ $nextIsOverdue ? 'ld-schedule-late' : 'ld-schedule-pending' }}">
-                            {{ $nextIsOverdue ? 'Overdue' : 'Pending' }}
-                        </span>
-                    </div>
-                @endif
-            </div>
-
         </div>
-    </div>
+
+        {{-- ============================================
+             LOAN SUMMARY — horizontal info grid,
+             matched to the Personal Information layout style.
+        ============================================ --}}
+        <div class="section-card mb-3">
+            <p class="section-title"><i class="feather-file-text me-2"></i>Loan Summary</p>
+            <div class="abd-info-row">
+                <div class="abd-info-item">
+                    <label>Application ID</label>
+                    <span>#{{ $app->application_id }}</span>
+                </div>
+                <div class="abd-info-item">
+                    <label>Loan Amount</label>
+                    <span>₱{{ number_format($app->loan_amount, 2) }}</span>
+                </div>
+                <div class="abd-info-item">
+                    <label>Term</label>
+                    <span>{{ $app->loan_term }} months</span>
+                </div>
+                <div class="abd-info-item">
+                    <label>Interest Rate</label>
+                    <span>5% / month</span>
+                </div>
+                <div class="abd-info-item">
+                    <label>Total Interest</label>
+                    <span>₱{{ number_format($app->total_interest ?? 0, 2) }}</span>
+                </div>
+                <div class="abd-info-item">
+                    <label>Total to Pay</label>
+                    <span>₱{{ number_format($totalToPay, 2) }}</span>
+                </div>
+                <div class="abd-info-item abd-info-highlight">
+                    <label>Monthly Payment</label>
+                    <span>₱{{ number_format($app->monthly_payment ?? 0, 2) }}</span>
+                </div>
+                <div class="abd-info-item">
+                    <label>Purpose</label>
+                    <span>{{ ucfirst(str_replace('_', ' ', $app->loan_purpose)) }}</span>
+                </div>
+                <div class="abd-info-item">
+                    <label>Applied On</label>
+                    <span>{{ date('M d, Y', strtotime($app->applied_at)) }}</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- PAYMENT SCHEDULE --}}
+        <div class="section-card abd-schedule-card mb-3">
+            <p class="section-title"><i class="feather-calendar me-2"></i>Payment Schedule</p>
+            <div class="table-responsive">
+                <table class="table table-sm ld-schedule-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Due Date</th>
+                            <th>Amount Due</th>
+                            <th>Amount Paid</th>
+                            <th>Paid On</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($paymentSchedule as $s)
+                            @php
+                                $isOverdue = is_null($s->paid_at) && \Carbon\Carbon::parse($s->due_date)->isPast();
+                                $isPaid = !is_null($s->paid_at);
+                                $scheduleBadge = $isPaid
+                                    ? 'ld-schedule-paid'
+                                    : ($isOverdue
+                                        ? 'ld-schedule-late'
+                                        : 'ld-schedule-pending');
+                                $scheduleLabel = $isPaid ? 'Paid' : ($isOverdue ? 'Overdue' : 'Pending');
+                            @endphp
+                            <tr>
+                                <td>{{ $s->installment_no }}</td>
+                                <td>{{ \Carbon\Carbon::parse($s->due_date)->format('M d, Y') }}</td>
+                                <td>₱{{ number_format($s->amount_due, 2) }}</td>
+                                <td>₱{{ number_format($s->amount_paid, 2) }}</td>
+                                <td>{{ $s->paid_at ? \Carbon\Carbon::parse($s->paid_at)->format('M d, Y') : '—' }}</td>
+                                <td><span class="ld-schedule-badge {{ $scheduleBadge }}">{{ $scheduleLabel }}</span></td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">No payment schedule generated yet.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- PAYMENT PROGRESS --}}
+        <div class="section-card">
+            <div class="abd-progress-head">
+                <span class="abd-progress-label">Payment Progress</span>
+                <span class="abd-progress-count">{{ $paidCount }} of {{ $totalCount }} payments completed</span>
+            </div>
+            <div class="abd-progress-track">
+                <div class="abd-progress-fill {{ $progressPct >= 100 ? 'is-complete' : '' }}"
+                    style="width: {{ $progressPct }}%;"></div>
+            </div>
+
+            @if ($nextPayment)
+                <div class="abd-next-payment">
+                    <div>
+                        <div class="abd-next-payment-label">Next Payment</div>
+                        <div class="abd-next-payment-date">
+                            {{ \Carbon\Carbon::parse($nextPayment->due_date)->format('M d, Y') }}</div>
+                    </div>
+                    <div class="abd-next-payment-amount">₱{{ number_format($nextPayment->amount_due, 2) }}</div>
+                    <span class="ld-schedule-badge {{ $nextIsOverdue ? 'ld-schedule-late' : 'ld-schedule-pending' }}">
+                        {{ $nextIsOverdue ? 'Overdue' : 'Pending' }}
+                    </span>
+                </div>
+            @endif
+        </div>
+
     </div>
 
 @endsection

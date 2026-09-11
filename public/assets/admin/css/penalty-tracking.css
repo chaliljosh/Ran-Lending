@@ -31,47 +31,67 @@
             --pt-radius-md: 12px;
             --pt-radius-sm: 8px;
 
-            --pt-shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
+            --pt-shadow-card: 0 1px 3px rgba(15, 23, 42, 0.15);
             --pt-shadow-row-hover: 0 4px 12px rgba(15, 23, 42, 0.06);
             --pt-shadow-modal: 0 24px 60px rgba(15, 23, 42, 0.18);
         }
 
-        .pt-page { font-family: var(--pt-font); color: var(--pt-text); }
-        .pt-page * { font-family: var(--pt-font); }
+        html:not(.app-skin-dark) .nxl-content {
+            background: #fff;
+        }
+
+                .pt-page,
+        .pt-page * {
+            font-family: var(--pt-font) !important;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .pt-page i,
+        .pt-page [class*="bi-"] {
+            font-family: inherit !important;
+        }
+        .pt-page i[class*="bi-"]::before {
+            font-family: 'bootstrap-icons' !important;
+        }
+        .pt-page { color: var(--pt-text); }
 
         /* ---------- Summary cards ---------- */
         .pt-summary-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
         @media (max-width: 991px) { .pt-summary-row { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 575px) { .pt-summary-row { grid-template-columns: 1fr; } }
 
-        .pt-summary-card {
-            background: var(--pt-white);
-            border: 1px solid var(--pt-border);
-            border-radius: var(--pt-radius-lg);
+               .pt-summary-card {
+            background: var(--pt-white) !important;
+            border: 1px solid var(--pt-border) !important;
+            border-radius: var(--pt-radius-lg) !important;
             padding: 20px 22px;
-            box-shadow: var(--pt-shadow-card);
+            box-shadow: var(--pt-shadow-card) !important;
+            transition: box-shadow .15s ease, transform .15s ease;
+        }
+        .pt-summary-card:hover {
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12) !important;
+            transform: translateY(-1px);
+        }
+        .pt-summary-card-head {
             display: flex;
             align-items: center;
-            gap: 16px;
+            justify-content: space-between;
+            margin-bottom: 14px;
         }
-        .pt-summary-icon {
-            width: 44px; height: 44px; border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.1rem; flex-shrink: 0;
+               .pt-summary-icon {
+            color: var(--pt-text-muted);
+            font-size: 1rem;
+            flex-shrink: 0;
         }
-        .pt-summary-icon.is-total   { background: var(--pt-blue-soft);   color: var(--pt-blue); }
-        .pt-summary-icon.is-outstanding { background: var(--pt-red-soft); color: var(--pt-red); }
-        .pt-summary-icon.is-paid    { background: var(--pt-green-soft); color: var(--pt-green); }
-        .pt-summary-icon.is-waived  { background: var(--pt-gray-accent-soft); color: var(--pt-gray-accent); }
 
-        .pt-summary-label { font-size: 0.76rem; font-weight: 600; color: var(--pt-text-muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
-        .pt-summary-value { font-size: 1.375rem; font-weight: 800; letter-spacing: -0.02em; color: var(--pt-text); }
+               .pt-summary-label { font-size: 0.86rem; font-weight: 500; color: var(--pt-text); margin-bottom: 0; }
+        .pt-summary-value { font-size: 1.7rem; font-weight: 700; letter-spacing: normal; color: var(--pt-text); margin-bottom: 6px; }
 
         /* ---------- Toolbar ---------- */
         .pt-toolbar {
-            background: var(--pt-white);
-            border: 1px solid var(--pt-border);
-            border-radius: var(--pt-radius-lg);
+            background: var(--pt-white) !important;
+            border: 1px solid var(--pt-border) !important;
+            border-radius: var(--pt-radius-lg) !important;
             padding: 14px 16px;
             margin-bottom: 20px;
             display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
@@ -109,10 +129,10 @@
            TABLE
         ============================================================ */
         .pt-table-card {
-            background: var(--pt-white);
-            border: 1px solid var(--pt-border);
-            border-radius: var(--pt-radius-lg);
-            box-shadow: var(--pt-shadow-card);
+            background: var(--pt-white) !important;
+            border: 1px solid var(--pt-border) !important;
+            border-radius: var(--pt-radius-lg) !important;
+            box-shadow: var(--pt-shadow-card) !important;
             overflow: hidden;
         }
         .pt-table-scroll { overflow-x: auto; overflow-y: auto; max-height: 640px; }
@@ -123,7 +143,7 @@
             background: #F8FAFC;
             text-align: left;
             font-size: 0.7rem; font-weight: 700; color: var(--pt-text-muted);
-            text-transform: uppercase; letter-spacing: 0.4px;
+            text-transform: none; letter-spacing: normal;
             padding: 13px 20px;
             border-bottom: 1px solid var(--pt-border);
             white-space: nowrap;
@@ -173,7 +193,7 @@
         /* Status badge */
         .pt-status-badge {
             font-size: 0.68rem; font-weight: 700; padding: 4px 12px; border-radius: 20px;
-            text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap; display: inline-block;
+            text-transform: none; letter-spacing: normal; white-space: nowrap; display: inline-block;
         }
         .pt-status-badge.is-unpaid { background: var(--pt-red-soft); color: var(--pt-red); }
         .pt-status-badge.is-paid { background: var(--pt-green-soft); color: var(--pt-green); }
@@ -245,8 +265,8 @@
             }
             .pt-table tbody td { border-bottom: none; padding: 4px 0; }
             .pt-cell-installment, .pt-cell-due { display: flex; justify-content: space-between; align-items: center; }
-            .pt-cell-installment::before { content: 'Installment'; font-size: 0.68rem; font-weight: 700; color: var(--pt-text-faint); text-transform: uppercase; }
-            .pt-cell-due::before { content: 'Due Date'; font-size: 0.68rem; font-weight: 700; color: var(--pt-text-faint); text-transform: uppercase; }
+            .pt-cell-installment::before { content: 'Installment'; font-size: 0.68rem; font-weight: 700; color: var(--pt-text-faint); text-transform: none; }
+            .pt-cell-due::before { content: 'Due Date'; font-size: 0.68rem; font-weight: 700; color: var(--pt-text-faint); text-transform: none; }
             .pt-cell-days, .pt-cell-status { display: flex; justify-content: flex-end; padding-top: 6px; }
             .pt-cell-amount { display: flex; justify-content: space-between; align-items: flex-end; padding-top: 6px; }
             .pt-cell-actions { text-align: left; padding-top: 8px; border-top: 1px dashed var(--pt-border-soft); margin-top: 8px; }
@@ -289,7 +309,7 @@
             display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px;
         }
         .pt-info-item.is-full { grid-column: 1 / -1; }
-        .pt-info-label { font-size: 0.64rem; font-weight: 700; color: var(--pt-text-faint); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 2px; }
+        .pt-info-label { font-size: 0.64rem; font-weight: 700; color: var(--pt-text-faint); text-transform: none; letter-spacing: normal; margin-bottom: 2px; }
         .pt-info-value { font-size: 0.86rem; font-weight: 700; color: var(--pt-text); }
         .pt-info-value.is-late-fee { color: var(--pt-red); }
 
@@ -418,6 +438,8 @@
    NXL theme adds class="app-skin-dark" sa <html> pag na-toggle
    yung moon/sun icon sa header (confirmed via inspection).
 ============================================================ */
+html.app-skin-dark .nxl-content { background: #0B1220; }
+
 html.app-skin-dark .pt-page {
     --pt-bg: #0B1220;
     --pt-white: #17202F;
@@ -434,11 +456,18 @@ html.app-skin-dark .pt-page {
     --pt-green-soft: rgba(22, 163, 74, 0.16);
     --pt-gray-accent-soft: rgba(100, 116, 139, 0.20);
 
-    --pt-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.4);
+    --pt-shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4);
     --pt-shadow-row-hover: 0 4px 12px rgba(0, 0, 0, 0.35);
     --pt-shadow-modal: 0 24px 60px rgba(0, 0, 0, 0.55);
 }
 
+html.app-skin-dark .pt-summary-card,
+html.app-skin-dark .pt-toolbar,
+html.app-skin-dark .pt-table-card {
+    background: var(--pt-white) !important;
+    border-color: var(--pt-border) !important;
+}
+html.app-skin-dark .pt-summary-label { color: #cbd5e1; }
 /* Ilang parte ng UI ay may hardcoded hex (hindi gumagamit ng CSS var)
    kaya kailangan i-override nang hiwalay: */
 
@@ -446,11 +475,25 @@ html.app-skin-dark .pt-table thead th {
     background: #101929;
 }
 
+/* Search + select — !important + ID-less forced override, kasi
+   may global dark-mode rule na mas matimbang na nagpapawala sa
+   text kung hindi i-override (parehong fix na ginawa sa ibang
+   pages: Borrowers, Active Borrowers). */
 html.app-skin-dark .pt-search-input,
-html.app-skin-dark .pt-select {
-    background: var(--pt-bg);
-    color: var(--pt-text);
-    border-color: var(--pt-border);
+html.app-skin-dark .pt-select,
+html.app-skin-dark #ptMonthFilter,
+html.app-skin-dark #ptStatusFilter,
+html.app-skin-dark #ptSortSelect {
+    background-color: var(--pt-bg) !important;
+    color: var(--pt-text) !important;
+    border-color: var(--pt-border) !important;
+}
+html.app-skin-dark .pt-select option,
+html.app-skin-dark #ptMonthFilter option,
+html.app-skin-dark #ptStatusFilter option,
+html.app-skin-dark #ptSortSelect option {
+    background-color: var(--pt-white) !important;
+    color: var(--pt-text) !important;
 }
 
 html.app-skin-dark .pt-search-input::placeholder {
@@ -491,9 +534,9 @@ html.app-skin-dark .pt-textarea::placeholder {
 }
 
 html.app-skin-dark .pt-rows-select {
-    background: var(--pt-white);
-    color: var(--pt-text);
-    border-color: var(--pt-border);
+    background-color: var(--pt-white) !important;
+    color: var(--pt-text) !important;
+    border-color: var(--pt-border) !important;
 }
 
 html.app-skin-dark .pt-page-btn {
@@ -526,8 +569,8 @@ html.app-skin-dark .pt-dropdown-menu .dropdown-item:hover {
     font-size: 0.72rem;
     font-weight: 700;
     color: var(--pt-text-faint);
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
+    text-transform: none;
+    letter-spacing: normal;
     margin: 18px 0 8px;
 }
 .pt-detail-section-title:first-of-type {

@@ -751,6 +751,7 @@ class AdminController extends Controller
             'app' => $app,
             'applicationId' => $applicationId,
             'adminId' => $adminId,
+            'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
             'allReviews' => $this->getAllLoanReviews($applicationId),
             'comments' => $this->getLoanComments($applicationId),
             'paymentSchedule' => $schedule,
@@ -1253,7 +1254,7 @@ class AdminController extends Controller
         ]);
     }
 
-    public function activeBorrowerDetail(Request $request, $id)
+        public function activeBorrowerDetail(Request $request, $id)
     {
         $adminId = Session::get('user_id');
         $applicationId = (int) $id;
@@ -1292,6 +1293,7 @@ class AdminController extends Controller
         return view('admin.active-borrower-detail', [
             'app' => $app,
             'applicationId' => $applicationId,
+            'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
             'paymentSchedule' => $schedule,
             'totalCount' => $totalCount,
             'paidCount' => $paidCount,
@@ -1342,6 +1344,7 @@ class AdminController extends Controller
         return view('admin.overdue-payment-detail', [
             'app' => $app,
             'applicationId' => $applicationId,
+              'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
             'paymentSchedule' => $schedule,
             'overdueCount' => $overdueSchedules->count(),
             'daysLate' => $oldestOverdue ? \Carbon\Carbon::parse($oldestOverdue->due_date)->diffInDays(now()) : 0,
@@ -1468,7 +1471,7 @@ class AdminController extends Controller
         return DB::table('loan_approval_comments as lac')
             ->join('users as u', 'lac.admin_id', '=', 'u.user_id')
             ->where('lac.application_id', $applicationId)
-            ->select('lac.*', 'u.name as admin_name')
+            ->select('lac.*', 'u.name as admin_name', 'u.profile_picture as admin_profile_picture')
             ->orderBy('lac.created_at')
             ->get();
     }
@@ -1594,9 +1597,23 @@ class AdminController extends Controller
         return DB::table('loan_approvals as la')
             ->join('users as u', 'la.admin_id', '=', 'u.user_id')
             ->where('la.application_id', $applicationId)
-            ->select('la.*', 'u.name as admin_name')
+            ->select('la.*', 'u.name as admin_name', 'u.profile_picture as admin_profile_picture')
             ->orderBy('la.reviewed_at')
             ->get();
+    }
+
+    /**
+     * Resolves a stored profile_picture path (from the `users` table)
+     * into a public URL, or null if there is none / the file is
+     * missing. Used by the Admin Review Status + Comments blocks on
+     * ongoing-loan-detail.blade.php so a reviewing/commenting admin's
+     * real photo shows instead of a generic "AD" initials circle.
+     */
+    private function adminAvatarUrl($path)
+    {
+        return (!empty($path) && Storage::disk('public')->exists($path))
+            ? Storage::disk('public')->url($path)
+            : null;
     }
 
     private function buildLoanApplicationsListData($adminId, $viewStatus = 'pending')
@@ -2091,6 +2108,7 @@ public function penaltyTrackingDetail($id)
     $p = DB::table('loan_penalties as lp')
         ->join('loan_payment_schedules as sch', 'lp.schedule_id', '=', 'sch.id')
         ->join('loan_applications as la', 'lp.application_id', '=', 'la.application_id')
+        ->join('users as bu', 'la.user_id', '=', 'bu.user_id')
         ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
         ->leftJoin('users as waiver', 'lp.waived_by', '=', 'waiver.user_id')
         ->where('lp.id', $id)
@@ -2098,6 +2116,7 @@ public function penaltyTrackingDetail($id)
             'lp.*',
             'sch.installment_no', 'sch.due_date', 'sch.amount_due', 'sch.paid_at as schedule_paid_at',
             'bpd.first_name', 'bpd.last_name',
+            'bu.profile_picture',
             'waiver.name as waived_by_name'
         )
         ->first();
@@ -2137,6 +2156,7 @@ public function penaltyTrackingDetail($id)
 
     return view('admin.penalty-tracking-detail', [
         'p' => $p,
+        'borrowerProfilePicture' => $this->getProfilePictureUrl($p),
         'pendingCount' => $this->getPendingVerificationCount($adminId),
         'pendingLoanCount' => $this->getPendingLoanCount($adminId),
     ]);

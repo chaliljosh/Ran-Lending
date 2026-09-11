@@ -1,3 +1,8 @@
+/* ---------- Page background: white instead of theme's default gray ---------- */
+html:not(.app-skin-dark) .nxl-content {
+    background: #fff;
+}
+
 /* ============================================
    SIDEBAR ACTIVE-STATE OVERRIDE
    Forces the blue highlight on the current submenu item
@@ -21,12 +26,14 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
 /* ============================================
    PANEL — replaces bootstrap .card. Flat, thin
    border, near-zero shadow, clear header/footer.
+   Border/shadow matched to Active Borrower Detail's
+   .section-card / .abd-summary-card treatment.
 ============================================ */
 .panel {
     background: #ffffff;
-    border: 1px solid #eef1f6;
-    border-radius: 14px;
-    box-shadow: 0 1px 3px rgba(20, 30, 60, 0.03);
+    border: 1px solid #e5e7eb !important;
+    border-radius: 14px !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15) !important;
     overflow: hidden;
 }
 .panel-header {
@@ -36,8 +43,8 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
     padding: 16px 24px;
     font-size: 0.78rem;
     font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    text-transform: none;
+    letter-spacing: normal;
     color: #1a2a3a;
     border-bottom: 1px solid #eef1f6;
 }
@@ -70,40 +77,126 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
 
 .badge-approved { background: #dcfce7; color: #16a34a; border: 1px solid #16a34a; }
 .badge-rejected { background: #fee2e2; color: #dc2626; border: 1px solid #dc2626; }
-.badge-active   { background: #eaf1ff; color: #4a7cf7; border: 1px solid #4a7cf7; }
+.badge-active   { background: #eaf1ff; color: #4a7cf7; border: none; }
 
 .empty-note { font-size: 0.85rem; margin-bottom: 0; }
 .text-muted { color: #8a9bb0 !important; }
 
-/* ============================================
-   BORROWER STRIP — flat identity row
-============================================ */
-.borrower-strip {
+/* ============================================================
+   MERGED HEADER CARD (.olh-*) — matched 1:1 to Borrower
+   Verification's .borrower-summary-card (padding, avatar size/
+   gradient/shadow, badge pill style, stats divider treatment).
+============================================================ */
+.olh-card {
     border-radius: 14px;
-    padding: 26px 28px;
+    padding: 22px 28px;
     margin-bottom: 20px;
     background: #ffffff;
-    border: 1px solid #eef1f6;
-    box-shadow: 0 1px 3px rgba(20, 30, 60, 0.03);
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 20px;
+    gap: 22px;
     flex-wrap: wrap;
 }
-.bs-left { display: flex; align-items: center; gap: 18px; min-width: 240px; }
-.loan-avatar {
-    width: 64px; height: 64px; border-radius: 50%;
+.olh-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    min-width: 250px;
+}
+.olh-avatar {
+    width: 58px; height: 58px; border-radius: 50%;
     background: linear-gradient(135deg, #4a7cf7, #6c5ce7);
-    color: #fff; font-weight: 700; font-size: 1.3rem;
+    color: #fff; font-weight: 700; font-size: 1.25rem;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
+    box-shadow: 0 4px 14px rgba(74, 124, 247, 0.3);
+    overflow: hidden;
+    position: relative;
 }
-.bs-info h5 { margin: 0 0 6px; font-weight: 700; font-size: 1.3rem; color: #1a2a3a; }
-.bs-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 0.88rem; color: #8a9bb0; }
-.bs-meta strong { color: #4a5b73; font-weight: 600; }
-.bs-dot { color: #cdd6e3; }
-.bs-right .badge { font-size: 0.82rem; padding: 7px 18px; border-radius: 20px; font-weight: 700; }
+.olh-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+.olh-info { min-width: 0; }
+.olh-name-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 2px;
+}
+.olh-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+.olh-status-badge {
+    font-size: 0.76rem;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 700;
+    border: none;
+}
+.olh-meta-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+    font-size: 0.84rem;
+    color: #0f172a;
+    font-weight: 500;
+}
+.olh-meta-row strong { font-weight: 700; color: #0f172a; }
+.olh-meta-sep { color: #cbd5e1; }
+
+.olh-stats {
+    display: flex;
+    align-items: stretch;
+    flex: 1 1 auto;
+    justify-content: flex-end;
+    border-left: 1px solid #e5e7eb;
+    padding-left: 26px;
+    gap: 0;
+}
+.olh-stat {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 20px;
+    min-width: 0;
+    text-align: center;
+}
+.olh-stat:not(:last-child) {
+    border-right: 1px solid #e5e7eb;
+}
+.olh-stat-value {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+.olh-stat-label {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #8a9bb0;
+    letter-spacing: 0.3px;
+    margin-top: 3px;
+    white-space: nowrap;
+}
+
+@media (max-width: 767.98px) {
+    .olh-card { flex-direction: column; align-items: flex-start; }
+    .olh-stats { border-left: none; padding-left: 0; border-top: 1px solid #e5e7eb; padding-top: 14px; width: 100%; justify-content: space-between; flex-wrap: wrap; gap: 10px 0; }
+    .olh-stat { min-width: 45%; flex: 1 1 45%; border-right: none !important; padding: 6px 0; }
+}
 
 /* ============================================
    MAIN GRID — Loan Summary (left) / Admin Review Status (right)
@@ -121,6 +214,9 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
 
 /* ============================================
    LOAN SUMMARY — unboxed info grid (label over value)
+   Label/value typography matched to Active Borrower Detail's
+   .abd-info-item (no uppercase, font-weight 600 label,
+   font-weight 600 value, #94a3b8 / #0f172a colors).
 ============================================ */
 .loan-info-grid {
     display: grid;
@@ -131,16 +227,16 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
 .loan-info-grid.secondary { margin-bottom: 0; }
 .info-item2 { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .info-item2 label {
-    font-size: 0.66rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    color: #8a9bb0;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
+    color: #94a3b8;
 }
 .info-item2 span {
-    font-size: 0.98rem;
-    font-weight: 400;
-    color: #1a2a3a;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #0f172a;
     overflow-wrap: anywhere;
 }
 .info-item2.is-primary span { color: #4a7cf7; }
@@ -159,10 +255,10 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
 }
 .lsc-progress-title {
     font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    color: #8a9bb0;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
+    color: #94a3b8;
     margin-bottom: 14px;
 }
 .loan-info-grid.progress-row {
@@ -203,8 +299,12 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
 
 .review-avatar {
     width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
-    background: #e6ecff; color: #4a7cf7; font-weight: 700; font-size: 0.76rem;
+    background: #f1f3f8; color: #adb5bd; font-weight: 700; font-size: 1rem;
     display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+}
+.review-avatar img {
+    width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
 }
 .review-avatar.mine { background: #4a7cf7; color: #fff; }
 
@@ -234,10 +334,10 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
 
 .comments-label {
     font-size: 0.72rem;
-    font-weight: 700;
-    color: #8a9bb0;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: none;
+    letter-spacing: normal;
     margin: 18px 0 10px;
 }
 
@@ -252,10 +352,10 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
 .loan-schedule-table thead th {
     text-align: left;
     font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    color: #8a9bb0;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
+    color: #94a3b8;
     padding: 10px 14px;
     border-bottom: 2px solid #eef1f6;
 }
@@ -281,9 +381,6 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
 /* ============================================
    RESPONSIVE
 ============================================ */
-@media (max-width: 991px) {
-    .borrower-strip { flex-direction: column; align-items: flex-start; }
-}
 @media (max-width: 767px) {
     .panel-body { padding: 18px; }
     .panel-header { padding: 14px 18px; }
@@ -297,15 +394,20 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
 /* ============================================
    DARK MODE
 ============================================ */
-html.app-skin-dark .panel { background: #1e2a3a; border-color: #2d3f55; }
+html.app-skin-dark .nxl-content { background: #0f172a; }
+
+html.app-skin-dark .panel { background: #1e2a3a; border-color: #2d3f55 !important; }
 html.app-skin-dark .panel-header { color: #e2e8f0; border-color: #2d3f55; }
 html.app-skin-dark .panel-footer { background: #16202e; border-color: #2d3f55; color: #94a3b8; }
 
-html.app-skin-dark .borrower-strip { background: #1e2a3a; border-color: #2d3f55; }
-html.app-skin-dark .bs-info h5 { color: #e2e8f0; }
-html.app-skin-dark .bs-meta { color: #94a3b8; }
-html.app-skin-dark .bs-meta strong { color: #cbd5e1; }
-html.app-skin-dark .bs-dot { color: #3a4a63; }
+html.app-skin-dark .olh-card { background: #1e2a3a; border-color: #2d3f55; }
+html.app-skin-dark .olh-name { color: #e2e8f0; }
+html.app-skin-dark .olh-meta-row { color: #94a3b8; }
+html.app-skin-dark .olh-meta-row strong { color: #cbd5e1; }
+html.app-skin-dark .olh-stats { border-color: #2d3f55; }
+html.app-skin-dark .olh-stat:not(:last-child) { border-color: #2d3f55; }
+html.app-skin-dark .olh-stat-value { color: #e2e8f0; }
+html.app-skin-dark .olh-stat-label { color: #94a3b8; }
 
 html.app-skin-dark .info-item2 label { color: #94a3b8; }
 html.app-skin-dark .info-item2 span { color: #e2e8f0; }
@@ -320,7 +422,7 @@ html.app-skin-dark .review-item { background: #16202e; }
 html.app-skin-dark .review-item.is-approved { background: #12251c; }
 html.app-skin-dark .review-item.is-rejected { background: #2a1616; }
 html.app-skin-dark .review-item.is-comment { background: #142033; }
-html.app-skin-dark .review-avatar { background: #2d3f55; color: #9db8ff; }
+html.app-skin-dark .review-avatar { background: #16202e; color: #64748b; }
 html.app-skin-dark .review-avatar.mine { background: #4a7cf7; color: #fff; }
 html.app-skin-dark .review-name { color: #e2e8f0; }
 html.app-skin-dark .review-remark { color: #b8c4d6; }
@@ -335,53 +437,6 @@ html.app-skin-dark .btn-light { background: #1e2a3a; border-color: #2d3f55; colo
 html.app-skin-dark .btn-light:hover { border-color: #4a7cf7; color: #6c9bff; background: #16233a; }
 
 html.app-skin-dark .text-muted { color: #94a3b8 !important; }
-
-/* ---------- Mark as Paid button ---------- */
-.btn-mark-paid {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 7px 14px;
-    border-radius: 20px;
-    border: 1px solid #16a34a;
-    background: #ecfdf5;
-    color: #16a34a;
-    font-size: 0.78rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all .15s ease;
-    white-space: nowrap;
-}
-.btn-mark-paid:hover:not(:disabled) { background: #16a34a; color: #fff; }
-.btn-mark-paid:disabled { opacity: 0.6; cursor: not-allowed; }
-.sched-paid-note { color: #adb5bd; font-size: 0.82rem; }
-
-html.app-skin-dark .btn-mark-paid {
-    background: rgba(22,163,74,.15);
-    border-color: rgba(22,163,74,.4);
-    color: #6ee7a4;
-}
-html.app-skin-dark .btn-mark-paid:hover:not(:disabled) { background: #16a34a; color: #0f172a; }
-html.app-skin-dark .sched-paid-note { color: #64748b; }
-
-/* ---------- Stat cards row ---------- */
-.old-stat-row { margin-bottom: 1rem; }
-.old-stat-card .card-body { padding: 16px 18px; }
-.old-stat-label {
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: #8a9bb0;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    margin-bottom: 2px;
-}
-.old-stat-value {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: #1a2a3a;
-}
-.bg-soft-purple { background: rgba(139, 92, 246, 0.12); }
-.text-purple { color: #7c3aed; }
 
 /* ---------- Payment Progress row (progress bar + Next Due box) ---------- */
 .old-progress-row {
@@ -412,10 +467,10 @@ html.app-skin-dark .sched-paid-note { color: #64748b; }
 }
 .old-next-due-label {
     font-size: 0.68rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    color: #8a9bb0;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
+    color: #94a3b8;
 }
 .old-next-due-date {
     display: flex;
@@ -450,56 +505,12 @@ html.app-skin-dark .sched-paid-note { color: #64748b; }
     font-weight: 500;
     text-transform: none;
     letter-spacing: 0;
-    color: #8a9bb0;
+    color: #94a3b8;
     margin-left: 22px;
 }
 .old-export-btn { display: inline-flex; align-items: center; }
 
-/* ---------- Actions cell: Mark as Paid + kebab menu ---------- */
-.old-actions-cell {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 8px;
-}
-.btn-mark-paid {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 7px 14px;
-    border-radius: 20px;
-    border: 1px solid #4a7cf7;
-    background: #fff;
-    color: #4a7cf7;
-    font-size: 0.78rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all .15s ease;
-    white-space: nowrap;
-}
-.btn-mark-paid:hover:not(:disabled) { background: #4a7cf7; color: #fff; }
-.btn-mark-paid:disabled { opacity: 0.6; cursor: not-allowed; }
-.sched-paid-note { color: #adb5bd; font-size: 0.82rem; }
-
-.old-kebab-wrap { position: relative; }
-.old-kebab-btn {
-    width: 30px; height: 30px;
-    display: inline-flex; align-items: center; justify-content: center;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
-    background: #fff;
-    color: #8a9bb0;
-    cursor: pointer;
-    transition: all .15s ease;
-}
-.old-kebab-btn:hover { border-color: #4a7cf7; color: #4a7cf7; background: #eef3ff; }
-.old-kebab-menu { font-size: 0.85rem; }
-
 /* ---------- Dark mode additions ---------- */
-html.app-skin-dark .old-stat-label { color: #94a3b8; }
-html.app-skin-dark .old-stat-value { color: #e2e8f0; }
-html.app-skin-dark .bg-soft-purple { background: rgba(139, 92, 246, 0.18); }
-html.app-skin-dark .text-purple { color: #a78bfa; }
 html.app-skin-dark .old-progress-row { border-color: #2d3f55; }
 html.app-skin-dark .old-progress-count { color: #e2e8f0; }
 html.app-skin-dark .old-next-due-box { background: #16202e; }
@@ -509,13 +520,11 @@ html.app-skin-dark .old-view-all-link { color: #6c9bff; }
 html.app-skin-dark .review-avatar.is-purple { background: rgba(139,92,246,.18); color: #c4b5fd; }
 html.app-skin-dark .review-avatar.is-blue { background: #2d3f55; color: #9db8ff; }
 html.app-skin-dark .old-schedule-subtitle { color: #94a3b8; }
-html.app-skin-dark .btn-mark-paid { background: transparent; border-color: #6c9bff; color: #6c9bff; }
-html.app-skin-dark .btn-mark-paid:hover:not(:disabled) { background: #4a7cf7; color: #fff; }
-html.app-skin-dark .sched-paid-note { color: #64748b; }
-html.app-skin-dark .old-kebab-btn { background: #1e2a3a; border-color: #2d3f55; color: #94a3b8; }
-html.app-skin-dark .old-kebab-btn:hover { border-color: #4a7cf7; color: #6c9bff; background: #16233a; }
+
 /* ============================================================
    PAYMENT SCHEDULE — redesigned per mockup
+   Panel border/shadow matched to .panel above (Active Borrower
+   Detail-style border + shadow).
 ============================================================ */
 .payment-schedule-panel { overflow: hidden; }
 
@@ -534,7 +543,7 @@ html.app-skin-dark .old-kebab-btn:hover { border-color: #4a7cf7; color: #6c9bff;
     background: #eef3ff; color: #4a7cf7; font-size: 1.1rem;
 }
 .ols-sched-title { font-size: 1.02rem; font-weight: 700; color: #1a2a3a; }
-.ols-sched-subtitle { font-size: 0.8rem; color: #8a9bb0; margin-top: 2px; }
+.ols-sched-subtitle { font-size: 0.8rem; color: #94a3b8; margin-top: 2px; }
 
 .ols-sched-count-pill {
     display: flex; align-items: center; gap: 8px;
@@ -557,10 +566,10 @@ html.app-skin-dark .old-kebab-btn:hover { border-color: #4a7cf7; color: #6c9bff;
 .ols-sched-table thead th {
     text-align: left;
     font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    color: #8a9bb0;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
+    color: #94a3b8;
     padding: 14px 20px;
     background: #fbfcfe;
     border-top: 1px solid #eef1f6;
@@ -589,7 +598,7 @@ html.app-skin-dark .old-kebab-btn:hover { border-color: #4a7cf7; color: #6c9bff;
 }
 
 .ols-due-date { font-weight: 700; color: #1a2a3a; font-size: 0.88rem; }
-.ols-due-sub { font-size: 0.74rem; color: #8a9bb0; margin-top: 2px; }
+.ols-due-sub { font-size: 0.74rem; color: #94a3b8; margin-top: 2px; }
 
 .ols-amount-due { font-weight: 700; color: #1a2a3a; }
 
@@ -604,7 +613,7 @@ html.app-skin-dark .old-kebab-btn:hover { border-color: #4a7cf7; color: #6c9bff;
     height: 100%; border-radius: 6px;
     background: linear-gradient(90deg, #4a7cf7, #7ea3ff);
 }
-.ols-mini-progress-pct { font-size: 0.7rem; color: #8a9bb0; margin-top: 3px; }
+.ols-mini-progress-pct { font-size: 0.7rem; color: #94a3b8; margin-top: 3px; }
 
 .ols-status-pill {
     display: inline-flex;
@@ -648,7 +657,7 @@ html.app-skin-dark .old-kebab-btn:hover { border-color: #4a7cf7; color: #6c9bff;
     border-radius: 10px;
     border: 1px solid #e5e7eb;
     background: #fff;
-    color: #8a9bb0;
+    color: #94a3b8;
     cursor: pointer;
     transition: all .15s ease;
 }
@@ -662,7 +671,7 @@ html.app-skin-dark .old-kebab-btn:hover { border-color: #4a7cf7; color: #6c9bff;
     gap: 10px;
     padding: 16px 24px;
     font-size: 0.82rem;
-    color: #8a9bb0;
+    color: #94a3b8;
     border-top: 1px solid #eef1f6;
     background: #fbfcfe;
 }
@@ -682,7 +691,7 @@ html.app-skin-dark .old-kebab-btn:hover { border-color: #4a7cf7; color: #6c9bff;
     border-radius: 10px;
     border: 1px solid #e5e7eb;
     background: #fff;
-    color: #8a9bb0;
+    color: #94a3b8;
     cursor: pointer;
     transition: all .15s ease;
 }
@@ -698,42 +707,96 @@ html.app-skin-dark .old-kebab-btn:hover { border-color: #4a7cf7; color: #6c9bff;
     font-size: 0.85rem;
 }
 
-/* ---------- Confirm modal ---------- */
+/* ---------- Confirm modal (Record Payment redesign) ---------- */
+.ols-confirm-modal.modal-content {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.18);
+}
+
+/* Narrower dialog — matches the compact reference size instead
+   of Bootstrap's default modal-dialog width. */
+#olsMarkPaidConfirmModal .modal-dialog {
+    max-width: 400px;
+}
+
 .ols-confirm-icon {
-    width: 52px; height: 52px; border-radius: 50%;
-    margin: 0 auto 14px;
+    width: 48px; height: 48px; border-radius: 50%;
+    margin: 4px auto 14px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.4rem;
-    background: rgba(74, 124, 247, 0.12);
+    font-size: 1.15rem;
+    background: #eef3ff;
     color: #4a7cf7;
 }
-.ols-confirm-title { font-size: 1rem; font-weight: 700; color: #1a2a3a; margin-bottom: 8px; }
-.ols-confirm-desc { font-size: 0.85rem; color: #64748b; line-height: 1.55; padding: 0 12px; }
+.ols-confirm-eyebrow {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #94a3b8;
+    margin-bottom: 6px;
+}
+.ols-confirm-title { font-size: 1rem; font-weight: 700; color: #1a2a3a; margin-bottom: 10px; }
+.ols-confirm-desc { font-size: 0.82rem; color: #64748b; line-height: 1.55; padding: 0 4px; }
+
+/* Buttons inside this specific modal — darker navy (not the
+   brighter #4a7cf7 brand blue used elsewhere), smaller/compact
+   sizing to match the reference. */
+#olsMarkPaidConfirmModal .nxl-pw-modal-footer {
+    padding: 16px 20px 20px;
+    gap: 10px;
+}
+#olsMarkPaidConfirmModal .nxl-pw-btn-discard,
+#olsMarkPaidConfirmModal .nxl-pw-btn-apply {
+    flex: 1;
+    font-size: 0.85rem;
+    padding: 10px 16px;
+    border-radius: 10px;
+}
+#olsMarkPaidConfirmModal .nxl-pw-btn-discard {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    color: #1a2a3a;
+    font-weight: 600;
+}
+#olsMarkPaidConfirmModal .nxl-pw-btn-discard:hover {
+    background: #f8fafc;
+}
+#olsMarkPaidConfirmModal .nxl-pw-btn-apply {
+    background: #1e3a8a;
+    border: 1px solid #1e3a8a;
+    color: #fff;
+    font-weight: 600;
+}
+#olsMarkPaidConfirmModal .nxl-pw-btn-apply:hover {
+    background: #172d6b;
+    border-color: #172d6b;
+}
+
+/* Loading state — icon only (no text) while the request is in flight */
+.nxl-pw-btn-apply.is-loading .ols-confirm-btn-label { display: none; }
+.nxl-pw-btn-apply.is-loading i.feather-check { display: none; }
+.nxl-pw-btn-apply .spin-icon { display: none; }
+.nxl-pw-btn-apply.is-loading .spin-icon { display: inline-block; }
 
 /* ---------- Dark mode ---------- */
-html.app-skin-dark .ols-sched-icon { background: rgba(74,124,247,.18); color: #6c9bff; }
-html.app-skin-dark .ols-sched-title { color: #e2e8f0; }
-html.app-skin-dark .ols-sched-subtitle { color: #94a3b8; }
-html.app-skin-dark .ols-sched-count-pill { background: #16202e; border-color: #2d3f55; color: #cbd5e1; }
-html.app-skin-dark .ols-sched-count-pill strong { color: #e2e8f0; }
-html.app-skin-dark .ols-sched-table thead th { background: #16202e; border-color: #2d3f55; color: #94a3b8; }
-html.app-skin-dark .ols-sched-table tbody td { color: #e2e8f0; border-color: #2d3f55; }
-html.app-skin-dark .ols-sched-table tbody tr:hover { background: #16202e; }
-html.app-skin-dark .ols-row-num { background: #2d3f55; color: #cbd5e1; }
-html.app-skin-dark .ols-due-date { color: #e2e8f0; }
-html.app-skin-dark .ols-due-sub { color: #94a3b8; }
-html.app-skin-dark .ols-amount-due,
-html.app-skin-dark .ols-amount-paid-value { color: #e2e8f0; }
-html.app-skin-dark .ols-mini-progress-track { background: #2d3f55; }
-html.app-skin-dark .btn-record-payment { background: transparent; border-color: #6c9bff; color: #6c9bff; }
-html.app-skin-dark .btn-record-payment:hover:not(:disabled) { background: #4a7cf7; color: #fff; }
-html.app-skin-dark .sched-paid-note { color: #64748b; }
-html.app-skin-dark .ols-kebab-btn { background: #1e2a3a; border-color: #2d3f55; color: #94a3b8; }
-html.app-skin-dark .ols-sched-footnote { background: #16202e; border-color: #2d3f55; color: #94a3b8; }
-html.app-skin-dark .ols-page-arrow { background: #1e2a3a; border-color: #2d3f55; color: #94a3b8; }
-html.app-skin-dark .ols-page-indicator { background: rgba(74,124,247,.18); color: #6c9bff; }
+html.app-skin-dark .ols-confirm-modal.modal-content { background: #1e2a3a; }
+html.app-skin-dark .ols-confirm-eyebrow { color: #64748b; }
 html.app-skin-dark .ols-confirm-title { color: #e2e8f0; }
 html.app-skin-dark .ols-confirm-desc { color: #94a3b8; }
+html.app-skin-dark #olsMarkPaidConfirmModal .nxl-pw-btn-discard {
+    background: #16202e;
+    border-color: #2d3f55;
+    color: #e2e8f0;
+}
+html.app-skin-dark #olsMarkPaidConfirmModal .nxl-pw-btn-apply {
+    background: #1e40af;
+    border-color: #1e40af;
+}
+html.app-skin-dark #olsMarkPaidConfirmModal .nxl-pw-btn-apply:hover {
+    background: #1e3a8a;
+    border-color: #1e3a8a;
+}
 
 /* ---------- Spinning loading icon (Record Payment button) ---------- */
 @keyframes dl-spin {
