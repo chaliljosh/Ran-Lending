@@ -32,7 +32,7 @@
                     <i class="feather-users stat-icon"></i>
                 </div>
                 <div class="stat-value">{{ $stats['total'] }}</div>
-                <div class="stat-sub">Registered accounts</div>
+      
             </div>
 
             <div class="stat-card">
@@ -41,7 +41,7 @@
                     <i class="feather-check-circle stat-icon"></i>
                 </div>
                 <div class="stat-value">{{ $stats['active_loan'] }}</div>
-                <div class="stat-sub">Currently active</div>
+            
             </div>
 
             <div class="stat-card">
@@ -50,7 +50,7 @@
                     <i class="feather-inbox stat-icon"></i>
                 </div>
                 <div class="stat-value">{{ $stats['no_loan'] }}</div>
-                <div class="stat-sub">Awaiting first loan</div>
+            
             </div>
 
             <div class="stat-card">
@@ -59,7 +59,7 @@
                     <i class="feather-slash stat-icon"></i>
                 </div>
                 <div class="stat-value">{{ $stats['suspended'] }}</div>
-                <div class="stat-sub">Restricted access</div>
+           
             </div>
         </div>
 

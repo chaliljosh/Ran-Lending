@@ -103,7 +103,7 @@
                         <div class="opd-actions">
                             <button type="button" class="opd-btn opd-btn-mark-paid" data-bs-toggle="modal"
                                 data-bs-target="#opdConfirmPaidModal">
-                                <i class="feather-check"></i> Mark as Paid
+                                 Mark as Paid
                             </button>
                             <button type="button" class="opd-btn opd-btn-waive" data-bs-toggle="modal"
                                 data-bs-target="#opdWaiveModal" {{ !$penaltyId ? 'disabled' : '' }}>
@@ -216,6 +216,7 @@
         data-csrf="{{ csrf_token() }}" style="display:none;"></div>
 
     {{-- ============ CONFIRM: Mark as Paid ============ --}}
+                   {{-- ============ CONFIRM: Mark as Paid ============ --}}
     <div class="modal fade opd-modal" id="opdConfirmPaidModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -226,11 +227,11 @@
 
                     <div class="opd-modal-title">Mark Payment as Paid?</div>
                     <div class="opd-modal-desc">Are you sure you want to mark this overdue payment as paid?</div>
-                    <div class="modal-footer">
-
+                  <div class="modal-footer">
                         <button type="button" class="opd-btn opd-btn-waive" data-bs-dismiss="modal">Cancel</button>
-                        <button type="button" class="opd-btn opd-btn-mark-paid" id="opdConfirmPaidBtn">
-                            Mark as Paid
+                         <button type="button" class="opd-btn opd-btn-mark-paid" id="opdConfirmPaidBtn">
+                            <span id="opdConfirmPaidText"> Mark as Paid</span>
+                            <span id="opdConfirmPaidSpinner" class="spinner-border spinner-border-sm d-none"></span>
                         </button>
                     </div>
 
@@ -256,31 +257,14 @@
                 <div class="modal-footer">
                     <button type="button" class="opd-btn opd-btn-waive" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="opd-btn opd-btn-mark-paid" id="opdConfirmWaiveBtn">
-                        <i class="feather-check"></i> Confirm Waive
+                       Confirm Waive
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- ============ SUCCESS (shared by both actions) ============ --}}
-    <div class="modal fade opd-modal" id="opdSuccessModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header justify-content-end">
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="opd-modal-icon is-success"><i class="feather-check-circle"></i></div>
-                    <div class="opd-modal-title" id="opdSuccessTitle">Success</div>
-                    <div class="opd-modal-desc" id="opdSuccessDesc"></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="opd-btn opd-btn-mark-paid" id="opdSuccessOkBtn">OK</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    
 @endpush
 
 @section('page-scripts')

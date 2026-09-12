@@ -142,8 +142,8 @@ html body .main-content i[class*="feather-"]::before {
     border: 1px solid transparent; cursor: pointer;
     transition: all 0.15s ease;
 }
-.opd-btn-mark-paid { background: #16A34A; color: #fff; }
-.opd-btn-mark-paid:hover { background: #15803D; color: #fff; }
+.opd-btn-mark-paid { background: #1E293B; color: #fff; }
+.opd-btn-mark-paid:hover { background: #0F172A; color: #fff; }
 .opd-btn-waive { background: #FFFFFF; border-color: #e5e7eb; color: #0f172a; }
 .opd-btn-waive:hover { border-color: #4a7cf7; color: #4a7cf7; background: #eef3ff; }
 .opd-btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -368,7 +368,7 @@ html.app-skin-dark .opd-overdue-card .opd-btn-waive {
     color: #e2e8f0;
 }
 html.app-skin-dark .opd-overdue-card .opd-btn-waive:hover { border-color: #4a7cf7; color: #6c9bff; background: #16233a; }
-html.app-skin-dark .opd-overdue-card .opd-btn-mark-paid:hover { background: #15803D; }
+html.app-skin-dark .opd-overdue-card .opd-btn-mark-paid:hover { background: #020617; }
 
 html.app-skin-dark .opd-summary-row {
     border-color: #2d3f55;
@@ -468,4 +468,3 @@ html.app-skin-dark .opd-badge-upcoming { background: rgba(37, 99, 235, 0.16); co
     height: 100%;
     object-fit: cover;
 }
-

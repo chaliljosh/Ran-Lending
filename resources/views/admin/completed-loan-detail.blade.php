@@ -4,13 +4,19 @@
 
 @section('page-styles')
     <link rel="stylesheet" href="{{ asset('assets/admin/css/modals-modern.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/avatar-placeholder.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/admin/css/ongoing-loan-detail.css') }}" />
+    {{-- Standalone overrides for this page only — merges the borrower
+         strip + 4 stat cards into one card, and applies the site's
+         white-bg/border/shadow/typography language to the Loan Summary,
+         Repayment Performance, and Payment Schedule panels without
+         touching the shared ongoing-loan-detail.css file. --}}
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/completed-loan-detail.css') }}" />
 @endsection
 
 @section('content')
 
     @php
-        $initials = strtoupper(substr($app->first_name ?? 'B', 0, 1) . substr($app->last_name ?? 'R', 0, 1));
         $ratingColors = [
             'excellent' => 'is-approved',
             'good'      => 'is-approved',
@@ -30,97 +36,50 @@
             </ul>
         </div>
         <div class="page-header-right ms-auto">
-            <a href="{{ route('admin.completed-loans') }}" class="btn btn-light"><i class="feather-arrow-left me-1"></i>Back</a>
+            <a href="{{ route('admin.completed-loans') }}" class="btn btn-light">Back</a>
         </div>
     </div>
 
-    <div class="main-content">
+    <div class="main-content cld-page">
 
-        {{-- ============ BORROWER STRIP ============ --}}
-        <div class="borrower-strip">
-            <div class="bs-left">
-                <div class="loan-avatar">{{ $initials }}</div>
-                <div class="bs-info">
+        {{-- ============ BORROWER HEADER + STATS (merged) ============ --}}
+        <div class="cld-summary-card mb-3">
+            <div class="cld-summary-left">
+                <div class="cld-avatar js-borrower-avatar" data-initials="">
+                    @if($borrowerProfilePicture)
+                        <img src="{{ $borrowerProfilePicture }}" alt="{{ $app->first_name }} {{ $app->last_name }}" class="cld-avatar-img">
+                    @endif
+                </div>
+                <div class="cld-borrower-info">
                     <h5>{{ $app->first_name }} {{ $app->last_name }}</h5>
-                    <div class="bs-meta">
+                    <div class="cld-borrower-meta">
                         <span>{{ $app->email }}</span>
-                        <span class="bs-dot">&middot;</span>
+                        <span class="cld-dot">&middot;</span>
                         <span>Loan ID: <strong>LN-{{ str_pad($applicationId, 5, '0', STR_PAD_LEFT) }}</strong></span>
                         @if($completedAt)
-                            <span class="bs-dot">&middot;</span>
+                            <span class="cld-dot">&middot;</span>
                             <span>Completed on <strong>{{ \Carbon\Carbon::parse($completedAt)->format('M d, Y') }}</strong></span>
                         @endif
                     </div>
+                    <span class="badge badge-approved cld-completed-badge">Completed</span>
                 </div>
             </div>
-            <div class="bs-right">
-                <span class="badge badge-approved">Completed</span>
-            </div>
-        </div>
-
-        {{-- ============ STAT CARDS ROW ============ --}}
-        <div class="row old-stat-row">
-            <div class="col-6 col-xl-3">
-                <div class="card stretch stretch-full old-stat-card">
-                    <div class="card-body">
-                        <div class="d-flex gap-3 align-items-center">
-                            <div class="avatar-text avatar-md bg-soft-primary text-primary">
-                                <i class="feather-file-text"></i>
-                            </div>
-                            <div>
-                                <div class="old-stat-label">Total Loan Amount</div>
-                                <div class="old-stat-value">&#8369;{{ number_format($app->total_amount ?? 0, 2) }}</div>
-                            </div>
-                        </div>
-                    </div>
+            <div class="cld-summary-right">
+                <div class="cld-stat">
+                    <span class="cld-stat-value">&#8369;{{ number_format($app->total_amount ?? 0, 2) }}</span>
+                    <span class="cld-stat-label">Total Loan Amount</span>
                 </div>
-            </div>
-
-            <div class="col-6 col-xl-3">
-                <div class="card stretch stretch-full old-stat-card">
-                    <div class="card-body">
-                        <div class="d-flex gap-3 align-items-center">
-                            <div class="avatar-text avatar-md bg-soft-success text-success">
-                                <i class="feather-check-circle"></i>
-                            </div>
-                            <div>
-                                <div class="old-stat-label">Total Amount Repaid</div>
-                                <div class="old-stat-value">&#8369;{{ number_format($amountCollected, 2) }}</div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="cld-stat">
+                    <span class="cld-stat-value">&#8369;{{ number_format($amountCollected, 2) }}</span>
+                    <span class="cld-stat-label">Total Amount Repaid</span>
                 </div>
-            </div>
-
-            <div class="col-6 col-xl-3">
-                <div class="card stretch stretch-full old-stat-card">
-                    <div class="card-body">
-                        <div class="d-flex gap-3 align-items-center">
-                            <div class="avatar-text avatar-md bg-soft-warning text-warning">
-                                <i class="feather-trending-up"></i>
-                            </div>
-                            <div>
-                                <div class="old-stat-label">Total Interest Earned</div>
-                                <div class="old-stat-value">&#8369;{{ number_format($totalInterest, 2) }}</div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="cld-stat">
+                    <span class="cld-stat-value">&#8369;{{ number_format($totalInterest, 2) }}</span>
+                    <span class="cld-stat-label">Total Interest Earned</span>
                 </div>
-            </div>
-
-            <div class="col-6 col-xl-3">
-                <div class="card stretch stretch-full old-stat-card">
-                    <div class="card-body">
-                        <div class="d-flex gap-3 align-items-center">
-                            <div class="avatar-text avatar-md bg-soft-purple text-purple">
-                                <i class="feather-check-square"></i>
-                            </div>
-                            <div>
-                                <div class="old-stat-label">Installments Paid</div>
-                                <div class="old-stat-value">{{ $paidCount }} / {{ $totalCount }}</div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="cld-stat">
+                    <span class="cld-stat-value">{{ $paidCount }} / {{ $totalCount }}</span>
+                    <span class="cld-stat-label">Installments Paid</span>
                 </div>
             </div>
         </div>
@@ -129,7 +88,7 @@
 
             {{-- ============ LOAN SUMMARY ============ --}}
             <div class="panel loan-summary-panel">
-                <div class="panel-header"><i class="feather-file-text me-2"></i>Loan Summary</div>
+                <div class="panel-header">Loan Summary</div>
                 <div class="panel-body">
 
                     <div class="loan-info-grid">
@@ -189,7 +148,7 @@
 
             {{-- ============ BORROWER REPAYMENT PERFORMANCE ============ --}}
             <div class="panel loan-review-panel">
-                <div class="panel-header"><i class="feather-award me-2"></i>Repayment Performance</div>
+                <div class="panel-header">Repayment Performance</div>
                 <div class="panel-body">
 
                     <div class="review-item {{ $ratingBadgeClass }}">
@@ -222,20 +181,15 @@
 
         </div>
 
-        
-
         {{-- ============ PAYMENT SCHEDULE (read-only, no Record Payment buttons) ============ --}}
         <div class="panel payment-schedule-panel">
             <div class="ols-sched-header">
                 <div class="ols-sched-header-left">
-                    <div class="ols-sched-icon"><i class="feather-calendar"></i></div>
                     <div>
                         <div class="ols-sched-title">Payment Schedule</div>
-                        <div class="ols-sched-subtitle">Full payment history for this completed loan.</div>
                     </div>
                 </div>
                 <div class="ols-sched-count-pill">
-                    <i class="feather-check-circle"></i>
                     <span><strong>{{ $paidCount }}</strong> of <strong>{{ $totalCount }}</strong> installments paid</span>
                 </div>
             </div>
@@ -270,9 +224,9 @@
                             <td>{{ $s->paid_at ? \Carbon\Carbon::parse($s->paid_at)->format('M d, Y') : '—' }}</td>
                             <td>
                                 @if($wasLate)
-                                    <span class="ols-status-pill is-overdue"><i class="feather-clock"></i> Paid Late</span>
+                                    <span class="ols-status-pill is-overdue"> Paid Late</span>
                                 @else
-                                    <span class="ols-status-pill is-paid"><i class="feather-check-circle"></i> Paid On Time</span>
+                                    <span class="ols-status-pill is-paid"> Paid On Time</span>
                                 @endif
                             </td>
                         </tr>
@@ -281,10 +235,6 @@
                 </table>
             </div>
 
-            <div class="ols-sched-footnote">
-                <i class="feather-check-circle"></i>
-                <span>This loan has been fully paid. All installments are shown for reference only.</span>
-            </div>
 
             @else
             <div class="panel-body">

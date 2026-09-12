@@ -3,12 +3,12 @@
 @section('title', 'Defaulted Loans')
 
 @section('page-styles')
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('assets/admin/css/defaulted-loans.css') }}">
 @endsection
 
 @section('content')
-
-    
 
     <div class="page-header">
         <div class="page-header-left d-flex align-items-center">
@@ -22,31 +22,32 @@
     </div>
 
     <div class="main-content">
+
         <!-- Stats -->
         <div class="stats-grid-v2">
             <div class="rs-card stat-card-v2">
-                <div class="stat-icon-v2 total"><i class="feather-alert-octagon"></i></div>
-                <div>
+                <div class="stat-card-v2-head">
                     <div class="stat-label-v2">Defaulted Loans</div>
-                    <div class="stat-value-v2">{{ $stats['total'] }}</div>
-                 
+                    <i class="feather-alert-octagon stat-icon-v2"></i>
                 </div>
+                <div class="stat-value-v2">{{ $stats['total'] }}</div>
+            
             </div>
             <div class="rs-card stat-card-v2">
-                <div class="stat-icon-v2 amount"><i class="feather-dollar-sign"></i></div>
-                <div>
+                <div class="stat-card-v2-head">
                     <div class="stat-label-v2">Total Outstanding</div>
-                    <div class="stat-value-v2">₱{{ number_format($stats['total_outstanding'], 2) }}</div>
-         
+                    <i class="feather-dollar-sign stat-icon-v2"></i>
                 </div>
+                <div class="stat-value-v2">₱{{ number_format($stats['total_outstanding'], 0) }}</div>
+            
             </div>
             <div class="rs-card stat-card-v2">
-                <div class="stat-icon-v2 avg"><i class="feather-alert-triangle"></i></div>
-                <div>
+                <div class="stat-card-v2-head">
                     <div class="stat-label-v2">Unpaid Penalties</div>
-                    <div class="stat-value-v2">₱{{ number_format($stats['total_penalties'], 2) }}</div>
-               
+                    <i class="feather-alert-triangle stat-icon-v2"></i>
                 </div>
+                <div class="stat-value-v2">₱{{ number_format($stats['total_penalties'], 0) }}</div>
+            
             </div>
         </div>
 
@@ -89,7 +90,6 @@
                     <thead>
                         <tr>
                             <th>Borrower</th>
-                            <th>Loan ID</th>
                             <th>Original Loan</th>
                             <th>Outstanding Balance</th>
                             <th>Days Overdue</th>
@@ -105,14 +105,13 @@
                             data-days-late="{{ $loan['days_late'] }}">
                             <td>
                                 <div class="borrower-cell-v2">
-                                    <div class="dl-avatar">{{ $loan['initials'] }}</div>
                                     <div>
                                         <div class="borrower-name-v2">{{ $loan['name'] }}</div>
+                                        <div class="borrower-id-v2">{{ $loan['loan_id_display'] ?? ('LN-' . str_pad($loan['application_id'], 5, '0', STR_PAD_LEFT)) }}</div>
                                         <div class="borrower-email-v2">{{ $loan['email'] }}</div>
                                     </div>
                                 </div>
                             </td>
-                            <td><span class="dl-loan-id">{{ $loan['loan_id_display'] ?? ('LN-' . str_pad($loan['application_id'], 5, '0', STR_PAD_LEFT)) }}</span></td>
                             <td class="loan-amount-v2">₱{{ number_format($loan['loan_amount'], 2) }}</td>
                             <td class="dl-outstanding-v2">₱{{ number_format($loan['outstanding_amount'], 2) }}</td>
                             <td><span class="dl-days-text">{{ $loan['days_late'] }} days</span></td>
@@ -126,15 +125,6 @@
                                     <a href="{{ route('admin.defaulted-loan-detail', $loan['application_id']) }}" class="btn-view-v2">
                                         <i class="feather-eye"></i> View Details
                                     </a>
-                                    <div class="dl-kebab-wrap">
-                                        <button type="button" class="dl-kebab-btn" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
-    <i class="feather-more-vertical"></i>
-</button>
-                                        <ul class="dropdown-menu dropdown-menu-end dl-kebab-menu">
-                                            <li><a class="dropdown-item" href="#">Send Reminder</a></li>
-                                            <li><a class="dropdown-item" href="#">Add Note</a></li>
-                                        </ul>
-                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -156,12 +146,12 @@
                     Showing 1&ndash;{{ min(10, count($defaultedLoans)) }} of {{ count($defaultedLoans) }} entries
                 </span>
                 <div class="dl-pagination-controls">
-                    <button type="button" class="dl-page-arrow" id="dlPrevPage" onclick="dlGoToPage(-1)">
-                        <i class="feather-chevron-left"></i>
+                    <button type="button" class="dl-page-text-btn" id="dlPrevPage" onclick="dlGoToPage(-1)">
+                        <i class="feather-chevron-left"></i> Prev
                     </button>
-                    <span class="dl-page-number" id="dlPageIndicator">1</span>
-                    <button type="button" class="dl-page-arrow" id="dlNextPage" onclick="dlGoToPage(1)">
-                        <i class="feather-chevron-right"></i>
+                    <span class="dl-page-label" id="dlPageIndicator">Page 1 of 1</span>
+                    <button type="button" class="dl-page-text-btn" id="dlNextPage" onclick="dlGoToPage(1)">
+                        Next <i class="feather-chevron-right"></i>
                     </button>
                 </div>
             </div>

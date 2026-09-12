@@ -1,104 +1,431 @@
-/* ============================================================
-    COMPLETED LOAN DETAIL PAGE — bagong section styles
-============================================================ */
+
+/* ---------- Inter font — applied to the whole page ---------- */
+.cld-page,
+.cld-page * {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+.cld-page i,
+.cld-page [class*="feather-"] {
+    font-family: inherit !important;
+}
+.cld-page i[class*="feather-"]::before {
+    font-family: 'feather' !important;
+}
 
 /* ---------- Wider, left-aligned container ---------- */
-.cld-content {
-    max-width: 100%;
-    margin: 0;
-    width: 100%;
-}
+.cld-page { max-width: 100%; margin: 0; width: 100%; }
 
-@media (max-width: 1300px) {
-    .cld-content { max-width: 100%; }
-}
-
-/* ---------- Borrower Header — horizontal layout ---------- */
-.cld-borrower-header {
+/* ============================================================
+   MERGED BORROWER HEADER + STAT CARDS
+============================================================ */
+.cld-summary-card {
     display: flex;
     align-items: center;
-    gap: 22px;
-    text-align: left;
-    padding: 22px 26px;
+    gap: 24px;
+    background: #FFFFFF;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
+    padding: 18px 26px;
+    flex-wrap: nowrap;
 }
 
-.cld-borrower-header .borrower-avatar {
-    margin: 0;
-    flex-shrink: 0;
-}
-
-.cld-borrower-right {
-    flex: 1;
+.cld-summary-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 0 0 auto;
     min-width: 0;
+    padding-right: 24px;
+    border-right: 1px solid #e5e7eb;
 }
 
-.cld-borrower-right h6 {
-    font-size: 1.02rem;
+/* ---------- Avatar — sizing/shape only. Background silhouette
+   comes from avatar-placeholder.css's .js-borrower-avatar rule. ---------- */
+.cld-avatar {
+    margin: 0 !important;
+    flex-shrink: 0;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+.cld-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
+.cld-borrower-info { min-width: 0; }
+.cld-borrower-info h5 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 4px;
+}
 .cld-borrower-meta {
     display: flex;
     align-items: center;
-    gap: 12px;
     flex-wrap: wrap;
-    margin-top: 6px;
+    gap: 4px 8px;
+    font-size: 0.76rem;
+    color: #475569;
+    margin-bottom: 8px;
+}
+.cld-borrower-meta strong { color: #0f172a; font-weight: 600; }
+.cld-dot { color: #cbd5e1; }
+
+.cld-completed-badge {
+    display: inline-block;
+    margin: 0;
+    padding: 5px 14px !important;
 }
 
-.cld-completed-date {
-    font-size: 0.78rem;
-    color: #64748B;
-}
-
-@media (max-width: 575.98px) {
-    .cld-borrower-header {
-        flex-direction: column;
-        text-align: center;
-        gap: 14px;
-    }
-    .cld-borrower-right {
-        text-align: center;
-    }
-    .cld-borrower-meta {
-        justify-content: center;
-    }
-}
-
-/* ---------- Loan Summary — two-column label/value grid ---------- */
-.cld-summary-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    column-gap: 32px;
-    row-gap: 4px;
-}
-
-.cld-summary-item {
+/* Stats — plain spacing, no divider between individual stats.
+   Only .cld-summary-left carries a border, matching the
+   reference (single row, one divider total). */
+.cld-summary-right {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 9px 0;
-    border-bottom: 1px solid #F1F4F8;
+    gap: 40px;
+    flex: 1 1 auto;
+    justify-content: flex-start;
 }
 
-.cld-summary-item:nth-last-child(-n+2) {
-    border-bottom: none;
+.cld-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 0;
+    border-left: none;
+    flex: 0 0 auto;
+}
+.cld-stat:first-child {
+    padding-left: 0;
+}
+.cld-stat-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+.cld-stat-label {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    margin-top: 4px;
 }
 
-@media (max-width: 767.98px) {
-    .cld-summary-grid {
-        grid-template-columns: 1fr;
+@media (max-width: 991.98px) {
+    .cld-summary-card {
+        flex-direction: column;
+        align-items: stretch;
+        flex-wrap: wrap;
     }
-    .cld-summary-item:nth-last-child(-n+2) {
-        border-bottom: 1px solid #F1F4F8;
+    .cld-summary-left {
+        border-right: none;
+        padding-right: 0;
+        padding-bottom: 18px;
+        border-bottom: 1px solid #e5e7eb;
     }
-    .cld-summary-item:last-child {
-        border-bottom: none;
+    .cld-summary-right {
+        padding-top: 18px;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 16px;
     }
+    .cld-stat {
+        border-left: none;
+        padding: 0;
+        flex: 1 1 45%;
+    }
+    .cld-stat:first-child {
+        padding-left: 0;
+    }
+}
+@media (max-width: 575.98px) {
+    .cld-summary-left { flex-direction: column; text-align: center; gap: 14px; }
+    .cld-borrower-info { text-align: center; }
+    .cld-borrower-meta { justify-content: center; }
 }
 
-/* ---------- Dark mode ---------- */
-html.app-skin-dark .cld-summary-item {
-    border-bottom-color: #212C3D;
+/* ============================================================
+   LOAN SUMMARY / REPAYMENT PERFORMANCE PANELS
+   Override the shared .panel look from ongoing-loan-detail.css
+   with this site's white/border/shadow tokens.
+============================================================ */
+.cld-page .panel {
+    background: #FFFFFF !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 14px !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15) !important;
 }
-html.app-skin-dark .cld-completed-date {
-    color: #94A3B8;
+.cld-page .panel-header {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #1a2a3a;
+    display: flex;
+    align-items: center;
 }
+.cld-page .panel-header i { color: #94a3b8; }
+
+.cld-page .info-item2 label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
+    color: #94a3b8;
+}
+.cld-page .info-item2 span {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #0f172a;
+}
+.cld-page .info-item2.is-primary span {
+    color: #4a7cf7;
+    font-weight: 700;
+}
+
+.cld-page .lsc-progress-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #0f172a;
+}
+.cld-page .old-progress-count {
+    font-size: 0.76rem;
+    color: #64748b;
+}
+.cld-page .lsc-progress-bar {
+    background: #f1f5f9;
+}
+.cld-page .lsc-progress-fill {
+    background: #16A34A;
+}
+.cld-page .old-next-due-label {
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: none;
+    letter-spacing: normal;
+}
+.cld-page .old-next-due-date {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+/* ---------- Repayment Performance highlight box ---------- */
+.cld-page .review-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    background: #F0FDF4;
+    border: 1px solid #BBF7D0;
+    border-radius: 12px;
+    padding: 16px 18px;
+}
+.cld-page .review-item.is-onhold {
+    background: #FFFBEB;
+    border-color: #FDE68A;
+}
+.cld-page .review-item.is-rejected {
+    background: #FEF2F2;
+    border-color: #FECACA;
+}
+
+/* Plain icon — no colored circle/box background, just the icon
+   glyph itself in the status color. */
+.cld-page .review-avatar {
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    flex-shrink: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    background: none;
+    color: #16A34A;
+    font-size: 1.3rem;
+}
+.cld-page .review-item.is-rejected .review-avatar {
+    background: none;
+    color: #DC2626;
+}
+
+.cld-page .review-name {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 4px;
+}
+.cld-page .review-remark {
+    display: block;
+    font-size: 0.78rem;
+    color: #475569;
+    line-height: 1.5;
+}
+
+/* ============================================================
+   EQUAL-HEIGHT PANELS — Loan Summary / Repayment Performance
+   ongoing-loan-detail.css sets align-items: start on
+   .loan-detail-grid, which lets each panel size to its own
+   content instead of stretching to match its sibling. Override
+   to stretch on this page only, and make the review panel's
+   body a flex column so its content can spread to fill the
+   full height (matching Loan Summary's taller content).
+============================================================ */
+.cld-page .loan-detail-grid {
+    align-items: stretch;
+}
+.cld-page .loan-review-panel {
+    display: flex;
+    flex-direction: column;
+}
+.cld-page .loan-review-panel .panel-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.cld-page .loan-review-panel .loan-info-grid.secondary {
+    margin-top: auto;
+    padding-top: 18px;
+}
+
+/* ============================================================
+   PAYMENT SCHEDULE PANEL
+============================================================ */
+.cld-page .payment-schedule-panel {
+    background: #FFFFFF !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 14px !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15) !important;
+}
+.cld-page .ols-sched-title {
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+.cld-page .ols-sched-subtitle {
+    font-size: 0.76rem;
+    color: #94a3b8;
+}
+
+/* Plain calendar icon — no boxed background, overriding
+   ongoing-loan-detail.css's 42x42 rounded icon box. */
+.cld-page .ols-sched-icon {
+    width: auto;
+    height: auto;
+    background: none;
+    color: #4a7cf7;
+    font-size: 1.3rem;
+}
+.cld-page .ols-sched-header-left .ols-sched-icon {
+    width: auto !important;
+    height: auto !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    display: inline-flex;
+}
+
+/* Plain count text — no pill background, just colored text. */
+/* Plain count text — no pill background, just colored text. */
+.cld-page .ols-sched-count-pill {
+    background: none;
+    border: none;
+    padding: 0;
+    color: #0f172a;
+    font-weight: 600;
+}
+
+.cld-page .ols-sched-table thead th {
+    font-size: 0.66rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
+    color: #94a3b8;
+}
+.cld-page .ols-sched-table tbody td {
+    color: #1a2a3a;
+    font-size: 0.8rem;
+}
+.cld-page .ols-status-pill.is-paid {
+    background: #dcfce7;
+    color: #16a34a;
+}
+.cld-page .ols-status-pill.is-overdue {
+    background: #fef3c7;
+    color: #b45309;
+}
+.cld-page .ols-sched-footnote {
+    color: #64748b;
+    font-size: 0.76rem;
+}
+
+/* ============================================================
+   DARK MODE
+============================================================ */
+html.app-skin-dark .cld-summary-card {
+    background: #1e2a3a !important;
+    border-color: #2d3f55 !important;
+}
+html.app-skin-dark .cld-borrower-info h5 { color: #e2e8f0; }
+html.app-skin-dark .cld-borrower-meta { color: #94a3b8; }
+html.app-skin-dark .cld-borrower-meta strong { color: #e2e8f0; }
+html.app-skin-dark .cld-dot { color: #475569; }
+html.app-skin-dark .cld-summary-left { border-right-color: #2d3f55; }
+
+html.app-skin-dark .cld-stat-value { color: #e2e8f0; }
+html.app-skin-dark .cld-stat-label { color: #94a3b8; }
+@media (max-width: 991.98px) {
+    html.app-skin-dark .cld-summary-left { border-bottom-color: #2d3f55; }
+}
+
+html.app-skin-dark .cld-page .panel {
+    background: #1e2a3a !important;
+    border-color: #2d3f55 !important;
+}
+html.app-skin-dark .cld-page .panel-header { color: #e2e8f0; }
+html.app-skin-dark .cld-page .panel-header i { color: #6c9bff; }
+html.app-skin-dark .cld-page .info-item2 label { color: #94a3b8; }
+html.app-skin-dark .cld-page .info-item2 span { color: #e2e8f0; }
+html.app-skin-dark .cld-page .info-item2.is-primary span { color: #6c9bff; }
+html.app-skin-dark .cld-page .lsc-progress-title { color: #e2e8f0; }
+html.app-skin-dark .cld-page .old-progress-count { color: #94a3b8; }
+html.app-skin-dark .cld-page .lsc-progress-bar { background: #16202e; }
+html.app-skin-dark .cld-page .old-next-due-label { color: #94a3b8; }
+html.app-skin-dark .cld-page .old-next-due-date { color: #e2e8f0; }
+
+html.app-skin-dark .cld-page .review-item {
+    background: rgba(22, 163, 74, 0.1);
+    border-color: rgba(22, 163, 74, 0.25);
+}
+html.app-skin-dark .cld-page .review-item.is-onhold {
+    background: rgba(180, 83, 9, 0.14);
+    border-color: rgba(180, 83, 9, 0.3);
+}
+html.app-skin-dark .cld-page .review-item.is-rejected {
+    background: rgba(220, 38, 38, 0.1);
+    border-color: rgba(220, 38, 38, 0.25);
+}
+html.app-skin-dark .cld-page .review-avatar { background: none; }
+html.app-skin-dark .cld-page .review-name { color: #e2e8f0; }
+html.app-skin-dark .cld-page .review-remark { color: #94a3b8; }
+
+html.app-skin-dark .cld-page .payment-schedule-panel {
+    background: #1e2a3a !important;
+    border-color: #2d3f55 !important;
+}
+html.app-skin-dark .cld-page .ols-sched-title { color: #e2e8f0; }
+html.app-skin-dark .cld-page .ols-sched-subtitle { color: #94a3b8; }
+html.app-skin-dark .cld-page .ols-sched-icon { background: none !important; color: #6c9bff; }
+html.app-skin-dark .cld-page .ols-sched-count-pill { background: none; color: #e2e8f0; }
+html.app-skin-dark .cld-page .ols-sched-table thead th { color: #94a3b8; }
+html.app-skin-dark .cld-page .ols-sched-table tbody td { color: #e2e8f0; }
+html.app-skin-dark .cld-page .ols-status-pill.is-paid { background: rgba(22,163,74,.15); color: #6ee7a4; }
+html.app-skin-dark .cld-page .ols-status-pill.is-overdue { background: rgba(180,83,9,.18); color: #fbbf24; }
+html.app-skin-dark .cld-page .ols-sched-footnote { color: #94a3b8; }

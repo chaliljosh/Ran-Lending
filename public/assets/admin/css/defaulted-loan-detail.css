@@ -1,0 +1,427 @@
+/* ══════════════════════════════════════════
+   DEFAULTED LOAN DETAIL — standalone stylesheet
+   Merged header card (.dlh-*) modeled on Ongoing Loan
+   Detail's .olh-card (avatar + name + meta on the left, plain
+   stat items with vertical dividers on the right) — red accent
+   since this is a defaulted loan. Panel / loan-info-grid /
+   ols-sched-* shells adapted from ongoing-loan-detail.css so
+   Loan Summary and Payment Schedule match the same look.
+   ══════════════════════════════════════════ */
+
+html:not(.app-skin-dark) .nxl-content {
+    background: #fff;
+}
+
+/* ============================================
+   PANEL — shared card shell (Loan Summary / Payment Schedule)
+============================================ */
+.panel {
+    background: #ffffff;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 14px !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15) !important;
+    overflow: hidden;
+}
+.panel-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 24px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: normal;
+    color: #1a2a3a;
+    border-bottom: 1px solid #eef1f6;
+}
+.panel-header i { color: #dc2626; font-size: 0.95rem; }
+.panel-body { padding: 22px 24px; }
+
+.btn-light {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    color: #0f172a;
+    font-weight: 600;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    padding: 9px 18px;
+    transition: all 0.15s ease;
+}
+.btn-light:hover { border-color: #dc2626; color: #dc2626; background: #fef2f2; }
+
+.badge-approved { background: #dcfce7; color: #16a34a; border: 1px solid #16a34a; }
+.badge-rejected { background: #fee2e2; color: #dc2626; border: 1px solid #dc2626; }
+
+.empty-note { font-size: 0.85rem; margin-bottom: 0; }
+.text-muted { color: #8a9bb0 !important; }
+
+/* ============================================================
+   MERGED HEADER CARD (.dlh-*)
+============================================================ */
+.dlh-card {
+    border-radius: 14px;
+    padding: 22px 28px;
+    margin-bottom: 20px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 22px;
+    flex-wrap: nowrap;
+}
+.dlh-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    min-width: 0;
+    flex: 0 1 auto;
+}
+.dlh-avatar {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #dc2626, #f87171);
+    color: #fff;
+    font-weight: 600;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+.dlh-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+}
+.dlh-info { min-width: 0; }
+.dlh-name-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 2px;
+}
+.dlh-name {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #0f172a;
+    white-space: nowrap;
+}
+.dlh-status-badge {
+    font-size: 0.76rem;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+.dlh-meta-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+    font-size: 0.84rem;
+    color: #475569;
+    font-weight: 400;
+}
+.dlh-meta-row strong { font-weight: 600; color: #0f172a; }
+.dlh-meta-sep { color: #cbd5e1; }
+.dlh-overdue-text { color: #dc2626; font-weight: 600; }
+
+.dlh-stats {
+    display: flex;
+    align-items: stretch;
+    flex: 1 1 auto;
+    justify-content: flex-end;
+    border-left: 1px solid #e5e7eb;
+    padding-left: 26px;
+    gap: 0;
+    min-width: 0;
+}
+.dlh-stat {
+    display: flex;
+    flex: 0 1 auto;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 20px;
+    min-width: 0;
+    text-align: center;
+}
+.dlh-stat:not(:last-child) {
+    border-right: 1px solid #e5e7eb;
+}
+.dlh-stat-value {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #0f172a;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+.dlh-stat-value.is-danger { color: #dc2626; }
+.dlh-stat-value.is-success { color: #16a34a; }
+.dlh-stat-label {
+    font-size: 0.76rem;
+    font-weight: 500;
+    color: #8a9bb0;
+    letter-spacing: 0.3px;
+    margin-top: 3px;
+    white-space: nowrap;
+}
+
+@media (max-width: 991px) {
+    .dlh-card { flex-wrap: wrap; }
+    .dlh-left { flex: 1 1 100%; }
+    .dlh-stats {
+        border-left: none;
+        padding-left: 0;
+        border-top: 1px solid #e5e7eb;
+        padding-top: 14px;
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px 0;
+    }
+    .dlh-stat { min-width: 45%; flex: 1 1 45%; border-right: none !important; padding: 6px 0; }
+}
+
+/* ============================================
+   LOAN SUMMARY — unboxed info grid
+============================================ */
+.loan-info-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px 16px;
+    margin-bottom: 24px;
+}
+.loan-info-grid.secondary { margin-bottom: 0; }
+.info-item2 { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.info-item2 label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
+    color: #94a3b8;
+}
+.info-item2 span {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #0f172a;
+    overflow-wrap: anywhere;
+}
+.info-item2.is-primary span { color: #dc2626; }
+
+@media (max-width: 767px) {
+    .loan-info-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ============================================================
+   PAYMENT SCHEDULE
+============================================================ */
+.payment-schedule-panel { overflow: hidden; }
+
+.ols-sched-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 22px 24px;
+    flex-wrap: wrap;
+}
+.ols-sched-header-left { display: flex; align-items: center; gap: 14px; }
+.ols-sched-icon {
+    width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+}
+.ols-sched-title { font-size: 1.02rem; font-weight: 700; color: #1a2a3a; }
+.ols-sched-subtitle { font-size: 0.8rem; color: #94a3b8; margin-top: 2px; }
+
+.ols-sched-count-pill {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    color: #475569;
+    background: #fff;
+}
+.ols-sched-count-pill i { color: #dc2626; }
+.ols-sched-count-pill strong { color: #1a2a3a; }
+
+.ols-sched-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+.ols-sched-table thead th {
+    text-align: left;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
+    color: #94a3b8;
+    padding: 14px 20px;
+    background: #fbfcfe;
+    border-top: 1px solid #eef1f6;
+    border-bottom: 1px solid #eef1f6;
+    white-space: nowrap;
+}
+.ols-sched-table tbody td {
+    padding: 16px 20px;
+    color: #1a2a3a;
+    border-bottom: 1px solid #f1f3f8;
+    vertical-align: middle;
+}
+.ols-sched-table tbody tr:last-child td { border-bottom: none; }
+.ols-sched-table tbody tr:hover { background: #fafbfd; }
+
+.ols-row-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px; height: 26px;
+    border-radius: 8px;
+    background: #f1f3f8;
+    color: #475569;
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+
+.ols-due-date { font-weight: 700; color: #1a2a3a; font-size: 0.88rem; }
+
+.ols-amount-due { font-weight: 700; color: #1a2a3a; }
+
+.ols-amount-paid-cell { min-width: 100px; }
+.ols-amount-paid-value { font-weight: 700; color: #1a2a3a; }
+
+.ols-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 20px;
+}
+.ols-status-pill.is-paid     { background: #dcfce7; color: #16a34a; }
+.ols-status-pill.is-overdue  { background: #fee2e2; color: #dc2626; }
+.ols-status-pill.is-upcoming { background: #fff8e1; color: #b45309; }
+.ols-status-pill i { font-size: 0.78rem; }
+
+.btn-record-payment {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 10px;
+    border: 1px solid #dc2626;
+    background: #fef2f2;
+    color: #dc2626;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s ease;
+    white-space: nowrap;
+}
+.btn-record-payment:hover:not(:disabled) { background: #dc2626; color: #fff; }
+.btn-record-payment:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.action-recorded-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #16a34a;
+    font-weight: 700;
+    font-size: 0.82rem;
+}
+.action-recorded-badge i { font-size: 0.95rem; }
+
+.ols-sched-footnote {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 24px;
+    font-size: 0.82rem;
+    color: #b91c1c;
+    border-top: 1px solid #eef1f6;
+    background: #fef2f2;
+}
+.ols-sched-footnote i { color: #dc2626; font-size: 1rem; }
+
+/* ============================================
+   RESPONSIVE
+============================================ */
+@media (max-width: 767px) {
+    .panel-body { padding: 18px; }
+    .panel-header { padding: 14px 18px; }
+    .ols-sched-header { padding: 18px; }
+}
+
+/* ============================================
+   DARK MODE
+============================================ */
+html.app-skin-dark .nxl-content { background: #0f172a; }
+
+html.app-skin-dark .panel { background: #1e2a3a; border-color: #2d3f55 !important; }
+html.app-skin-dark .panel-header { color: #e2e8f0; border-color: #2d3f55; }
+
+html.app-skin-dark .dlh-card { background: #1e2a3a; border-color: #2d3f55; }
+html.app-skin-dark .dlh-name { color: #e2e8f0; }
+html.app-skin-dark .dlh-meta-row { color: #94a3b8; }
+html.app-skin-dark .dlh-meta-row strong { color: #cbd5e1; }
+html.app-skin-dark .dlh-stats { border-color: #2d3f55; }
+html.app-skin-dark .dlh-stat:not(:last-child) { border-color: #2d3f55; }
+html.app-skin-dark .dlh-stat-value { color: #e2e8f0; }
+html.app-skin-dark .dlh-stat-value.is-danger { color: #f87171; }
+html.app-skin-dark .dlh-stat-value.is-success { color: #6ee7a4; }
+html.app-skin-dark .dlh-stat-label { color: #94a3b8; }
+
+html.app-skin-dark .info-item2 label { color: #94a3b8; }
+html.app-skin-dark .info-item2 span { color: #e2e8f0; }
+html.app-skin-dark .info-item2.is-primary span { color: #f87171; }
+
+html.app-skin-dark .ols-sched-table thead th {
+    background: #16202e;
+    border-color: #2d3f55;
+    color: #94a3b8;
+}
+html.app-skin-dark .ols-sched-table tbody td { color: #e2e8f0; border-color: #2d3f55; }
+html.app-skin-dark .ols-sched-table tbody tr:hover { background: #16202e; }
+html.app-skin-dark .ols-row-num { background: #16202e; color: #94a3b8; }
+html.app-skin-dark .ols-due-date { color: #e2e8f0; }
+html.app-skin-dark .ols-amount-due,
+html.app-skin-dark .ols-amount-paid-value { color: #e2e8f0; }
+html.app-skin-dark .ols-sched-count-pill { background: #16202e; border-color: #2d3f55; color: #cbd5e1; }
+html.app-skin-dark .btn-record-payment { background: rgba(220,38,38,0.15); border-color: rgba(220,38,38,0.4); color: #f87171; }
+html.app-skin-dark .btn-record-payment:hover:not(:disabled) { background: #dc2626; color: #fff; }
+html.app-skin-dark .action-recorded-badge { color: #6ee7a4; }
+html.app-skin-dark .ols-sched-footnote { background: rgba(220,38,38,0.1); color: #f87171; }
+html.app-skin-dark .ols-sched-footnote i { color: #f87171; }
+
+html.app-skin-dark .btn-light { background: #1e2a3a; border-color: #2d3f55; color: #e2e8f0; }
+html.app-skin-dark .btn-light:hover { border-color: #dc2626; color: #f87171; background: rgba(220,38,38,0.1); }
+html.app-skin-dark .text-muted { color: #94a3b8 !important; }
+
+/* ============================================================
+   RECORD PAYMENT CONFIRM MODAL (reused ols-confirm-* classes,
+   same visual pattern as Ongoing Loan Detail's modal)
+============================================================ */
+.ols-confirm-icon {
+    width: 48px; height: 48px; border-radius: 50%;
+    margin: 4px auto 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.15rem;
+    background: #fef2f2;
+    color: #dc2626;
+}
+.ols-confirm-title { font-size: 1rem; font-weight: 700; color: #1a2a3a; margin-bottom: 10px; }
+.ols-confirm-desc { font-size: 0.82rem; color: #64748b; line-height: 1.55; padding: 0 4px; }
+
+html.app-skin-dark .ols-confirm-title { color: #e2e8f0; }
+html.app-skin-dark .ols-confirm-desc { color: #94a3b8; }
+html.app-skin-dark .ols-confirm-icon { background: rgba(220,38,38,0.15); color: #f87171; }

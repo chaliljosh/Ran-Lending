@@ -89,7 +89,7 @@ function dlUpdatePaginationControls(totalRows, totalPages, start, end) {
         }
     }
 
-    if (pageIndicator) pageIndicator.textContent = dlCurrentPage;
+    if (pageIndicator) pageIndicator.textContent = `Page ${dlCurrentPage} of ${totalPages}`;
     if (prevBtn) prevBtn.disabled = dlCurrentPage <= 1;
     if (nextBtn) nextBtn.disabled = dlCurrentPage >= totalPages;
 

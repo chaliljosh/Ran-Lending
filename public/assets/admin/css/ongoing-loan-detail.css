@@ -5,10 +5,6 @@ html:not(.app-skin-dark) .nxl-content {
 
 /* ============================================
    SIDEBAR ACTIVE-STATE OVERRIDE
-   Forces the blue highlight on the current submenu item
-   (data-current="true") independent of whatever the theme's
-   own minified CSS/JS does — since that's unreliable/unknown
-   to us, we guarantee the visual result directly here.
 ============================================ */
 .nxl-navigation .nxl-submenu .nxl-item[data-current="true"] > .nxl-link,
 .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
@@ -24,10 +20,7 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
 }
 
 /* ============================================
-   PANEL — replaces bootstrap .card. Flat, thin
-   border, near-zero shadow, clear header/footer.
-   Border/shadow matched to Active Borrower Detail's
-   .section-card / .abd-summary-card treatment.
+   PANEL
 ============================================ */
 .panel {
     background: #ffffff;
@@ -83,9 +76,7 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
 .text-muted { color: #8a9bb0 !important; }
 
 /* ============================================================
-   MERGED HEADER CARD (.olh-*) — matched 1:1 to Borrower
-   Verification's .borrower-summary-card (padding, avatar size/
-   gradient/shadow, badge pill style, stats divider treatment).
+   MERGED HEADER CARD (.olh-*)
 ============================================================ */
 .olh-card {
     border-radius: 14px;
@@ -98,21 +89,23 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
     align-items: center;
     justify-content: space-between;
     gap: 22px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
 }
 .olh-left {
     display: flex;
     align-items: flex-start;
     gap: 16px;
-    min-width: 250px;
+    min-width: 0;
+    flex: 0 1 auto;
 }
 .olh-avatar {
-    width: 58px; height: 58px; border-radius: 50%;
-    background: linear-gradient(135deg, #4a7cf7, #6c5ce7);
-    color: #fff; font-weight: 700; font-size: 1.25rem;
-    display: flex; align-items: center; justify-content: center;
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
-    box-shadow: 0 4px 14px rgba(74, 124, 247, 0.3);
     overflow: hidden;
     position: relative;
 }
@@ -130,15 +123,16 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
     margin-bottom: 2px;
 }
 .olh-name {
-    font-size: 1.1rem;
-    font-weight: 700;
+    font-size: 1.05rem;
+    font-weight: 600;
     color: #0f172a;
+    white-space: nowrap;
 }
 .olh-status-badge {
     font-size: 0.76rem;
     padding: 6px 14px;
     border-radius: 20px;
-    font-weight: 700;
+    font-weight: 600;
     border: none;
 }
 .olh-meta-row {
@@ -149,9 +143,9 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
     margin-top: 8px;
     font-size: 0.84rem;
     color: #0f172a;
-    font-weight: 500;
+    font-weight: 400;
 }
-.olh-meta-row strong { font-weight: 700; color: #0f172a; }
+.olh-meta-row strong { font-weight: 600; color: #0f172a; }
 .olh-meta-sep { color: #cbd5e1; }
 
 .olh-stats {
@@ -162,10 +156,11 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
     border-left: 1px solid #e5e7eb;
     padding-left: 26px;
     gap: 0;
+    min-width: 0;
 }
 .olh-stat {
     display: flex;
-    flex: 1 1 0;
+    flex: 0 1 auto;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -178,45 +173,60 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
 }
 .olh-stat-value {
     font-size: 1.15rem;
-    font-weight: 700;
+    font-weight: 600;
     color: #0f172a;
     line-height: 1.2;
     white-space: nowrap;
 }
 .olh-stat-label {
     font-size: 0.76rem;
-    font-weight: 600;
+    font-weight: 500;
     color: #8a9bb0;
     letter-spacing: 0.3px;
     margin-top: 3px;
     white-space: nowrap;
 }
 
-@media (max-width: 767.98px) {
-    .olh-card { flex-direction: column; align-items: flex-start; }
-    .olh-stats { border-left: none; padding-left: 0; border-top: 1px solid #e5e7eb; padding-top: 14px; width: 100%; justify-content: space-between; flex-wrap: wrap; gap: 10px 0; }
+@media (max-width: 991px) {
+    .olh-card { flex-wrap: wrap; }
+    .olh-left { flex: 1 1 100%; }
+    .olh-stats {
+        border-left: none;
+        padding-left: 0;
+        border-top: 1px solid #e5e7eb;
+        padding-top: 14px;
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px 0;
+    }
     .olh-stat { min-width: 45%; flex: 1 1 45%; border-right: none !important; padding: 6px 0; }
 }
 
 /* ============================================
-   MAIN GRID — Loan Summary (left) / Admin Review Status (right)
+   MAIN GRID
 ============================================ */
 .loan-detail-grid {
     display: grid;
     grid-template-columns: 1.15fr 1fr;
     gap: 18px;
-    align-items: start;
+    align-items: stretch;
     margin-bottom: 18px;
+}
+.loan-detail-grid > .panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+.loan-detail-grid > .panel .panel-body {
+    flex: 1;
 }
 @media (max-width: 991px) {
     .loan-detail-grid { grid-template-columns: 1fr; }
 }
 
 /* ============================================
-   LOAN SUMMARY — unboxed info grid (label over value)
-   Label/value typography matched to Active Borrower Detail's
-   .abd-info-item (no uppercase, font-weight 600 label,
-   font-weight 600 value, #94a3b8 / #0f172a colors).
+   LOAN SUMMARY
 ============================================ */
 .loan-info-grid {
     display: grid;
@@ -246,7 +256,7 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
 }
 
 /* ============================================
-   PAYMENT PROGRESS — same unboxed grid + slim bar
+   PAYMENT PROGRESS
 ============================================ */
 .lsc-progress {
     padding-top: 20px;
@@ -281,7 +291,7 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
 }
 
 /* ============================================
-   ADMIN REVIEW — flat list rows, tinted by decision
+   ADMIN REVIEW
 ============================================ */
 .review-item {
     display: flex;
@@ -342,7 +352,7 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
 }
 
 /* ============================================
-   PAYMENT SCHEDULE TABLE
+   PAYMENT SCHEDULE TABLE (legacy — kept for fallback)
 ============================================ */
 .loan-schedule-table {
     width: 100%;
@@ -438,7 +448,7 @@ html.app-skin-dark .btn-light:hover { border-color: #4a7cf7; color: #6c9bff; bac
 
 html.app-skin-dark .text-muted { color: #94a3b8 !important; }
 
-/* ---------- Payment Progress row (progress bar + Next Due box) ---------- */
+/* ---------- Payment Progress row ---------- */
 .old-progress-row {
     display: flex;
     align-items: center;
@@ -498,7 +508,7 @@ html.app-skin-dark .text-muted { color: #94a3b8 !important; }
 .review-avatar.is-purple { background: #ede9fe; color: #7c3aed; }
 .review-avatar.is-blue { background: #e6ecff; color: #4a7cf7; }
 
-/* ---------- Payment Schedule header (title + subtitle + Export) ---------- */
+/* ---------- Payment Schedule header ---------- */
 .old-schedule-title-wrap { display: flex; flex-direction: column; gap: 2px; }
 .old-schedule-subtitle {
     font-size: 0.7rem;
@@ -523,8 +533,6 @@ html.app-skin-dark .old-schedule-subtitle { color: #94a3b8; }
 
 /* ============================================================
    PAYMENT SCHEDULE — redesigned per mockup
-   Panel border/shadow matched to .panel above (Active Borrower
-   Detail-style border + shadow).
 ============================================================ */
 .payment-schedule-panel { overflow: hidden; }
 
@@ -557,7 +565,6 @@ html.app-skin-dark .old-schedule-subtitle { color: #94a3b8; }
 .ols-sched-count-pill i { color: #4a7cf7; }
 .ols-sched-count-pill strong { color: #1a2a3a; }
 
-/* ---------- Table ---------- */
 .ols-sched-table {
     width: 100%;
     border-collapse: collapse;
@@ -629,7 +636,6 @@ html.app-skin-dark .old-schedule-subtitle { color: #94a3b8; }
 .ols-status-pill.is-upcoming { background: #fff8e1; color: #b45309; }
 .ols-status-pill i { font-size: 0.78rem; }
 
-/* ---------- Actions cell ---------- */
 .ols-actions-cell { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
 .btn-record-payment {
     display: inline-flex;
@@ -664,7 +670,6 @@ html.app-skin-dark .old-schedule-subtitle { color: #94a3b8; }
 .ols-kebab-btn:hover { border-color: #4a7cf7; color: #4a7cf7; background: #eef3ff; }
 .ols-kebab-menu { font-size: 0.85rem; }
 
-/* ---------- Footnote ---------- */
 .ols-sched-footnote {
     display: flex;
     align-items: center;
@@ -677,7 +682,6 @@ html.app-skin-dark .old-schedule-subtitle { color: #94a3b8; }
 }
 .ols-sched-footnote i { color: #94a3b8; font-size: 1rem; }
 
-/* ---------- Pagination ---------- */
 .ols-pagination {
     display: flex;
     align-items: center;
@@ -707,19 +711,14 @@ html.app-skin-dark .old-schedule-subtitle { color: #94a3b8; }
     font-size: 0.85rem;
 }
 
-/* ---------- Confirm modal (Record Payment redesign) ---------- */
 .ols-confirm-modal.modal-content {
     border: none;
     border-radius: 16px;
     box-shadow: 0 12px 40px rgba(15, 23, 42, 0.18);
 }
-
-/* Narrower dialog — matches the compact reference size instead
-   of Bootstrap's default modal-dialog width. */
 #olsMarkPaidConfirmModal .modal-dialog {
     max-width: 400px;
 }
-
 .ols-confirm-icon {
     width: 48px; height: 48px; border-radius: 50%;
     margin: 4px auto 14px;
@@ -739,9 +738,6 @@ html.app-skin-dark .old-schedule-subtitle { color: #94a3b8; }
 .ols-confirm-title { font-size: 1rem; font-weight: 700; color: #1a2a3a; margin-bottom: 10px; }
 .ols-confirm-desc { font-size: 0.82rem; color: #64748b; line-height: 1.55; padding: 0 4px; }
 
-/* Buttons inside this specific modal — darker navy (not the
-   brighter #4a7cf7 brand blue used elsewhere), smaller/compact
-   sizing to match the reference. */
 #olsMarkPaidConfirmModal .nxl-pw-modal-footer {
     padding: 16px 20px 20px;
     gap: 10px;
@@ -773,13 +769,11 @@ html.app-skin-dark .old-schedule-subtitle { color: #94a3b8; }
     border-color: #172d6b;
 }
 
-/* Loading state — icon only (no text) while the request is in flight */
 .nxl-pw-btn-apply.is-loading .ols-confirm-btn-label { display: none; }
 .nxl-pw-btn-apply.is-loading i.feather-check { display: none; }
 .nxl-pw-btn-apply .spin-icon { display: none; }
 .nxl-pw-btn-apply.is-loading .spin-icon { display: inline-block; }
 
-/* ---------- Dark mode ---------- */
 html.app-skin-dark .ols-confirm-modal.modal-content { background: #1e2a3a; }
 html.app-skin-dark .ols-confirm-eyebrow { color: #64748b; }
 html.app-skin-dark .ols-confirm-title { color: #e2e8f0; }
@@ -798,7 +792,6 @@ html.app-skin-dark #olsMarkPaidConfirmModal .nxl-pw-btn-apply:hover {
     border-color: #1e3a8a;
 }
 
-/* ---------- Spinning loading icon (Record Payment button) ---------- */
 @keyframes dl-spin {
     from { transform: rotate(0deg); }
     to   { transform: rotate(360deg); }
@@ -808,7 +801,6 @@ html.app-skin-dark #olsMarkPaidConfirmModal .nxl-pw-btn-apply:hover {
     animation: dl-spin 0.7s linear infinite;
 }
 
-/* ---------- Redesigned "Recorded" badge (used sa Defaulted Loan Detail) ---------- */
 .action-recorded-badge {
     display: inline-flex;
     align-items: center;

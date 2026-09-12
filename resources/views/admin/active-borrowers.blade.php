@@ -34,7 +34,7 @@
                     <i class="feather-users stat-icon-v2"></i>
                 </div>
                 <div class="stat-value-v2">{{ $stats['total'] }}</div>
-                <div class="stat-sub-v2">Currently active</div>
+           
             </div>
 
             <div class="rs-card stat-card-v2">
@@ -43,7 +43,7 @@
                     <i class="feather-dollar-sign stat-icon-v2"></i>
                 </div>
                 <div class="stat-value-v2">₱{{ number_format($stats['total_amount'], 0) }}</div>
-                <div class="stat-sub-v2">Combined outstanding</div>
+
             </div>
 
             <div class="rs-card stat-card-v2">
@@ -52,7 +52,7 @@
                     <i class="feather-trending-up stat-icon-v2"></i>
                 </div>
                 <div class="stat-value-v2">₱{{ number_format($stats['avg_amount'], 0) }}</div>
-                <div class="stat-sub-v2">Per active borrower</div>
+      
             </div>
         </div>
 

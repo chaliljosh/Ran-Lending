@@ -1,10 +1,11 @@
 /* ========================================================
-   COMPLETED LOANS
-   Parehong design tokens/language ng Ongoing Loans / Overdue
-   Payments redesign natin — blue + white, premium SaaS look.
-   Green ang pangunahing accent dito dahil "success" state ito
-   (fully paid loans). Hindi ginalaw ang sidebar/navigation,
-   ito lang main-content.
+   COMPLETED LOANS — REDESIGN
+   Same white-bg / bordered-card / soft-shadow treatment as
+   Active Borrowers (.rs-card pattern), same plain-outline-icon
+   stat card style (label + icon top row, big number, muted
+   subtext underneath), same table/filter/pagination typography
+   and spacing tokens. Green pa rin ang pangunahing accent dito
+   dahil "success" state ito (fully paid loans).
    ======================================================== */
 
 :root {
@@ -13,7 +14,7 @@
     --rs-ink: #0f172a;
     --rs-body: #475569;
     --rs-muted: #94a3b8;
-    --rs-border: #e7eaf0;
+    --rs-border: #e5e7eb;
     --rs-bg: #f8fafc;
 
     --rs-green: #16a34a;
@@ -24,9 +25,13 @@
     --rs-amber-soft: #fffbeb;
     --rs-amber-border: #fde68a;
 
-    --rs-radius: 16px;
+    --rs-radius: 14px;
     --rs-radius-sm: 10px;
-    --rs-shadow: 0 1px 2px rgba(15,23,42,.04), 0 10px 24px -14px rgba(15,23,42,.12);
+    --rs-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
+}
+
+html:not(.app-skin-dark) .nxl-content {
+    background: #fff;
 }
 
 body { background: var(--rs-bg); }
@@ -34,13 +39,15 @@ body { background: var(--rs-bg); }
 .page-header .page-header-title h5 { color: var(--rs-ink); font-weight: 700; }
 
 .rs-card {
-    background: #fff;
-    border: 1px solid var(--rs-border);
-    border-radius: var(--rs-radius);
-    box-shadow: var(--rs-shadow);
+    background: #fff !important;
+    border: 1px solid var(--rs-border) !important;
+    border-radius: var(--rs-radius) !important;
+    box-shadow: var(--rs-shadow) !important;
 }
 
-/* ── Stat cards ── */
+/* ── Stat cards — plain white card, outline icon top-right,
+       bold number, muted subtext underneath (matched to
+       Active Borrowers' stat card treatment) ── */
 .stats-grid-v2 {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -48,24 +55,40 @@ body { background: var(--rs-bg); }
     margin-bottom: 28px;
 }
 .stat-card-v2 {
-    display: flex; align-items: center; gap: 16px;
-    padding: 22px 24px;
+    padding: 20px 22px;
+    transition: box-shadow .15s ease, transform .15s ease;
+}
+.stat-card-v2:hover {
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12) !important;
+    transform: translateY(-1px);
+}
+.stat-card-v2-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+.stat-label-v2 {
+    font-size: 0.86rem;
+    font-weight: 500;
+    color: #334155;
 }
 .stat-icon-v2 {
-    width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 19px;
-}
-.stat-icon-v2.total  { background: var(--rs-green-soft); color: var(--rs-green); }
-.stat-icon-v2.amount { background: var(--rs-brand-soft); color: var(--rs-brand); }
-.stat-icon-v2.avg    { background: var(--rs-amber-soft); color: var(--rs-amber); }
-.stat-label-v2 {
-    font-size: 0.72rem; font-weight: 600; color: var(--rs-muted);
-    text-transform: uppercase; letter-spacing: .4px; margin-bottom: 4px;
+    color: #94a3b8;
+    font-size: 16px;
+    flex-shrink: 0;
 }
 .stat-value-v2 {
-    font-size: 1.4rem; font-weight: 700; color: var(--rs-ink);
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: var(--rs-ink);
+    line-height: 1.1;
+    margin-bottom: 4px;
     font-variant-numeric: tabular-nums;
+}
+.stat-sub-v2 {
+    font-size: 0.76rem;
+    color: #94a3b8;
 }
 
 /* ── Filter bar ── */
@@ -191,7 +214,7 @@ body { background: var(--rs-bg); }
     border-top: 1px solid var(--rs-border);
 }
 .pagination-info-v2 {
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     color: var(--rs-muted);
     font-weight: 500;
 }
@@ -229,41 +252,63 @@ body { background: var(--rs-bg); }
     cursor: not-allowed;
 }
 
-/* ── Dark mode additions ── */
-html.app-skin-dark .rows-per-page-label-v2 { color: #94a3b8; }
-html.app-skin-dark .rows-per-page-select-v2 { background: #16202e; border-color: #2d3f55; color: #e2e8f0; }
-html.app-skin-dark .pagination-wrap-v2 { border-color: #2d3f55; }
-html.app-skin-dark .pagination-info-v2 { color: #94a3b8; }
-html.app-skin-dark .page-status-v2 { color: #e2e8f0; }
-html.app-skin-dark .prev-next-btn-v2 { background: #16202e; border-color: #2d3f55; color: #e2e8f0; }
-
-/* ── Responsive ── */
-@media (max-width: 575.98px) {
-    .pagination-wrap-v2 { justify-content: center; text-align: center; }
-}
-/* ── Dark mode ── */
+/* ══════════════════ Dark mode ══════════════════ */
 html.app-skin-dark body { background: #0f172a; }
-html.app-skin-dark .rs-card { background: #1e2a3a; border-color: #2d3f55; }
+html.app-skin-dark .nxl-content { background: #0f172a; }
+
+html.app-skin-dark .rs-card {
+    background: #1e2a3a !important;
+    border-color: #2d3f55 !important;
+}
+html.app-skin-dark .stat-label-v2 { color: #cbd5e1; }
 html.app-skin-dark .stat-value-v2,
 html.app-skin-dark .borrower-name-v2,
 html.app-skin-dark .loan-amount-v2,
 html.app-skin-dark .btn-view-v2,
 html.app-skin-dark .empty-state-v2 h6 { color: #e2e8f0; }
-html.app-skin-dark .stat-label-v2,
+html.app-skin-dark .stat-sub-v2,
 html.app-skin-dark .borrower-email-v2,
 html.app-skin-dark .loan-meta-v2,
 html.app-skin-dark .empty-state-v2 p { color: #94a3b8; }
-html.app-skin-dark .search-wrap-v2,
-html.app-skin-dark .sort-select-v2 { background: #16202e; border-color: #2d3f55; color: #e2e8f0; }
+
+html.app-skin-dark .search-wrap-v2 { background: #16202e; border-color: #2d3f55; color: #e2e8f0; }
+html.app-skin-dark .search-wrap-v2 input { color: #e2e8f0; }
+
+/* Sort dropdown — forced with !important + ID selector, same fix
+   applied on Active Borrowers (global dark-mode rule mas matimbang,
+   nagpapawala sa text kung hindi i-override). */
+html.app-skin-dark .sort-select-v2,
+html.app-skin-dark #sortFilter {
+    background-color: #16202e !important;
+    border-color: #2d3f55 !important;
+    color: #e2e8f0 !important;
+}
+html.app-skin-dark .sort-select-v2 option,
+html.app-skin-dark #sortFilter option {
+    background-color: #16202e !important;
+    color: #e2e8f0 !important;
+}
+
 html.app-skin-dark .rs-table thead th { background: #16202e; border-color: #2d3f55; color: #94a3b8; }
 html.app-skin-dark .rs-table tbody td { border-color: #2d3f55; }
 html.app-skin-dark .rs-table tbody tr:hover { background: #16202e; }
 html.app-skin-dark .btn-view-v2 { background: #16202e; border-color: #2d3f55; }
 html.app-skin-dark .completed-badge { background: rgba(22,163,74,.15); color: #6ee7a4; }
+
+html.app-skin-dark .rows-per-page-label-v2 { color: #94a3b8; }
+html.app-skin-dark .rows-per-page-select-v2 {
+    background-color: #16202e !important;
+    border-color: #2d3f55 !important;
+    color: #e2e8f0 !important;
+}
 html.app-skin-dark .pagination-wrap-v2 { border-color: #2d3f55; }
 html.app-skin-dark .pagination-info-v2 { color: #94a3b8; }
-html.app-skin-dark .page-btn-v2 { background: #16202e; border-color: #2d3f55; color: #e2e8f0; }
-html.app-skin-dark .page-btn-v2.active { background: var(--rs-brand); border-color: var(--rs-brand); color: #fff; }
+html.app-skin-dark .page-status-v2 { color: #e2e8f0; }
+html.app-skin-dark .prev-next-btn-v2 {
+    background-color: #16202e !important;
+    border-color: #2d3f55 !important;
+    color: #e2e8f0 !important;
+}
 
 /* ── Responsive ── */
 @media (max-width: 767.98px) {

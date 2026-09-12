@@ -5,6 +5,7 @@
 @section('page-styles')
     <link rel="stylesheet" href="{{ asset('assets/admin/css/modals-modern.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/admin/css/ongoing-loan-detail.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/avatar-placeholder.css') }}" />
 @endsection
 
 @section('content')
@@ -29,8 +30,8 @@
             </ul>
         </div>
         <div class="page-header-right ms-auto">
-            <a href="{{ route('admin.ongoing-loans') }}" class="btn btn-light"><i
-                    class="feather-arrow-left me-1"></i>Back</a>
+            <a href="{{ route('admin.ongoing-loans') }}" class="btn btn-light">
+            Back</a>
         </div>
     </div>
 
@@ -43,11 +44,9 @@
              with vertical dividers instead of separate icon cards). --}}
         <div class="olh-card">
             <div class="olh-left">
-                <div class="olh-avatar">
+                <div class="olh-avatar js-borrower-avatar">
                     @if (!empty($borrowerProfilePicture))
                         <img src="{{ $borrowerProfilePicture }}" alt="{{ $app->first_name }} {{ $app->last_name }}">
-                    @else
-                        <i class="feather-user"></i>
                     @endif
                 </div>
                 <div class="olh-info">
@@ -368,14 +367,6 @@
 
 {{-- ============================================================
      RECORD PAYMENT CONFIRMATION MODAL
-     Pushed into the layout's @stack('modals') slot — rendered
-     OUTSIDE <main class="nxl-container">, same place as the
-     shared My Profile / Account Settings / Change Password
-     modals. This matters because theme.min.css applies a blur
-     filter to .nxl-container while a Bootstrap modal is open
-     (body.modal-open); a modal nested INSIDE that container gets
-     blurred right along with the page behind it, which is why
-     the modal looked "hidden behind the blur" before this fix.
 ============================================================ --}}
 @push('modals')
     <div class="modal fade nxl-account-modal" id="olsMarkPaidConfirmModal" tabindex="-1" aria-hidden="true">

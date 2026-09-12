@@ -4,7 +4,8 @@
 
 @section('page-styles')
     <link rel="stylesheet" href="{{ asset('assets/admin/css/modals-modern.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/admin/css/ongoing-loan-detail.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/avatar-placeholder.css') }}">
+     <link rel="stylesheet" href="{{ asset('assets/admin/css/defaulted-loan-detail.css') }}">
 @endsection
 
 @section('content')
@@ -23,102 +24,61 @@
             </ul>
         </div>
         <div class="page-header-right ms-auto">
-            <a href="{{ route('admin.defaulted-loans') }}" class="btn btn-light"><i class="feather-arrow-left me-1"></i>Back</a>
+            <a href="{{ route('admin.defaulted-loans') }}" class="btn btn-light">Back</a>
         </div>
     </div>
 
     <div class="main-content">
 
         {{-- ============ BORROWER STRIP ============ --}}
-        <div class="borrower-strip">
-            <div class="bs-left">
-                <div class="loan-avatar" style="background: linear-gradient(135deg, #dc2626, #f87171);">{{ $initials }}</div>
-                <div class="bs-info">
-                    <h5>{{ $app->first_name }} {{ $app->last_name }}</h5>
-                    <div class="bs-meta">
+            
+        <div class="dlh-card">
+            <div class="dlh-left">
+                <div class="dlh-avatar js-borrower-avatar">
+                    @if (!empty($borrowerProfilePicture))
+                        <img src="{{ $borrowerProfilePicture }}" alt="{{ $app->first_name }} {{ $app->last_name }}">
+                    @else
+                        {{ $initials }}
+                    @endif
+                </div>
+                <div class="dlh-info">
+                    <div class="dlh-name-row">
+                        <span class="dlh-name">{{ $app->first_name }} {{ $app->last_name }}</span>
+                        <span class="badge badge-rejected dlh-status-badge">Defaulted</span>
+                    </div>
+                    <div class="dlh-meta-row">
                         <span>{{ $app->email }}</span>
-                        <span class="bs-dot">&middot;</span>
-                        <span>Loan ID: <strong>LN-{{ str_pad($applicationId, 5, '0', STR_PAD_LEFT) }}</strong></span>
-                        <span class="bs-dot">&middot;</span>
-                        <span id="dlDaysOverdueMeta">{{ $daysLate }} days overdue</span>
-                    </div>
-                </div>
-            </div>
-            <div class="bs-right">
-                <span class="badge badge-rejected">Defaulted</span>
-            </div>
-        </div>
-
-        {{-- ============ STAT CARDS ROW ============ --}}
-        <div class="row old-stat-row">
-            <div class="col-6 col-xl-3">
-                <div class="card stretch stretch-full old-stat-card">
-                    <div class="card-body">
-                        <div class="d-flex gap-3 align-items-center">
-                            <div class="avatar-text avatar-md bg-soft-danger text-danger">
-                                <i class="feather-alert-octagon"></i>
-                            </div>
-                            <div>
-                                <div class="old-stat-label">Days Overdue</div>
-                                <div class="old-stat-value" id="dlDaysOverdueValue">{{ $daysLate }} days</div>
-                            </div>
-                        </div>
+                        <span class="dlh-meta-sep">&bull;</span>
+                        <span><strong>Loan ID:</strong> LN-{{ str_pad($applicationId, 5, '0', STR_PAD_LEFT) }}</span>
+                        <span class="dlh-meta-sep">&bull;</span>
+                        <span class="dlh-overdue-text" id="dlDaysOverdueMeta">{{ $daysLate }} days overdue</span>
                     </div>
                 </div>
             </div>
 
-            <div class="col-6 col-xl-3">
-                <div class="card stretch stretch-full old-stat-card">
-                    <div class="card-body">
-                        <div class="d-flex gap-3 align-items-center">
-                            <div class="avatar-text avatar-md bg-soft-danger text-danger">
-                                <i class="feather-dollar-sign"></i>
-                            </div>
-                            <div>
-                                <div class="old-stat-label">Outstanding Balance</div>
-                                <div class="old-stat-value">&#8369;<span id="dlOutstandingValue">{{ number_format($outstandingAmount, 2) }}</span></div>
-                            </div>
-                        </div>
-                    </div>
+            <div class="dlh-stats">
+                <div class="dlh-stat">
+                    <div class="dlh-stat-value is-danger" id="dlDaysOverdueValue">{{ $daysLate }} days</div>
+                    <div class="dlh-stat-label">Days Overdue</div>
                 </div>
-            </div>
-
-            <div class="col-6 col-xl-3">
-                <div class="card stretch stretch-full old-stat-card">
-                    <div class="card-body">
-                        <div class="d-flex gap-3 align-items-center">
-                            <div class="avatar-text avatar-md bg-soft-warning text-warning">
-                                <i class="feather-alert-triangle"></i>
-                            </div>
-                            <div>
-                                <div class="old-stat-label">Unpaid Penalties</div>
-                                <div class="old-stat-value">&#8369;<span id="dlUnpaidPenaltiesValue">{{ number_format($unpaidPenalties, 2) }}</span></div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="dlh-stat">
+                    <div class="dlh-stat-value">&#8369;<span id="dlOutstandingValue">{{ number_format($outstandingAmount, 2) }}</span></div>
+                    <div class="dlh-stat-label">Outstanding Balance</div>
                 </div>
-            </div>
-
-            <div class="col-6 col-xl-3">
-                <div class="card stretch stretch-full old-stat-card">
-                    <div class="card-body">
-                        <div class="d-flex gap-3 align-items-center">
-                            <div class="avatar-text avatar-md bg-soft-success text-success">
-                                <i class="feather-check-circle"></i>
-                            </div>
-                            <div>
-                                <div class="old-stat-label">Amount Recovered</div>
-                                <div class="old-stat-value">&#8369;<span id="dlAmountRecoveredValue">{{ number_format($amountCollected, 2) }}</span></div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="dlh-stat">
+                    <div class="dlh-stat-value">&#8369;<span id="dlUnpaidPenaltiesValue">{{ number_format($unpaidPenalties, 2) }}</span></div>
+                    <div class="dlh-stat-label">Unpaid Penalties</div>
+                </div>
+                <div class="dlh-stat">
+                    <div class="dlh-stat-value is-success">&#8369;<span id="dlAmountRecoveredValue">{{ number_format($amountCollected, 2) }}</span></div>
+                    <div class="dlh-stat-label">Amount Recovered</div>
                 </div>
             </div>
         </div>
 
         {{-- ============ LOAN SUMMARY ============ --}}
         <div class="panel loan-summary-panel mb-3">
-            <div class="panel-header"><i class="feather-file-text me-2"></i>Loan Summary</div>
+            <div class="panel-header">Loan Summary</div>
             <div class="panel-body">
                 <div class="loan-info-grid">
                     <div class="info-item2">
@@ -159,10 +119,10 @@
         <div class="panel payment-schedule-panel">
             <div class="ols-sched-header">
                 <div class="ols-sched-header-left">
-                    <div class="ols-sched-icon" style="background:#fef2f2; color:#dc2626;"><i class="feather-calendar"></i></div>
+                  
                     <div>
                         <div class="ols-sched-title">Payment Schedule</div>
-                        <div class="ols-sched-subtitle">Full payment history for this defaulted loan.</div>
+                 
                     </div>
                 </div>
                 <div class="ols-sched-count-pill">
@@ -226,10 +186,7 @@
                 </table>
             </div>
 
-            <div class="ols-sched-footnote">
-                <i class="feather-alert-octagon"></i>
-                <span>This loan has exceeded {{ $defaultDaysLate }} days overdue and is classified as defaulted.</span>
-            </div>
+            
 
             @else
             <div class="panel-body">
@@ -266,7 +223,7 @@
                 <div class="modal-footer nxl-pw-modal-footer">
                     <button type="button" class="nxl-pw-btn-discard" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="nxl-pw-btn-apply" id="dlConfirmMarkPaidBtn">
-                        <i class="feather-check"></i> Yes, Mark as Paid
+                     Mark as Paid
                     </button>
                 </div>
             </div>

@@ -22,28 +22,31 @@
 
     <div class="main-content">
 
-        <!-- Stats -->
+                <!-- Stats -->
         <div class="stats-grid-v2">
             <div class="rs-card stat-card-v2">
-                <div class="stat-icon-v2 total"><i class="feather-check-circle"></i></div>
-                <div>
+                <div class="stat-card-v2-head">
                     <div class="stat-label-v2">Completed Loans</div>
-                    <div class="stat-value-v2">{{ $stats['total'] }}</div>
+                    <i class="feather-check-circle stat-icon-v2"></i>
                 </div>
+                <div class="stat-value-v2">{{ $stats['total'] }}</div>
+
             </div>
             <div class="rs-card stat-card-v2">
-                <div class="stat-icon-v2 amount"><i class="feather-dollar-sign"></i></div>
-                <div>
+                <div class="stat-card-v2-head">
                     <div class="stat-label-v2">Total Amount Repaid</div>
-                    <div class="stat-value-v2">₱{{ number_format($stats['total_amount'], 0) }}</div>
+                    <i class="feather-dollar-sign stat-icon-v2"></i>
                 </div>
+                <div class="stat-value-v2">₱{{ number_format($stats['total_amount'], 0) }}</div>
+         
             </div>
             <div class="rs-card stat-card-v2">
-                <div class="stat-icon-v2 avg"><i class="feather-trending-up"></i></div>
-                <div>
+                <div class="stat-card-v2-head">
                     <div class="stat-label-v2">Total Interest Earned</div>
-                    <div class="stat-value-v2">₱{{ number_format($stats['total_interest'], 0) }}</div>
+                    <i class="feather-trending-up stat-icon-v2"></i>
                 </div>
+                <div class="stat-value-v2">₱{{ number_format($stats['total_interest'], 0) }}</div>
+            
             </div>
         </div>
 

@@ -15,18 +15,32 @@
 
     const confirmPaidModalEl = document.getElementById('opdConfirmPaidModal');
     const waiveModalEl = document.getElementById('opdWaiveModal');
-    const successModalEl = document.getElementById('opdSuccessModal');
-    const successTitleEl = document.getElementById('opdSuccessTitle');
-    const successDescEl = document.getElementById('opdSuccessDesc');
 
-    function showSuccess(title, desc) {
-        successTitleEl.textContent = title;
-        successDescEl.textContent = desc;
-        bootstrap.Modal.getOrCreateInstance(successModalEl).show();
+    const confirmPaidBtn = document.getElementById('opdConfirmPaidBtn');
+    const confirmPaidText = document.getElementById('opdConfirmPaidText');
+    const confirmPaidSpinner = document.getElementById('opdConfirmPaidSpinner');
+
+    // FIX: success now shows as a toast (auto-dismisses) instead of a
+    // modal that requires clicking OK. Page still needs to reload
+    // afterward so the payment/penalty status reflects the change —
+    // delayed so the person actually sees the toast first.
+    function showSuccessThenReload(title, desc) {
+        if (window.showAdminToast) {
+            showAdminToast('success', title, desc);
+        }
+        setTimeout(function () {
+            window.location.reload();
+        }, 3500);
     }
 
-    document.getElementById('opdConfirmPaidBtn').addEventListener('click', function () {
+    confirmPaidBtn.addEventListener('click', function () {
         if (!markPaidUrl) return;
+
+        // FIX: loading state — spinner icon only, button disabled,
+        // while waiting for the server response.
+        confirmPaidBtn.disabled = true;
+        confirmPaidText.classList.add('d-none');
+        confirmPaidSpinner.classList.remove('d-none');
 
         fetch(markPaidUrl, {
             method: 'POST',
@@ -40,11 +54,24 @@
             .then(function (data) {
                 bootstrap.Modal.getInstance(confirmPaidModalEl).hide();
                 if (data.success) {
-                    showSuccess('Payment Marked as Paid', 'The overdue payment has been successfully recorded as paid.');
+                    showSuccessThenReload('Payment Marked as Paid', 'The overdue payment has been successfully recorded as paid.');
+                } else if (window.showAdminToast) {
+                    showAdminToast('error', 'Failed', data.message || 'Please try again.');
                 }
             })
             .catch(function () {
                 bootstrap.Modal.getInstance(confirmPaidModalEl).hide();
+                if (window.showAdminToast) {
+                    showAdminToast('error', 'Something went wrong', 'Please try again.');
+                }
+            })
+            .finally(function () {
+                // Reset loading state. Needed even on success since the
+                // modal instance/button persists in the DOM until the
+                // page reload fires a moment later.
+                confirmPaidBtn.disabled = false;
+                confirmPaidText.classList.remove('d-none');
+                confirmPaidSpinner.classList.add('d-none');
             });
     });
 
@@ -70,20 +97,16 @@
             .then(function (data) {
                 bootstrap.Modal.getInstance(waiveModalEl).hide();
                 if (data.success) {
-                    showSuccess('Penalty Waived', 'The penalty has been successfully waived.');
+                    showSuccessThenReload('Penalty Waived', 'The penalty has been successfully waived.');
+                } else if (window.showAdminToast) {
+                    showAdminToast('error', 'Failed', data.message || 'Please try again.');
                 }
             })
             .catch(function () {
                 bootstrap.Modal.getInstance(waiveModalEl).hide();
+                if (window.showAdminToast) {
+                    showAdminToast('error', 'Something went wrong', 'Please try again.');
+                }
             });
-    });
-
-    // Reload once the success modal is dismissed, so the page
-    // reflects the updated payment/penalty status.
-    successModalEl.addEventListener('hidden.bs.modal', function () {
-        window.location.reload();
-    });
-    document.getElementById('opdSuccessOkBtn').addEventListener('click', function () {
-        bootstrap.Modal.getInstance(successModalEl).hide();
     });
 })();

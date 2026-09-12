@@ -1871,6 +1871,7 @@ class AdminController extends Controller
             'app' => $app,
             'applicationId' => $applicationId,
             'adminId' => $adminId,
+          'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
             'allReviews' => $this->getAllLoanReviews($applicationId),
             'comments' => $this->getLoanComments($applicationId),
             'paymentSchedule' => $schedule,
@@ -2022,6 +2023,7 @@ class AdminController extends Controller
         return view('admin.defaulted-loan-detail', [
             'app' => $app,
             'applicationId' => $applicationId,
+            'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
             'paymentSchedule' => $schedule,
             'totalCount' => $totalCount,
             'paidCount' => $paidCount,
