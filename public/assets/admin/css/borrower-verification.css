@@ -2,30 +2,19 @@
    BORROWER VERIFICATION PAGE - STYLES
    Ginagamit ito sa: borrower-verification.blade.php
 
-   REDESIGN v2: matched to the "Mokopi Orders" reference —
-   bolder/larger black column headers (no sort carets),
-   roomier row padding, pill-shaped search bar + status
-   filter, and a rounded-rectangle (not fully round) black-
-   outline "View Details" button. Page bg/font/card border
-   still match admin-dashboard.css's card treatment (white
-   bg, Inter font, #E5E7EB border, 16px radius, soft shadow).
-   Dark mode forces a true-black page background (this page
-   doesn't load admin-dashboard.css, so that override is
-   replicated here) with matching dark card/badge/button
-   treatments.
+   REDESIGN v6: Pending view matched 1:1 to Loan Applications —
+   added 4 summary stat cards (.la-stats-row), a large centered
+   empty state (.la-empty-large), and a three-section pagination
+   bar (.pending-pagination-row: rows-per-page left, page controls
+   center, "Showing X of Y" text right) in place of the old plain
+   centered pagination for the Pending tab only. Reviewed/Filtered
+   tabs are untouched.
 
-   REDESIGN v3/v4: toolbar (search bar, status filter, rows-
-   per-page, count text) and table (headers, cells, badges,
-   action button) slimmed down further each pass — smaller
-   height/font/icon sizes and lighter font-weight — to match
-   the reference's lighter visual weight.
-
-   REDESIGN v5: table header row given a light gray background
-   (#F9FAFB) instead of white, to visually separate it from the
-   body rows. "View Details" button border lightened from black
-   to #E5E7EB with a subtle gray hover instead of black-invert.
-   Dark mode "View Details" button switched from a
-   transparent/outline style to a solid dark-gray fill.
+   DARK MODE UPDATE: switched from a standalone "true black"
+   palette (#3a3a3a/#0d0d0d/#262626) to the navy palette used by
+   the sidebar and the rest of the admin pages (#0f172a page bg,
+   #1e2a3a cards, #2d3f55 borders, #e2e8f0 text, #94a3b8 muted) —
+   so this page now matches instead of clashing.
    ======================================== */
 
 /* ---------- Page-wide: white bg + Inter font
@@ -108,6 +97,66 @@ html body .main-content i[class*="feather-"]::before {
 .remarks-input {
     flex: 1;
     min-width: 200px;
+}
+
+/* ========================================
+   SUMMARY CARDS (Pending view) — matched 1:1 to
+   loan-applications.css's .la-stats-row / .la-stat-card.
+   ======================================== */
+.la-stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+}
+.la-stat-card {
+    background: #fff;
+    border: 1px solid #E5E7EB;
+    border-radius: 14px;
+    padding: 20px 22px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.la-stat-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.la-stat-label {
+    font-size: 0.86rem;
+    font-weight: 500;
+    color: #0F172A;
+}
+.la-stat-icon {
+    font-size: 1rem;
+    color: #94A3B8;
+    flex-shrink: 0;
+}
+
+.la-stat-value {
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: #0F172A;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+}
+
+.la-stat-sub {
+    font-size: 0.78rem;
+    color: #94A3B8;
+    margin-top: 4px;
+}
+
+.la-stat-card.is-attention .la-stat-value { color: #B45309; }
+.la-stat-card.is-attention .la-stat-icon { color: #B45309; }
+
+@media (max-width: 900px) {
+    .la-stats-row { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+    .la-stats-row { grid-template-columns: 1fr; }
 }
 
 /* Status pills — compact, borderless. */
@@ -342,6 +391,19 @@ html body .main-content .reviewed-table tbody td {
     background: #F8FAFC;
 }
 
+/* ---------- Subtle "needs attention" row highlight
+     (Pending table, waiting 3+ days) — pale amber tint plus a
+     thin left accent, matched 1:1 to loan-applications.css. ---------- */
+.reviewed-table tbody tr.is-attention-row {
+    background: #FFFBEB;
+}
+.reviewed-table tbody tr.is-attention-row td:first-child {
+    border-left: 3px solid #F59E0B;
+}
+.reviewed-table tbody tr.is-attention-row:hover {
+    background: #FEF3C7;
+}
+
 .rt-name {
     font-size: 0.84rem;
     font-weight: 600;
@@ -468,6 +530,61 @@ html body .main-content .action-link-btn:hover {
     box-shadow: none;
 }
 
+/* ---------- Empty states — plain text, no oversized decorative icons ---------- */
+.la-empty {
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    background: #F9FAFB;
+    padding: 36px 20px;
+    text-align: center;
+}
+.la-empty-title { font-size: 0.92rem; font-weight: 700; color: #0F172A; margin: 0 0 4px; }
+.la-empty-desc { font-size: 0.82rem; color: #94A3B8; margin: 0; }
+
+/* ---------- Large centered empty state (Pending tab) — matched
+   1:1 to loan-applications.css's .la-empty-large. ---------- */
+.la-empty-large {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: #fff;
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
+    padding: 56px 20px;
+}
+
+.la-empty-icon-lg {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #ECFDF5;
+    color: #16A34A;
+    margin-bottom: 18px;
+}
+
+.la-empty-icon-lg-muted {
+    background: #F1F5F9;
+    color: #94A3B8;
+}
+
+.la-empty-large .la-empty-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0F172A;
+    margin: 0 0 6px;
+}
+
+.la-empty-large .la-empty-desc {
+    font-size: 0.88rem;
+    color: #64748B;
+    margin: 0;
+}
+
 /* ========================================
    PAGINATION — centered numbered page buttons
    with prev/next chevrons.
@@ -491,6 +608,29 @@ html body .main-content .reviewed-pagination {
     display: flex;
     align-items: center;
     gap: 6px;
+}
+
+/* ---------- Pending tab pagination bar — three sections:
+     rows-per-page (left), page controls (center), result count
+     text (right). Scoped to .pending-pagination-row only so the
+     Reviewed/Filtered tabs' plain centered .reviewed-pagination
+     stays untouched. Matched 1:1 to loan-applications.css. ---------- */
+.pending-pagination-row {
+    justify-content: space-between;
+}
+.pending-rpp-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+    .pending-pagination-row {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
 }
 
 .btn-page {
@@ -560,62 +700,79 @@ html body .main-content .reviewed-pagination {
 }
 
 /* ========================================
-   DARK MODE STYLES — true black page bg + dark
-   card, matching admin-dashboard.css's dark
-   treatment exactly (this page doesn't load
-   admin-dashboard.css, so we replicate its
-   dark-mode rules here too).
+   DARK MODE STYLES — navy palette matched to the sidebar
+   (.nxl-navigation) and the rest of the admin pages: page bg
+   #0f172a, card bg #1e2a3a, borders #2d3f55, primary text
+   #e2e8f0, muted text #94a3b8, hover #24334a. Status/badge
+   tints keep their own semantic hues (amber/green/red) since
+   those carry meaning independent of the base palette.
    ======================================== */
 
 html.app-skin-dark body .nxl-content {
-    background: #3a3a3a !important;
+    background: #0f172a !important;
 }
 
 html.app-skin-dark .remarks-input {
-    background-color: #0d0d0d;
-    color: #EDEDED;
-    border-color: #262626;
+    background-color: #16202e;
+    color: #e2e8f0;
+    border-color: #2d3f55;
 }
 
 html.app-skin-dark .remarks-input::placeholder {
-    color: #8A8A8A;
+    color: #94a3b8;
 }
 
 html.app-skin-dark .detail-card {
-    background: #0d0d0d;
-    border-color: #262626;
+    background: #1e2a3a;
+    border-color: #2d3f55;
 }
 
 html.app-skin-dark .detail-card .bname {
-    color: #EDEDED;
+    color: #e2e8f0;
 }
 
 html.app-skin-dark .info-item span {
-    color: #EDEDED;
+    color: #e2e8f0;
 }
 
+/* ---------- Summary cards — dark ---------- */
+html.app-skin-dark .la-stat-card {
+    background: #1e2a3a;
+    border-color: #2d3f55;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+html.app-skin-dark .la-stat-value { color: #e2e8f0; }
+html.app-skin-dark .la-stat-label { color: #94a3b8; }
+html.app-skin-dark .la-stat-sub { color: #94a3b8; }
+html.app-skin-dark .la-stat-card.is-attention {
+    background: rgba(180, 83, 9, 0.12);
+    border-color: rgba(245, 158, 11, 0.4);
+}
+html.app-skin-dark .la-stat-card.is-attention .la-stat-value { color: #f0b756; }
+html.app-skin-dark .la-stat-card.is-attention .la-stat-icon { color: #f0b756; }
+
 html.app-skin-dark .search-bar-wrap {
-    background: #0d0d0d;
-    border-color: #262626;
+    background: #16202e;
+    border-color: #2d3f55;
 }
 
 html.app-skin-dark .search-bar-wrap input {
-    color: #EDEDED;
-    caret-color: #EDEDED;
+    color: #e2e8f0;
+    caret-color: #e2e8f0;
 }
 
 html.app-skin-dark .search-bar-wrap input::placeholder {
-    color: #8A8A8A;
+    color: #94a3b8;
 }
 
 html.app-skin-dark .search-bar-wrap i,
 html.app-skin-dark .search-bar-wrap svg {
-    color: #8A8A8A;
+    color: #94a3b8;
 }
 
 html.app-skin-dark body .main-content .reviewed-card {
-    background: #0d0d0d !important;
-    border: 1px solid #262626 !important;
+    background: #1e2a3a !important;
+    border: 1px solid #2d3f55 !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
 }
 
@@ -624,48 +781,55 @@ html.app-skin-dark body .main-content .reviewed-toolbar,
 html.app-skin-dark body .main-content .reviewed-table thead th,
 html.app-skin-dark body .main-content .reviewed-pagination,
 html.app-skin-dark body .main-content .reviewed-table tbody td {
-    border-color: #262626 !important;
+    border-color: #2d3f55 !important;
 }
 
 html.app-skin-dark .reviewed-title {
-    color: #EDEDED;
+    color: #e2e8f0;
 }
 
 html.app-skin-dark .reviewed-subtitle {
-    color: #8A8A8A;
+    color: #94a3b8;
 }
 
 html.app-skin-dark .reviewed-decision-filter,
 html.app-skin-dark .reviewed-rpp-select {
-    background: #0d0d0d;
-    border-color: #262626;
-    color: #EDEDED;
+    background: #16202e;
+    border-color: #2d3f55;
+    color: #e2e8f0;
 }
 
 html.app-skin-dark .reviewed-count-label,
 html.app-skin-dark .reviewed-count-text {
-    color: #8A8A8A;
+    color: #94a3b8;
 }
 
 html.app-skin-dark .reviewed-empty {
-    color: #8A8A8A;
+    color: #94a3b8;
 }
 
 html.app-skin-dark body .main-content table.reviewed-table thead th {
-    background: #0d0d0d !important;
-    color: #EDEDED !important;
+    background: #16202e !important;
+    color: #e2e8f0 !important;
 }
 
 html.app-skin-dark .reviewed-table tbody tr:hover {
-    background: #16202e;
+    background: #24334a;
+}
+
+html.app-skin-dark .reviewed-table tbody tr.is-attention-row {
+    background: rgba(180, 83, 9, 0.12);
+}
+html.app-skin-dark .reviewed-table tbody tr.is-attention-row:hover {
+    background: rgba(180, 83, 9, 0.2);
 }
 
 html.app-skin-dark .rt-name {
-    color: #EDEDED;
+    color: #e2e8f0;
 }
 
 html.app-skin-dark .rt-email {
-    color: #8A8A8A;
+    color: #94a3b8;
 }
 
 html.app-skin-dark .rt-date,
@@ -674,58 +838,74 @@ html.app-skin-dark .rt-remarks {
 }
 
 html.app-skin-dark .rt-detailid {
-    color: #EDEDED;
+    color: #e2e8f0;
 }
 
 /* Status badges — slightly deeper/darker tints so they read
-   clearly against the black card instead of glowing. */
+   clearly against the navy card instead of glowing. */
 html.app-skin-dark .badge-pending  { background: rgba(183, 121, 31, 0.18); color: #f0b756; }
 html.app-skin-dark .badge-approved { background: rgba(22, 163, 74, 0.18);  color: #4ade80; }
 html.app-skin-dark .badge-rejected { background: rgba(220, 38, 38, 0.18);  color: #f87171; }
 html.app-skin-dark .badge-onhold   { background: rgba(146, 114, 13, 0.18); color: #eab308; }
 
-/* "View Details" button — solid dark-gray fill in dark mode
+/* ---------- Empty states — dark ---------- */
+html.app-skin-dark .la-empty { background: #1e2a3a; border-color: #2d3f55; }
+html.app-skin-dark .la-empty-title { color: #e2e8f0; }
+html.app-skin-dark .la-empty-desc { color: #94a3b8; }
+
+html.app-skin-dark .la-empty-large { background: #1e2a3a; border-color: #2d3f55; }
+html.app-skin-dark .la-empty-icon-lg { background: rgba(22, 163, 74, 0.18); color: #4ade80; }
+html.app-skin-dark .la-empty-icon-lg-muted { background: #2d3f55; color: #94a3b8; }
+html.app-skin-dark .la-empty-large .la-empty-title { color: #e2e8f0; }
+html.app-skin-dark .la-empty-large .la-empty-desc { color: #94a3b8; }
+
+/* "View Details" button — solid navy fill in dark mode
    (not transparent/outline). Selector strength matched to the
    light-mode override above so dark mode always wins. */
 html.app-skin-dark body .main-content a.action-link-btn {
-    border-color: #3a3a3a !important;
-    color: #EDEDED !important;
-    background-color: #3a3a3a !important;
-    background: #3a3a3a !important;
+    border-color: #2d3f55 !important;
+    color: #e2e8f0 !important;
+    background-color: #16202e !important;
+    background: #16202e !important;
 }
 html.app-skin-dark body .main-content a.action-link-btn:hover {
-    background-color: #4a4a4a !important;
-    background: #4a4a4a !important;
-    border-color: #4a4a4a !important;
-    color: #EDEDED !important;
+    background-color: #24334a !important;
+    background: #24334a !important;
+    border-color: #4a7cf7 !important;
+    color: #e2e8f0 !important;
 }
 
 html.app-skin-dark .reviewed-pagination {
-    background: #0d0d0d;
+    background: #1e2a3a;
+}
+
+html.app-skin-dark .pending-rpp-wrap .reviewed-count-label,
+html.app-skin-dark .pending-pagination-row .reviewed-count-text {
+    color: #94a3b8;
 }
 
 html.app-skin-dark .btn-page {
-    background: #0d0d0d;
-    border-color: #262626;
+    background: #16202e;
+    border-color: #2d3f55;
     color: #cbd5e1;
 }
 
 html.app-skin-dark .btn-page:hover:not(:disabled) {
     border-color: #2563EB;
     color: #6ea8fe;
-    background: #16202e;
+    background: #24334a;
 }
 
 html.app-skin-dark .rv-page-num {
-    background: #0d0d0d;
-    border-color: #262626;
+    background: #16202e;
+    border-color: #2d3f55;
     color: #cbd5e1;
 }
 
 html.app-skin-dark .rv-page-num:hover {
     border-color: #2563EB;
     color: #6ea8fe;
-    background: #16202e;
+    background: #24334a;
 }
 
 html.app-skin-dark .rv-page-num.active {
@@ -735,7 +915,7 @@ html.app-skin-dark .rv-page-num.active {
 }
 
 html.app-skin-dark .rv-page-ellipsis {
-    color: #8A8A8A;
+    color: #94a3b8;
 }
 
 .decision-card-form.is-submitting {

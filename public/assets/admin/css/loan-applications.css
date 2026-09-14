@@ -1,27 +1,10 @@
 /* ========================================
    LOAN APPLICATIONS PAGE - STYLES
-   Ginagamit ito sa: loan-applications.blade.php
-
-   REDESIGN: matched to the Borrower Verification page's
-   final look — white bg + Inter font enforced, fully-
-   rounded borderless badge pills, gray (#F9FAFB) table
-   header, pill-shaped search bar, true-black dark mode
-   (#0d0d0d / #262626), same reviewed-card treatment.
-   Loan-specific pieces (tabs, vote progress, empty
-   states) kept but restyled to match.
-
-   FIX: Toolbar and pagination now match Borrower
-   Verification 1:1 — the "Showing [rpp] of N results"
-   meta now lives in the toolbar (.reviewed-toolbar-meta),
-   not in the pagination bar. The pagination bar itself
-   holds ONLY the centered numbered-page controls, no
-   info text — so simple flex centering works correctly
-   (previously the info text sat inside the pagination
-   bar and pushed the controls off-center).
+   
    ======================================== */
 
 /* ---------- Page-wide: white bg + Inter font
-     (copied 1:1 from borrower-verification.css) ---------- */
+ */
 html body .nxl-content {
     background: #FFFFFF;
 }
@@ -48,6 +31,59 @@ html body .main-content i[class*="feather-"]::before {
     background: #fff;
 }
 
+/* ========================================
+   SUMMARY CARDS (Pending view) 
+ 
+   ======================================== */
+.la-stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+}
+.la-stat-card {
+    background: #fff;
+    border: 1px solid #E5E7EB;
+    border-radius: 14px;
+    padding: 20px 22px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.la-stat-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.la-stat-label {
+    font-size: 0.86rem;
+    font-weight: 500;
+    color: #0F172A;
+}
+.la-stat-icon {
+    font-size: 1rem;
+    color: #94A3B8;
+    flex-shrink: 0;
+}
+
+.la-stat-value {
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: #0F172A;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+}
+
+.la-stat-card.is-attention .la-stat-value { color: #B45309; }
+.la-stat-card.is-attention .la-stat-icon { color: #B45309; }
+
+@media (max-width: 900px) {
+    .la-stats-row { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+    .la-stats-row { grid-template-columns: 1fr; }
+}
 /* ---------- Card header: name/email left, actions/status right ---------- */
 .la-card-head {
     display: flex;
@@ -123,8 +159,8 @@ html body .main-content i[class*="feather-"]::before {
 .pm-item.is-approved { background: #ECFDF5; color: #16A34A; }
 .pm-item.is-rejected { background: #FEF2F2; color: #DC2626; }
 
-/* ---------- Votes column inside the Pending table (compact version
-   of .pm-item, since the card version is too tall for a table cell) ---------- */
+/* ---------- Reviews column inside the Pending table (compact version
+   of .pm-item, used to show live approved/rejected vote counts) ---------- */
 .progress-mini-table {
     display: flex;
     gap: 6px;
@@ -133,6 +169,7 @@ html body .main-content i[class*="feather-"]::before {
 .progress-mini-table .pm-item {
     font-size: 0.68rem;
     padding: 2px 8px;
+    white-space: nowrap;
 }
 
 /* ---------- Badges — fully-rounded, borderless pills
@@ -490,6 +527,23 @@ html body .main-content .reviewed-table tbody td {
     background: #F8FAFC;
 }
 
+/* ---------- Subtle "needs attention" row highlight
+     (Pending table, waiting 3+ days) — pale amber tint
+     plus a thin left accent, nothing flashy. ---------- */
+.reviewed-table tbody tr.is-attention-row {
+    background: #FFFBEB;
+}
+.reviewed-table tbody tr.is-attention-row td:first-child {
+    border-left: 3px solid #F59E0B;
+}
+.reviewed-table tbody tr.is-attention-row:hover {
+    background: #FEF3C7;
+}
+.rt-date.is-attention-text {
+    color: #B45309;
+    font-weight: 600;
+}
+
 .rt-name {
     font-size: 0.84rem;
     font-weight: 600;
@@ -617,33 +671,100 @@ html body .main-content .reviewed-pagination {
     cursor: not-allowed;
 }
 
+/* ---------- Pending tab pagination bar — three sections:
+     rows-per-page (left), page controls (center), result count
+     text (right). Scoped to .pending-pagination-row only so the
+     Reviewed/Filtered tabs' plain centered .reviewed-pagination
+     stays untouched. ---------- */
+.pending-pagination-row {
+    justify-content: space-between;
+}
+.pending-rpp-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+    .pending-pagination-row {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+}
+
 /* ========================================
-   DARK MODE STYLES — true black page bg + dark
-   card, matched 1:1 to Borrower Verification.
+   DARK MODE STYLES — navy palette matched to the
+   sidebar (#0a1929 page bg / #0f2137 cards /
+   #1e3a5f borders), no pure black anywhere.
    ======================================== */
 
 html.app-skin-dark body .nxl-content {
-    background: #000000 !important;
+    background: #0a1929 !important;
 }
 
 html.app-skin-dark .app-card {
-    background: #0d0d0d;
-    border-color: #262626;
+    background: #0f2137;
+    border-color: #1e3a5f;
+}
+
+html.app-skin-dark .la-stat-card {
+    background: #0f2137;
+    border-color: #1e3a5f;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+html.app-skin-dark .la-stat-card:hover {
+    border-color: #2d5a8f;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+}
+html.app-skin-dark .la-stat-card::before { background: #1e3a5f; }
+html.app-skin-dark .la-stat-value { color: #EDEDED; }
+.la-stat-value {
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: #0F172A;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Muted subtitle underneath each stat number ---------- */
+.la-stat-sub {
+    font-size: 0.78rem;
+    color: #94A3B8;
+    margin-top: 4px;
+}
+html.app-skin-dark .la-stat-label { color: #8A8A8A; }
+
+html.app-skin-dark .la-stat-icon.is-blue   { background: rgba(37, 99, 235, 0.18); color: #6ea8fe; }
+html.app-skin-dark .la-stat-icon.is-purple { background: rgba(124, 58, 237, 0.18); color: #c4b5fd; }
+html.app-skin-dark .la-stat-icon.is-orange { background: rgba(234, 88, 12, 0.18); color: #fb923c; }
+html.app-skin-dark .la-stat-icon.is-green  { background: rgba(22, 163, 74, 0.18); color: #4ade80; }
+
+html.app-skin-dark .la-stat-card.is-attention {
+    background: rgba(180, 83, 9, 0.12);
+    border-color: rgba(245, 158, 11, 0.4);
+}
+html.app-skin-dark .la-stat-card.is-attention::before { background: #f59e0b; }
+html.app-skin-dark .la-stat-card.is-attention .la-stat-value { color: #f0b756; }
+html.app-skin-dark .la-stat-card.is-attention .la-stat-icon.is-orange {
+    background: rgba(245, 158, 11, 0.22);
+    color: #f0b756;
 }
 
 html.app-skin-dark .la-name { color: #EDEDED; }
 html.app-skin-dark .la-email { color: #8A8A8A; }
 
 html.app-skin-dark .btn-la-outline {
-    background: #0d0d0d;
-    border-color: #262626;
+    background: #0f2137;
+    border-color: #1e3a5f;
     color: #EDEDED;
 }
 html.app-skin-dark .btn-la-outline:hover { border-color: #2563EB; color: #6ea8fe; }
 
 html.app-skin-dark .status-subtle {
-    background: #0d0d0d;
-    border-color: #262626;
+    background: #0f2137;
+    border-color: #1e3a5f;
     color: #8A8A8A;
 }
 
@@ -651,33 +772,33 @@ html.app-skin-dark .info-item label { color: #8A8A8A; }
 html.app-skin-dark .info-item span { color: #EDEDED; }
 
 html.app-skin-dark .tab-btn {
-    background: #0d0d0d;
-    border-color: #262626;
+    background: #0f2137;
+    border-color: #1e3a5f;
     color: #EDEDED;
 }
-html.app-skin-dark .tab-btn:hover { border-color: #3a3a3a; }
+html.app-skin-dark .tab-btn:hover { border-color: #2d5a8f; }
 html.app-skin-dark .tab-btn.active {
     background: #2563EB;
     border-color: #2563EB;
     color: #fff;
 }
-html.app-skin-dark .tab-count { background: #3a3a3a; color: #EDEDED; }
+html.app-skin-dark .tab-count { background: #1e3a5f; color: #EDEDED; }
 html.app-skin-dark .tab-btn.active .tab-count { background: rgba(255, 255, 255, 0.25); color: #fff; }
-html.app-skin-dark .tab-count.is-muted { background: #3a3a3a; color: #EDEDED; }
+html.app-skin-dark .tab-count.is-muted { background: #1e3a5f; color: #EDEDED; }
 
-html.app-skin-dark .la-empty { background: #0d0d0d; border-color: #262626; }
+html.app-skin-dark .la-empty { background: #0f2137; border-color: #1e3a5f; }
 html.app-skin-dark .la-empty-title { color: #EDEDED; }
 html.app-skin-dark .la-empty-desc { color: #8A8A8A; }
 
-html.app-skin-dark .la-empty-large { background: #0d0d0d; border-color: #262626; }
+html.app-skin-dark .la-empty-large { background: #0f2137; border-color: #1e3a5f; }
 html.app-skin-dark .la-empty-icon-lg { background: rgba(22, 163, 74, 0.18); color: #4ade80; }
-html.app-skin-dark .la-empty-icon-lg-muted { background: #262626; color: #8A8A8A; }
+html.app-skin-dark .la-empty-icon-lg-muted { background: #1e3a5f; color: #8A8A8A; }
 html.app-skin-dark .la-empty-large .la-empty-title { color: #EDEDED; }
 html.app-skin-dark .la-empty-large .la-empty-desc { color: #8A8A8A; }
 
 html.app-skin-dark .search-bar-wrap {
-    background: #0d0d0d;
-    border-color: #262626;
+    background: #0f2137;
+    border-color: #1e3a5f;
 }
 html.app-skin-dark .search-bar-wrap input {
     color: #EDEDED;
@@ -692,8 +813,8 @@ html.app-skin-dark .search-bar-wrap svg {
 }
 
 html.app-skin-dark body .main-content .reviewed-card {
-    background: #0d0d0d !important;
-    border: 1px solid #262626 !important;
+    background: #0f2137 !important;
+    border: 1px solid #1e3a5f !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
 }
 
@@ -701,13 +822,23 @@ html.app-skin-dark body .main-content .reviewed-toolbar,
 html.app-skin-dark body .main-content .reviewed-table thead th,
 html.app-skin-dark body .main-content .reviewed-pagination,
 html.app-skin-dark body .main-content .reviewed-table tbody td {
-    border-color: #262626 !important;
+    border-color: #1e3a5f !important;
+}
+
+/* ---------- Pending pagination bar — slightly darker navy than
+     the cards, matched to the sidebar's own tone. ---------- */
+html.app-skin-dark .reviewed-pagination {
+    background: #0a1929 !important;
+}
+html.app-skin-dark .pending-rpp-wrap .reviewed-count-label,
+html.app-skin-dark .pending-pagination-row .reviewed-count-text {
+    color: #8A8A8A;
 }
 
 html.app-skin-dark .reviewed-decision-filter,
 html.app-skin-dark .reviewed-rpp-select {
-    background: #0d0d0d;
-    border-color: #262626;
+    background: #0f2137;
+    border-color: #1e3a5f;
     color: #EDEDED;
 }
 
@@ -719,12 +850,22 @@ html.app-skin-dark .reviewed-count-text {
 html.app-skin-dark .reviewed-empty { color: #8A8A8A; }
 
 html.app-skin-dark body .main-content table.reviewed-table thead th {
-    background: #0d0d0d !important;
+    background: #0f2137 !important;
     color: #EDEDED !important;
 }
 
 html.app-skin-dark .reviewed-table tbody tr:hover {
     background: #16202e;
+}
+
+html.app-skin-dark .reviewed-table tbody tr.is-attention-row {
+    background: rgba(180, 83, 9, 0.12);
+}
+html.app-skin-dark .reviewed-table tbody tr.is-attention-row:hover {
+    background: rgba(180, 83, 9, 0.2);
+}
+html.app-skin-dark .rt-date.is-attention-text {
+    color: #f0b756;
 }
 
 html.app-skin-dark .rt-name { color: #EDEDED; }
@@ -734,22 +875,22 @@ html.app-skin-dark .rt-remarks { color: #cbd5e1; }
 
 html.app-skin-dark body .main-content .reviewed-table .btn-light,
 html.app-skin-dark body .main-content .btn-light {
-    border-color: #3a3a3a !important;
+    border-color: #2d5a8f !important;
     color: #EDEDED !important;
-    background-color: #3a3a3a !important;
-    background: #3a3a3a !important;
+    background-color: #1e3a5f !important;
+    background: #1e3a5f !important;
 }
 html.app-skin-dark body .main-content .reviewed-table .btn-light:hover,
 html.app-skin-dark body .main-content .btn-light:hover {
-    background-color: #4a4a4a !important;
-    background: #4a4a4a !important;
-    border-color: #4a4a4a !important;
+    background-color: #2d5a8f !important;
+    background: #2d5a8f !important;
+    border-color: #2d5a8f !important;
     color: #EDEDED !important;
 }
 
 html.app-skin-dark .btn-page {
-    background: #0d0d0d;
-    border-color: #262626;
+    background: #0f2137;
+    border-color: #1e3a5f;
     color: #cbd5e1;
 }
 html.app-skin-dark .btn-page:hover:not(:disabled) {
@@ -758,11 +899,18 @@ html.app-skin-dark .btn-page:hover:not(:disabled) {
     background: #16202e;
 }
 
-/* Status badges — deeper tints against the black card */
+/* Status badges — deeper tints against the navy card */
 html.app-skin-dark .badge-pending  { background: rgba(183, 121, 31, 0.18); color: #f0b756; }
 html.app-skin-dark .badge-approved { background: rgba(22, 163, 74, 0.18);  color: #4ade80; }
 html.app-skin-dark .badge-rejected { background: rgba(220, 38, 38, 0.18);  color: #f87171; }
 html.app-skin-dark .badge-onhold   { background: rgba(146, 114, 13, 0.18); color: #eab308; }
+
+/* Reviews pill colors — deeper tints against the navy card */
+html.app-skin-dark .pm-item.is-approved { background: rgba(22, 163, 74, 0.18); color: #4ade80; }
+html.app-skin-dark .pm-item.is-rejected { background: rgba(220, 38, 38, 0.18); color: #f87171; }
+html.app-skin-dark .la-stat-value { color: #EDEDED; }
+html.app-skin-dark .la-stat-label { color: #8A8A8A; }
+html.app-skin-dark .la-stat-sub { color: #8A8A8A; }
 
 /* ========================================
    FOOTER SA IBABA
@@ -860,8 +1008,8 @@ html.app-skin-dark .badge-onhold   { background: rgba(146, 114, 13, 0.18); color
 }
 
 html.app-skin-dark .rv-page-num {
-    background: #0d0d0d;
-    border-color: #262626;
+    background: #0f2137;
+    border-color: #1e3a5f;
     color: #cbd5e1;
 }
 html.app-skin-dark .rv-page-num:hover {

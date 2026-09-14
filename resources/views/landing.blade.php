@@ -12,7 +12,7 @@
   <link href="{{ asset('assets/landingpage/img/ranlogo1.jpg') }}" rel="icon">
 
   <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700;800&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Raleway:wght@400;600;700;800&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
 
   <!-- Bootstrap & Icons -->
   <link href="{{ asset('assets/landingpage/vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
@@ -27,8 +27,7 @@
   <link href="{{ asset('assets/landingpage/css/section.css') }}" rel="stylesheet">
   <link href="{{ asset('assets/landingpage/css/user-menu.css') }}" rel="stylesheet">
   <link href="{{ asset('assets/landingpage/css/theme-emerald.css') }}" rel="stylesheet">
-</head>
-
+   
 <body class="index-page">
 
   <!-- ============================================================
@@ -86,12 +85,16 @@
             </div>
             <div class="landing-user-dropdown-divider"></div>
 
-            @if(session('user_role') === 'admin')
-              {{-- ADMIN: Account Settings + Logout lang. Walang My Profile
-                   dahil ang "My Profile" modal ay view-only info na
+                       @if(session('user_role') === 'admin')
+              {{-- ADMIN: Dashboard + Account Settings + Logout. Walang My
+                   Profile dahil ang "My Profile" modal ay view-only info na
                    overlap na sa laman ng Account Settings modal. --}}
+              <a href="{{ route('admin.dashboard') }}" class="landing-user-dd-item">
+                <i class="bi bi-speedometer2"></i> Dashboard
+              </a>
               <a href="{{ route('admin.dashboard', ['open' => 'settings']) }}" class="landing-user-dd-item">
                 <i class="bi bi-gear"></i> Account Settings
+              </a>
               </a>
           @else
   {{-- BORROWER: Dashboard, My Profile, tapos Account Settings --}}

@@ -31,7 +31,7 @@
     <div class="main-content">
 
         {{-- ============ BORROWER STRIP ============ --}}
-            
+
         <div class="dlh-card">
             <div class="dlh-left">
                 <div class="dlh-avatar js-borrower-avatar">
@@ -119,10 +119,10 @@
         <div class="panel payment-schedule-panel">
             <div class="ols-sched-header">
                 <div class="ols-sched-header-left">
-                  
+
                     <div>
                         <div class="ols-sched-title">Payment Schedule</div>
-                 
+
                     </div>
                 </div>
                 <div class="ols-sched-count-pill">
@@ -186,7 +186,7 @@
                 </table>
             </div>
 
-            
+
 
             @else
             <div class="panel-body">
@@ -201,28 +201,24 @@
 
 {{-- ============================================================
      RECORD PAYMENT CONFIRMATION MODAL
-     Pushed into the layout's @stack('modals') slot — same reason
-     as the one on Ongoing Loan Detail: rendered OUTSIDE
-     <main class="nxl-container"> so it doesn't get caught by the
-     blur filter theme.min.css applies to .nxl-container while a
-     Bootstrap modal is open.
+   
+     <main class="nxl-container"> 
 ============================================================ --}}
 @push('modals')
     <div class="modal fade nxl-account-modal" id="dlMarkPaidConfirmModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-body text-center py-4">
-                    <div class="ols-confirm-icon"><i class="feather-help-circle"></i></div>
                     <div class="ols-confirm-title">Mark this payment as paid?</div>
                     <div class="ols-confirm-desc">
                         Installment <strong id="dlConfirmInstallmentNo">#1</strong> of
                         <strong>&#8369;<span id="dlConfirmAmount">0.00</span></strong>
-                        will be recorded as paid today. This cannot be undone.
+                        will be recorded as paid today. 
                     </div>
                 </div>
                 <div class="modal-footer nxl-pw-modal-footer">
                     <button type="button" class="nxl-pw-btn-discard" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="nxl-pw-btn-apply" id="dlConfirmMarkPaidBtn">
+                    <button type="button" class="nxl-pw-btn-apply dlh-btn-apply" id="dlConfirmMarkPaidBtn">
                      Mark as Paid
                     </button>
                 </div>

@@ -744,3 +744,17 @@ body.modal-open .footer {
     filter: none !important;
     -webkit-filter: none !important;
 }
+
+/* ---------- Loading spinner icon (Approve/Reject confirm button) ---------- */
+@keyframes ld-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+.spin-icon {
+    display: inline-block;
+    animation: ld-spin 0.7s linear infinite;
+}
+#decisionModal .btn-decision:disabled {
+    opacity: 0.85;
+    cursor: not-allowed;
+}

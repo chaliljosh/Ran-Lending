@@ -37,6 +37,15 @@
     font-size:16px;
 }
 
+/* ============================================================
+   FONT OVERRIDE — dropdown gumagamit ng Inter, itinutugma sa
+   font na ginagamit ng admin dashboard (parehong "Inter" family),
+   sa halip na mana-mana lang ng default Roboto ng landing page.
+   ============================================================ */
+.landing-user-dropdown,
+.landing-user-dropdown * {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+}
 .landing-user-name{
     color:#fff;
     font-weight:600;

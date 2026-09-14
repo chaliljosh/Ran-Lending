@@ -229,7 +229,7 @@ html:not(.app-skin-dark) .nxl-content {
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    padding: 22px 24px;
+    padding: 14px 20px;
     flex-wrap: wrap;
 }
 .ols-sched-header-left { display: flex; align-items: center; gap: 14px; }
@@ -265,14 +265,14 @@ html:not(.app-skin-dark) .nxl-content {
     text-transform: none;
     letter-spacing: normal;
     color: #94a3b8;
-    padding: 14px 20px;
+    padding: 10px 20px;
     background: #fbfcfe;
     border-top: 1px solid #eef1f6;
     border-bottom: 1px solid #eef1f6;
     white-space: nowrap;
 }
 .ols-sched-table tbody td {
-    padding: 16px 20px;
+    padding: 10px 20px;
     color: #1a2a3a;
     border-bottom: 1px solid #f1f3f8;
     vertical-align: middle;
@@ -408,9 +408,72 @@ html.app-skin-dark .btn-light:hover { border-color: #dc2626; color: #f87171; bac
 html.app-skin-dark .text-muted { color: #94a3b8 !important; }
 
 /* ============================================================
-   RECORD PAYMENT CONFIRM MODAL (reused ols-confirm-* classes,
-   same visual pattern as Ongoing Loan Detail's modal)
+   RECORD PAYMENT MODAL — narrower dialog + dark navy button,
+   matched to the reference screenshot.
 ============================================================ */
+#dlMarkPaidConfirmModal .modal-dialog {
+    max-width: 420px;
+}
+#dlMarkPaidConfirmModal .modal-content {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.18);
+}
+#dlMarkPaidConfirmModal .nxl-pw-modal-footer {
+    padding: 16px 20px 20px;
+    gap: 10px;
+}
+#dlMarkPaidConfirmModal .nxl-pw-btn-discard,
+#dlMarkPaidConfirmModal .dlh-btn-apply {
+    flex: 1;
+    font-size: 0.85rem;
+    padding: 10px 16px;
+    border-radius: 10px;
+}
+#dlMarkPaidConfirmModal .nxl-pw-btn-discard {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    color: #1a2a3a;
+    font-weight: 600;
+}
+#dlMarkPaidConfirmModal .nxl-pw-btn-discard:hover {
+    background: #f8fafc;
+}
+#dlMarkPaidConfirmModal .dlh-btn-apply {
+    background: #0f172a;
+    border: 1px solid #0f172a;
+    color: #fff;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+#dlMarkPaidConfirmModal .dlh-btn-apply:hover {
+    background: #1e293b;
+    border-color: #1e293b;
+    color: #fff;
+}
+#dlMarkPaidConfirmModal .dlh-btn-apply:disabled {
+    opacity: 0.85;
+    cursor: not-allowed;
+}
+
+html.app-skin-dark #dlMarkPaidConfirmModal .modal-content { background: #1e2a3a; }
+html.app-skin-dark #dlMarkPaidConfirmModal .nxl-pw-btn-discard {
+    background: #16202e;
+    border-color: #2d3f55;
+    color: #e2e8f0;
+}
+html.app-skin-dark #dlMarkPaidConfirmModal .dlh-btn-apply {
+    background: #0f172a;
+    border-color: #0f172a;
+}
+html.app-skin-dark #dlMarkPaidConfirmModal .dlh-btn-apply:hover {
+    background: #1e293b;
+    border-color: #1e293b;
+}
+
 .ols-confirm-icon {
     width: 48px; height: 48px; border-radius: 50%;
     margin: 4px auto 14px;
@@ -425,3 +488,14 @@ html.app-skin-dark .text-muted { color: #94a3b8 !important; }
 html.app-skin-dark .ols-confirm-title { color: #e2e8f0; }
 html.app-skin-dark .ols-confirm-desc { color: #94a3b8; }
 html.app-skin-dark .ols-confirm-icon { background: rgba(220,38,38,0.15); color: #f87171; }
+
+/* ---------- Spinning loading icon (Record Payment / Mark as
+   Paid buttons) ---------- */
+@keyframes dl-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+.spin-icon {
+    display: inline-block;
+    animation: dl-spin 0.7s linear infinite;
+}

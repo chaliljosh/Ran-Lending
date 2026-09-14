@@ -895,25 +895,18 @@ class AdminController extends Controller
                 return redirect()->route('admin.verification-detail', $detailId);
             }
 
-           if ($request->filled('action')) {
-    $this->saveDecision($request->merge(['detail_id' => $detailId]), $adminId);
+            if ($request->filled('action')) {
+                $this->saveDecision($request->merge(['detail_id' => $detailId]), $adminId);
 
-    $newStatus = DB::table('borrowerpersonaldetails')
-        ->where('detail_id', $detailId)
-        ->value('status');
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => true,
+                        'redirect' => route('admin.borrower-verification'),
+                    ]);
+                }
 
-    if ($request->ajax() || $request->wantsJson()) {
-        return response()->json([
-            'success' => true,
-            'status' => $newStatus,
-            'redirect' => route('admin.borrower-verification'),
-        ]);
-    }
-
-    return redirect()->route('admin.borrower-verification')
-        ->with('success', true)
-        ->with('decisionStatus', $newStatus);
-}
+                return redirect()->route('admin.borrower-verification')->with('success', true);
+            }
         }
 
         return view('admin.verification-detail', [
@@ -1115,70 +1108,92 @@ class AdminController extends Controller
     }
 
     private function buildVerificationListData($adminId, $viewStatus = 'pending')
-    {
-        $pendingRows = DB::table('borrowerpersonaldetails as bpd')
-            ->join('users as u', 'bpd.user_id', '=', 'u.user_id')
-            ->whereIn('bpd.status', ['pending', 'on_hold'])
-            ->whereNotExists(function ($query) use ($adminId) {
-                $query->select(DB::raw(1))
-                    ->from('detailsapproval as da')
-                    ->whereColumn('da.detail_id', 'bpd.detail_id')
-                    ->where('da.admin_id', $adminId);
-            })
-            ->select(
-                'bpd.detail_id', 'bpd.last_name', 'bpd.first_name', 'bpd.middle_name',
-                'bpd.cellphone_num', 'bpd.status', 'u.email'
-            )
-            ->orderByDesc('bpd.detail_id')
-            ->get();
+{
+    $pendingRows = DB::table('borrowerpersonaldetails as bpd')
+        ->join('users as u', 'bpd.user_id', '=', 'u.user_id')
+        ->whereIn('bpd.status', ['pending', 'on_hold'])
+        ->whereNotExists(function ($query) use ($adminId) {
+            $query->select(DB::raw(1))
+                ->from('detailsapproval as da')
+                ->whereColumn('da.detail_id', 'bpd.detail_id')
+                ->where('da.admin_id', $adminId);
+        })
+        ->select(
+            'bpd.detail_id', 'bpd.last_name', 'bpd.first_name', 'bpd.middle_name',
+            'bpd.cellphone_num', 'bpd.status', 'bpd.created_at', 'u.email'
+        )
+        ->orderByDesc('bpd.detail_id')
+        ->get();
 
-        $pendingDetails = [];
-        foreach ($pendingRows as $row) {
-            $counts = DB::table('detailsapproval')
-                ->where('detail_id', $row->detail_id)
-                ->selectRaw("SUM(CASE WHEN decision = 'approved' THEN 1 ELSE 0 END) as a, SUM(CASE WHEN decision = 'rejected' THEN 1 ELSE 0 END) as r")
-                ->first();
+    $pendingDetails = [];
+    foreach ($pendingRows as $row) {
+        $counts = DB::table('detailsapproval')
+            ->where('detail_id', $row->detail_id)
+            ->selectRaw("SUM(CASE WHEN decision = 'approved' THEN 1 ELSE 0 END) as a, SUM(CASE WHEN decision = 'rejected' THEN 1 ELSE 0 END) as r")
+            ->first();
 
-            $pendingDetails[] = [
-                'detail_id' => $row->detail_id,
-                'last_name' => $row->last_name,
-                'first_name' => $row->first_name,
-                'middle_name' => $row->middle_name,
-                'cellphone_num' => $row->cellphone_num,
-                'email' => $row->email,
-                'status' => $row->status,
-                'approved_count' => (int) $counts->a,
-                'rejected_count' => (int) $counts->r,
-                'already_reviewed' => false,
-            ];
-        }
+        $waitingDays = (int) \Carbon\Carbon::parse($row->created_at)->diffInDays(now());
 
-        $reviewedDetails = DB::table('detailsapproval as da')
-            ->join('borrowerpersonaldetails as bpd', 'da.detail_id', '=', 'bpd.detail_id')
-            ->join('users as u', 'bpd.user_id', '=', 'u.user_id')
-            ->where('da.admin_id', $adminId)
-            ->select(
-                'da.detail_id', 'da.decision', 'da.remarks', 'da.reviewed_at',
-                'bpd.last_name', 'bpd.first_name', 'u.email'
-            )
-            ->orderByDesc('da.reviewed_at')
-            ->get();
-
-      $filteredDetails = DB::table('borrowerpersonaldetails as bpd')
-    ->join('users as u', 'bpd.user_id', '=', 'u.user_id')
-    ->where('bpd.status', $viewStatus)
-    ->select(
-        'bpd.detail_id', 'u.user_id', 'bpd.last_name', 'bpd.first_name', 'bpd.middle_name',
-        'bpd.cellphone_num', 'bpd.status', 'u.email'
-    )
-    ->orderByDesc('bpd.detail_id')
-    ->get();
-
-        $pendingCount = count($pendingDetails);
-
-        return compact('pendingDetails', 'reviewedDetails', 'filteredDetails', 'pendingCount');
+        $pendingDetails[] = [
+            'detail_id' => $row->detail_id,
+            'last_name' => $row->last_name,
+            'first_name' => $row->first_name,
+            'middle_name' => $row->middle_name,
+            'cellphone_num' => $row->cellphone_num,
+            'email' => $row->email,
+            'status' => $row->status,
+            'created_at' => $row->created_at,
+            'waiting_days' => $waitingDays,
+            'approved_count' => (int) $counts->a,
+            'rejected_count' => (int) $counts->r,
+            'already_reviewed' => false,
+        ];
     }
 
+    // Default sort: longest waiting time first (JS re-sorts on load anyway)
+    usort($pendingDetails, fn ($a, $b) => $b['waiting_days'] <=> $a['waiting_days']);
+
+    $reviewedDetails = DB::table('detailsapproval as da')
+        ->join('borrowerpersonaldetails as bpd', 'da.detail_id', '=', 'bpd.detail_id')
+        ->join('users as u', 'bpd.user_id', '=', 'u.user_id')
+        ->where('da.admin_id', $adminId)
+        ->select(
+            'da.detail_id', 'da.decision', 'da.remarks', 'da.reviewed_at',
+            'bpd.last_name', 'bpd.first_name', 'u.email'
+        )
+        ->orderByDesc('da.reviewed_at')
+        ->get();
+
+    $filteredDetails = DB::table('borrowerpersonaldetails as bpd')
+        ->join('users as u', 'bpd.user_id', '=', 'u.user_id')
+        ->where('bpd.status', $viewStatus)
+        ->select(
+            'bpd.detail_id', 'u.user_id', 'bpd.last_name', 'bpd.first_name', 'bpd.middle_name',
+            'bpd.cellphone_num', 'bpd.status', 'u.email'
+        )
+        ->orderByDesc('bpd.detail_id')
+        ->get();
+
+    $pendingCount = count($pendingDetails);
+
+    // ---- Summary cards for the Pending view (same pattern as Loan Applications) ----
+    $newApplicationsCount = collect($pendingDetails)
+        ->filter(fn ($d) => \Carbon\Carbon::parse($d['created_at'])->isToday())
+        ->count();
+
+    $needsAttentionCount = collect($pendingDetails)
+        ->filter(fn ($d) => $d['waiting_days'] >= 3)
+        ->count();
+
+    $totalApprovedCount = DB::table('borrowerpersonaldetails')
+        ->where('status', 'approved')
+        ->count();
+
+    return compact(
+        'pendingDetails', 'reviewedDetails', 'filteredDetails', 'pendingCount',
+        'newApplicationsCount', 'needsAttentionCount', 'totalApprovedCount'
+    );
+}
     public function loanApplications(Request $request)
 {
     $adminId = Session::get('user_id');
@@ -1254,7 +1269,7 @@ class AdminController extends Controller
         ]);
     }
 
-        public function activeBorrowerDetail(Request $request, $id)
+    public function activeBorrowerDetail(Request $request, $id)
     {
         $adminId = Session::get('user_id');
         $applicationId = (int) $id;
@@ -1293,7 +1308,6 @@ class AdminController extends Controller
         return view('admin.active-borrower-detail', [
             'app' => $app,
             'applicationId' => $applicationId,
-            'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
             'paymentSchedule' => $schedule,
             'totalCount' => $totalCount,
             'paidCount' => $paidCount,
@@ -1344,7 +1358,6 @@ class AdminController extends Controller
         return view('admin.overdue-payment-detail', [
             'app' => $app,
             'applicationId' => $applicationId,
-              'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
             'paymentSchedule' => $schedule,
             'overdueCount' => $overdueSchedules->count(),
             'daysLate' => $oldestOverdue ? \Carbon\Carbon::parse($oldestOverdue->due_date)->diffInDays(now()) : 0,
@@ -1471,7 +1484,7 @@ class AdminController extends Controller
         return DB::table('loan_approval_comments as lac')
             ->join('users as u', 'lac.admin_id', '=', 'u.user_id')
             ->where('lac.application_id', $applicationId)
-            ->select('lac.*', 'u.name as admin_name', 'u.profile_picture as admin_profile_picture')
+            ->select('lac.*', 'u.name as admin_name')
             ->orderBy('lac.created_at')
             ->get();
     }
@@ -1597,23 +1610,9 @@ class AdminController extends Controller
         return DB::table('loan_approvals as la')
             ->join('users as u', 'la.admin_id', '=', 'u.user_id')
             ->where('la.application_id', $applicationId)
-            ->select('la.*', 'u.name as admin_name', 'u.profile_picture as admin_profile_picture')
+            ->select('la.*', 'u.name as admin_name')
             ->orderBy('la.reviewed_at')
             ->get();
-    }
-
-    /**
-     * Resolves a stored profile_picture path (from the `users` table)
-     * into a public URL, or null if there is none / the file is
-     * missing. Used by the Admin Review Status + Comments blocks on
-     * ongoing-loan-detail.blade.php so a reviewing/commenting admin's
-     * real photo shows instead of a generic "AD" initials circle.
-     */
-    private function adminAvatarUrl($path)
-    {
-        return (!empty($path) && Storage::disk('public')->exists($path))
-            ? Storage::disk('public')->url($path)
-            : null;
     }
 
     private function buildLoanApplicationsListData($adminId, $viewStatus = 'pending')
@@ -1643,6 +1642,11 @@ class AdminController extends Controller
                 ->selectRaw("SUM(CASE WHEN decision = 'approved' THEN 1 ELSE 0 END) as a, SUM(CASE WHEN decision = 'rejected' THEN 1 ELSE 0 END) as r")
                 ->first();
 
+            // Whole days since applied — used for the Waiting Time column,
+            // the "Needs Attention" (3+ days) summary card, and the
+            // default longest-waiting-first sort on the Pending table.
+            $waitingDays = (int) \Carbon\Carbon::parse($row->applied_at)->diffInDays(now());
+
             $pendingApplications[] = [
                 'application_id' => $row->application_id,
                 'last_name' => $row->last_name,
@@ -1655,10 +1659,15 @@ class AdminController extends Controller
                 'loan_purpose' => $row->loan_purpose,
                 'status' => $row->status,
                 'applied_at' => $row->applied_at,
+                'waiting_days' => $waitingDays,
                 'approved_count' => (int) $counts->a,
                 'rejected_count' => (int) $counts->r,
             ];
         }
+
+        // Default sort: longest waiting time first, so the applications
+        // most overdue for a decision surface at the top of the table.
+        usort($pendingApplications, fn ($a, $b) => $b['waiting_days'] <=> $a['waiting_days']);
 
       $reviewedApplications = DB::table('loan_approvals as lap')
     ->join('loan_applications as la', 'lap.application_id', '=', 'la.application_id')
@@ -1693,7 +1702,27 @@ class AdminController extends Controller
 
         $pendingLoanCount = count($pendingApplications);
 
-        return compact('pendingApplications', 'reviewedApplications', 'filteredApplications', 'pendingLoanCount');
+        // ---- Summary cards for the Pending view ----
+        // "New Applications" = applied today. "Needs Attention" = still
+        // pending and waiting 3+ days for a decision. "Total Approved"
+        // counts every approved/active loan system-wide (not scoped to
+        // this admin), same status set used by the Approved filtered view.
+        $newApplicationsCount = collect($pendingApplications)
+            ->filter(fn ($app) => \Carbon\Carbon::parse($app['applied_at'])->isToday())
+            ->count();
+
+        $needsAttentionCount = collect($pendingApplications)
+            ->filter(fn ($app) => $app['waiting_days'] >= 3)
+            ->count();
+
+        $totalApprovedCount = DB::table('loan_applications')
+            ->whereIn('status', ['approved', 'active'])
+            ->count();
+
+        return compact(
+            'pendingApplications', 'reviewedApplications', 'filteredApplications', 'pendingLoanCount',
+            'newApplicationsCount', 'needsAttentionCount', 'totalApprovedCount'
+        );
     }
 
     public function penaltyTracking(Request $request)
@@ -1871,7 +1900,6 @@ class AdminController extends Controller
             'app' => $app,
             'applicationId' => $applicationId,
             'adminId' => $adminId,
-          'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
             'allReviews' => $this->getAllLoanReviews($applicationId),
             'comments' => $this->getLoanComments($applicationId),
             'paymentSchedule' => $schedule,
@@ -2023,7 +2051,6 @@ class AdminController extends Controller
         return view('admin.defaulted-loan-detail', [
             'app' => $app,
             'applicationId' => $applicationId,
-            'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
             'paymentSchedule' => $schedule,
             'totalCount' => $totalCount,
             'paidCount' => $paidCount,
@@ -2110,7 +2137,6 @@ public function penaltyTrackingDetail($id)
     $p = DB::table('loan_penalties as lp')
         ->join('loan_payment_schedules as sch', 'lp.schedule_id', '=', 'sch.id')
         ->join('loan_applications as la', 'lp.application_id', '=', 'la.application_id')
-        ->join('users as bu', 'la.user_id', '=', 'bu.user_id')
         ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
         ->leftJoin('users as waiver', 'lp.waived_by', '=', 'waiver.user_id')
         ->where('lp.id', $id)
@@ -2118,7 +2144,6 @@ public function penaltyTrackingDetail($id)
             'lp.*',
             'sch.installment_no', 'sch.due_date', 'sch.amount_due', 'sch.paid_at as schedule_paid_at',
             'bpd.first_name', 'bpd.last_name',
-            'bu.profile_picture',
             'waiver.name as waived_by_name'
         )
         ->first();
@@ -2158,7 +2183,6 @@ public function penaltyTrackingDetail($id)
 
     return view('admin.penalty-tracking-detail', [
         'p' => $p,
-        'borrowerProfilePicture' => $this->getProfilePictureUrl($p),
         'pendingCount' => $this->getPendingVerificationCount($adminId),
         'pendingLoanCount' => $this->getPendingLoanCount($adminId),
     ]);

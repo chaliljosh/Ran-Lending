@@ -76,7 +76,12 @@
                         </a>
                         <ul class="nxl-submenu">
                             <li class="nxl-item" data-current="{{ $bvStatusTab === 'pending' ? 'true' : 'false' }}">
-                                <a class="nxl-link" href="{{ route('admin.borrower-verification') }}">Pending</a>
+                                <a class="nxl-link nxl-submenu-link-badge" href="{{ route('admin.borrower-verification') }}">
+                                    Pending
+                                    @if ($pendingCount > 0)
+                                        <span class="badge bg-danger nxl-submenu-badge">{{ $pendingCount }}</span>
+                                    @endif
+                                </a>
                             </li>
                             <li class="nxl-item" data-current="{{ $bvStatusTab === 'reviewed' ? 'true' : 'false' }}">
                                 <a class="nxl-link"
@@ -110,8 +115,12 @@
                         <ul class="nxl-submenu">
                             <li class="nxl-item"
                                 data-current="{{ $loanStatusTab === 'pending' ? 'true' : 'false' }}">
-                                <a class="nxl-link" href="{{ route('admin.loan-applications') }}">Pending
-                                    Applications</a>
+                                <a class="nxl-link nxl-submenu-link-badge" href="{{ route('admin.loan-applications') }}">
+                                    Pending Applications
+                                    @if (($pendingLoanCount ?? 0) > 0)
+                                        <span class="badge bg-danger nxl-submenu-badge">{{ $pendingLoanCount }}</span>
+                                    @endif
+                                </a>
                             </li>
                             <li class="nxl-item"
                                 data-current="{{ $loanStatusTab === 'reviewed' ? 'true' : 'false' }}">

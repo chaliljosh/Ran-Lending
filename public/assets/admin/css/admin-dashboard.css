@@ -17,6 +17,12 @@
    gracefully): $item['description'] for Attention Required,
    $payment->loan_number for Upcoming Payments, $activity['category']
    for Recent Activity.
+
+   DARK MODE UPDATE: switched from a standalone "true black"
+   palette (#000000/#0d0d0d/#262626) to the navy palette used by
+   the sidebar and the rest of the admin pages (#0f172a page bg,
+   #1e2a3a cards, #2d3f55 borders, #e2e8f0 text, #94a3b8 muted) —
+   so the dashboard now matches instead of clashing.
 ============================================================ */
 
 :root {
@@ -307,39 +313,43 @@ html body .main-content table.adm-table thead th {
 }
 
 /* ============================================================
-   DARK MODE — true black, not navy/blue
+   DARK MODE — navy palette matched to the sidebar
+   (.nxl-navigation) and the rest of the admin pages: page bg
+   #0f172a, card bg #1e2a3a, borders #2d3f55, primary text
+   #e2e8f0, muted text #94a3b8. Status badges/pills keep their
+   own semantic tints since color there carries meaning.
 ============================================================ */
 html.app-skin-dark body .nxl-content {
-    background: #000000;
+    background: #0f172a;
 }
 html.app-skin-dark body .main-content .card,
 html.app-skin-dark body .main-content .card.stretch,
 html.app-skin-dark body .main-content .card.stretch-full,
 html.app-skin-dark body .main-content .card.adm-stat-card {
-    background: #0d0d0d !important;
-    border: 1px solid #262626 !important;
+    background: #1e2a3a !important;
+    border: 1px solid #2d3f55 !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
 }
 html.app-skin-dark .adm-attn-card {
-    background: linear-gradient(180deg, rgba(220,38,38,0.08), #0d0d0d 140px) !important;
+    background: linear-gradient(180deg, rgba(220,38,38,0.1), #1e2a3a 140px) !important;
 }
 html.app-skin-dark .adm-stat-label,
 html.app-skin-dark .adm-stat-value {
-    color: #EDEDED;
+    color: #e2e8f0;
 }
 html.app-skin-dark .adm-stat-icon,
 html.app-skin-dark .adm-stat-sub {
-    color: #8A8A8A;
+    color: #94a3b8;
 }
 html.app-skin-dark .main-content .card-title,
 html.app-skin-dark .adm-panel-title {
-    color: #EDEDED !important;
+    color: #e2e8f0 !important;
 }
 html.app-skin-dark .adm-panel-sub {
-    color: #8A8A8A;
+    color: #94a3b8;
 }
 html.app-skin-dark .main-content table.adm-table thead th {
-    color: #8A8A8A !important;
+    color: #94a3b8 !important;
 }
 .adm-table thead tr,
 html.app-skin-dark .adm-table thead tr {
@@ -349,7 +359,7 @@ html.app-skin-dark .adm-table tbody td,
 html.app-skin-dark .adm-attn-item,
 html.app-skin-dark .adm-upcoming-row,
 html.app-skin-dark .adm-activity-row {
-    border-color: #262626 !important;
+    border-color: #2d3f55 !important;
 }
 html.app-skin-dark .adm-table-name,
 html.app-skin-dark .adm-table-amount,
@@ -357,18 +367,18 @@ html.app-skin-dark .adm-attn-item-title,
 html.app-skin-dark .adm-upcoming-name,
 html.app-skin-dark .adm-upcoming-amount,
 html.app-skin-dark .adm-activity-text {
-    color: #EDEDED;
+    color: #e2e8f0;
 }
 html.app-skin-dark .adm-table-date,
 html.app-skin-dark .adm-attn-item-desc,
 html.app-skin-dark .adm-attn-item-count,
 html.app-skin-dark .adm-upcoming-sub,
 html.app-skin-dark .adm-activity-meta {
-    color: #8A8A8A;
+    color: #94a3b8;
 }
 html.app-skin-dark .adm-upcoming-date {
     background: rgba(37, 99, 235, 0.15);
 }
 html.app-skin-dark .adm-upcoming-date-day {
-    color: #EDEDED;
+    color: #e2e8f0;
 }

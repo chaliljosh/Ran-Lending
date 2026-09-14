@@ -58,4 +58,19 @@ document.addEventListener('DOMContentLoaded', function () {
             remarksCount.textContent = remarksInput.value.length;
         });
     }
+
+    // ---- Loading state on submit: icon-only spinner, no text ----
+    // Normal form submit (not AJAX) — the button stays in this
+    // loading state until the page navigates away after the
+    // server responds/redirects.
+    const decisionForm = document.getElementById('decisionForm');
+    if (decisionForm) {
+        decisionForm.addEventListener('submit', function () {
+            const confirmBtn = document.getElementById('decisionConfirmBtn');
+            if (confirmBtn) {
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = '<i class="feather-loader spin-icon"></i>';
+            }
+        });
+    }
 });

@@ -6,6 +6,14 @@
 // (remarks → confirmation) matching loan-application-detail.js
 // exactly. decisionForm now submits normally on step 2 — no AJAX,
 // same as the loan application flow.
+//
+// UPDATE: submitting step 2 now flips the confirm button into a
+// disabled loading-spinner state ("Approving..."/"Rejecting...")
+// right away. Since this is a normal (non-AJAX) form submit, the
+// page will redirect back to Borrower Verification shortly after —
+// the spinner just covers that brief window — and the existing
+// session-based toast on the list page still shows the result like
+// before, unchanged.
 
 function decisionShowConfirm(action) {
     document.getElementById('decisionActionInput').value = action;
@@ -62,6 +70,30 @@ document.addEventListener('DOMContentLoaded', function () {
     if (remarksInput && remarksCount) {
         remarksInput.addEventListener('input', function () {
             remarksCount.textContent = remarksInput.value.length;
+        });
+    }
+
+    // ========================================
+    // LOADING STATE — flips the confirm button (Approve/Reject) into
+    // a disabled spinner as soon as step 2 is submitted. Normal
+    // (non-AJAX) submit, so the page redirects shortly after; this
+    // just covers that window so the click feels acknowledged.
+    // ========================================
+    const decisionForm = document.getElementById('decisionForm');
+    if (decisionForm) {
+        decisionForm.addEventListener('submit', function () {
+            const confirmBtn = document.getElementById('decisionConfirmBtn');
+            const actionInput = document.getElementById('decisionActionInput');
+            if (!confirmBtn) return;
+
+            const action = actionInput ? actionInput.value : '';
+            const label = action === 'approved' ? 'Approving...' : 'Rejecting...';
+
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' + label;
+
+            const cancelBtn = document.querySelector('#decisionFooterStep2 .btn-decision-cancel');
+            if (cancelBtn) cancelBtn.disabled = true;
         });
     }
 });

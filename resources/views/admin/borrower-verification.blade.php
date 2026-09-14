@@ -36,13 +36,52 @@
              (see the 'reviewed' branch below), same pattern as
              Approved / Rejected / On Hold. --}}
 
-            @if (count($pendingDetails) === 0)
-                <div class="card">
-                    <div class="card-body text-center py-5">
-                        <i class="feather-check-circle" style="font-size:48px; color:#28a745;"></i>
-                        <h5 class="mt-3 fw-bold">All caught up!</h5>
-                        <p class="text-muted">No pending personal details to review.</p>
+            {{-- ---- Summary cards (matched 1:1 to Loan Applications) ---- --}}
+            <div class="la-stats-row">
+                <div class="la-stat-card">
+                    <div class="la-stat-top">
+                        <span class="la-stat-label">Total Pending</span>
+                        <i class="feather-clock la-stat-icon"></i>
                     </div>
+                    <div class="la-stat-value">{{ count($pendingDetails) }}</div>
+                    <div class="la-stat-sub">borrowers waiting for verification</div>
+                </div>
+                <div class="la-stat-card">
+                    <div class="la-stat-top">
+                        <span class="la-stat-label">New Applications</span>
+                        <i class="feather-file-plus la-stat-icon"></i>
+                    </div>
+                    <div class="la-stat-value">{{ $newApplicationsCount ?? 0 }}</div>
+                    <div class="la-stat-sub">submitted within 24 hours</div>
+                </div>
+                <div class="la-stat-card {{ ($needsAttentionCount ?? 0) > 0 ? 'is-attention' : '' }}">
+                    <div class="la-stat-top">
+                        <span class="la-stat-label">Needs Attention</span>
+                        <i class="feather-alert-triangle la-stat-icon"></i>
+                    </div>
+                    <div class="la-stat-value">{{ $needsAttentionCount ?? 0 }}</div>
+                    <div class="la-stat-sub">waiting 3+ days</div>
+                </div>
+                <div class="la-stat-card">
+                    <div class="la-stat-top">
+                        <span class="la-stat-label">Total Approved</span>
+                        <i class="feather-check-circle la-stat-icon"></i>
+                    </div>
+                    <div class="la-stat-value">{{ $totalApprovedCount ?? 0 }}</div>
+                    <div class="la-stat-sub">this month</div>
+                </div>
+            </div>
+
+            @if (count($pendingDetails) === 0)
+                <div class="la-empty-large">
+                    <span class="la-empty-icon-lg">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </span>
+                    <p class="la-empty-title">All caught up!</p>
+                    <p class="la-empty-desc">No pending personal details to review.</p>
                 </div>
             @else
                 <div class="reviewed-card">
@@ -53,21 +92,18 @@
                             <input type="text" id="pendingSearchInput" placeholder="Search borrower name or email..."
                                 onkeyup="filterPendingTable()">
                         </div>
-                        <select id="pendingStatusFilter" class="reviewed-decision-filter" onchange="filterPendingTable()">
-                            <option value="">All</option>
-                            <option value="pending">Pending</option>
-                            <option value="on_hold">On Hold</option>
-                        </select>
                         <div class="reviewed-toolbar-meta">
-                            <span class="reviewed-count-label">Showing</span>
-                            <select id="pendingRowsPerPage" class="reviewed-rpp-select"
-                                onchange="pendingChangeRowsPerPage(this)">
-                                <option value="10" selected>10</option>
-                                <option value="25">25</option>
-                                <option value="50">50</option>
+                            <select id="pendingStatusFilter" class="reviewed-decision-filter" onchange="filterPendingTable()">
+                                <option value="all" selected>All Pending</option>
+                                <option value="new">New Applications</option>
+                                <option value="attention">Needs Attention (3+ days)</option>
+                                <option value="on_hold">On Hold</option>
                             </select>
-                            <span class="reviewed-count-text" id="pendingPaginationInfo">of {{ count($pendingDetails) }}
-                                results</span>
+                            <select id="pendingSortSelect" class="reviewed-decision-filter" onchange="filterPendingTable()">
+                                <option value="applied_desc" selected>Newest First</option>
+                                <option value="applied_asc">Oldest First</option>
+                                <option value="waiting_desc">Waiting Time (Longest)</option>
+                            </select>
                         </div>
                     </div>
 
@@ -78,6 +114,7 @@
                                     <th class="sortable-th">Borrower</th>
                                     <th class="sortable-th">Contact</th>
                                     <th class="sortable-th">Detail ID</th>
+                                    <th class="sortable-th">Applied Date</th>
                                     <th class="sortable-th">Status</th>
                                     <th class="sortable-th">Approvals</th>
                                     <th class="text-end sortable-th">Action</th>
@@ -85,8 +122,14 @@
                             </thead>
                             <tbody>
                                 @foreach ($pendingDetails as $d)
-                                    <tr data-search="{{ strtolower($d['last_name'] . ' ' . $d['first_name'] . ' ' . $d['email']) }}"
-                                        data-status="{{ $d['status'] }}">
+                                    <tr
+                                        data-search="{{ strtolower($d['last_name'] . ' ' . $d['first_name'] . ' ' . $d['email']) }}"
+                                        data-status="{{ $d['status'] }}"
+                                        data-waiting="{{ $d['waiting_days'] }}"
+                                        data-applied="{{ \Carbon\Carbon::parse($d['created_at'])->toIso8601String() }}"
+                                        data-new="{{ \Carbon\Carbon::parse($d['created_at'])->gt(now()->subDay()) ? '1' : '0' }}"
+                                        data-attention="{{ $d['waiting_days'] >= 3 ? '1' : '0' }}"
+                                        class="{{ $d['waiting_days'] >= 3 ? 'is-attention-row' : '' }}">
                                         <td>
                                             <div class="rt-name">{{ $d['last_name'] }}, {{ $d['first_name'] }}
                                                 {{ $d['middle_name'] }}</div>
@@ -98,6 +141,7 @@
                                         </td>
                                         <td class="rt-date">{{ $d['cellphone_num'] ?? '—' }}</td>
                                         <td class="rt-detailid">#{{ $d['detail_id'] }}</td>
+                                        <td class="rt-date">{{ \Carbon\Carbon::parse($d['created_at'])->format('M d, Y') }}</td>
                                         <td>
                                             @if ($d['status'] === 'on_hold')
                                                 <span class="badge badge-onhold">On Hold</span>
@@ -122,8 +166,20 @@
                         </div>
                     </div>
 
-                    <div class="reviewed-pagination" id="pendingPagination">
+                    <div class="reviewed-pagination pending-pagination-row" id="pendingPagination">
+                        <div class="pending-rpp-wrap">
+                            <span class="reviewed-count-label">Showing</span>
+                            <select id="pendingRowsPerPage" class="reviewed-rpp-select"
+                                onchange="pendingChangeRowsPerPage(this)">
+                                <option value="10" selected>10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                            </select>
+                        </div>
                         <div class="reviewed-pagination-controls" id="pendingPaginationControls"></div>
+                        <span class="reviewed-count-text" id="pendingPaginationInfo">Showing
+                            {{ count($pendingDetails) }} of {{ count($pendingDetails) }}
+                            borrowers</span>
                     </div>
                 </div>
             @endif

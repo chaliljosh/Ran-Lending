@@ -31,8 +31,47 @@
 
         @if (($viewStatus ?? 'pending') === 'pending')
             {{-- ================= PENDING VIEW ================= --}}
-            {{-- Tabs removed — "Reviewed" is now its own sidebar link,
-             same pattern as Borrower Verification. --}}
+
+                   {{-- ---- Summary cards ---- --}}
+<div class="la-stats-row">
+    <div class="la-stat-card">
+        <div class="la-stat-top">
+            <span class="la-stat-label">
+                Total Pending
+                @if (($pendingLoanCount ?? 0) > 0)
+                    <span class="la-stat-badge">{{ $pendingLoanCount }}</span>
+                @endif
+            </span>
+            <i class="feather-clock la-stat-icon"></i>
+        </div>
+        <div class="la-stat-value">{{ count($pendingApplications) }}</div>
+        <div class="la-stat-sub">applications waiting for approval</div>
+    </div>
+    <div class="la-stat-card">
+        <div class="la-stat-top">
+            <span class="la-stat-label">New Applications</span>
+            <i class="feather-file-plus la-stat-icon"></i>
+        </div>
+        <div class="la-stat-value">{{ $newApplicationsCount ?? 0 }}</div>
+        <div class="la-stat-sub">submitted within 24 hours</div>
+    </div>
+    <div class="la-stat-card {{ ($needsAttentionCount ?? 0) > 0 ? 'is-attention' : '' }}">
+        <div class="la-stat-top">
+            <span class="la-stat-label">Needs Attention</span>
+            <i class="feather-alert-triangle la-stat-icon"></i>
+        </div>
+        <div class="la-stat-value">{{ $needsAttentionCount ?? 0 }}</div>
+        <div class="la-stat-sub">waiting 3+ days</div>
+    </div>
+    <div class="la-stat-card">
+        <div class="la-stat-top">
+            <span class="la-stat-label">Total Approved</span>
+            <i class="feather-check-circle la-stat-icon"></i>
+        </div>
+        <div class="la-stat-value">{{ $totalApprovedCount ?? 0 }}</div>
+        <div class="la-stat-sub">this month</div>
+    </div>
+</div>
 
             @if (count($pendingApplications) === 0)
                 <div class="la-empty-large">
@@ -46,7 +85,7 @@
                     <p class="la-empty-desc">No pending loan applications to review.</p>
                 </div>
             @else
-                <div class="reviewed-card">
+                              <div class="reviewed-card">
 
                     <div class="reviewed-toolbar">
                         <div class="search-bar-wrap reviewed-search-wrap">
@@ -55,15 +94,16 @@
                                 onkeyup="filterLoanPending()">
                         </div>
                         <div class="reviewed-toolbar-meta">
-                            <span class="reviewed-count-label">Showing</span>
-                            <select id="pendingRowsPerPage" class="reviewed-rpp-select"
-                                onchange="pendingChangeRowsPerPage(this)">
-                                <option value="10" selected>10</option>
-                                <option value="25">25</option>
-                                <option value="50">50</option>
+                            <select id="pendingStatusFilter" class="reviewed-decision-filter" onchange="filterLoanPending()">
+                                <option value="all" selected>All Pending</option>
+                                <option value="new">New Applications</option>
+                                <option value="attention">Needs Attention (3+ days)</option>
                             </select>
-                            <span class="reviewed-count-text" id="pendingPaginationInfo">of
-                                {{ count($pendingApplications) }} results</span>
+                            <select id="pendingSortSelect" class="reviewed-decision-filter" onchange="filterLoanPending()">
+                                <option value="applied_desc" selected>Newest First</option>
+                                <option value="applied_asc">Oldest First</option>
+                                <option value="waiting_desc">Waiting Time (Longest)</option>
+                            </select>
                         </div>
                     </div>
 
@@ -83,28 +123,34 @@
                             </thead>
                             <tbody id="loanPendingList">
                                 @foreach ($pendingApplications as $app)
+                                    @php
+                                        $waitingDays = $app['waiting_days'] ?? 0;
+                                        $isNewApplication = \Carbon\Carbon::parse($app['applied_at'])->gt(now()->subDay());
+                                    @endphp
                                     <tr
-                                        data-search="{{ strtolower($app['last_name'] . ' ' . $app['first_name'] . ' ' . $app['email']) }}">
+                                        data-search="{{ strtolower($app['last_name'] . ' ' . $app['first_name'] . ' ' . $app['email']) }}"
+                                        data-status="{{ $app['status'] }}"
+                                        data-waiting="{{ $waitingDays }}"
+                                        data-amount="{{ $app['loan_amount'] }}"
+                                        data-applied="{{ \Carbon\Carbon::parse($app['applied_at'])->toIso8601String() }}"
+                                        data-new="{{ $isNewApplication ? '1' : '0' }}"
+                                        data-attention="{{ $waitingDays >= 3 ? '1' : '0' }}"
+                                        class="{{ $waitingDays >= 3 ? 'is-attention-row' : '' }}">
                                         <td>
                                             <div class="rt-name">{{ $app['last_name'] }}, {{ $app['first_name'] }}</div>
                                             <div class="rt-email">{{ $app['email'] }}</div>
                                         </td>
                                         <td class="text-end rt-date">&#8369;{{ number_format($app['loan_amount'], 2) }}</td>
                                         <td class="rt-date">{{ $app['loan_term'] }} months</td>
-                                        <td class="rt-remarks"
-                                            title="{{ ucfirst(str_replace('_', ' ', $app['loan_purpose'])) }}">
-                                            {{ ucfirst(str_replace('_', ' ', $app['loan_purpose'])) }}
+                                        <td class="rt-remarks" title="{{ ucfirst(str_replace('_', ' ', $app['loan_purpose'] ?? '—')) }}">
+                                            {{ ucfirst(str_replace('_', ' ', $app['loan_purpose'] ?? '—')) }}
                                         </td>
                                         <td class="rt-date">{{ date('M d, Y', strtotime($app['applied_at'])) }}</td>
                                         <td>
-                                            @if ($app['approved_count'] > 0 || $app['rejected_count'] > 0)
-                                                <div class="progress-mini-table">
-                                                    <span class="pm-item is-approved">{{ $app['approved_count'] }}/3</span>
-                                                    <span class="pm-item is-rejected">{{ $app['rejected_count'] }}/3</span>
-                                                </div>
-                                            @else
-                                                <span class="rt-date">&mdash;</span>
-                                            @endif
+                                            <div class="progress-mini-table">
+                                                <span class="pm-item is-approved">{{ $app['approved_count'] }} Approved</span>
+                                                <span class="pm-item is-rejected">{{ $app['rejected_count'] }} Rejected</span>
+                                            </div>
                                         </td>
                                         <td>
                                             @if ($app['status'] === 'on_hold')
@@ -116,7 +162,7 @@
                                         </td>
                                         <td class="text-end">
                                             <a href="{{ route('admin.loan-application-detail', $app['application_id']) }}"
-                                                class="btn-light">View Details</a>
+                                                class="btn-light">Review</a>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -127,8 +173,19 @@
                         </div>
                     </div>
 
-                    <div class="reviewed-pagination" id="pendingPagination">
+                    <div class="reviewed-pagination pending-pagination-row" id="pendingPagination">
+                        <div class="pending-rpp-wrap">
+                            <span class="reviewed-count-label">Showing</span>
+                            <select id="pendingRowsPerPage" class="reviewed-rpp-select" onchange="pendingChangeRowsPerPage(this)">
+                                <option value="10" selected>10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                            </select>
+                        </div>
                         <div class="reviewed-pagination-controls" id="pendingPaginationControls"></div>
+                        <span class="reviewed-count-text" id="pendingPaginationInfo">Showing
+                            {{ count($pendingApplications) }} of {{ count($pendingApplications) }}
+                            applications</span>
                     </div>
                 </div>
             @endif
@@ -340,7 +397,7 @@
                                         </td>
                                         <td class="text-end">
                                             <a href="{{ route('admin.loan-application-detail', $app->application_id) }}"
-                                                class="btn-light">View Details</a>
+                                                class="btn-light">Review</a>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -364,36 +421,13 @@
 @endsection
 
 @section('page-scripts')
+    <script src="{{ asset('functions/loan-applications.js') }}"></script>
+
     @if (session('success'))
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                const status = @json(session('decisionStatus'));
-
-                let title = 'Decision submitted';
-                let message =
-                    'Your decision has been recorded successfully. The application will remain under review until all three administrators have submitted their decisions.';
-                let type = 'success';
-
-                if (status === 'approved') {
-                    title = 'Application approved';
-                    message = 'The loan application has been approved by all administrators.';
-                    type = 'success';
-                } else if (status === 'rejected') {
-                    title = 'Application rejected';
-                    message = 'The loan application has been rejected by all administrators.';
-                    type = 'error'; // ✅ tamang type
-                }
-            } else if (status === 'on_hold') {
-                title = 'Application on hold';
-                message =
-                    'The administrators have reached different decisions. The application has been placed on hold for further discussion.';
-                type = 'warning';
-            }
-
-            window.showAdminToast(type, title, message);
+                showLoanDecisionToast(@json(session('decisionStatus')));
             });
         </script>
     @endif
-
-    <script src="{{ asset('functions/loan-applications.js') }}"></script>
 @endsection
