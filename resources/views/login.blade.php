@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>Login - RAN Lending</title>
+    <link href="{{ asset('assets/landingpage/img/ranlogo1.jpg') }}" rel="icon">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
   <link rel="shortcut icon" type="image/png" href="{{ asset('assets/login/images/logos/seodashlogo.png') }}" />
   <link rel="stylesheet" href="{{ asset('assets/login/css/styles.min.css') }}" />
@@ -77,6 +78,12 @@
                     <p class="fs-4 mb-0 fw-bold">New to RAN?</p>
                     <a class="text-primary ms-2" href="{{ route('register') }}">Create an account</a>
                   </div>
+
+                     <p class="login-consent-text mt-3 mb-0">
+                    By logging in, you agree to our
+                    <a href="{{ route('legal.terms') }}" class="text-primary">Terms</a> and
+                    <a href="{{ route('legal.privacy') }}" class="text-primary">Privacy Policy</a>.
+                  </p>
                 </form>
               </div>
             </div>
@@ -129,6 +136,7 @@
     }
   </script>
   <script src="{{ asset('functions/otp-modal.js') }}"></script>
+  <script src="{{ asset('functions/csrf.js') }}"></script>
   <script src="{{ asset('functions/login.js') }}"></script>
 </body>
 </html>

@@ -229,10 +229,10 @@
         @if ($status === 'unpaid')
             <div class="pd-action-row mb-4">
                 <button type="button" class="pd-btn-paid" data-bs-toggle="modal" data-bs-target="#paidConfirmModal">
-                    <i class="bi bi-check-circle me-2"></i> Mark as Paid
+                     Mark as Paid
                 </button>
                 <button type="button" class="pd-btn-waive" data-bs-toggle="modal" data-bs-target="#waiveModal">
-                    <i class="bi bi-slash-circle me-2"></i> Waive Penalty
+                    Waive Penalty
                 </button>
             </div>
         @endif

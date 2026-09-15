@@ -1,0 +1,41 @@
+/* ============================================================
+   ADMIN SIDEBAR BRAND — logo swap kapag naka-collapse
+   (mini mode). Parehong mechanism sa borrower-sidebar.css:
+   .sidebar-mini-mode class sa <body> ang nag-toggle, hindi
+   yung internal minified theme JS.
+============================================================ */
+
+.b-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.b-brand-icon {
+    display: none;
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    flex-shrink: 0;
+    border-radius: 6px;
+}
+
+body.sidebar-mini-mode .b-brand-text {
+    display: none;
+}
+
+body.sidebar-mini-mode .b-brand-icon {
+    display: block;
+    width: 80px;
+    height: 80px;
+}
+
+body.sidebar-mini-mode .m-header {
+    justify-content: center;
+    padding: 12px 8px !important;
+    overflow: visible;
+}
+
+body.sidebar-mini-mode .b-brand {
+    overflow: visible;
+}

@@ -135,7 +135,7 @@
 
                     <!-- Application Status / Decision -->
                     <div class="section-card mb-3">
-                        <p class="section-title"><i class="feather-check-square me-2"></i>Application Status</p>
+                        <p class="section-title">Application Status</p>
                         <div class="text-center">
                             @if ($app->status === 'rejected')
                                 <div class="alert alert-danger mb-0" style="font-size:0.85rem;">
@@ -162,7 +162,7 @@
 
                     <!-- Loan Summary -->
                     <div class="section-card mb-3">
-                        <p class="section-title"><i class="feather-file-text me-2"></i>Loan Summary</p>
+                        <p class="section-title">Loan Summary</p>
                         <div class="row g-3">
                             <div class="col-6">
                                 <div class="ld-field"><span class="info-label">Application ID</span><span
@@ -217,7 +217,7 @@
 
                 <!-- Admin Review Status -->
                 <div class="section-card mb-3">
-                    <p class="section-title"><i class="feather-users me-2"></i>Admin Review Status
+                    <p class="section-title">Admin Review Status
                         ({{ $approvedCount ?? 0 }}/3 approved)</p>
                     <div class="table-responsive">
                         <table class="table table-sm ld-review-table mb-0">
@@ -259,7 +259,7 @@
 
                 <!-- Personal Information -->
                 <div class="section-card mb-3">
-                    <p class="section-title"><i class="feather-user me-2"></i>Personal Information</p>
+                    <p class="section-title">Personal Information</p>
                     <div class="row g-2">
                         <div class="col-md-6">
                             <div class="ld-field compact"><span class="info-label">Full Name</span><span
@@ -302,7 +302,7 @@
 
                 <!-- Present Address -->
                 <div class="section-card mb-3">
-                    <p class="section-title"><i class="feather-map-pin me-2"></i>Present Address</p>
+                    <p class="section-title">Present Address</p>
                     <div class="row g-2">
                         <div class="col-md-6">
                             <div class="ld-field compact"><span class="info-label">Region</span><span
@@ -329,7 +329,7 @@
 
                 <!-- Work Information -->
                 <div class="section-card mb-3">
-                    <p class="section-title"><i class="feather-briefcase me-2"></i>Work Information</p>
+                    <p class="section-title">Work Information</p>
                     <div class="row g-2">
                         <div class="col-md-6">
                             <div class="ld-field compact"><span class="info-label">Employment Status</span><span
@@ -354,7 +354,7 @@
                 <!-- Valid ID -->
                 @if (($app->id_file_path ?? null) || ($app->id_file_path_back ?? null))
                     <div class="section-card mb-3">
-                        <p class="section-title"><i class="feather-credit-card me-2"></i>Submitted Valid ID</p>
+                        <p class="section-title">Submitted Valid ID</p>
                         <div class="row g-3 mb-1">
                             <div class="col-md-6">
                                 <div class="ld-field"><span class="info-label">ID Type</span><span
@@ -416,7 +416,7 @@
                 <!-- Payment Schedule -->
                 @if ($paymentSchedule->isNotEmpty())
                     <div class="section-card mb-3">
-                        <p class="section-title"><i class="feather-calendar me-2"></i>Payment Schedule</p>
+                        <p class="section-title">Payment Schedule</p>
                         <div class="table-responsive">
                             <table class="table table-sm ld-schedule-table mb-0">
                                 <thead>
@@ -462,7 +462,7 @@
 
                 <!-- Discussion -->
                 <div class="section-card">
-                    <p class="section-title"><i class="feather-message-square me-2"></i>Discussion</p>
+                    <p class="section-title">Discussion</p>
 
                     <div class="ld-discussion">
                         @forelse($comments as $c)

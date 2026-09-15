@@ -79,9 +79,15 @@
                 @else
                     {{-- INFO NOTICE --}}
                     <div class="aln-notice">
-                        <strong>First-Time Borrowers:</strong>
-                        Maximum loan amount is ₱10,000. After successful repayment, you may apply for higher amounts up to
-                        ₱100,000.
+                        @if ($isFirstTime)
+                            <strong>First-Time Borrowers:</strong>
+                            Maximum loan amount is ₱10,000. After successful repayment, you may apply for higher amounts up to
+                            ₱100,000.
+                        @else
+                            <strong>You're Eligible for Higher Amounts:</strong>
+                            Since you've successfully repaid a previous loan, you may now apply for up to
+                            ₱{{ number_format($maxLoanAmount) }}.
+                        @endif
                     </div>
 
                     {{-- LOAN APPLICATION FORM --}}
@@ -102,10 +108,11 @@
                                     <div class="input-group aln-input-group">
                                         <span class="input-group-text aln-input-prefix">₱</span>
                                         <input type="number" class="form-control aln-input" id="loanAmount"
-                                            placeholder="1,000 – 10,000" min="1000" max="10000" step="100"
-                                            required>
+                                            placeholder="1,000 – {{ number_format($maxLoanAmount) }}" min="1000"
+                                            max="{{ $maxLoanAmount }}" step="100" required>
                                     </div>
-                                    <small class="aln-hint">Min: ₱1,000 &nbsp;|&nbsp; Max: ₱10,000</small>
+                                    <small class="aln-hint">Min: ₱1,000 &nbsp;|&nbsp; Max:
+                                        ₱{{ number_format($maxLoanAmount) }}</small>
                                 </div>
 
                                 {{-- Loan Term --}}
@@ -323,5 +330,6 @@
      still runs on every load. --}}
 @section('page-scripts')
     <script src="{{ asset('functions/apply-loan.js') }}" data-csrf="{{ csrf_token() }}"
-        data-submit-url="{{ url('/api/borrower/apply-loan') }}"></script>
+        data-submit-url="{{ url('/api/borrower/apply-loan') }}"
+        data-max-amount="{{ $maxLoanAmount ?? 10000 }}"></script>
 @endsection

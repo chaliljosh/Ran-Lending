@@ -103,7 +103,15 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('email',    email);
         formData.append('password', password);
 
-        fetch('/api/login', { method: 'POST', body: formData })
+        // CSRF token — gamit ang shared getCsrfToken() helper mula sa
+        // csrf.js (kailangan itong naka-load na bago ito), kumukuha ng
+        // XSRF-TOKEN cookie na Laravel na mismo ang nag-set.
+        fetch('/api/login', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'X-XSRF-TOKEN': getCsrfToken() },
+            body: formData
+        })
         .then(res => res.json())
         .then(data => {
             hideLoading();
@@ -145,7 +153,12 @@ function openLoginOtpModal(maskedEmail) {
             formData.append('email', pendingLoginEmail);
             formData.append('otp',   code);
 
-            return fetch('/api/login/verify-otp', { method: 'POST', body: formData })
+            return fetch('/api/login/verify-otp', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'X-XSRF-TOKEN': getCsrfToken() },
+                body: formData
+            })
                 .then(res => res.json())
                 .then(data => {
                     if (!data.success) throw new Error(data.message || 'Invalid OTP.');
@@ -156,7 +169,12 @@ function openLoginOtpModal(maskedEmail) {
             const formData = new FormData();
             formData.append('email', pendingLoginEmail);
 
-            return fetch('/api/login/resend-otp', { method: 'POST', body: formData })
+            return fetch('/api/login/resend-otp', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'X-XSRF-TOKEN': getCsrfToken() },
+                body: formData
+            })
                 .then(res => res.json())
                 .then(data => {
                     if (!data.success) throw new Error(data.message || 'Failed to resend OTP.');

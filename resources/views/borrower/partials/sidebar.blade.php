@@ -4,9 +4,10 @@
 
 <nav class="nxl-navigation">
     <div class="navbar-wrapper" style="position: relative;">
-        <div class="m-header">
+               <div class="m-header">
             <a href="{{ route('borrower.dashboard') }}" class="b-brand">
-                <h3 class="fst-italic">Ran Serenity</h3>
+                <img src="{{ asset('assets/landingpage/img/ranlogo.png') }}" alt="Ran Serenity" class="b-brand-icon">
+                <h3 class="fst-italic b-brand-text">Ran Serenity</h3>
             </a>
         </div>
         <div class="navbar-content">

@@ -335,6 +335,7 @@
 @section('page-scripts')
     <script src="{{ asset('assets/borrower/vendors/js/daterangepicker.min.js') }}"></script>
     @if($detailsStatus === 'incomplete' || $detailsStatus === 'rejected')
+    <script src="{{ asset('functions/csrf.js') }}"></script>
     <script src="{{ asset('functions/personal-details.js') }}"></script>
     @endif
 @endsection

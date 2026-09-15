@@ -184,3 +184,38 @@ html.app-skin-dark .nxl-navigation .nxl-link.active {
     color: #E2E8F0 !important;
 }
 html.app-skin-dark .nxl-navigation .nxl-nav-divider { background: #2D3F55; }
+
+/* ---------- Brand logo — icon swaps in for the text logo when the
+   sidebar is collapsed to icon-only mode (toggled by the header's
+   hamburger/mini-menu button). Independent of whatever internal
+   class the theme's own minified JS uses — .sidebar-mini-mode is
+   applied by our own small script in layout.blade.php listening to
+   the same #menu-mini-button / #menu-expend-button clicks. ---------- */
+.b-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.b-brand-icon {
+    display: none;
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+body.sidebar-mini-mode .b-brand-text {
+    display: none;
+}
+body.sidebar-mini-mode .b-brand-icon {
+    display: block;
+    width: 80px;
+    height: 80px;
+}
+body.sidebar-mini-mode .m-header {
+    justify-content: center;
+    padding: 12px 8px !important;
+    overflow: visible;
+}
+body.sidebar-mini-mode .b-brand {
+    overflow: visible;
+}

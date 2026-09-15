@@ -67,7 +67,7 @@
                  footer row with Total Outstanding (left) and the action
                  buttons (right). --}}
             <div class="opd-card opd-overdue-card">
-                <div class="opd-card-title"><i class="feather-alert-triangle"></i> Overdue Payment</div>
+                <div class="opd-card-title"> Overdue Payment</div>
 
                 @if ($oldestOverdue)
                     <div class="opd-overdue-strip">
@@ -118,7 +118,7 @@
 
             {{-- ============ 4. PAYMENT SCHEDULE ============ --}}
             <div class="opd-card">
-                <div class="opd-card-title"><i class="feather-calendar"></i> Payment Schedule</div>
+                <div class="opd-card-title">Payment Schedule</div>
                 <div class="opd-table-scroll">
                     <table class="opd-table">
                         <thead>
@@ -161,7 +161,7 @@
 
             {{-- ============ 5. LOAN SUMMARY (compact, secondary) ============ --}}
             <div class="opd-card opd-summary-card">
-                <div class="opd-card-title"><i class="feather-file-text"></i> Loan Summary</div>
+                <div class="opd-card-title">Loan Summary</div>
                 <div class="opd-summary-grid">
                     <div class="opd-summary-row">
                         <span class="opd-summary-label">Application ID</span>

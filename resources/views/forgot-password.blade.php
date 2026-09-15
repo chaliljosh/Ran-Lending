@@ -7,6 +7,7 @@
   <title>Forgot Password - RAN Lending</title>
 
   <link rel="stylesheet" href="{{ asset('assets/login/css/styles.min.css') }}" />
+  <link href="{{ asset('assets/landingpage/img/ranlogo1.jpg') }}" rel="icon">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ asset('assets/login/css/forgotpassword.css') }}" />

@@ -5,7 +5,7 @@
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ran Lending - Registration</title>
-  <link rel="shortcut icon" type="image/png" href="{{ asset('assets/login/images/logos/seodashlogo.png') }}" />
+<link href="{{ asset('assets/landingpage/img/ranlogo1.jpg') }}" rel="icon">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -171,6 +171,24 @@
                 <li id="pwReqLength"><i class="bi bi-x-circle"></i> At least 8 characters</li>
               </ul>
             </div>
+          </div>
+
+          <!-- ============================================================
+               CONSENT CHECKBOX — kailangan bago maka-submit. Ang
+               "agreeTerms" checkbox ay chine-check ng register.js bago
+               i-enable ang Create Account button / bago i-submit ang
+               form (see register.js).
+          ============================================================ -->
+          <div class="col-span-2">
+            <label class="consent-check">
+              <input type="checkbox" id="agreeTerms">
+              <span>
+                I agree to the
+                <a href="{{ route('legal.terms') }}" target="_blank" rel="noopener">Terms of Service</a>
+                and
+                <a href="{{ route('legal.privacy') }}" target="_blank" rel="noopener">Privacy Policy</a>
+              </span>
+            </label>
           </div>
 
           <div class="col-span-2">

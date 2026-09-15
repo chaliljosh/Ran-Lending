@@ -14,7 +14,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
 
-    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('assets/borrower/images/favicon.ico') }}" />
+ <link href="{{ asset('assets/landingpage/img/ranlogo1.jpg') }}" rel="icon">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/borrower/css/bootstrap.min.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/borrower/vendors/css/vendors.min.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/borrower/css/theme.min.css') }}" />
@@ -174,8 +174,8 @@
             </p>
             <div class="d-flex align-items-center gap-4">
                 <a href="{{ route('borrower.faq') }}" class="fs-11 fw-semibold text-uppercase">Help</a>
-                <a href="{{ route('borrower.terms') }}" class="fs-11 fw-semibold text-uppercase">Terms</a>
-                <a href="{{ route('borrower.privacy') }}" class="fs-11 fw-semibold text-uppercase">Privacy</a>
+                <a href="{{ route('legal.terms') }}" class="fs-11 fw-semibold text-uppercase">Terms</a>
+                <a href="{{ route('legal.privacy') }}" class="fs-11 fw-semibold text-uppercase">Privacy</a>
             </div>
         </footer>
     </main>
@@ -201,6 +201,21 @@
     <script src="{{ asset('functions/logout-modal.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
     <script src="{{ asset('functions/settings-modal.js') }}"></script>
+
+    {{-- Page-specific scripts go here --}}
+       <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var miniBtn = document.getElementById('menu-mini-button');
+            var expandBtn = document.getElementById('menu-expend-button');
+
+            function toggleSidebarMiniMode() {
+                document.body.classList.toggle('sidebar-mini-mode');
+            }
+
+            if (miniBtn) miniBtn.addEventListener('click', toggleSidebarMiniMode);
+            if (expandBtn) expandBtn.addEventListener('click', toggleSidebarMiniMode);
+        });
+    </script>
 
     {{-- Page-specific scripts go here --}}
     @yield('page-scripts')

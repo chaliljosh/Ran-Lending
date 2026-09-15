@@ -39,6 +39,9 @@ class AuthController extends Controller
         RateLimiter::clear($key);
 
         if ($user->role === 'admin') {
+          Session::regenerate();   
+
+
             Session::put('user_id',    $user->user_id);
             Session::put('user_name',  $user->name);
             Session::put('user_email', $user->email);
@@ -138,6 +141,8 @@ class AuthController extends Controller
 
         DB::table('otp_verifications')->where('id', $record->id)->update(['is_used' => 1]);
         RateLimiter::clear('otp-send:' . $email);
+
+        Session::regenerate();              
 
         Session::put('user_id',    $pending['user_id']);
         Session::put('user_name',  $pending['user_name']);

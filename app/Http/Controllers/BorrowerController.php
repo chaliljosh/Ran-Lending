@@ -67,6 +67,26 @@ class BorrowerController extends Controller
         return null;
     }
 
+    /**
+     * Loan amount eligibility — first-time borrowers are capped at
+     * ₱10,000. Once they have at least one fully completed loan,
+     * they're eligible for up to ₱100,000. Used by both applyLoan()
+     * (to render the correct banner/input limits) and
+     * submitLoanApplication() (to enforce it server-side).
+     */
+    private function getLoanEligibility($userId)
+    {
+        $completedCount = DB::table('loan_applications')
+            ->where('user_id', $userId)
+            ->where('status', 'completed')
+            ->count();
+
+        $isFirstTime = $completedCount === 0;
+        $maxAmount = $isFirstTime ? 10000 : 100000;
+
+        return compact('isFirstTime', 'maxAmount');
+    }
+
     private function buildPaymentSchedule($app)
     {
         $schedule = [];
@@ -409,6 +429,18 @@ class BorrowerController extends Controller
     {
         $userId = Session::get('user_id');
 
+        // Server-side validation — bago ito wala talagang restriction sa
+        // 'validIdFront' / 'validIdBack' uploads (puwede dating i-upload
+        // ang kahit anong file type/laki bilang "Valid ID"). Ngayon
+        // dinadaan na sa parehong image/mimes/size check na ginagamit na
+        // ng profile picture upload sa AdminController/BorrowerController.
+        $request->validate([
+            'validIdFront' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'validIdBack'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'email'        => 'nullable|email',
+            'cellphone'    => 'nullable|string|max:20',
+        ]);
+
         $existing = DB::table('borrowerpersonaldetails')->where('user_id', $userId)->first();
 
         // ID Front / Back — dalawang hiwalay na files na ngayon (dati
@@ -527,10 +559,17 @@ class BorrowerController extends Controller
 
         $hasPendingApplication = (bool) $existingApplication;
 
+        // First-time borrowers are capped at ₱10,000; once they've
+        // completed at least one loan, they're eligible up to ₱100,000.
+        $eligibility = $this->getLoanEligibility($userId);
+        $isFirstTime = $eligibility['isFirstTime'];
+        $maxLoanAmount = $eligibility['maxAmount'];
+
         return view('borrower.apply-loan', compact(
             'userName', 'initials', 'profilePicture', 'isFullyApproved', 'hasPendingApplication', 'existingApplication',
             'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
-            'headerNotifications', 'unreadNotifCount'
+            'headerNotifications', 'unreadNotifCount',
+            'isFirstTime', 'maxLoanAmount'
         ));
     }
 
@@ -553,11 +592,16 @@ class BorrowerController extends Controller
             return response()->json(['success' => false, 'message' => 'You already have an active or pending loan application.'], 422);
         }
 
+        // Same eligibility check as applyLoan() — enforced here too since
+        // the frontend limit can be bypassed (devtools, direct API call).
+        $eligibility = $this->getLoanEligibility($userId);
+        $maxLoanAmount = $eligibility['maxAmount'];
+
         $loanAmount = (float) $request->input('loanAmount');
         $loanTerm   = (int) $request->input('loanTerm');
 
-        if ($loanAmount < 1000 || $loanAmount > 10000) {
-            return response()->json(['success' => false, 'message' => 'Loan amount must be between ₱1,000 and ₱10,000.'], 422);
+        if ($loanAmount < 1000 || $loanAmount > $maxLoanAmount) {
+            return response()->json(['success' => false, 'message' => 'Loan amount must be between ₱1,000 and ₱' . number_format($maxLoanAmount) . '.'], 422);
         }
         if (!in_array($loanTerm, [3, 6, 12], true)) {
             return response()->json(['success' => false, 'message' => 'Invalid loan term.'], 422);
@@ -742,9 +786,11 @@ class BorrowerController extends Controller
             ['read_at' => now(), 'updated_at' => now(), 'created_at' => now()]
         );
 
+        // Fixed: naka-block na ang "//evil.com" protocol-relative bypass
+        // (parehong isyu tulad ng na-ayos na sa AdminController::notificationOpen()).
         $redirect = $request->query('redirect');
 
-        if ($redirect && str_starts_with($redirect, '/')) {
+        if ($redirect && str_starts_with($redirect, '/') && !str_starts_with($redirect, '//')) {
             return redirect($redirect);
         }
 
@@ -1023,36 +1069,12 @@ class BorrowerController extends Controller
 
     public function terms(Request $request)
     {
-        $userId = Session::get('user_id');
-        $common = $this->commonData($userId);
-        extract($common);
-
-        if (!$isFullyApproved) {
-            return redirect()->route('borrower.dashboard');
-        }
-
-        return view('borrower.terms', compact(
-            'userName', 'initials', 'profilePicture', 'isFullyApproved',
-            'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
-            'headerNotifications', 'unreadNotifCount'
-        ));
+        return redirect()->route('legal.terms');
     }
 
     public function privacy(Request $request)
     {
-        $userId = Session::get('user_id');
-        $common = $this->commonData($userId);
-        extract($common);
-
-        if (!$isFullyApproved) {
-            return redirect()->route('borrower.dashboard');
-        }
-
-        return view('borrower.privacy', compact(
-            'userName', 'initials', 'profilePicture', 'isFullyApproved',
-            'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
-            'headerNotifications', 'unreadNotifCount'
-        ));
+        return redirect()->route('legal.privacy');
     }
 
     public function changePassword(Request $request)

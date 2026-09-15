@@ -83,139 +83,190 @@
                     </div>
                 </div>
             </div>
-        @elseif(!$app)
-            {{-- Fully approved account, may o walang application pa, pero
-     walang active loan schedule pa. Redesigned: horizontal step
-     tracker (Submitted → Under Review → Decision) instead of a
-     stat-box card, para hindi ito parehong-pareho ng "pending"
-     card sa Apply for a Loan page. --}}
-            @php
-                $isRejectedLoan = ($loanStatus['bar'] ?? '') === 'bg-danger';
-                $isApprovedLoan = ($loanStatus['bar'] ?? '') === 'bg-success';
-            @endphp
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
+       @elseif(!$app)
+    @php
+        $isRejectedLoan  = $latestLoan && $latestLoan->status === 'rejected';
+        $isApprovedLoan  = $latestLoan && $latestLoan->status === 'approved';
+        $isCompletedLoan = $latestLoan && $latestLoan->status === 'completed';
+    @endphp
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
 
-                    @if (!$latestLoan)
-                        {{-- Walang application pa — simpleng prompt lang, hindi
-                         kailangan ng tracker dahil wala pang nangyayaring
-                         "progress" na ipapakita. --}}
-                        <div class="bwl-tracker-card bwl-tracker-empty">
-                            <p class="bwl-tracker-eyebrow">Loan Application</p>
-                            <h5 class="bwl-tracker-empty-title">No Active Application</h5>
-                            <p class="bwl-tracker-message">You haven't applied for a loan yet.</p>
-                            <a href="{{ route('borrower.apply-loan') }}" class="bwl-tracker-link">
-                                Apply for a Loan <span class="bwl-tracker-link-arrow">→</span>
-                            </a>
-                        </div>
-                    @else
-                        <div class="bwl-tracker-card">
-                            <p class="bwl-tracker-eyebrow">Loan Application</p>
-
-                            <div class="bwl-tracker-steps">
-                                <div class="bwl-tracker-step is-done">
-                                    <span class="bwl-tracker-dot">
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="3" stroke-linecap="round"
-                                            stroke-linejoin="round">
-                                            <polyline points="20 6 9 17 4 12"></polyline>
-                                        </svg>
-                                    </span>
-                                    <span class="bwl-tracker-label">Application Submitted</span>
-                                </div>
-
-                                <div class="bwl-tracker-line is-done"></div>
-
-                                <div
-                                    class="bwl-tracker-step {{ $isRejectedLoan ? 'is-done' : ($isApprovedLoan ? 'is-done' : 'is-current') }}">
-                                    <span class="bwl-tracker-dot">
-                                        @if ($isRejectedLoan || $isApprovedLoan)
-                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                                                stroke="currentColor" stroke-width="3" stroke-linecap="round"
-                                                stroke-linejoin="round">
-                                                <polyline points="20 6 9 17 4 12"></polyline>
-                                            </svg>
-                                        @else
-                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                                stroke-linejoin="round">
-                                                <circle cx="12" cy="12" r="10"></circle>
-                                                <polyline points="12 6 12 12 16 14"></polyline>
-                                            </svg>
-                                        @endif
-                                    </span>
-                                    <span class="bwl-tracker-label">Under Review</span>
-                                </div>
-
-                                <div
-                                    class="bwl-tracker-line {{ $isRejectedLoan ? 'is-rejected' : ($isApprovedLoan ? 'is-done' : '') }}">
-                                </div>
-
-                                <div
-                                    class="bwl-tracker-step {{ $isRejectedLoan ? 'is-rejected' : ($isApprovedLoan ? 'is-done' : '') }}">
-                                    <span class="bwl-tracker-dot">
-                                        @if ($isApprovedLoan)
-                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                                                stroke="currentColor" stroke-width="3" stroke-linecap="round"
-                                                stroke-linejoin="round">
-                                                <polyline points="20 6 9 17 4 12"></polyline>
-                                            </svg>
-                                        @elseif ($isRejectedLoan)
-                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
-                                                stroke="currentColor" stroke-width="3" stroke-linecap="round"
-                                                stroke-linejoin="round">
-                                                <line x1="18" y1="6" x2="6" y2="18">
-                                                </line>
-                                                <line x1="6" y1="6" x2="18" y2="18">
-                                                </line>
-                                            </svg>
-                                        @endif
-                                    </span>
-                                    <span class="bwl-tracker-label">
-                                        {{ $isRejectedLoan ? 'Rejected' : ($isApprovedLoan ? 'Approved' : 'Decision') }}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div class="bwl-tracker-summary">
-                                Application #{{ $latestLoan->application_id }}
-                                <span class="bwl-tracker-dot-sep">&middot;</span>
-                                ₱{{ number_format($latestLoan->loan_amount, 2) }}
-                                <span class="bwl-tracker-dot-sep">&middot;</span>
-                                Submitted {{ \Carbon\Carbon::parse($latestLoan->applied_at)->format('M j, Y') }}
-                            </div>
-
-                            <p class="bwl-tracker-message">
-                                @if ($isRejectedLoan)
-                                    Your loan application was not approved. You may review your application details or apply
-                                    again when eligible.
-                                @elseif ($isApprovedLoan)
-                                    Your application has been approved. Your loan will be activated shortly.
-                                @else
-                                    Your application is currently being reviewed. We'll notify you once a decision has been
-                                    made.
-                                @endif
-                            </p>
-
-                            @if ($isRejectedLoan)
-                                <a href="{{ route('borrower.apply-loan') }}" class="bwl-tracker-link">
-                                    Apply Again </a>
-                            @else
-                                <a href="{{ route('borrower.loan-details') }}" class="bwl-tracker-link">
-                                    View Application Status
-                                </a>
-                            @endif
-                        </div>
-                    @endif
-
+            @if (!$latestLoan)
+                <div class="bwl-tracker-card bwl-tracker-empty">
+                    <p class="bwl-tracker-eyebrow">Loan Application</p>
+                    <h5 class="bwl-tracker-empty-title">No Active Application</h5>
+                    <p class="bwl-tracker-message">You haven't applied for a loan yet.</p>
+                    <a href="{{ route('borrower.apply-loan') }}" class="bwl-tracker-link">
+                        Apply for a Loan
+                    </a>
                 </div>
-            </div>
+            @elseif ($isCompletedLoan)
+                <div class="bwl-tracker-card">
+                    <p class="bwl-tracker-eyebrow">Loan Application</p>
+
+                    <div class="bwl-tracker-steps">
+                        <div class="bwl-tracker-step is-done">
+                            <span class="bwl-tracker-dot">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="3" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </span>
+                            <span class="bwl-tracker-label">Application Submitted</span>
+                        </div>
+
+                        <div class="bwl-tracker-line is-done"></div>
+
+                        <div class="bwl-tracker-step is-done">
+                            <span class="bwl-tracker-dot">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="3" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </span>
+                            <span class="bwl-tracker-label">Loan Activated</span>
+                        </div>
+
+                        <div class="bwl-tracker-line is-done"></div>
+
+                        <div class="bwl-tracker-step is-done">
+                            <span class="bwl-tracker-dot">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="3" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </span>
+                            <span class="bwl-tracker-label">Fully Paid</span>
+                        </div>
+                    </div>
+
+                    <div class="bwl-tracker-summary">
+                        Application #{{ $latestLoan->application_id }}
+                        <span class="bwl-tracker-dot-sep">&middot;</span>
+                        ₱{{ number_format($latestLoan->loan_amount, 2) }}
+                        <span class="bwl-tracker-dot-sep">&middot;</span>
+                        Submitted {{ \Carbon\Carbon::parse($latestLoan->applied_at)->format('M j, Y') }}
+                    </div>
+
+                    <p class="bwl-tracker-message">
+                        Congratulations! Your loan has been fully repaid. You're now eligible to apply for a new loan.
+                    </p>
+
+                    <a href="{{ route('borrower.apply-loan') }}" class="bwl-tracker-link">
+                        Apply for a New Loan 
+                    </a>
+                </div>
+            @else
+                <div class="bwl-tracker-card">
+                    <p class="bwl-tracker-eyebrow">Loan Application</p>
+
+                    <div class="bwl-tracker-steps">
+                        <div class="bwl-tracker-step is-done">
+                            <span class="bwl-tracker-dot">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="3" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </span>
+                            <span class="bwl-tracker-label">Application Submitted</span>
+                        </div>
+
+                        <div class="bwl-tracker-line is-done"></div>
+
+                        <div
+                            class="bwl-tracker-step {{ $isRejectedLoan ? 'is-done' : ($isApprovedLoan ? 'is-done' : 'is-current') }}">
+                            <span class="bwl-tracker-dot">
+                                @if ($isRejectedLoan || $isApprovedLoan)
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="3" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                @else
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <polyline points="12 6 12 12 16 14"></polyline>
+                                    </svg>
+                                @endif
+                            </span>
+                            <span class="bwl-tracker-label">Under Review</span>
+                        </div>
+
+                        <div
+                            class="bwl-tracker-line {{ $isRejectedLoan ? 'is-rejected' : ($isApprovedLoan ? 'is-done' : '') }}">
+                        </div>
+
+                        <div
+                            class="bwl-tracker-step {{ $isRejectedLoan ? 'is-rejected' : ($isApprovedLoan ? 'is-done' : '') }}">
+                            <span class="bwl-tracker-dot">
+                                @if ($isApprovedLoan)
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="3" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                @elseif ($isRejectedLoan)
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="3" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <line x1="18" y1="6" x2="6" y2="18">
+                                        </line>
+                                        <line x1="6" y1="6" x2="18" y2="18">
+                                        </line>
+                                    </svg>
+                                @endif
+                            </span>
+                            <span class="bwl-tracker-label">
+                                {{ $isRejectedLoan ? 'Rejected' : ($isApprovedLoan ? 'Approved' : 'Decision') }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="bwl-tracker-summary">
+                        Application #{{ $latestLoan->application_id }}
+                        <span class="bwl-tracker-dot-sep">&middot;</span>
+                        ₱{{ number_format($latestLoan->loan_amount, 2) }}
+                        <span class="bwl-tracker-dot-sep">&middot;</span>
+                        Submitted {{ \Carbon\Carbon::parse($latestLoan->applied_at)->format('M j, Y') }}
+                    </div>
+
+                    <p class="bwl-tracker-message">
+                        @if ($isRejectedLoan)
+                            Your loan application was not approved. You may review your application details or apply
+                            again when eligible.
+                        @elseif ($isApprovedLoan)
+                            Your application has been approved. Your loan will be activated shortly.
+                        @else
+                            Your application is currently being reviewed. We'll notify you once a decision has been
+                            made.
+                        @endif
+                    </p>
+
+                    @if ($isRejectedLoan)
+                        <a href="{{ route('borrower.apply-loan') }}" class="bwl-tracker-link">
+                            Apply Again </a>
+                    @else
+                        <a href="{{ route('borrower.loan-details') }}" class="bwl-tracker-link">
+                            View Application Status
+                        </a>
+                    @endif
+                </div>
+            @endif
+
+        </div>
+    </div>
         @else
             {{-- ============ FULL REDESIGNED DASHBOARD (may active loan) ============ --}}
 
             {{-- ============ TOP STAT WIDGETS ============ --}}
-            {{-- Icon ngayon nasa top-right ng bawat widget, kagaya ng
-             reference screenshot (label left, icon right, value below). --}}
+
             <div class="bwl-dash-widgets">
                 <div class="bwl-dash-widget">
                     <div class="bwl-dash-widget-top">
@@ -347,8 +398,7 @@
                     </div>
                 </div>
             </div>
-            {{-- ↑ dati dito hindi naka-close yung .bwl-dash-row, kaya nagnest
-             yung sunod na row sa loob nito at nasira yung buong grid. --}}
+     
 
             {{-- ============ APPLICATION TIMELINE + RECENT PAYMENTS ============ --}}
             <div class="bwl-dash-row">

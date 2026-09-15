@@ -5,7 +5,7 @@
 // Config comes from data-* attributes on this <script> tag itself
 // (set server-side in apply-loan.blade.php), so no separate inline
 // <script> block is needed in the view:
-//   <script src="...apply-loan.js" data-csrf="..." data-submit-url="..."></script>
+//   <script src="...apply-loan.js" data-csrf="..." data-submit-url="..." data-max-amount="..."></script>
 
 (function () {
     "use strict";
@@ -17,6 +17,11 @@
     const scriptTag = document.currentScript;
     const CSRF_TOKEN = scriptTag ? scriptTag.dataset.csrf : "";
     const SUBMIT_URL = scriptTag ? scriptTag.dataset.submitUrl : "";
+    // Server computes this based on loan history (₱10,000 for
+    // first-time borrowers, ₱100,000 once they've completed a loan).
+    const MAX_AMOUNT = scriptTag
+        ? parseInt(scriptTag.dataset.maxAmount, 10) || 10000
+        : 10000;
 
     // =========================================================
     // POST-SUBMIT SUCCESS TOAST
@@ -91,7 +96,6 @@
     // =========================================================
 
     const MIN_AMOUNT = 1000;
-    const MAX_AMOUNT = 10000;
     const INTEREST_RATE = 0.05; // 5% monthly
 
     // =========================================================

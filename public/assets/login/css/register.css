@@ -316,6 +316,33 @@ body {
   color: #16a34a;
 }
 
+/* ── Consent checkbox (Terms / Privacy) ──
+   Simpleng checkbox + inline links, kasunod ng pattern ng ibang
+   labels/muted text sa form (.footer-text font-size/color). */
+.consent-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  cursor: pointer;
+  margin-top: 4px;
+}
+.consent-check input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  accent-color: var(--blue);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.consent-check a {
+  color: var(--blue);
+  font-weight: 500;
+  text-decoration: none;
+}
+.consent-check a:hover { text-decoration: underline; }
+
 /* ── Sign Up button ── */
 .btn-signup {
   display: flex;
@@ -466,4 +493,4 @@ body {
      dropdowns nang bahagya para hindi masyadong siksikan. */
   .birthday-row { gap: 6px; }
   .input-wrap.no-icon select { padding-left: 8px; padding-right: 26px; font-size: 0.8rem; }
-} 
+}

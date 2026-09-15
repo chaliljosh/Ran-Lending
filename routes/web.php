@@ -10,6 +10,15 @@ Route::get('/', function () {
     return view('landing');
 });
 
+// Legal pages — public, no auth required (linked from the registration
+// form's consent checkbox, and from the site footer). Named under
+// "legal." so they don't clash with the existing borrower.terms /
+// borrower.privacy routes below.
+Route::view('/privacy', 'legal.privacy')->name('legal.privacy');
+Route::view('/terms', 'legal.terms')->name('legal.terms');
+Route::view('/cookies', 'legal.cookies')->name('legal.cookies');
+Route::view('/refunds', 'legal.refunds')->name('legal.refunds');
+
 Route::middleware('guest')->group(function () {
     Route::get('/login', function () {
         return view('login');

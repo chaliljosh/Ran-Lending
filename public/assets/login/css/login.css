@@ -99,3 +99,17 @@ a.link-dark-nav.text-primary:hover {
     color: #000000 !important;
     text-decoration: underline;
 }
+
+/* ---------- Login consent line (Terms/Privacy, no checkbox) ---------- */
+.login-consent-text {
+  font-size: 0.76rem;
+  color: #9ca3af;
+  text-align: center;
+}
+.login-consent-text a {
+  font-weight: 600;
+  text-decoration: none;
+}
+.login-consent-text a:hover {
+  text-decoration: underline;
+}

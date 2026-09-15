@@ -485,8 +485,12 @@ document.addEventListener('DOMContentLoaded', function () {
         if (validIdFront) formData.append('validIdFront', validIdFront);
         if (validIdBack)  formData.append('validIdBack', validIdBack);
 
+        // CSRF token — gamit ang shared getCsrfToken() helper mula sa
+        // csrf.js (dapat naka-load na ito bago ang script na ito).
         fetch('/api/borrower/personal-details', {
             method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'X-XSRF-TOKEN': getCsrfToken() },
             body: formData
         })
         .then(res => res.json())

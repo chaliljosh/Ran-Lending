@@ -218,7 +218,9 @@ document.addEventListener('DOMContentLoaded', function () {
       }
 
       signupBtn.disabled = true;
-      signupBtn.innerHTML = 'Sending OTP... <span class="spinner-border spinner-border-sm ms-1"></span>';
+      // ---- Loading state: spinner icon na lang, walang text
+      //      (kagaya ng ibang "black button" loading states sa app) ----
+      signupBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
 
       const formData = new FormData();
       formData.append('lastName',        lastName);
@@ -297,4 +299,4 @@ function openRegisterOtpModal(email) {
       showSuccessModal();
     }
   });
-} 
+}

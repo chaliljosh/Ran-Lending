@@ -9,7 +9,7 @@
     <meta name="login-route" content="{{ route('login') }}">
     <meta name="requires-auth" content="true">
     <title>Ran Serenity || @yield('title', 'Dashboard')</title>
-    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('assets/admin/images/favicon.ico') }}" />
+    <link href="{{ asset('assets/landingpage/img/ranlogo1.jpg') }}" rel="icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -22,7 +22,7 @@
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/admin-shared-modals.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/admin-header-dropdown.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/avatar-placeholder.css') }}" />
-
+<link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/sidebar-brand.css') }}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/admin-toast.css') }}" />
     {{-- Page-specific stylesheets (e.g. admin-dashboard.css) go here --}}
@@ -49,10 +49,11 @@
     <nav class="nxl-navigation">
         <div class="navbar-wrapper">
             <div class="m-header">
-                <a href="{{ route('admin.dashboard') }}" class="b-brand">
-                    <h3 class="fst-italic">Ran Serenity</h3>
-                </a>
-            </div>
+    <a href="{{ route('admin.dashboard') }}" class="b-brand">
+        <img src="{{ asset('assets/landingpage/img/ranlogo.png') }}" alt="Ran Serenity" class="b-brand-icon">
+        <h3 class="fst-italic b-brand-text">Ran Serenity</h3>
+    </a>
+</div>
             <div class="navbar-content">
                 <ul class="nxl-navbar">
                     <li class="nxl-item">
@@ -675,6 +676,18 @@
                 const cleanUrl = window.location.pathname;
                 window.history.replaceState({}, document.title, cleanUrl);
             }
+        });
+
+         document.addEventListener('DOMContentLoaded', function () {
+            var miniBtn = document.getElementById('menu-mini-button');
+            var expandBtn = document.getElementById('menu-expend-button');
+
+            function toggleSidebarMiniMode() {
+                document.body.classList.toggle('sidebar-mini-mode');
+            }
+
+            if (miniBtn) miniBtn.addEventListener('click', toggleSidebarMiniMode);
+            if (expandBtn) expandBtn.addEventListener('click', toggleSidebarMiniMode);
         });
     </script>
 

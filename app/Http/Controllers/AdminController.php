@@ -156,6 +156,8 @@ class AdminController extends Controller
         return null;
     }
 
+    
+
     public function updateProfilePicture(Request $request)
     {
         $request->validate([
@@ -383,10 +385,10 @@ class AdminController extends Controller
             ['read_at' => now(), 'updated_at' => now(), 'created_at' => now()]
         );
 
-        $redirect = $request->query('redirect');
-        if ($redirect && str_starts_with($redirect, '/')) {
-            return redirect($redirect);
-        }
+       $redirect = $request->query('redirect');
+if ($redirect && str_starts_with($redirect, '/') && !str_starts_with($redirect, '//')) {
+    return redirect($redirect);
+}
 
         return redirect()->route('admin.dashboard');
     }
@@ -989,6 +991,10 @@ class AdminController extends Controller
 
     private function saveDecision(Request $request, $adminId)
     {
+        $request->validate([
+            'action' => 'required|in:approved,rejected',
+        ]);
+
         $detailId = $request->input('detail_id');
         $action = $request->input('action');
         $remarks = trim($request->input('remarks', ''));
@@ -1358,6 +1364,7 @@ class AdminController extends Controller
         return view('admin.overdue-payment-detail', [
             'app' => $app,
             'applicationId' => $applicationId,
+              'borrowerProfilePicture' => $this->getProfilePictureUrl($app), 
             'paymentSchedule' => $schedule,
             'overdueCount' => $overdueSchedules->count(),
             'daysLate' => $oldestOverdue ? \Carbon\Carbon::parse($oldestOverdue->due_date)->diffInDays(now()) : 0,
@@ -1396,71 +1403,85 @@ class AdminController extends Controller
             'updated_at' => now(),
         ]);
 
-   if ($request->ajax() || $request->wantsJson()) {
+    // Kapag wala nang natitirang unpaid installment, tapos na ang loan.
+    // Ito ang nagpapalaya sa borrower na makapag-apply ulit — dati kasi
+    // nananatiling 'active' ang application kahit fully paid na.
     $applicationId = $schedule->application_id;
-    $app = DB::table('loan_applications')->where('application_id', $applicationId)->first();
-    $allSchedules = DB::table('loan_payment_schedules')
+
+    $hasUnpaid = DB::table('loan_payment_schedules')
         ->where('application_id', $applicationId)
-        ->orderBy('installment_no')
-        ->get();
+        ->whereNull('paid_at')
+        ->exists();
 
-    $paidCount = $allSchedules->filter(fn($s) => !is_null($s->paid_at))->count();
-    $totalCount = $allSchedules->count();
-    $amountCollected = (float) $allSchedules->sum('amount_paid');
-    $remaining = max(0, ($app->total_amount ?? 0) - $amountCollected);
-    $nextUnpaid = $allSchedules->first(fn($s) => is_null($s->paid_at));
-    $progressPct = $totalCount > 0 ? round(($paidCount / $totalCount) * 100) : 0;
-
-    $dueInLabel = '—';
-    if ($nextUnpaid) {
-        $dueDate = \Carbon\Carbon::parse($nextUnpaid->due_date);
-        if ($dueDate->isPast()) {
-            $dueInLabel = 'Overdue';
-        } else {
-            $days = (int) now()->diffInDays($dueDate);
-            $dueInLabel = $days . ' ' . ($days == 1 ? 'day' : 'days');
-        }
+    if (!$hasUnpaid) {
+        DB::table('loan_applications')
+            ->where('application_id', $applicationId)
+            ->update(['status' => 'completed']);
     }
 
-    // ---- Bago: para sa Defaulted Loan Detail stat cards ----
-    $overdueSchedulesNow = $allSchedules->filter(function ($s) {
-        return is_null($s->paid_at) && \Carbon\Carbon::parse($s->due_date)->isPast();
-    })->sortBy('due_date')->values();
+    if ($request->ajax() || $request->wantsJson()) {
+        $app = DB::table('loan_applications')->where('application_id', $applicationId)->first();
+        $allSchedules = DB::table('loan_payment_schedules')
+            ->where('application_id', $applicationId)
+            ->orderBy('installment_no')
+            ->get();
 
-    $oldestOverdueNow = $overdueSchedulesNow->first();
-    $daysLateNow = $oldestOverdueNow
-        ? \Carbon\Carbon::parse($oldestOverdueNow->due_date)->diffInDays(now())
-        : 0;
-    $outstandingAmountNow = $overdueSchedulesNow->sum(fn($s) => $s->amount_due - $s->amount_paid);
-    $unpaidPenaltiesNow = (float) DB::table('loan_penalties')
-        ->where('application_id', $applicationId)
-        ->where('status', 'unpaid')
-        ->sum('penalty_amount');
+        $paidCount = $allSchedules->filter(fn($s) => !is_null($s->paid_at))->count();
+        $totalCount = $allSchedules->count();
+        $amountCollected = (float) $allSchedules->sum('amount_paid');
+        $remaining = max(0, ($app->total_amount ?? 0) - $amountCollected);
+        $nextUnpaid = $allSchedules->first(fn($s) => is_null($s->paid_at));
+        $progressPct = $totalCount > 0 ? round(($paidCount / $totalCount) * 100) : 0;
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Payment marked as paid.',
-        'schedule_id' => (int) $id,
-        'amount_paid_display' => number_format((float) $schedule->amount_due, 2),
-        'paid_on_display' => now()->format('M d, Y'),
-        'paid_count' => $paidCount,
-        'total_count' => $totalCount,
-        'amount_collected_display' => number_format($amountCollected, 2),
-        'remaining_display' => number_format($remaining, 2),
-        'progress_pct' => $progressPct,
-        'next_due_date_display' => $nextUnpaid ? \Carbon\Carbon::parse($nextUnpaid->due_date)->format('M d, Y') : '—',
-        'due_in_label' => $dueInLabel,
-        'is_fully_paid' => is_null($nextUnpaid),
-        // ---- Bago ----
-        'days_late' => $daysLateNow,
-        'outstanding_amount_display' => number_format($outstandingAmountNow, 2),
-        'unpaid_penalties_display' => number_format($unpaidPenaltiesNow, 2),
-    ]);
-}
+        $dueInLabel = '—';
+        if ($nextUnpaid) {
+            $dueDate = \Carbon\Carbon::parse($nextUnpaid->due_date);
+            if ($dueDate->isPast()) {
+                $dueInLabel = 'Overdue';
+            } else {
+                $days = (int) now()->diffInDays($dueDate);
+                $dueInLabel = $days . ' ' . ($days == 1 ? 'day' : 'days');
+            }
+        }
+
+        // ---- Para sa Defaulted Loan Detail stat cards ----
+        $overdueSchedulesNow = $allSchedules->filter(function ($s) {
+            return is_null($s->paid_at) && \Carbon\Carbon::parse($s->due_date)->isPast();
+        })->sortBy('due_date')->values();
+
+        $oldestOverdueNow = $overdueSchedulesNow->first();
+        $daysLateNow = $oldestOverdueNow
+            ? \Carbon\Carbon::parse($oldestOverdueNow->due_date)->diffInDays(now())
+            : 0;
+        $outstandingAmountNow = $overdueSchedulesNow->sum(fn($s) => $s->amount_due - $s->amount_paid);
+        $unpaidPenaltiesNow = (float) DB::table('loan_penalties')
+            ->where('application_id', $applicationId)
+            ->where('status', 'unpaid')
+            ->sum('penalty_amount');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Payment marked as paid.',
+            'schedule_id' => (int) $id,
+            'amount_paid_display' => number_format((float) $schedule->amount_due, 2),
+            'paid_on_display' => now()->format('M d, Y'),
+            'paid_count' => $paidCount,
+            'total_count' => $totalCount,
+            'amount_collected_display' => number_format($amountCollected, 2),
+            'remaining_display' => number_format($remaining, 2),
+            'progress_pct' => $progressPct,
+            'next_due_date_display' => $nextUnpaid ? \Carbon\Carbon::parse($nextUnpaid->due_date)->format('M d, Y') : '—',
+            'due_in_label' => $dueInLabel,
+            'is_fully_paid' => is_null($nextUnpaid),
+            'loan_status' => $app->status ?? null,
+            'days_late' => $daysLateNow,
+            'outstanding_amount_display' => number_format($outstandingAmountNow, 2),
+            'unpaid_penalties_display' => number_format($unpaidPenaltiesNow, 2),
+        ]);
+    }
 
     return back()->with('success', 'Payment marked as paid.');
 }
-
     private function getPaymentSchedule($applicationId)
     {
         return DB::table('loan_payment_schedules')
@@ -1491,6 +1512,10 @@ class AdminController extends Controller
 
     private function saveLoanDecision(Request $request, $adminId)
     {
+        $request->validate([
+            'action' => 'required|in:approved,rejected',
+        ]);
+
         $applicationId = $request->input('application_id');
         $action = $request->input('action');
         $remarks = trim($request->input('remarks', ''));
@@ -1899,6 +1924,7 @@ class AdminController extends Controller
         return view('admin.completed-loan-detail', [
             'app' => $app,
             'applicationId' => $applicationId,
+             'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
             'adminId' => $adminId,
             'allReviews' => $this->getAllLoanReviews($applicationId),
             'comments' => $this->getLoanComments($applicationId),

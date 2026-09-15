@@ -102,7 +102,7 @@
              matched to the Personal Information layout style.
         ============================================ --}}
         <div class="section-card mb-3">
-            <p class="section-title"><i class="feather-file-text me-2"></i>Loan Summary</p>
+            <p class="section-title">Loan Summary</p>
             <div class="abd-info-row">
                 <div class="abd-info-item">
                     <label>Application ID</label>
@@ -145,7 +145,7 @@
 
         {{-- PAYMENT SCHEDULE --}}
         <div class="section-card abd-schedule-card mb-3">
-            <p class="section-title"><i class="feather-calendar me-2"></i>Payment Schedule</p>
+            <p class="section-title">Payment Schedule</p>
             <div class="table-responsive">
                 <table class="table table-sm ld-schedule-table mb-0">
                     <thead>
