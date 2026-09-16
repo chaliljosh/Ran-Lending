@@ -23,9 +23,11 @@ class ForgotPasswordController extends Controller
 
         $otp = rand(100000, 999999);
 
+        // I-store yung HASHED na version ng OTP — yung raw $otp ay
+        // ipinapadala lang sa email, hindi na ito naka-store kahit saan.
         OtpVerification::create([
             'email'      => $user->email,
-            'otp'        => $otp,
+            'otp'        => Hash::make($otp),
             'type'       => 'forgot_password',
             'is_used'    => false,
             'expires_at' => now()->addMinutes(10),
@@ -54,15 +56,17 @@ class ForgotPasswordController extends Controller
                 'otp' => 'required|string',
             ]);
 
+            // Kunin muna yung record base sa email/type/expiry/is_used lang —
+            // hindi na natin pwedeng gamitin ang WHERE otp = $data['otp']
+            // dahil hashed na siya sa DB. I-compare gamit Hash::check().
             $record = OtpVerification::where('email', $data['email'])
-                ->where('otp', $data['otp'])
                 ->where('type', 'forgot_password')
                 ->where('is_used', false)
                 ->where('expires_at', '>=', now())
                 ->latest('id')
                 ->first();
 
-            if (!$record) {
+            if (!$record || !Hash::check($data['otp'], $record->otp)) {
                 return response()->json(['success' => false, 'message' => 'Invalid or expired OTP.']);
             }
 

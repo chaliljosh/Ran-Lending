@@ -15,6 +15,37 @@ async function fetchWithFallback(url) {
     }
 }
 
+/* ============================================================
+   TOAST — pamalit sa native alert() para sa error messages.
+   Gumagamit ng parehong red palette/classes ng .pd-step-alert
+   para consistent ang look (kasama dark mode support).
+   ============================================================ */
+function showErrorToast(message) {
+    let toast = document.getElementById('pdErrorToast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'pdErrorToast';
+        toast.className = 'pd-toast';
+        toast.innerHTML = `
+            <i class="feather-alert-circle"></i>
+            <span class="pd-toast-message"></span>
+            <button type="button" class="pd-toast-close" aria-label="Close">&times;</button>
+        `;
+        document.body.appendChild(toast);
+        toast.querySelector('.pd-toast-close').addEventListener('click', () => {
+            toast.classList.remove('is-shown');
+        });
+    }
+
+    toast.querySelector('.pd-toast-message').textContent = message;
+    toast.classList.add('is-shown');
+
+    clearTimeout(toast._hideTimer);
+    toast._hideTimer = setTimeout(() => {
+        toast.classList.remove('is-shown');
+    }, 6000);
+}
+
 function handleEmploymentStatus() {
     const status = document.getElementById('employmentStatus').value;
 
@@ -302,7 +333,7 @@ function setupFilePreview(fileInputId, previewId) {
         const file = e.target.files[0];
         if (!file) { preview.innerHTML = ''; return; }
         if (file.size > 5 * 1024 * 1024) {
-            alert('File size must be less than 5MB');
+            showErrorToast('File size must be less than 5MB');
             clearFileInput(fileInputId, previewId);
             return;
         }
@@ -338,6 +369,7 @@ function clearFileInput(fileInputId, previewId) {
 function checkFormCompletion() {
     const form = document.getElementById('personalDetailsForm');
     const submitBtn = document.getElementById('submitBtn');
+    if (!form || !submitBtn) return;
     let allFilled = true;
     form.querySelectorAll('[required]').forEach(input => {
         if (input.type === 'file') {
@@ -350,6 +382,162 @@ function checkFormCompletion() {
     });
     submitBtn.disabled = !allFilled;
 }
+
+/* ============================================================
+   WIZARD — hakbang-hakbang na navigation
+   ------------------------------------------------------------
+   Hindi ito bagong form. Nasa iisang <form> pa rin lahat ng
+   fields — nakatago lang (display:none) ang mga hindi active
+   na step. Kaya pareho pa rin ang FormData na ipinapadala sa
+   dulo, at walang kailangang baguhin sa backend.
+   ============================================================ */
+const PDWizard = (function () {
+    let steps = [];
+    let progressSteps = [];
+    let connectors = [];
+    let current = 0;
+
+    function isVisible(el) {
+        // Ginagamit para laktawan ang mga field na itinago ng
+        // handleEmploymentStatus() (hal. Year Level kapag Employed).
+        return el.offsetParent !== null;
+    }
+
+    function clearErrors(step) {
+        step.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        const alertBox = step.querySelector('.pd-step-alert');
+        if (alertBox) alertBox.classList.remove('is-shown');
+    }
+
+    function validateStep(step) {
+        clearErrors(step);
+
+        let firstBad = null;
+
+        step.querySelectorAll('[required]').forEach(field => {
+            if (field.disabled || !isVisible(field)) return;
+
+            let empty;
+            if (field.type === 'file') {
+                empty = !field.files || field.files.length === 0;
+            } else {
+                empty = !String(field.value).trim();
+            }
+
+            if (empty) {
+                field.classList.add('is-invalid');
+                if (!firstBad) firstBad = field;
+            }
+        });
+
+        // Phone number check — 10 digits, dapat nagsisimula sa 9
+        step.querySelectorAll('input[type="tel"]').forEach(input => {
+            if (input.disabled || !isVisible(input)) return;
+            const digits = input.value.slice('+63 '.length).replace(/[^0-9]/g, '');
+            if (digits.length !== 10 || !digits.startsWith('9')) {
+                input.classList.add('is-invalid');
+                if (!firstBad) firstBad = input;
+            }
+        });
+
+        if (firstBad) {
+            const alertBox = step.querySelector('.pd-step-alert');
+            if (alertBox) {
+                alertBox.innerHTML =
+                    '<i class="feather-alert-circle me-2"></i>May kulang o maling impormasyon sa bahaging ito. Pakikumpletuhin bago magpatuloy.';
+                alertBox.classList.add('is-shown');
+            }
+            firstBad.focus();
+            return false;
+        }
+
+        return true;
+    }
+
+    function render() {
+        steps.forEach((step, i) => step.classList.toggle('is-active', i === current));
+
+        progressSteps.forEach((item, i) => {
+            item.classList.toggle('active', i === current);
+            item.classList.toggle('done', i < current);
+        });
+
+        connectors.forEach((c, i) => c.classList.toggle('done', i < current));
+
+        const isFirst = current === 0;
+        const isLast = current === steps.length - 1;
+
+        const btnBack = document.getElementById('pdBtnBack');
+        const btnNext = document.getElementById('pdBtnNext');
+        const btnSubmit = document.getElementById('submitBtn');
+
+        if (btnBack) btnBack.style.visibility = isFirst ? 'hidden' : 'visible';
+        if (btnNext) btnNext.style.display = isLast ? 'none' : '';
+        if (btnSubmit) btnSubmit.style.display = isLast ? '' : 'none';
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function goTo(index) {
+        current = Math.max(0, Math.min(index, steps.length - 1));
+        render();
+    }
+
+    // Tinatawag bago mag-submit — kung may step na kulang,
+    // ibinabalik ang user doon.
+    function validateAll() {
+        for (let i = 0; i < steps.length; i++) {
+            if (!validateStep(steps[i])) {
+                goTo(i);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function init() {
+        const form = document.getElementById('personalDetailsForm');
+        if (!form) return;
+
+        steps = Array.from(form.querySelectorAll('.pd-step'));
+        if (steps.length === 0) return;
+
+        progressSteps = Array.from(document.querySelectorAll('#pdProgress .progress-step'));
+        connectors = Array.from(document.querySelectorAll('#pdProgress .progress-connector'));
+
+        const btnNext = document.getElementById('pdBtnNext');
+        const btnBack = document.getElementById('pdBtnBack');
+
+        if (btnNext) {
+            btnNext.addEventListener('click', function () {
+                if (!validateStep(steps[current])) return;
+                goTo(current + 1);
+            });
+        }
+
+        if (btnBack) {
+            btnBack.addEventListener('click', function () {
+                goTo(current - 1);
+            });
+        }
+
+        // Alisin ang pulang highlight pag nagsimula nang mag-ayos
+        form.addEventListener('input', function (e) {
+            if (e.target.classList.contains('is-invalid')) {
+                e.target.classList.remove('is-invalid');
+            }
+        });
+        form.addEventListener('change', function (e) {
+            if (e.target.classList && e.target.classList.contains('is-invalid')) {
+                e.target.classList.remove('is-invalid');
+            }
+        });
+
+        render();
+    }
+
+    return { init, validateAll };
+})();
 
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -392,29 +580,16 @@ document.addEventListener('DOMContentLoaded', function () {
         this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4);
     });
 
+    // I-simula ang wizard — dapat pagkatapos ma-attach lahat ng
+    // listeners sa itaas, para tama na agad ang unang render.
+    PDWizard.init();
+
     document.getElementById('submitBtn').addEventListener('click', function () {
-        const form = document.getElementById('personalDetailsForm');
 
-        const phoneIds = ['cellphone', 'coMakerContact'];
-        for (const id of phoneIds) {
-            const input = document.getElementById(id);
-            const digits = input.value.slice('+63 '.length).replace(/[^0-9]/g, '');
-            if (digits.length !== 10) {
-                alert('Please enter a complete 10-digit Philippine number (e.g. +63 9611111111).');
-                input.focus();
-                return;
-            }
-            if (!digits.startsWith('9')) {
-                alert('Philippine mobile numbers must start with 9 (e.g. +63 9XXXXXXXXX).');
-                input.focus();
-                return;
-            }
-        }
-
-        if (!form.checkValidity()) {
-            form.reportValidity();
-            return;
-        }
+        // Isahang pass sa LAHAT ng steps. Kapag may kulang, awtomatikong
+        // babalik ang view sa step na may problema (hindi tulad ng
+        // form.reportValidity() na hindi kayang mag-focus sa nakatagong field).
+        if (!PDWizard.validateAll()) return;
 
         const btn = this;
         btn.disabled = true;
@@ -490,7 +665,12 @@ document.addEventListener('DOMContentLoaded', function () {
         fetch('/api/borrower/personal-details', {
             method: 'POST',
             credentials: 'same-origin',
-            headers: { 'X-XSRF-TOKEN': getCsrfToken() },
+            headers: {
+                'X-XSRF-TOKEN': getCsrfToken(),
+                'Accept': 'application/json'   // <-- para hindi mag-redirect si Laravel
+                                                //     pag na-fail ang validation, at JSON (422) ang
+                                                //     ibalik sa halip na buong HTML page
+            },
             body: formData
         })
         .then(res => res.json())
@@ -500,13 +680,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 overlay.style.cssText = 'display:flex !important; opacity:1 !important; position:fixed !important; inset:0 !important; z-index:99999 !important; background:rgba(0,0,0,0.55) !important; align-items:center !important; justify-content:center !important; padding:16px !important;';
                 document.body.style.overflow = 'hidden';
             } else {
-                alert('Error: ' + data.message);
+                // Kung validation error (422) mula sa Rule::unique/required atbp,
+                // ibinabalik ni Laravel yung errors bilang { errors: { fieldName: [msg] } }
+                // sa halip na direktang "message" — kaya kailangang i-check muna.
+                const firstError = data.errors
+                    ? Object.values(data.errors)[0][0]
+                    : (data.message || 'An error occurred.');
+                showErrorToast(firstError);
                 btn.disabled = false;
                 btn.innerHTML = '<i class="feather-send me-2"></i>Submit for Approval';
             }
         })
         .catch(() => {
-            alert('Something went wrong. Please try again.');
+            showErrorToast('Something went wrong. Please try again.');
             btn.disabled = false;
             btn.innerHTML = '<i class="feather-send me-2"></i>Submit for Approval';
         });

@@ -21,65 +21,88 @@
 
     <div class="main-content">
 
-        @if ($detailsStatus === 'incomplete')
-            <div class="row justify-content-center">
-                <div class="col-lg-6">
-                    <div class="card text-center">
-                        <div class="card-body py-5">
-                            <div
-                                style="width:80px; height:80px; background:#e8f0fe; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
-                                <i class="feather-user-check" style="font-size:36px; color:#4a7cf7;"></i>
-                            </div>
-                            <h4 class="fw-bold mb-2">Complete Your Profile</h4>
-                            <p class="text-muted mb-4">Please fill up your personal details first before you can access the
-                                full dashboard and apply for a loan.</p>
-                            <a href="{{ route('borrower.personal-details') }}" class="btn btn-primary px-5">
-                                <i class="feather-edit me-2"></i>Fill Up Personal Details
-                            </a>
-                        </div>
-                    </div>
+      
+
+@if ($detailsStatus === 'incomplete')
+    <div class="bwl-onboard-wrap">
+        <div class="bwl-onboard-card">
+            
+
+            <p class="bwl-onboard-eyebrow">Getting started</p>
+            <h4 class="bwl-onboard-title">Complete your profile</h4>
+            <p class="bwl-onboard-desc">
+                Fill in your personal details to unlock the full dashboard and apply for a loan.
+            </p>
+
+            <div class="bwl-onboard-checklist">
+                <div class="bwl-onboard-check-item">
+                    <span class="bwl-onboard-check-icon"><i class="feather-user"></i></span>
+                    <span class="bwl-onboard-check-label">Personal &amp; contact info</span>
+                </div>
+                <div class="bwl-onboard-check-item">
+                    <span class="bwl-onboard-check-icon"><i class="feather-map-pin"></i></span>
+                    <span class="bwl-onboard-check-label">Address &amp; employment</span>
+                </div>
+                <div class="bwl-onboard-check-item">
+                    <span class="bwl-onboard-check-icon"><i class="feather-file-text"></i></span>
+                    <span class="bwl-onboard-check-label">Valid ID &amp; co-maker</span>
                 </div>
             </div>
-        @elseif($detailsStatus === 'pending')
+
+            <a href="{{ route('borrower.personal-details') }}" class="bwl-onboard-btn">
+                Fill up personal details
+              
+            </a>
+        </div>
+    </div>
+@elseif($detailsStatus === 'pending')
             <div class="row justify-content-center">
-                <div class="col-lg-6">
-                    <div class="card bwl-status-card">
-                        <div class="bwl-status-header">
-                            <div class="bwl-status-icon is-orange"><i class="feather-clock"></i></div>
-                            <div class="bwl-status-title-wrap">
-                                <p class="bwl-status-title">Under Review</p>
-                                <p class="bwl-status-desc">Your personal details have been submitted and are currently being
-                                    reviewed by our admins. Please wait for approval.</p>
+                <div class="col-lg-8">
+                    <div class="bwl-tracker-card">
+                        <p class="bwl-tracker-eyebrow">Personal Details</p>
+
+                        <div class="bwl-tracker-steps">
+                            <div class="bwl-tracker-step is-done">
+                                <span class="bwl-tracker-dot">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="3" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                </span>
+                                <span class="bwl-tracker-label">Details Submitted</span>
+                            </div>
+
+                            <div class="bwl-tracker-line is-done"></div>
+
+                            <div class="bwl-tracker-step is-current">
+                                <span class="bwl-tracker-dot">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <polyline points="12 6 12 12 16 14"></polyline>
+                                    </svg>
+                                </span>
+                                <span class="bwl-tracker-label">Admin Review</span>
+                            </div>
+
+                            <div class="bwl-tracker-line"></div>
+
+                            <div class="bwl-tracker-step">
+                                <span class="bwl-tracker-dot"></span>
+                                <span class="bwl-tracker-label">Approved</span>
                             </div>
                         </div>
-                        <div class="bwl-status-divider"></div>
-                        <div class="bwl-status-approvals">
-                            <div class="bwl-status-approvals-icon"><i class="feather-file-text"></i></div>
-                            <div>
-                                <div class="bwl-status-approvals-label">Admin Approvals</div>
-                                <div class="bwl-status-approvals-value">{{ $approvedCount }} / 3</div>
-                            </div>
+
+                        <div class="bwl-tracker-summary">
+                            {{ $approvedCount }} / 3 admin approvals
                         </div>
-                        <p class="bwl-status-note">You will be notified once your account is fully approved.</p>
-                    </div>
-                </div>
-            </div>
-        @elseif($detailsStatus === 'rejected')
-            <div class="row justify-content-center">
-                <div class="col-lg-6">
-                    <div class="card bwl-status-card is-danger">
-                        <div class="bwl-status-header">
-                            <div class="bwl-status-icon is-red"><i class="feather-x-circle"></i></div>
-                            <div class="bwl-status-title-wrap">
-                                <p class="bwl-status-title">Application Rejected</p>
-                                <p class="bwl-status-desc">Unfortunately, your personal details were not approved. Please
-                                    update your information and resubmit.</p>
-                            </div>
-                        </div>
-                        <div class="bwl-status-divider"></div>
-                        <a href="{{ route('borrower.personal-details') }}" class="bwl-status-btn is-danger">
-                            <i class="feather-edit me-2"></i>Update Personal Details
-                        </a>
+
+                        <p class="bwl-tracker-message">
+                            Your personal details have been submitted and are currently being reviewed by our admins.
+                            You will be notified once your account is fully approved.
+                        </p>
                     </div>
                 </div>
             </div>

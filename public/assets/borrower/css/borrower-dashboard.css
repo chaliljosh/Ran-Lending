@@ -766,3 +766,175 @@ html.app-skin-dark .bwl-tracker-dot { background: #16202E; border-color: #2D3F55
 html.app-skin-dark .bwl-tracker-label { color: #64748B; }
 html.app-skin-dark .bwl-tracker-line { background: #2D3F55; }
 html.app-skin-dark .bwl-tracker-empty-title { color: #E2E8F0; }
+
+/* ============================================================
+    Onboarding empty state — "Complete Your Profile"
+    Idagdag ito sa dulo ng borrower-dashboard.css
+============================================================ */
+
+.bwl-onboard-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 56px 20px;
+}
+
+.bwl-onboard-card {
+    font-family: var(--bwl-dash-font);
+    background: #ffffff;
+    border: 1px solid var(--bwl-dash-border);
+    border-radius: 18px;
+    box-shadow: var(--bwl-dash-shadow);
+    max-width: 460px;
+    width: 100%;
+    padding: 40px 36px 36px;
+    text-align: center;
+}
+
+.bwl-onboard-icon {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--bwl-dash-blue-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 22px;
+}
+.bwl-onboard-icon::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 1px solid var(--bwl-dash-blue-soft);
+}
+.bwl-onboard-icon i {
+    font-size: 26px;
+    color: var(--bwl-dash-blue);
+}
+
+.bwl-onboard-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--bwl-dash-gray-light);
+    margin: 0 0 10px;
+}
+
+.bwl-onboard-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--bwl-dash-ink);
+    margin: 0 0 10px;
+}
+
+.bwl-onboard-desc {
+    font-size: 0.88rem;
+    color: var(--bwl-dash-gray);
+    line-height: 1.65;
+    max-width: 340px;
+    margin: 0 auto 28px;
+}
+
+.bwl-onboard-checklist {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 4px;
+    margin: 0 0 30px;
+    padding: 18px 12px;
+    background: var(--bwl-dash-bg-soft);
+    border-radius: 14px;
+}
+.bwl-onboard-check-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 0 6px;
+}
+.bwl-onboard-check-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    border: 1px solid var(--bwl-dash-border);
+    color: var(--bwl-dash-gray);
+    font-size: 14px;
+    flex-shrink: 0;
+}
+.bwl-onboard-check-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--bwl-dash-gray);
+    line-height: 1.35;
+}
+
+.bwl-onboard-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 46px;
+    border-radius: 10px;
+    background: var(--bwl-dash-blue);
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+.bwl-onboard-btn:hover {
+    background: #1D4ED8;
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+.bwl-onboard-btn i {
+    font-size: 16px;
+    transition: transform 0.15s ease;
+}
+.bwl-onboard-btn:hover i {
+    transform: translateX(2px);
+}
+
+@media (max-width: 575.98px) {
+    .bwl-onboard-card {
+        padding: 32px 22px 28px;
+    }
+    .bwl-onboard-checklist {
+        flex-direction: column;
+        gap: 14px;
+        padding: 16px;
+    }
+    .bwl-onboard-check-item {
+        flex-direction: row;
+        justify-content: flex-start;
+        text-align: left;
+        gap: 12px;
+    }
+}
+
+/* ---------- Dark mode ---------- */
+html.app-skin-dark .bwl-onboard-card {
+    background: #1E2A3A;
+    border-color: #2D3F55;
+}
+html.app-skin-dark .bwl-onboard-title { color: #E2E8F0; }
+html.app-skin-dark .bwl-onboard-desc { color: #94A3B8; }
+html.app-skin-dark .bwl-onboard-eyebrow { color: #64748B; }
+html.app-skin-dark .bwl-onboard-icon { background: #16202E; }
+html.app-skin-dark .bwl-onboard-icon::before { border-color: #16202E; }
+html.app-skin-dark .bwl-onboard-checklist { background: #16202E; }
+html.app-skin-dark .bwl-onboard-check-icon {
+    background: #1E2A3A;
+    border-color: #2D3F55;
+    color: #94A3B8;
+}
+html.app-skin-dark .bwl-onboard-check-label { color: #94A3B8; }

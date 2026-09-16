@@ -1,5 +1,4 @@
-/* ── Page background — white sa halip na yung default gray ng
-     theme (kagaya ng ginawa na natin sa Profile page) ── */
+/* ── Page background ── */
 .nxl-content {
     background: #fff;
 }
@@ -13,7 +12,7 @@
     align-items: center; justify-content: center; padding: 16px;
 }
 #submissionOverlay .modal-box {
-    background: #fff; border-radius: 16px; overflow: hidden;
+    background: #fff; border-radius: 20px; overflow: hidden;
     width: 100%; max-width: 460px;
     box-shadow: 0 24px 64px rgba(0,0,0,0.18);
     text-align: center; animation: slideUp 0.3s ease;
@@ -22,77 +21,40 @@
     from { transform: translateY(30px); opacity: 0; }
     to   { transform: translateY(0);    opacity: 1; }
 }
-#submissionOverlay .accent-bar { height: 6px; background: linear-gradient(90deg, #4a7cf7, #6ea8fe); }
 #submissionOverlay .modal-inner { padding: 40px 32px 36px; }
 #submissionOverlay .icon-wrap {
     width: 76px; height: 76px; border-radius: 50%; background: #e8f0fe;
     display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;
 }
-#submissionOverlay .icon-wrap i { font-size: 38px; color: #4a7cf7; }
-#submissionOverlay h5 { font-weight: 700; margin-bottom: 6px; font-size: 1.15rem; }
-#submissionOverlay .sub-text { color: #6c757d; font-size: 0.9rem; line-height: 1.6; margin-bottom: 24px; }
-#submissionOverlay .waiting-badge {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: #fff; border: 1px solid #dee2e6;
-    border-radius: 30px; padding: 7px 18px; font-size: 0.83rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 24px;
-}
-#submissionOverlay .waiting-badge i { color: #f0a500; font-size: 14px; }
-#submissionOverlay .waiting-badge .muted { color: #6c757d; }
-#submissionOverlay .waiting-badge .count {
-    background: #e8f0fe; color: #4a7cf7;
-    font-weight: 700; font-size: 0.85rem; padding: 2px 10px; border-radius: 20px;
-}
+#submissionOverlay .icon-wrap i { font-size: 38px; color: #2563eb; }
+#submissionOverlay h5 { font-weight: 700; margin-bottom: 6px; font-size: 1.15rem; color: #0f172a; }
+#submissionOverlay .sub-text { color: #64748b; font-size: 0.9rem; line-height: 1.6; margin-bottom: 24px; }
 #submissionOverlay .btn-go {
-    display: inline-block; background: #4a7cf7; color: #fff;
-    border: none; border-radius: 10px; padding: 10px 40px;
-    font-size: 0.95rem; font-weight: 600; cursor: pointer;
+    display: inline-block; background: #0f172a; color: #fff;
+    border: none; border-radius: 999px; padding: 11px 40px;
+    font-size: 0.92rem; font-weight: 600; cursor: pointer;
     text-decoration: none; transition: background 0.2s;
 }
-#submissionOverlay .btn-go:hover { background: #3a6de0; color: #fff; }
+#submissionOverlay .btn-go:hover { background: #1e293b; color: #fff; }
 
-/* ── Status Cards (Details Already Submitted / Profile Approved /
-     Submission Rejected) — same white bg + neutral border + subtle
-     shadow language as .form-section below, dahil plain Bootstrap
-     .card lang ito dati (walang dark-mode support, at hindi
-     tugma yung border/shadow sa ibang cards natin). ── */
+/* ── Status Cards ── */
 .bwl-status-card {
     background: #fff;
     border: 1px solid #eef0f7;
-    border-radius: 16px;
-    box-shadow: 0 2px 12px rgba(15,23,42,0.06);
+    border-radius: 20px;
+    box-shadow: 0 4px 24px rgba(15,23,42,0.06);
 }
-
-/* ── "Details Already Submitted" layout — icon + title/desc row,
-     divider, tapos icon + label/value row. Walang button dito. ── */
-.bwl-status-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    padding: 24px 24px 20px;
-}
+.bwl-status-header { display: flex; align-items: flex-start; gap: 14px; padding: 24px 24px 20px; }
 .bwl-status-icon {
     width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
     background: #dcfce7; color: #16a34a; font-size: 18px;
 }
 .bwl-status-title-wrap { min-width: 0; }
-.bwl-status-title {
-    font-size: 1.05rem; font-weight: 700; color: #1e293b;
-    margin: 0 0 4px;
-}
-.bwl-status-desc {
-    font-size: 0.85rem; color: #64748b; margin: 0; line-height: 1.5;
-}
-
-.bwl-status-divider {
-    height: 1px; background: #eef0f7; margin: 0 24px;
-}
-
-.bwl-status-approvals {
-    display: flex; align-items: center; gap: 12px;
-    padding: 20px 24px;
-}
+.bwl-status-title { font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0 0 4px; }
+.bwl-status-desc { font-size: 0.85rem; color: #64748b; margin: 0; line-height: 1.5; }
+.bwl-status-divider { height: 1px; background: #eef0f7; margin: 0 24px; }
+.bwl-status-approvals { display: flex; align-items: center; gap: 12px; padding: 20px 24px; }
 .bwl-status-approvals-icon {
     width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
@@ -102,282 +64,417 @@
     font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
     letter-spacing: 0.4px; color: #94a3b8; margin-bottom: 2px;
 }
-.bwl-status-approvals-value {
-    font-size: 1.4rem; font-weight: 800; color: #1e293b;
+.bwl-status-approvals-value { font-size: 1.4rem; font-weight: 800; color: #0f172a; }
+
+/* ══════════════════════════════════════════
+   MAIN WIZARD CARD — iisang malaking white
+   card na naglalaman ng progress bar + form,
+   gaya ng reference design.
+   ══════════════════════════════════════════ */
+
+.pd-wizard-card {
+    background: #fff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 14px !important;
+    box-shadow: 0 1px 3px rgba(15,23,42,0.15) !important;
+    padding: 24px;
+}
+
+/* ── Progress bar ── */
+.form-progress {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    margin-bottom: 20px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #eef1f6;
+}
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    position: relative;
+}
+.progress-step-circle {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; margin-bottom: 8px;
+    background: #eef1f6; color: #94a3b8;
+    transition: all 0.25s;
+}
+.progress-step.active .progress-step-circle {
+    background: #2563eb; color: #fff;
+    box-shadow: 0 0 0 4px rgba(37,99,235,0.15);
+}
+.progress-step.done .progress-step-circle {
+    background: #2563eb; color: #fff;
+}
+.progress-step-label {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #94a3b8;
+    text-align: center;
+}
+.progress-step.active .progress-step-label { color: #2563eb; font-weight: 600; }
+.progress-step.done .progress-step-label { color: #1e293b; }
+.progress-connector {
+    flex: 1;
+    height: 2px;
+    background: #eef1f6;
+    margin-top: 15px;
+    max-width: 100px;
+}
+.progress-connector.done { background: #2563eb; }
+
+/* ── Section heading (walang box/border sa loob, iisa lang malaking card) ── */
+.form-section { background: transparent; border: none; box-shadow: none; padding: 0; margin: 0; }
+.form-section-header { border: none; padding: 0; margin-bottom: 16px; }
+.form-section-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 2px;
+}
+.form-section-sub {
+    font-size: 0.83rem;
+    color: #94a3b8;
+    margin: 0;
+}
+
+/* ── Labels — sentence case, hindi bold-caps ── */
+.form-label {
+    font-size: 0.85rem !important;
+    font-weight: 500 !important;
+    color: #334155 !important;
+    margin-bottom: 7px !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+}
+
+/* ── Inputs ── */
+.form-control, .form-select {
+    border-radius: 10px !important;
+    border: 1.5px solid #e2e8f0 !important;
+    padding: 10px 14px !important;
+    font-size: 0.9rem !important;
+    color: #1e293b !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
+    background: #fff !important;
+}
+.form-control::placeholder { color: #a3adc2 !important; }
+.form-control:focus, .form-select:focus {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.12) !important;
+    background: #fff !important;
+}
+.form-control:disabled, .form-select:disabled {
+    background: #f1f5f9 !important;
+    color: #94a3b8 !important;
+    border-color: #e2e8f0 !important;
+    cursor: not-allowed !important;
+}
+.form-control[readonly] { background: #f1f5f9 !important; color: #94a3b8 !important; }
+
+/* ── Inputs na may icon sa loob (Birthday, Email, Monthly Income) ── */
+.pd-input-icon-wrap {
+    position: relative;
+}
+.pd-input-icon-wrap .pd-input-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 15px;
+    pointer-events: none;
+    z-index: 2;
+}
+.pd-input-icon-wrap .form-control {
+    padding-left: 40px !important;
+}
+
+/* ══════════════════════════════════════════
+   WIZARD STEPS
+   ══════════════════════════════════════════ */
+
+.pd-step { display: none; }
+.pd-step.is-active { display: block; animation: pdStepIn 0.22s ease; }
+
+@keyframes pdStepIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+}
+
+.pd-step-alert {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-left: 4px solid #dc2626;
+    color: #b91c1c;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+}
+.pd-step-alert.is-shown { display: flex; }
+
+.form-control.is-invalid,
+.form-select.is-invalid {
+    border-color: #dc2626 !important;
+    background: #fef2f2 !important;
+}
+.form-control.is-invalid:focus,
+.form-select.is-invalid:focus {
+    box-shadow: 0 0 0 3px rgba(220,38,38,0.12) !important;
+}
+
+/* ══════════════════════════════════════════
+   NAVIGATION — pill-shaped buttons, sentence
+   case (WALANG UPPERCASE), gaya ng reference
+   ══════════════════════════════════════════ */
+
+.pd-wizard-nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #eef1f6;
+}
+.pd-wizard-nav-right {
+    display: flex;
+    gap: 12px;
+    margin-left: auto;
+}
+
+.pd-wizard-nav .btn,
+#pdBtnBack, #pdBtnNext, #submitBtn {
+    border-radius: 999px !important;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    text-transform: none !important;
+    padding: 10px 26px !important;
+    letter-spacing: normal !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.18s;
+}
+
+/* Cancel — light outline */
+.d-flex.gap-3 .btn-outline-secondary,
+.pd-wizard-nav .btn-outline-secondary {
+    color: #334155 !important;
+    border: 1.5px solid #e2e8f0 !important;
+    background: #fff !important;
+}
+.d-flex.gap-3 .btn-outline-secondary:hover,
+.pd-wizard-nav .btn-outline-secondary:hover {
+    background: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+}
+
+/* Back — light outline, same as Cancel */
+#pdBtnBack {
+    background: #fff;
+    border: 1.5px solid #e2e8f0;
+    color: #334155;
+}
+#pdBtnBack:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+/* Next / Submit — solid dark navy */
+#pdBtnNext, #submitBtn {
+    background: #0f172a;
+    border: none;
+    color: #fff;
+    box-shadow: none;
+}
+#pdBtnNext:hover, #submitBtn:hover:not(:disabled) {
+    background: #1e293b;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(15,23,42,0.22);
+}
+#submitBtn:disabled {
+    background: #cbd5e1 !important;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+/* ── Mobile ── */
+@media (max-width: 640px) {
+    .pd-wizard-card { padding: 22px 18px 18px; }
+    .progress-step-label { display: none; }
+    .progress-step-circle { width: 26px; height: 26px; font-size: 11px; margin-bottom: 0; }
+    .progress-connector { margin-top: 12px; }
+
+    .pd-wizard-nav { flex-direction: column-reverse; align-items: stretch; }
+    .pd-wizard-nav-right { flex-direction: column-reverse; margin-left: 0; }
+    .pd-wizard-nav .btn, #pdBtnBack, #pdBtnNext, #submitBtn { width: 100%; justify-content: center; }
+}
+
+/* ══════════════════════════════════════════
+   DARK MODE
+   ══════════════════════════════════════════ */
+
+html.app-skin-dark .nxl-content { background: #0f1a28; }
+
+html.app-skin-dark .pd-wizard-card {
+    background: #1e2a3b !important;
+    border-color: #2d3f55 !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4) !important;
 }
 
 html.app-skin-dark .bwl-status-card {
     background: #1e2a3b !important;
     border-color: #2d3f55 !important;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.3) !important;
-}
-html.app-skin-dark .bwl-status-card h4 {
-    color: #e2e8f0 !important;
-}
-html.app-skin-dark .bwl-status-card .text-muted {
-    color: #94a3b8 !important;
 }
 html.app-skin-dark .bwl-status-title { color: #e2e8f0 !important; }
 html.app-skin-dark .bwl-status-desc { color: #94a3b8 !important; }
 html.app-skin-dark .bwl-status-divider { background: #2d3f55; }
-html.app-skin-dark .bwl-status-approvals-icon { background: #16202e; color: #94a3b8; }
-html.app-skin-dark .bwl-status-approvals-label { color: #64748b; }
 html.app-skin-dark .bwl-status-approvals-value { color: #e2e8f0; }
 
-/* ── Form Section Cards ── */
-.form-section {
-    background: #fff;
-    border-radius: 16px;
-    padding: 28px 28px 20px;
-    margin-bottom: 20px;
-    border: 1px solid #eef0f7;
-    box-shadow: 0 2px 12px rgba(74,124,247,0.06);
-}
-.form-section-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 22px;
-    padding-bottom: 16px;
-    border-bottom: 2px solid #f0f4ff;
-}
-.form-section-icon {
-    width: 40px; height: 40px; border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px; flex-shrink: 0;
-}
-.icon-blue   { background: #e8f0fe; color: #4a7cf7; }
-.icon-green  { background: #dcfce7; color: #16a34a; }
-.icon-orange { background: #fff7ed; color: #ea580c; }
-.icon-purple { background: #f3e8ff; color: #9333ea; }
-.form-section-title { font-size: 1rem; font-weight: 700; color: #1e293b; margin: 0; }
-.form-section-sub   { font-size: 0.78rem; color: #94a3b8; margin: 0; }
+html.app-skin-dark .form-progress { border-bottom-color: #2d3f55; }
+html.app-skin-dark .progress-step-circle { background: #2d3f55; color: #64748b; }
+html.app-skin-dark .progress-step.active .progress-step-circle,
+html.app-skin-dark .progress-step.done .progress-step-circle { background: #2563eb; color: #fff; }
+html.app-skin-dark .progress-step-label { color: #64748b; }
+html.app-skin-dark .progress-step.active .progress-step-label { color: #60a5fa; }
+html.app-skin-dark .progress-step.done .progress-step-label { color: #e2e8f0; }
+html.app-skin-dark .progress-connector { background: #2d3f55; }
+html.app-skin-dark .progress-connector.done { background: #2563eb; }
 
-/* ── Input Styling ── */
-.form-control, .form-select {
-    border-radius: 10px !important;
-    border: 1.5px solid #e2e8f0 !important;
-    padding: 10px 14px !important;
-    font-size: 0.875rem !important;
-    transition: border-color 0.2s, box-shadow 0.2s !important;
-    background: #fafbff !important;
-}
-.form-control:focus, .form-select:focus {
-    border-color: #4a7cf7 !important;
-    box-shadow: 0 0 0 3px rgba(74,124,247,0.12) !important;
-    background: #fff !important;
-}
-.form-control:disabled, .form-select:disabled {
-    background: #f1f5f9 !important;
-    color: #64748b !important;
-    border-color: #e2e8f0 !important;
-    cursor: not-allowed !important;
-}
-.form-label {
-    font-size: 0.8rem !important;
-    font-weight: 600 !important;
-    color: #475569 !important;
-    margin-bottom: 6px !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.4px !important;
-}
+html.app-skin-dark .form-section-title { color: #e2e8f0 !important; }
+html.app-skin-dark .form-section-sub { color: #64748b !important; }
+html.app-skin-dark .form-label { color: #94a3b8 !important; }
 
-/* ── Submit Button — black, kasama ang Cancel outline ── */
-#submitBtn {
-    background: #0F172A;
-    border: none; border-radius: 12px;
-    padding: 12px 40px; font-size: 0.95rem; font-weight: 600;
-    color: #fff; transition: all 0.2s;
-    box-shadow: none;
-}
-#submitBtn:hover:not(:disabled) {
-    background: #1E293B;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(15,23,42,0.25);
-}
-#submitBtn:disabled {
-    background: #cbd5e1; box-shadow: none; cursor: not-allowed;
-}
-
-/* ── Cancel Button — black outline, kasabay ng Submit ── */
-.d-flex.gap-3 .btn-outline-secondary {
-    color: #0F172A !important;
-    border-color: #0F172A !important;
-    background: transparent !important;
-    transition: background .15s ease, color .15s ease;
-}
-.d-flex.gap-3 .btn-outline-secondary:hover {
-    background: #0F172A !important;
-    color: #fff !important;
-    border-color: #0F172A !important;
-}
-
-/* ── Progress Steps ── */
-.form-progress {
-    display: flex; align-items: center; gap: 0;
-    margin-bottom: 28px; padding: 20px 24px;
-    background: #f8faff; border-radius: 14px;
-    border: 1px solid #e8f0fe;
-}
-.progress-step {
-    display: flex; flex-direction: column; align-items: center;
-    flex: 1; position: relative; cursor: default;
-}
-.progress-step-circle {
-    width: 36px; height: 36px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px; font-weight: 700; margin-bottom: 6px;
-    background: #e2e8f0; color: #94a3b8;
-    transition: all 0.3s;
-}
-.progress-step.active .progress-step-circle  { background: #4a7cf7; color: #fff; box-shadow: 0 4px 12px rgba(74,124,247,0.35); }
-.progress-step.done .progress-step-circle    { background: #dcfce7; color: #16a34a; }
-.progress-step-label { font-size: 0.7rem; font-weight: 600; color: #94a3b8; text-align: center; }
-.progress-step.active .progress-step-label  { color: #4a7cf7; }
-.progress-step.done .progress-step-label    { color: #16a34a; }
-.progress-connector { flex: 1; height: 2px; background: #e2e8f0; margin-bottom: 22px; max-width: 60px; }
-.progress-connector.done { background: #4a7cf7; }
-
-/* ── Readonly field ── */
-.form-control[readonly] {
-    background: #f1f5f9 !important;
-    color: #64748b !important;
-}
-
-/* ══════════════════════════════════════════
-   DARK MODE — html.app-skin-dark
-   (NXL/NEXEL theme adds this class to <html>)
-   ══════════════════════════════════════════ */
-
-html.app-skin-dark .nxl-content { background: #14202e; }
-
-/* Form section cards */
-html.app-skin-dark .form-section {
-    background: #1e2a3b !important;
-    border-color: #2d3f55 !important;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.3) !important;
-}
-
-html.app-skin-dark .form-section-header {
-    border-bottom-color: #2d3f55 !important;
-}
-
-html.app-skin-dark .form-section-title {
-    color: #e2e8f0 !important;
-}
-
-html.app-skin-dark .form-section-sub {
-    color: #64748b !important;
-}
-
-/* Labels */
-html.app-skin-dark .form-label {
-    color: #94a3b8 !important;
-}
-
-/* Inputs & selects */
 html.app-skin-dark .form-control,
 html.app-skin-dark .form-select {
     background: #162032 !important;
     border-color: #2d3f55 !important;
     color: #e2e8f0 !important;
 }
-
-html.app-skin-dark .form-control::placeholder {
-    color: #4a6080 !important;
-}
-
+html.app-skin-dark .form-control::placeholder { color: #4a6080 !important; }
 html.app-skin-dark .form-control:focus,
 html.app-skin-dark .form-select:focus {
     background: #1a2840 !important;
-    border-color: #4a7cf7 !important;
-    color: #e2e8f0 !important;
-    box-shadow: 0 0 0 3px rgba(74,124,247,0.2) !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.2) !important;
 }
-
 html.app-skin-dark .form-control:disabled,
-html.app-skin-dark .form-select:disabled {
-    background: #111d2b !important;
-    color: #4a6080 !important;
-    border-color: #1e2a3b !important;
-    cursor: not-allowed !important;
-}
-
+html.app-skin-dark .form-select:disabled,
 html.app-skin-dark .form-control[readonly] {
     background: #111d2b !important;
     color: #4a6080 !important;
     border-color: #1e2a3b !important;
 }
+html.app-skin-dark .form-select option { background: #1e2a3b !important; color: #e2e8f0 !important; }
+html.app-skin-dark small.text-muted { color: #4a6080 !important; }
+html.app-skin-dark .pd-input-icon-wrap .pd-input-icon { color: #4a6080; }
 
-/* Select option text */
-html.app-skin-dark .form-select option {
-    background: #1e2a3b !important;
-    color: #e2e8f0 !important;
+html.app-skin-dark .pd-step-alert {
+    background: #2d1618 !important;
+    border-color: #5c2427 !important;
+    color: #fca5a5 !important;
+}
+html.app-skin-dark .form-control.is-invalid,
+html.app-skin-dark .form-select.is-invalid {
+    background: #2d1618 !important;
+    border-color: #dc2626 !important;
 }
 
-/* Small muted text */
-html.app-skin-dark small.text-muted {
-    color: #4a6080 !important;
-}
-
-/* Progress bar */
-html.app-skin-dark .form-progress {
+html.app-skin-dark .pd-wizard-nav { border-top-color: #2d3f55; }
+html.app-skin-dark #pdBtnBack,
+html.app-skin-dark .d-flex.gap-3 .btn-outline-secondary,
+html.app-skin-dark .pd-wizard-nav .btn-outline-secondary {
     background: #162032 !important;
     border-color: #2d3f55 !important;
+    color: #cbd5e1 !important;
 }
-
-html.app-skin-dark .progress-step-circle {
-    background: #2d3f55 !important;
-    color: #4a6080 !important;
+html.app-skin-dark #pdBtnBack:hover,
+html.app-skin-dark .d-flex.gap-3 .btn-outline-secondary:hover,
+html.app-skin-dark .pd-wizard-nav .btn-outline-secondary:hover {
+    background: #1e293b !important;
+    border-color: #4a6080 !important;
 }
-
-html.app-skin-dark .progress-connector {
-    background: #2d3f55 !important;
-}
-
-html.app-skin-dark .progress-connector.done {
-    background: #4a7cf7 !important;
-}
-
-/* Submit / Cancel buttons — sa dark mode, dagdagan ng subtle
-   border yung black button para hindi masyadong lumubog sa
-   dark navy background ng theme */
+html.app-skin-dark #pdBtnNext,
 html.app-skin-dark #submitBtn {
-    background: #0F172A;
-    border: 1px solid #2d3f55;
+    background: #2563eb;
 }
+html.app-skin-dark #pdBtnNext:hover,
 html.app-skin-dark #submitBtn:hover:not(:disabled) {
-    background: #1E293B;
-}
-html.app-skin-dark .d-flex.gap-3 .btn-outline-secondary {
-    color: #E2E8F0 !important;
-    border-color: #4a6080 !important;
-}
-html.app-skin-dark .d-flex.gap-3 .btn-outline-secondary:hover {
-    background: #1E293B !important;
-    color: #fff !important;
-    border-color: #4a6080 !important;
+    background: #1d4ed8;
 }
 
-/* Submission overlay modal */
-html.app-skin-dark #submissionOverlay .modal-box {
-    background: #1e2a3b !important;
+html.app-skin-dark #submissionOverlay .modal-box { background: #1e2a3b !important; }
+html.app-skin-dark #submissionOverlay h5 { color: #e2e8f0 !important; }
+html.app-skin-dark #submissionOverlay .sub-text { color: #94a3b8 !important; }
+
+/* ══════════════════════════════════════════
+   ERROR TOAST — pamalit sa native alert() para
+   sa submit errors (hal. duplicate ID number).
+   Ginagamit ang parehong red palette ng
+   .pd-step-alert para consistent ang look.
+   ══════════════════════════════════════════ */
+
+.pd-toast {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100000;
+    min-width: 320px;
+    max-width: 90vw;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-left: 4px solid #dc2626;
+    color: #b91c1c;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    box-shadow: 0 12px 32px rgba(15,23,42,0.18);
+    animation: pdToastIn 0.22s ease;
+}
+.pd-toast.is-shown { display: flex; }
+.pd-toast i.feather-alert-circle { flex-shrink: 0; font-size: 16px; }
+.pd-toast .pd-toast-message { flex: 1; line-height: 1.4; }
+.pd-toast .pd-toast-close {
+    background: none;
+    border: none;
+    color: #b91c1c;
+    opacity: 0.6;
+    cursor: pointer;
+    padding: 0 0 0 6px;
+    font-size: 14px;
+    line-height: 1;
+    flex-shrink: 0;
+}
+.pd-toast .pd-toast-close:hover { opacity: 1; }
+
+@keyframes pdToastIn {
+    from { opacity: 0; transform: translate(-50%, -12px); }
+    to   { opacity: 1; transform: translate(-50%, 0); }
 }
 
-html.app-skin-dark #submissionOverlay h5 {
-    color: #e2e8f0 !important;
+@media (max-width: 640px) {
+    .pd-toast { min-width: 0; width: calc(100vw - 32px); left: 16px; transform: none; }
+    @keyframes pdToastIn {
+        from { opacity: 0; transform: translateY(-12px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
 }
 
-html.app-skin-dark #submissionOverlay .sub-text {
-    color: #94a3b8 !important;
+html.app-skin-dark .pd-toast {
+    background: #2d1618 !important;
+    border-color: #5c2427 !important;
+    color: #fca5a5 !important;
 }
-
-html.app-skin-dark #submissionOverlay .waiting-badge {
-    background: #162032 !important;
-    border-color: #2d3f55 !important;
-    color: #94a3b8 !important;
-}
-
-html.app-skin-dark #submissionOverlay .waiting-badge .muted {
-    color: #64748b !important;
-}
+html.app-skin-dark .pd-toast .pd-toast-close { color: #fca5a5 !important; }

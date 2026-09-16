@@ -82,18 +82,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const decisionForm = document.getElementById('decisionForm');
     if (decisionForm) {
         decisionForm.addEventListener('submit', function () {
-            const confirmBtn = document.getElementById('decisionConfirmBtn');
-            const actionInput = document.getElementById('decisionActionInput');
-            if (!confirmBtn) return;
+const confirmBtn = document.getElementById('decisionConfirmBtn');
+    if (!confirmBtn) return;
 
-            const action = actionInput ? actionInput.value : '';
-            const label = action === 'approved' ? 'Approving...' : 'Rejecting...';
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
 
-            confirmBtn.disabled = true;
-            confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' + label;
-
-            const cancelBtn = document.querySelector('#decisionFooterStep2 .btn-decision-cancel');
-            if (cancelBtn) cancelBtn.disabled = true;
+    const cancelBtn = document.querySelector('#decisionFooterStep2 .btn-decision-cancel');
+    if (cancelBtn) cancelBtn.disabled = true;
         });
     }
 });

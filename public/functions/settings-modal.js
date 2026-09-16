@@ -203,6 +203,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 showBwlToast('error', 'Upload Failed', data.message || 'Please try again.');
                 return;
             }
+
+          
+
             document.querySelectorAll('.js-borrower-avatar').forEach(function (el) {
                 el.innerHTML = '<img src="' + data.profile_picture_url + '" alt="Profile picture">';
             });
@@ -302,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var savePasswordBtn     = document.getElementById('bwlSetSavePasswordBtn');
     var savePasswordText    = document.getElementById('bwlSetSavePasswordText');
     var savePasswordSpinner = document.getElementById('bwlSetSavePasswordSpinner');
-var passwordError       = document.getElementById('bwlSetPasswordError');
+    var passwordError       = document.getElementById('bwlSetPasswordError');
     var passwordSuccess     = document.getElementById('bwlSetPasswordSuccess');
 
     // ---- Password strength meter ----
@@ -372,7 +375,7 @@ var passwordError       = document.getElementById('bwlSetPasswordError');
     if (passwordModalEl) {
         passwordModalEl.addEventListener('show.bs.modal', function () {
             passwordError.classList.add('d-none');
-          
+
             document.getElementById('bwlSetCurrentPassword').value = '';
             document.getElementById('bwlSetNewPassword').value = '';
             document.getElementById('bwlSetConfirmPassword').value = '';
@@ -398,72 +401,71 @@ var passwordError       = document.getElementById('bwlSetPasswordError');
         savePasswordBtn.addEventListener('click', function () {
             passwordError.classList.add('d-none');
 
-
             var current = document.getElementById('bwlSetCurrentPassword').value;
             var newPass = document.getElementById('bwlSetNewPassword').value;
             var confirm = document.getElementById('bwlSetConfirmPassword').value;
 
-           if (!current || !newPass || !confirm) {
-    passwordError.textContent = 'Please fill in all fields.';
-    passwordError.classList.remove('d-none');
-    return;
-}
+            if (!current || !newPass || !confirm) {
+                passwordError.textContent = 'Please fill in all fields.';
+                passwordError.classList.remove('d-none');
+                return;
+            }
 
-var strength = evaluatePasswordStrength(newPass);
-if (!strength.hasUpper || !strength.hasNumber || !strength.hasLength) {
-    passwordError.textContent = 'New password must have at least 1 uppercase letter, 1 number, and be 8+ characters.';
-    passwordError.classList.remove('d-none');
-    return;
-}
+            var strength = evaluatePasswordStrength(newPass);
+            if (!strength.hasUpper || !strength.hasNumber || !strength.hasLength) {
+                passwordError.textContent = 'New password must have at least 1 uppercase letter, 1 number, and be 8+ characters.';
+                passwordError.classList.remove('d-none');
+                return;
+            }
 
-if (newPass !== confirm) {
-    passwordError.textContent = 'New passwords do not match.';
-    passwordError.classList.remove('d-none');
-    return;
-}
+            if (newPass !== confirm) {
+                passwordError.textContent = 'New passwords do not match.';
+                passwordError.classList.remove('d-none');
+                return;
+            }
 
-           savePasswordBtn.disabled = true;
-savePasswordBtn.classList.add('is-loading');
-savePasswordText.classList.add('d-none');
-savePasswordSpinner.classList.remove('d-none');
+            savePasswordBtn.disabled = true;
+            savePasswordBtn.classList.add('is-loading');
+            savePasswordText.classList.add('d-none');
+            savePasswordSpinner.classList.remove('d-none');
 
             var formData = new FormData();
             formData.append('current_password', current);
             formData.append('new_password', newPass);
             formData.append('confirm_password', confirm);
 
-         fetch(CHANGE_PASSWORD_URL, {
-    method: 'POST',
-    headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-    body: formData,
-})
-          .then(function (res) { return res.json(); })
-.then(function (data) {
-    if (data.success) {
-        document.getElementById('bwlSetCurrentPassword').value = '';
-        document.getElementById('bwlSetNewPassword').value = '';
-        document.getElementById('bwlSetConfirmPassword').value = '';
-        updatePasswordStrengthUI();
+            fetch(CHANGE_PASSWORD_URL, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: formData,
+            })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+                if (data.success) {
+                    document.getElementById('bwlSetCurrentPassword').value = '';
+                    document.getElementById('bwlSetNewPassword').value = '';
+                    document.getElementById('bwlSetConfirmPassword').value = '';
+                    updatePasswordStrengthUI();
 
-        var pwModal = bootstrap.Modal.getInstance(passwordModalEl);
-        if (pwModal) pwModal.hide();
+                    var pwModal = bootstrap.Modal.getInstance(passwordModalEl);
+                    if (pwModal) pwModal.hide();
 
-        showBwlToast('success', 'Password Updated', 'Your password has been changed successfully.');
-    } else {
-        passwordError.textContent = data.message || 'Something went wrong. Please try again.';
-        passwordError.classList.remove('d-none');
-    }
-})
+                    showBwlToast('success', 'Password Updated', 'Your password has been changed successfully.');
+                } else {
+                    passwordError.textContent = data.message || 'Something went wrong. Please try again.';
+                    passwordError.classList.remove('d-none');
+                }
+            })
             .catch(function () {
                 passwordError.textContent = 'Something went wrong. Please check your connection.';
                 passwordError.classList.remove('d-none');
             })
             .finally(function () {
-    savePasswordBtn.disabled = false;
-    savePasswordBtn.classList.remove('is-loading');
-    savePasswordText.classList.remove('d-none');
-    savePasswordSpinner.classList.add('d-none');
-});
+                savePasswordBtn.disabled = false;
+                savePasswordBtn.classList.remove('is-loading');
+                savePasswordText.classList.remove('d-none');
+                savePasswordSpinner.classList.add('d-none');
+            });
         });
     }
 });

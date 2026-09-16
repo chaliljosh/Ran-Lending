@@ -148,69 +148,70 @@ class AdminController extends Controller
         ));
     }
 
-    private function getProfilePictureUrl($admin)
-    {
-        if ($admin && !empty($admin->profile_picture) && Storage::disk('public')->exists($admin->profile_picture)) {
-            return Storage::disk('public')->url($admin->profile_picture);
-        }
-        return null;
+  private function getProfilePictureUrl($admin)
+{
+    if ($admin && !empty($admin->profile_picture)) {
+        return Storage::disk('supabase')->url($admin->profile_picture);
     }
-
+    return null;
+}
     
 
     public function updateProfilePicture(Request $request)
-    {
-        $request->validate([
-            'profile_picture' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
-        ]);
+{
+    $request->validate([
+        'profile_picture' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
+    ]);
 
-        $adminId = Session::get('user_id');
-        $admin = DB::table('users')->where('user_id', $adminId)->first();
+    $adminId = Session::get('user_id');
+    $admin = DB::table('users')->where('user_id', $adminId)->first();
 
-        // Alisin muna yung dating picture, kung meron
-        if (!empty($admin->profile_picture) && Storage::disk('public')->exists($admin->profile_picture)) {
-            Storage::disk('public')->delete($admin->profile_picture);
-        }
-
-        $path = $request->file('profile_picture')->store('profile-pictures', 'public');
-
-        DB::table('users')->where('user_id', $adminId)->update([
-            'profile_picture' => $path,
-        ]);
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Profile picture updated.',
-                'profile_picture_url' => Storage::disk('public')->url($path),
-            ]);
-        }
-
-        return back()->with('success', 'Profile picture updated.');
+    // Alisin muna yung dating picture, kung meron
+    if (!empty($admin->profile_picture)) {
+        Storage::disk('supabase')->delete($admin->profile_picture);
     }
+
+    $file = $request->file('profile_picture');
+    $filename = 'profile-pictures/' . uniqid() . '.' . $file->getClientOriginalExtension();
+    Storage::disk('supabase')->put($filename, file_get_contents($file), 'public');
+
+    DB::table('users')->where('user_id', $adminId)->update([
+        'profile_picture' => $filename,
+    ]);
+
+    if ($request->ajax() || $request->wantsJson()) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Profile picture updated.',
+            'profile_picture_url' => Storage::disk('supabase')->url($filename),
+        ]);
+    }
+
+    return back()->with('success', 'Profile picture updated.');
+}
 
     public function removeProfilePicture(Request $request)
-    {
-        $adminId = Session::get('user_id');
-        $admin = DB::table('users')->where('user_id', $adminId)->first();
+{
+    $adminId = Session::get('user_id');
+    $admin = DB::table('users')->where('user_id', $adminId)->first();
 
-        if (!empty($admin->profile_picture) && Storage::disk('public')->exists($admin->profile_picture)) {
-            Storage::disk('public')->delete($admin->profile_picture);
-        }
-
-        DB::table('users')->where('user_id', $adminId)->update([
-            'profile_picture' => null,
-        ]);
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Profile picture removed.',
-            ]);
-        }
-
-        return back()->with('success', 'Profile picture removed.');
+    if (!empty($admin->profile_picture)) {
+        Storage::disk('supabase')->delete($admin->profile_picture);
     }
+
+    DB::table('users')->where('user_id', $adminId)->update([
+        'profile_picture' => null,
+    ]);
+
+    if ($request->ajax() || $request->wantsJson()) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Profile picture removed.',
+        ]);
+    }
+
+    return back()->with('success', 'Profile picture removed.');
+}
 
     public function updateAccountPassword(Request $request)
 {
@@ -880,51 +881,61 @@ if ($redirect && str_starts_with($redirect, '/') && !str_starts_with($redirect, 
         ));
     }
 
-       public function verificationDetail(Request $request, $id)
-    {
-        $adminId = Session::get('user_id');
-        $detailId = (int) $id;
+      public function verificationDetail(Request $request, $id)
+{
+    $adminId = Session::get('user_id');
+    $detailId = (int) $id;
 
-        $d = $this->getBorrowerDetail($detailId);
+    $d = $this->getBorrowerDetail($detailId);
 
-        if (!$d) {
-            return redirect()->route('admin.borrower-verification');
-        }
-
-        if ($request->isMethod('post')) {
-            if ($request->filled('comment')) {
-                $this->saveComment($detailId, $adminId, $request->input('comment'));
-                return redirect()->route('admin.verification-detail', $detailId);
-            }
-
-            if ($request->filled('action')) {
-                $this->saveDecision($request->merge(['detail_id' => $detailId]), $adminId);
-
-                if ($request->ajax() || $request->wantsJson()) {
-                    return response()->json([
-                        'success' => true,
-                        'redirect' => route('admin.borrower-verification'),
-                    ]);
-                }
-
-                return redirect()->route('admin.borrower-verification')->with('success', true);
-            }
-        }
-
-        return view('admin.verification-detail', [
-            'd' => $d,
-            'detailId' => $detailId,
-            'adminId' => $adminId,
-            'borrowerProfilePicture' => $this->getProfilePictureUrl($d), // NEW — reuses the same private helper the admin header already uses, since it only touches ->profile_picture
-            'myReview' => $this->getMyReview($detailId, $adminId),
-            'allReviews' => $this->getAllReviews($detailId),
-            'comments' => $this->getComments($detailId),
-            'loanStats' => $this->getBorrowerLoanStats($d->user_id),
-            'pendingCount' => $this->getPendingVerificationCount($adminId),
-            'pendingLoanCount' => $this->getPendingLoanCount($adminId),
-            'viewStatus' => $d->status,
-        ]);
+    if (!$d) {
+        return redirect()->route('admin.borrower-verification');
     }
+
+    if ($request->isMethod('post')) {
+        if ($request->filled('comment')) {
+            $this->saveComment($detailId, $adminId, $request->input('comment'));
+            return redirect()->route('admin.verification-detail', $detailId);
+        }
+
+        if ($request->filled('action')) {
+            $this->saveDecision($request->merge(['detail_id' => $detailId]), $adminId);
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'redirect' => route('admin.borrower-verification'),
+                ]);
+            }
+
+            return redirect()->route('admin.borrower-verification')->with('success', true);
+        }
+    }
+
+    // Signed URLs para sa Valid ID images (private bucket — 30 minutes validity)
+    $idFrontUrl = !empty($d->id_file_path)
+        ? Storage::disk('valid_ids')->temporaryUrl($d->id_file_path, now()->addMinutes(30))
+        : null;
+    $idBackUrl = !empty($d->id_file_path_back)
+        ? Storage::disk('valid_ids')->temporaryUrl($d->id_file_path_back, now()->addMinutes(30))
+        : null;
+
+    return view('admin.verification-detail', [
+        'd' => $d,
+        'detailId' => $detailId,
+        'adminId' => $adminId,
+        'borrowerProfilePicture' => $this->getProfilePictureUrl($d),
+        'idFrontUrl' => $idFrontUrl,
+        'idBackUrl' => $idBackUrl,
+        'myReview' => $this->getMyReview($detailId, $adminId),
+        'allReviews' => $this->getAllReviews($detailId),
+        'comments' => $this->getComments($detailId),
+        'loanStats' => $this->getBorrowerLoanStats($d->user_id),
+        'pendingCount' => $this->getPendingVerificationCount($adminId),
+        'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+        'viewStatus' => $d->status,
+    ]);
+}
 
     private function getBorrowerLoanStats($userId)
     {
@@ -1219,61 +1230,71 @@ if ($redirect && str_starts_with($redirect, '/') && !str_starts_with($redirect, 
     ));
 }
 
-    public function loanApplicationDetail(Request $request, $id)
-    {
-        $adminId = Session::get('user_id');
-        $applicationId = (int) $id;
+   public function loanApplicationDetail(Request $request, $id)
+{
+    $adminId = Session::get('user_id');
+    $applicationId = (int) $id;
 
-        $app = $this->getLoanApplication($applicationId);
+    $app = $this->getLoanApplication($applicationId);
 
-        if (!$app) {
-            return redirect()->route('admin.loan-applications');
-        }
-
-        if ($request->isMethod('post')) {
-            if ($request->filled('comment')) {
-                $this->saveLoanComment($applicationId, $adminId, $request->input('comment'));
-                return redirect()->route('admin.loan-application-detail', $applicationId);
-            }
-
-            if ($request->filled('action')) {
-                $this->saveLoanDecision($request->merge(['application_id' => $applicationId]), $adminId);
-
-                $newStatus = DB::table('loan_applications')
-                    ->where('application_id', $applicationId)
-                    ->value('status');
-
-                if ($request->ajax() || $request->wantsJson()) {
-                    return response()->json([
-                        'success' => true,
-                        'status' => $newStatus,
-                        'redirect' => route('admin.loan-applications'),
-                    ]);
-                }
-
-                return redirect()->route('admin.loan-applications')
-                    ->with('success', true)
-                    ->with('decisionStatus', $newStatus);
-            }
-        }
-
-        return view('admin.loan-application-detail', [
-            'app' => $app,
-            'address' => $this->getBorrowerAddress($app->detail_id),
-            'work' => $this->getBorrowerWork($app->detail_id),
-            'applicationId' => $applicationId,
-            'adminId' => $adminId,
-            'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
-            'myReview' => $this->getMyLoanReview($applicationId, $adminId),
-            'allReviews' => $this->getAllLoanReviews($applicationId),
-            'approvedCount' => $this->getLoanApprovedCount($applicationId),
-            'comments' => $this->getLoanComments($applicationId),
-            'paymentSchedule' => $this->getPaymentSchedule($applicationId),
-            'pendingCount' => $this->getPendingVerificationCount($adminId),
-            'pendingLoanCount' => $this->getPendingLoanCount($adminId),
-            'viewStatus' => $app->status,
-        ]);
+    if (!$app) {
+        return redirect()->route('admin.loan-applications');
     }
+
+    if ($request->isMethod('post')) {
+        if ($request->filled('comment')) {
+            $this->saveLoanComment($applicationId, $adminId, $request->input('comment'));
+            return redirect()->route('admin.loan-application-detail', $applicationId);
+        }
+
+        if ($request->filled('action')) {
+            $this->saveLoanDecision($request->merge(['application_id' => $applicationId]), $adminId);
+
+            $newStatus = DB::table('loan_applications')
+                ->where('application_id', $applicationId)
+                ->value('status');
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'status' => $newStatus,
+                    'redirect' => route('admin.loan-applications'),
+                ]);
+            }
+
+            return redirect()->route('admin.loan-applications')
+                ->with('success', true)
+                ->with('decisionStatus', $newStatus);
+        }
+    }
+
+    // Signed URLs para sa Valid ID images (private bucket — 30 minutes validity)
+    $idFrontUrl = !empty($app->id_file_path)
+        ? Storage::disk('valid_ids')->temporaryUrl($app->id_file_path, now()->addMinutes(30))
+        : null;
+    $idBackUrl = !empty($app->id_file_path_back)
+        ? Storage::disk('valid_ids')->temporaryUrl($app->id_file_path_back, now()->addMinutes(30))
+        : null;
+
+    return view('admin.loan-application-detail', [
+        'app' => $app,
+        'address' => $this->getBorrowerAddress($app->detail_id),
+        'work' => $this->getBorrowerWork($app->detail_id),
+        'applicationId' => $applicationId,
+        'adminId' => $adminId,
+        'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
+        'idFrontUrl' => $idFrontUrl,
+        'idBackUrl' => $idBackUrl,
+        'myReview' => $this->getMyLoanReview($applicationId, $adminId),
+        'allReviews' => $this->getAllLoanReviews($applicationId),
+        'approvedCount' => $this->getLoanApprovedCount($applicationId),
+        'comments' => $this->getLoanComments($applicationId),
+        'paymentSchedule' => $this->getPaymentSchedule($applicationId),
+        'pendingCount' => $this->getPendingVerificationCount($adminId),
+        'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+        'viewStatus' => $app->status,
+    ]);
+}
 
     public function activeBorrowerDetail(Request $request, $id)
     {

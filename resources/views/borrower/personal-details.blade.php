@@ -75,243 +75,352 @@
                 </div>
                 @endif
 
+                {{-- ============================================================
+                     WIZARD CARD — iisang malaking white card na naglalaman
+                     ng progress bar + buong form (gaya ng reference design).
+                     Ang bilang ng .progress-step dito ay dapat KAPAREHO ng
+                     bilang ng .pd-step sa loob ng form sa baba.
+                   ============================================================ --}}
+                <div class="pd-wizard-card">
+
+                <div class="form-progress" id="pdProgress">
+                    <div class="progress-step">
+                        <div class="progress-step-circle">1</div>
+                        <div class="progress-step-label">Personal Info</div>
+                    </div>
+                    <div class="progress-connector"></div>
+                    <div class="progress-step">
+                        <div class="progress-step-circle">2</div>
+                        <div class="progress-step-label">Valid ID</div>
+                    </div>
+                    <div class="progress-connector"></div>
+                    <div class="progress-step">
+                        <div class="progress-step-circle">3</div>
+                        <div class="progress-step-label">Address</div>
+                    </div>
+                    <div class="progress-connector"></div>
+                    <div class="progress-step">
+                        <div class="progress-step-circle">4</div>
+                        <div class="progress-step-label">Work Info</div>
+                    </div>
+                    <div class="progress-connector"></div>
+                    <div class="progress-step">
+                        <div class="progress-step-circle">5</div>
+                        <div class="progress-step-label">Co-Maker</div>
+                    </div>
+                </div>
+
                 <form id="personalDetailsForm" onsubmit="return false;">
 
-                    <div class="form-section">
-                        <div class="form-section-header">
-                            <div><p class="form-section-title">Personal Information</p></div>
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-md-3">
-                                <label class="form-label">Last Name</label>
-                                <input type="text" class="form-control" id="lastName" value="{{ $regData['lastName'] }}" placeholder="Enter last name" {{ $regData['lastName'] ? 'disabled' : 'required' }}>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">First Name</label>
-                                <input type="text" class="form-control" id="firstName" value="{{ $regData['firstName'] }}" placeholder="Enter first name" {{ $regData['firstName'] ? 'disabled' : 'required' }}>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Middle Name</label>
-                                <input type="text" class="form-control" id="middleName" value="{{ $regData['middleName'] }}" placeholder="Enter middle name" {{ $regData['middleName'] ? 'disabled' : 'required' }}>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Suffix</label>
-                                <select class="form-select" id="suffix">
-                                    <option value="" {{ ($details->suffix ?? '') === '' ? 'selected' : '' }}>None</option>
-                                    @foreach(['Jr.', 'Sr.', 'II', 'III', 'IV', 'V'] as $s)
-                                    <option value="{{ $s }}" {{ ($details->suffix ?? '') === $s ? 'selected' : '' }}>{{ $s }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Birthday</label>
-                                <input type="date" class="form-control" id="birthday" value="{{ $regData['birthday'] }}" {{ $regData['birthday'] ? 'disabled' : 'required' }}>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Age</label>
-                                <input type="number" class="form-control" id="age" placeholder="Auto-calculated" readonly>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Gender</label>
-                                <select class="form-select" id="gender" required>
-                                    <option value="">Select gender</option>
-                                    <option value="male" {{ ($details->gender ?? '') === 'male' ? 'selected' : '' }}>Male</option>
-                                    <option value="female" {{ ($details->gender ?? '') === 'female' ? 'selected' : '' }}>Female</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Civil Status</label>
-                                <select class="form-select" id="civilStatus" required>
-                                    <option value="">Select status</option>
-                                    @foreach(['single','taken','married','widowed','separated'] as $cs)
-                                    <option value="{{ $cs }}" {{ ($details->civil_status ?? '') === $cs ? 'selected' : '' }}>{{ ucfirst($cs) }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Citizenship</label>
-                                <input type="text" class="form-control" id="citizenship" value="{{ $details->citizenship ?? '' }}" placeholder="e.g. Filipino" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Cellphone Number</label>
-                                <input type="tel" class="form-control" id="cellphone" value="{{ $details->cellphone_num ?? '+63 ' }}" placeholder="+63 912 345 6789" maxlength="16" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Birth Country</label>
-                                <input type="text" class="form-control" id="birthCountry" value="{{ $details->birth_country ?? '' }}" placeholder="e.g. Philippines" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Birth Province</label>
-                                <input type="text" class="form-control" id="birthProvince" value="{{ $details->birth_province ?? '' }}" placeholder="e.g. Cagayan" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Birth City</label>
-                                <input type="text" class="form-control" id="birthCity" value="{{ $details->birth_city ?? '' }}" placeholder="e.g. Tuguegarao" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Email Address</label>
-                                <input type="email" class="form-control" id="email" value="{{ $regData['email'] }}" placeholder="Enter email address" {{ $regData['email'] ? 'disabled' : 'required' }}>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Monthly Income</label>
-                                <input type="text" class="form-control" id="monthlyIncome" value="{{ $details->monthly_income ?? '' }}" placeholder="e.g. 25000" inputmode="numeric" maxlength="6" autocomplete="off" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Type of ID</label>
-                                <select class="form-select" id="idType" required>
-                                    <option value="">Select ID type</option>
-                                    @foreach(['national_id'=>'National ID (PhilSys)','passport'=>'Passport','drivers_license'=>"Driver's License",'umid'=>'UMID','sss'=>'SSS ID','tin'=>'TIN ID','postal'=>'Postal ID','voters'=>"Voter's ID",'prc'=>'PRC ID'] as $val => $label)
-                                    <option value="{{ $val }}" {{ ($details->id_type ?? '') === $val ? 'selected' : '' }}>{{ $label }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">ID/Passport Number</label>
-                                <input type="text" class="form-control" id="idNumber" value="{{ $details->id_number ?? '' }}" placeholder="Enter ID or passport number" required>
-                            </div>
+                    {{-- ============ STEP 1 — PERSONAL INFORMATION ============ --}}
+                    <div class="pd-step">
+                        <div class="pd-step-alert"></div>
 
-                            {{-- ============ ID FRONT / BACK — split into two uploads
-                                 dahil karamihan ng IDs (UMID, driver's license, PhilID)
-                                 ay may importanteng info sa likod (address, signature,
-                                 expiry) na kailangan i-verify ng admin. ============ --}}
-                            <div class="col-md-6">
-                                <label class="form-label">Front ID</label>
-                                <input type="file" class="form-control" id="validIdFront" accept="image/*,.pdf" {{ ($details->id_file_path ?? null) ? '' : 'required' }}>
-                                <small class="text-muted mt-1 d-block"><i class="feather-info me-1"></i>Accepted: JPG, PNG, PDF (Max 5MB)</small>
-                                <div id="idFrontPreview" class="mt-2"></div>
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <div>
+                                    <p class="form-section-title">Personal Information</p>
+                           
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Back ID</label>
-                                <input type="file" class="form-control" id="validIdBack" accept="image/*,.pdf" {{ ($details->id_file_path_back ?? null) ? '' : 'required' }}>
-                                <div id="idBackPreview" class="mt-2"></div>
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Last Name</label>
+                                    <input type="text" class="form-control" id="lastName" value="{{ $regData['lastName'] }}" placeholder="Enter last name" {{ $regData['lastName'] ? 'disabled' : 'required' }}>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">First Name</label>
+                                    <input type="text" class="form-control" id="firstName" value="{{ $regData['firstName'] }}" placeholder="Enter first name" {{ $regData['firstName'] ? 'disabled' : 'required' }}>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Middle Name</label>
+                                    <input type="text" class="form-control" id="middleName" value="{{ $regData['middleName'] }}" placeholder="Enter middle name" {{ $regData['middleName'] ? 'disabled' : 'required' }}>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Suffix</label>
+                                    <select class="form-select" id="suffix">
+                                        <option value="" {{ ($details->suffix ?? '') === '' ? 'selected' : '' }}>None</option>
+                                        @foreach(['Jr.', 'Sr.', 'II', 'III', 'IV', 'V'] as $s)
+                                        <option value="{{ $s }}" {{ ($details->suffix ?? '') === $s ? 'selected' : '' }}>{{ $s }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Birthday</label>
+                                    <div class="pd-input-icon-wrap">
+                                        <i class="feather-calendar pd-input-icon"></i>
+                                        <input type="date" class="form-control" id="birthday" value="{{ $regData['birthday'] }}" {{ $regData['birthday'] ? 'disabled' : 'required' }}>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Age</label>
+                                    <input type="number" class="form-control" id="age" placeholder="Auto-calculated" readonly>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Gender</label>
+                                    <select class="form-select" id="gender" required>
+                                        <option value="">Select gender</option>
+                                        <option value="male" {{ ($details->gender ?? '') === 'male' ? 'selected' : '' }}>Male</option>
+                                        <option value="female" {{ ($details->gender ?? '') === 'female' ? 'selected' : '' }}>Female</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Civil Status</label>
+                                    <select class="form-select" id="civilStatus" required>
+                                        <option value="">Select status</option>
+                                        @foreach(['single','taken','married','widowed','separated'] as $cs)
+                                        <option value="{{ $cs }}" {{ ($details->civil_status ?? '') === $cs ? 'selected' : '' }}>{{ ucfirst($cs) }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Citizenship</label>
+                                    <input type="text" class="form-control" id="citizenship" value="{{ $details->citizenship ?? '' }}" placeholder="e.g. Filipino" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Cellphone Number</label>
+                                    <input type="tel" class="form-control" id="cellphone" value="{{ $details->cellphone_num ?? '+63 ' }}" placeholder="+63 912 345 6789" maxlength="16" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Birth Country</label>
+                                    <input type="text" class="form-control" id="birthCountry" value="{{ $details->birth_country ?? '' }}" placeholder="e.g. Philippines" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Birth Province</label>
+                                    <input type="text" class="form-control" id="birthProvince" value="{{ $details->birth_province ?? '' }}" placeholder="e.g. Cagayan" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Birth City</label>
+                                    <input type="text" class="form-control" id="birthCity" value="{{ $details->birth_city ?? '' }}" placeholder="e.g. Tuguegarao" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Email Address</label>
+                                    <div class="pd-input-icon-wrap">
+                                        <i class="feather-mail pd-input-icon"></i>
+                                        <input type="email" class="form-control" id="email" value="{{ $regData['email'] }}" placeholder="Enter email address" {{ $regData['email'] ? 'disabled' : 'required' }}>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Monthly Income</label>
+                                    <div class="pd-input-icon-wrap">
+                                        <span class="pd-input-icon">&#8369;</span>
+                                        <input type="text" class="form-control" id="monthlyIncome" value="{{ $details->monthly_income ?? '' }}" placeholder="e.g. 25000" inputmode="numeric" maxlength="6" autocomplete="off" required>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="form-section">
-                        <div class="form-section-header"><div><p class="form-section-title">Present Address</p></div></div>
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label class="form-label">Country</label>
-                                <input type="text" class="form-control" id="country" value="Philippines" readonly>
+                    {{-- ============ STEP 2 — VALID ID ============ --}}
+                    <div class="pd-step">
+                        <div class="pd-step-alert"></div>
+
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <div>
+                                    <p class="form-section-title">Valid ID</p>
+                                 
+                                </div>
                             </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Region</label>
-                                <select class="form-select" id="region" required><option value="">Select Region</option></select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Province</label>
-                                <select class="form-select" id="province" disabled required><option value="">Select Province</option></select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">City/Municipality</label>
-                                <select class="form-select" id="city" disabled required><option value="">Select City/Municipality</option></select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Barangay</label>
-                                <select class="form-select" id="barangay" disabled required><option value="">Select Barangay</option></select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Zipcode</label>
-                                <input type="text" class="form-control" id="zipcode" value="{{ $details->zipcode ?? '' }}" placeholder="e.g. 1000" maxlength="4">
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label">Home Address</label>
-                                <textarea class="form-control" id="homeAddress" rows="2" placeholder="e.g. Block 5 Lot 10, Greenfield Subdivision, Rizal Street"></textarea>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Type of ID</label>
+                                    <select class="form-select" id="idType" required>
+                                        <option value="">Select ID type</option>
+                                        @foreach(['national_id'=>'National ID (PhilSys)','passport'=>'Passport','drivers_license'=>"Driver's License",'umid'=>'UMID','sss'=>'SSS ID','tin'=>'TIN ID','postal'=>'Postal ID','voters'=>"Voter's ID",'prc'=>'PRC ID'] as $val => $label)
+                                        <option value="{{ $val }}" {{ ($details->id_type ?? '') === $val ? 'selected' : '' }}>{{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">ID/Passport Number</label>
+                                    <input type="text" class="form-control" id="idNumber" value="{{ $details->id_number ?? '' }}" placeholder="Enter ID or passport number" required>
+                                </div>
+
+                                {{-- ============ ID FRONT / BACK — split into two uploads
+                                     dahil karamihan ng IDs (UMID, driver's license, PhilID)
+                                     ay may importanteng info sa likod (address, signature,
+                                     expiry) na kailangan i-verify ng admin. ============ --}}
+                                <div class="col-md-6">
+                                    <label class="form-label">Front ID</label>
+                                    <input type="file" class="form-control" id="validIdFront" accept="image/*,.pdf" {{ ($details->id_file_path ?? null) ? '' : 'required' }}>
+                                    <small class="text-muted mt-1 d-block"><i class="feather-info me-1"></i>Accepted: JPG, PNG, PDF (Max 5MB)</small>
+                                    <div id="idFrontPreview" class="mt-2"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Back ID</label>
+                                    <input type="file" class="form-control" id="validIdBack" accept="image/*,.pdf" {{ ($details->id_file_path_back ?? null) ? '' : 'required' }}>
+                                    <div id="idBackPreview" class="mt-2"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="form-section">
-                        <div class="form-section-header"><div><p class="form-section-title">Work Information</p></div></div>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Employment Status</label>
-                                <select class="form-select" id="employmentStatus" required>
-                                    <option value="">Select status</option>
-                                    @foreach(['employed'=>'Employed','self_employed'=>'Self-Employed','unemployed'=>'Unemployed','student'=>'Student','retired'=>'Retired'] as $val => $label)
-                                    <option value="{{ $val }}">{{ $label }}</option>
-                                    @endforeach
-                                </select>
+                    {{-- ============ STEP 3 — PRESENT ADDRESS ============ --}}
+                    <div class="pd-step">
+                        <div class="pd-step-alert"></div>
+
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <div>
+                                    <p class="form-section-title">Present Address</p>
+                              
+                                </div>
                             </div>
-                            <div class="col-md-6" id="companyNameWrapper">
-                                <label class="form-label" id="companyNameLabel">Company/Business Name</label>
-                                <input type="text" class="form-control" id="companyName" placeholder="Enter company/business name">
-                            </div>
-                            <div class="col-md-6" id="positionWrapper">
-                                <label class="form-label" id="positionLabel">Position/Occupation</label>
-                                <input type="text" class="form-control" id="position" placeholder="Enter position/occupation">
-                            </div>
-                            <div class="col-md-6" id="yearLevelWrapper">
-                                <label class="form-label" id="yearLevelLabel">Year Level</label>
-                                <select class="form-select" id="yearLevel">
-                                    <option value="">Select year level</option>
-                                    <option value="1st Year">1st Year</option>
-                                    <option value="2nd Year">2nd Year</option>
-                                    <option value="3rd Year">3rd Year</option>
-                                    <option value="4th Year">4th Year</option>
-                                    <option value="5th Year">5th Year</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3" id="yearsWrapper">
-                                <label class="form-label" id="yearsLabel">Years</label>
-                                <input type="number" class="form-control" id="yearsInCompany" placeholder="e.g. 2" min="0" max="50" step="1">
-                            </div>
-                            {{-- Months in Company: hindi kailangan required — hindi naman
-                                 alam ng lahat ng borrowers ang eksaktong bilang ng buwan
-                                 nila sa trabaho. Years na lang required, defaults to 0. --}}
-                            <div class="col-md-3" id="monthsWrapper">
-                                <label class="form-label" id="monthsLabel">Months</label>
-                                <select class="form-select" id="monthsInCompany">
-                                    @for($m = 0; $m <= 11; $m++)
-                                    <option value="{{ $m }}">{{ $m }} months</option>
-                                    @endfor
-                                </select>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Country</label>
+                                    <input type="text" class="form-control" id="country" value="Philippines" readonly>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Region</label>
+                                    <select class="form-select" id="region" required><option value="">Select Region</option></select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Province</label>
+                                    <select class="form-select" id="province" disabled required><option value="">Select Province</option></select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">City/Municipality</label>
+                                    <select class="form-select" id="city" disabled required><option value="">Select City/Municipality</option></select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Barangay</label>
+                                    <select class="form-select" id="barangay" disabled required><option value="">Select Barangay</option></select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Zipcode</label>
+                                    <input type="text" class="form-control" id="zipcode" value="{{ $details->zipcode ?? '' }}" placeholder="e.g. 1000" maxlength="4">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Home Address</label>
+                                    <textarea class="form-control" id="homeAddress" rows="2" placeholder="e.g. Block 5 Lot 10, Greenfield Subdivision, Rizal Street"></textarea>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="form-section">
-                        <div class="form-section-header"><div><p class="form-section-title">Co-Maker Information</p></div></div>
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label class="form-label">Co-Maker Last Name</label>
-                                <input type="text" class="form-control" id="coMakerLastName" placeholder="Enter last name" required>
+                    {{-- ============ STEP 4 — WORK INFORMATION ============ --}}
+                    <div class="pd-step">
+                        <div class="pd-step-alert"></div>
+
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <div>
+                                    <p class="form-section-title">Work Information</p>
+
+                                </div>
                             </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Co-Maker First Name</label>
-                                <input type="text" class="form-control" id="coMakerFirstName" placeholder="Enter first name" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Co-Maker Middle Name</label>
-                                <input type="text" class="form-control" id="coMakerMiddleName" placeholder="Enter middle name" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Relationship to Borrower</label>
-                                <select class="form-select" id="coMakerRelationship" required>
-                                    <option value="">Select relationship</option>
-                                    @foreach(['spouse'=>'Spouse','parent'=>'Parent','sibling'=>'Sibling','child'=>'Child','relative'=>'Other Relative','friend'=>'Friend','colleague'=>'Colleague'] as $val => $label)
-                                    <option value="{{ $val }}">{{ $label }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Co-Maker Contact Number</label>
-                                <input type="tel" class="form-control" id="coMakerContact" value="+63 " placeholder="+63 912 345 6789" maxlength="16" required>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Employment Status</label>
+                                    <select class="form-select" id="employmentStatus" required>
+                                        <option value="">Select status</option>
+                                        @foreach(['employed'=>'Employed','self_employed'=>'Self-Employed','unemployed'=>'Unemployed','student'=>'Student','retired'=>'Retired'] as $val => $label)
+                                        <option value="{{ $val }}">{{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-6" id="companyNameWrapper">
+                                    <label class="form-label" id="companyNameLabel">Company/Business Name</label>
+                                    <input type="text" class="form-control" id="companyName" placeholder="Enter company/business name">
+                                </div>
+                                <div class="col-md-6" id="positionWrapper">
+                                    <label class="form-label" id="positionLabel">Position/Occupation</label>
+                                    <input type="text" class="form-control" id="position" placeholder="Enter position/occupation">
+                                </div>
+                                <div class="col-md-6" id="yearLevelWrapper">
+                                    <label class="form-label" id="yearLevelLabel">Year Level</label>
+                                    <select class="form-select" id="yearLevel">
+                                        <option value="">Select year level</option>
+                                        <option value="1st Year">1st Year</option>
+                                        <option value="2nd Year">2nd Year</option>
+                                        <option value="3rd Year">3rd Year</option>
+                                        <option value="4th Year">4th Year</option>
+                                        <option value="5th Year">5th Year</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3" id="yearsWrapper">
+                                    <label class="form-label" id="yearsLabel">Years</label>
+                                    <input type="number" class="form-control" id="yearsInCompany" placeholder="e.g. 2" min="0" max="50" step="1">
+                                </div>
+                            
+                                <div class="col-md-3" id="monthsWrapper">
+                                    <label class="form-label" id="monthsLabel">Months</label>
+                                    <select class="form-select" id="monthsInCompany">
+                                        @for($m = 0; $m <= 11; $m++)
+                                        <option value="{{ $m }}">{{ $m }} months</option>
+                                        @endfor
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="d-flex gap-3 mb-4">
-                        <button type="button" class="btn px-5" id="submitBtn">
-                            <i class="feather-send me-2"></i>Submit for Approval
+                    {{-- ============ STEP 5 — CO-MAKER INFORMATION ============ --}}
+                    <div class="pd-step">
+                        <div class="pd-step-alert"></div>
+
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <div>
+                                    <p class="form-section-title">Co-Maker Information</p>
+                               
+                                </div>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Co-Maker Last Name</label>
+                                    <input type="text" class="form-control" id="coMakerLastName" placeholder="Enter last name" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Co-Maker First Name</label>
+                                    <input type="text" class="form-control" id="coMakerFirstName" placeholder="Enter first name" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Co-Maker Middle Name</label>
+<input type="text" class="form-control" id="coMakerMiddleName" placeholder="Enter middle name" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Relationship to Borrower</label>
+                                    <select class="form-select" id="coMakerRelationship" required>
+                                        <option value="">Select relationship</option>
+                                        @foreach(['spouse'=>'Spouse','parent'=>'Parent','sibling'=>'Sibling','child'=>'Child','relative'=>'Other Relative','friend'=>'Friend','colleague'=>'Colleague'] as $val => $label)
+                                        <option value="{{ $val }}">{{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Co-Maker Contact Number</label>
+                                    <input type="tel" class="form-control" id="coMakerContact" value="+63 " placeholder="+63 912 345 6789" maxlength="16" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- ============ WIZARD NAVIGATION ============ --}}
+                    <div class="pd-wizard-nav mb-4">
+                        <button type="button" class="btn pd-btn-back" id="pdBtnBack">
+                            Back
                         </button>
-                        <a href="{{ route('borrower.dashboard') }}" class="btn btn-outline-secondary px-5" style="border-radius:12px;">
-                            <i class="feather-x me-2"></i>Cancel
-                        </a>
+
+                        <div class="pd-wizard-nav-right">
+                            <a href="{{ route('borrower.dashboard') }}" class="btn btn-outline-secondary px-5" style="border-radius:12px;">
+                           Cancel
+                            </a>
+                            <button type="button" class="btn px-5" id="pdBtnNext">
+                                Next
+                            </button>
+                            <button type="button" class="btn px-5" id="submitBtn">
+                                <i class="feather-send me-2"></i>Submit for Approval
+                            </button>
+                        </div>
                     </div>
 
                 </form>
+
+                </div>{{-- /.pd-wizard-card --}}
+
             </div>
         </div>
         @endif
@@ -321,7 +430,7 @@
     <div id="submissionOverlay">
         <div class="modal-box">
             <div class="modal-inner">
-                <div class="icon-wrap"><i class="feather-check-circle"></i></div>
+           
                 <h5>Submitted Successfully!</h5>
                 <p class="sub-text">Your personal details have been submitted.<br>Please wait for the admin to review your information.</p>
                 <a href="{{ route('borrower.dashboard') }}" class="btn-go">

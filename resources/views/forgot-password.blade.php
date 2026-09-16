@@ -19,7 +19,7 @@
   <!-- Back to Home -->
   <div class="back-btn-bar">
     <a href="{{ url('/') }}" class="back-btn">
-      <i class="bi bi-arrow-left"></i> Back to Home
+      Back to Home
     </a>
   </div>
 
@@ -44,11 +44,11 @@
           </div>
         </div>
         <button class="btn-submit" id="sendOtpBtn">
-          <span class="btn-label">Send Verification Code <i class="bi bi-arrow-right"></i></span>
+          <span class="btn-label">Send Verification Code</span>
           <span class="btn-spinner"></span>
         </button>
         <a class="back-link" href="{{ route('login') }}">
-          <i class="bi bi-arrow-left"></i> Back to Login
+         Back to Login
         </a>
       </div>
 

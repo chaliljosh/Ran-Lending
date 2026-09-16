@@ -17,15 +17,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Filesystem Disks
-    |--------------------------------------------------------------------------
-    |
-    | Here you may configure as many filesystem "disks" as you wish, and you
-    | may even configure multiple disks of the same driver. Defaults have
-    | been set up for each driver as an example of the required values.
-    |
-    | Supported Drivers: "local", "ftp", "sftp", "s3"
-    |
+
     */
 
     'disks' => [
@@ -55,6 +47,29 @@ return [
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
             'throw' => false,
         ],
+
+        'supabase' => [
+    'driver' => 's3',
+    'key' => env('SUPABASE_STORAGE_KEY'),
+    'secret' => env('SUPABASE_STORAGE_SECRET'),
+    'region' => env('SUPABASE_STORAGE_REGION', 'us-east-1'),
+    'bucket' => env('SUPABASE_STORAGE_BUCKET'),
+    'url' => env('SUPABASE_STORAGE_URL'),
+    'endpoint' => env('SUPABASE_STORAGE_ENDPOINT'),
+    'use_path_style_endpoint' => true,
+    'throw' => true,   // <-- pansamantalang binago mula false
+],
+
+'valid_ids' => [
+    'driver' => 's3',
+    'key' => env('VALID_IDS_STORAGE_KEY'),
+    'secret' => env('VALID_IDS_STORAGE_SECRET'),
+    'region' => env('VALID_IDS_STORAGE_REGION', 'ap-northeast-1'),
+    'bucket' => env('VALID_IDS_STORAGE_BUCKET'),
+    'endpoint' => env('VALID_IDS_STORAGE_ENDPOINT'),
+    'use_path_style_endpoint' => true,
+    'throw' => false,
+],
 
     ],
 

@@ -6,6 +6,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
+use Illuminate\Database\QueryException;
 use Carbon\Carbon;
 
 class BorrowerController extends Controller
@@ -57,15 +61,14 @@ class BorrowerController extends Controller
             'headerNotifications', 'unreadNotifCount'
         );
     }
-
-    private function getProfilePictureUrl($userId)
-    {
-        $user = DB::table('users')->where('user_id', $userId)->first();
-        if ($user && !empty($user->profile_picture) && Storage::disk('public')->exists($user->profile_picture)) {
-            return Storage::disk('public')->url($user->profile_picture);
-        }
-        return null;
+private function getProfilePictureUrl($userId)
+{
+    $user = DB::table('users')->where('user_id', $userId)->first();
+    if ($user && !empty($user->profile_picture)) {
+        return Storage::disk('supabase')->url($user->profile_picture);
     }
+    return null;
+}
 
     /**
      * Loan amount eligibility — first-time borrowers are capped at
@@ -427,35 +430,59 @@ class BorrowerController extends Controller
 
     public function savePersonalDetails(Request $request)
     {
-        $userId = Session::get('user_id');
+       $userId = Session::get('user_id');
 
-        // Server-side validation — bago ito wala talagang restriction sa
-        // 'validIdFront' / 'validIdBack' uploads (puwede dating i-upload
-        // ang kahit anong file type/laki bilang "Valid ID"). Ngayon
-        // dinadaan na sa parehong image/mimes/size check na ginagamit na
-        // ng profile picture upload sa AdminController/BorrowerController.
-        $request->validate([
-            'validIdFront' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
-            'validIdBack'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
-            'email'        => 'nullable|email',
-            'cellphone'    => 'nullable|string|max:20',
-        ]);
+    $existing = DB::table('borrowerpersonaldetails')->where('user_id', $userId)->first();
 
-        $existing = DB::table('borrowerpersonaldetails')->where('user_id', $userId)->first();
+    // idNumber: required, at dapat unique sa buong table — maliban kung
+    // ito yung parehong detail_id na ina-update natin (sarili niyang
+    // dating record). Ito yung humaharang sa isang tao na gumagamit ng
+    // maraming magkaibang email (hal. "+alias" trick sa Gmail) pero
+    // parehong government ID lang, para makapag-apply nang paulit-ulit
+    // bilang "first-time borrower."
+    //
+    // NOTE: ito ay app-level check lang — may maliit na race-condition
+    // window kung sabay-sabay dadaan ang dalawang request na parehong
+    // walang existing record pa. Ang totoong huling harang ay yung
+    // UNIQUE constraint sa DB mismo (idagdag via Supabase SQL Editor:
+    // ALTER TABLE borrowerpersonaldetails ADD CONSTRAINT unique_id_number
+    // UNIQUE (id_number);) — ang QueryException catch sa baba ang
+    // humahawak niyan kapag nakalusot dito.
+    $request->validate([
+        'validIdFront' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+        'validIdBack'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+        'email'        => 'nullable|email',
+        'cellphone'    => 'nullable|string|max:20',
+        'idNumber'     => [
+            'required',
+            'string',
+            Rule::unique('borrowerpersonaldetails', 'id_number')
+                ->ignore($existing->detail_id ?? null, 'detail_id'),
+        ],
+    ], [
+        'idNumber.unique' => 'This ID number is already registered under another account.',
+    ]);
 
-        // ID Front / Back — dalawang hiwalay na files na ngayon (dati
-        // isa lang na "validId"). Kinukuha ang existing paths bilang
-        // fallback kung hindi na muling nag-upload (hal. sa resubmit
-        // pagkatapos ng rejection, kung same ID pa rin ang gagamitin).
-        $idFilePath = $existing->id_file_path ?? null;
-        if ($request->hasFile('validIdFront')) {
-            $idFilePath = $request->file('validIdFront')->store('ids', 'public');
+    // ID Front / Back — ngayon papunta sa 'valid_ids' disk (private bucket)
+    $idFilePath = $existing->id_file_path ?? null;
+    if ($request->hasFile('validIdFront')) {
+        if ($idFilePath) {
+            Storage::disk('valid_ids')->delete($idFilePath);
         }
+        $file = $request->file('validIdFront');
+        $idFilePath = 'ids/' . uniqid() . '.' . $file->getClientOriginalExtension();
+        Storage::disk('valid_ids')->put($idFilePath, file_get_contents($file));
+    }
 
-        $idFilePathBack = $existing->id_file_path_back ?? null;
-        if ($request->hasFile('validIdBack')) {
-            $idFilePathBack = $request->file('validIdBack')->store('ids', 'public');
+    $idFilePathBack = $existing->id_file_path_back ?? null;
+    if ($request->hasFile('validIdBack')) {
+        if ($idFilePathBack) {
+            Storage::disk('valid_ids')->delete($idFilePathBack);
         }
+        $file = $request->file('validIdBack');
+        $idFilePathBack = 'ids/' . uniqid() . '.' . $file->getClientOriginalExtension();
+        Storage::disk('valid_ids')->put($idFilePathBack, file_get_contents($file));
+    }
 
         $personalData = [
             'last_name'         => $request->input('lastName'),
@@ -534,8 +561,21 @@ class BorrowerController extends Controller
                 'message' => 'Personal details submitted successfully!',
                 'detail_id' => $detailId,
             ]);
+        } catch (QueryException $e) {
+            // Postgres unique_violation = SQLSTATE 23505. Ito yung huling
+            // harang kung nakalusot sa app-level validate() dahil sa race
+            // condition (dalawang sabay na request, parehong "wala pang
+            // existing" nang tumakbo yung unique check).
+            if ($e->getCode() === '23505') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This ID number is already registered under another account.',
+                ], 422);
+            }
+
+            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
         }
     }
 
@@ -958,62 +998,64 @@ class BorrowerController extends Controller
         return response()->json(['success' => true, 'message' => 'Profile information updated.']);
     }
 
-    public function updateProfilePicture(Request $request)
-    {
-        $request->validate([
-            'profile_picture' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
-        ]);
+   public function updateProfilePicture(Request $request)
+{
+    $request->validate([
+        'profile_picture' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
+    ]);
 
-        $userId = Session::get('user_id');
-        $user = DB::table('users')->where('user_id', $userId)->first();
+    $userId = Session::get('user_id');
+    $user = DB::table('users')->where('user_id', $userId)->first();
 
-        if (!empty($user->profile_picture) && Storage::disk('public')->exists($user->profile_picture)) {
-            Storage::disk('public')->delete($user->profile_picture);
-        }
-
-        $path = $request->file('profile_picture')->store('profile-pictures', 'public');
-
-        DB::table('users')->where('user_id', $userId)->update([
-            'profile_picture' => $path,
-        ]);
-
-        Session::put('user_profile_picture', $path);
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Profile picture updated.',
-                'profile_picture_url' => Storage::disk('public')->url($path),
-            ]);
-        }
-
-        return back()->with('success', 'Profile picture updated.');
+    if (!empty($user->profile_picture)) {
+        Storage::disk('supabase')->delete($user->profile_picture);
     }
 
-    public function removeProfilePicture(Request $request)
-    {
-        $userId = Session::get('user_id');
-        $user = DB::table('users')->where('user_id', $userId)->first();
+    $file = $request->file('profile_picture');
+    $filename = 'profile-pictures/' . uniqid() . '.' . $file->getClientOriginalExtension();
+    Storage::disk('supabase')->put($filename, file_get_contents($file), 'public');
 
-        if (!empty($user->profile_picture) && Storage::disk('public')->exists($user->profile_picture)) {
-            Storage::disk('public')->delete($user->profile_picture);
-        }
+    DB::table('users')->where('user_id', $userId)->update([
+        'profile_picture' => $filename,
+    ]);
 
-        DB::table('users')->where('user_id', $userId)->update([
-            'profile_picture' => null,
+    Session::put('user_profile_picture', $filename);
+
+    if ($request->ajax() || $request->wantsJson()) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Profile picture updated.',
+            'profile_picture_url' => Storage::disk('supabase')->url($filename),
         ]);
-
-        Session::forget('user_profile_picture');
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Profile picture removed.',
-            ]);
-        }
-
-        return back()->with('success', 'Profile picture removed.');
     }
+
+    return back()->with('success', 'Profile picture updated.');
+}
+
+   public function removeProfilePicture(Request $request)
+{
+    $userId = Session::get('user_id');
+    $user = DB::table('users')->where('user_id', $userId)->first();
+
+    if (!empty($user->profile_picture)) {
+        Storage::disk('supabase')->delete($user->profile_picture);
+    }
+
+    DB::table('users')->where('user_id', $userId)->update([
+        'profile_picture' => null,
+    ]);
+
+    Session::forget('user_profile_picture');
+
+    if ($request->ajax() || $request->wantsJson()) {
+        return response()->json([
+            'success' => true,
+            'message' => 'Profile picture removed.',
+        ]);
+    }
+
+    return back()->with('success', 'Profile picture removed.');
+}
 
     public function updateProfileSection(Request $request)
     {
@@ -1078,30 +1120,47 @@ class BorrowerController extends Controller
     }
 
     public function changePassword(Request $request)
-    {
-        $userId = Session::get('user_id');
-        $user = DB::table('users')->where('user_id', $userId)->first();
+{
+    $userId = Session::get('user_id');
 
-        $current = $request->input('current_password');
-        $new     = $request->input('new_password');
-        $confirm = $request->input('confirm_password');
+    // Rate limit key — per-user (session-based), para hindi ma-brute-force
+    // ang current password kahit na-hijack ang session ng user.
+    $rateLimitKey = 'change-password:' . $userId;
 
-        if (!$user || !password_verify($current, $user->password_hash)) {
-            return response()->json(['success' => false, 'message' => 'Current password is incorrect.'], 422);
-        }
-
-        if ($new !== $confirm) {
-            return response()->json(['success' => false, 'message' => 'New passwords do not match.'], 422);
-        }
-
-        if (strlen($new) < 8) {
-            return response()->json(['success' => false, 'message' => 'New password must be at least 8 characters.'], 422);
-        }
-
-        DB::table('users')->where('user_id', $userId)->update([
-            'password_hash' => password_hash($new, PASSWORD_DEFAULT),
-        ]);
-
-        return response()->json(['success' => true, 'message' => 'Password changed successfully!']);
+    if (RateLimiter::tooManyAttempts($rateLimitKey, 5)) {
+        $seconds = RateLimiter::availableIn($rateLimitKey);
+        return response()->json([
+            'success' => false,
+            'message' => 'Too many attempts. Please try again in ' . ceil($seconds / 60) . ' minute(s).',
+        ], 429);
     }
+
+    $user = DB::table('users')->where('user_id', $userId)->first();
+
+    $current = $request->input('current_password');
+    $new     = $request->input('new_password');
+    $confirm = $request->input('confirm_password');
+
+    if (!$user || !Hash::check($current, $user->password_hash)) {
+        RateLimiter::hit($rateLimitKey, 600); // 10 minutes lockout window
+        return response()->json(['success' => false, 'message' => 'Current password is incorrect.'], 422);
+    }
+
+    if ($new !== $confirm) {
+        return response()->json(['success' => false, 'message' => 'New passwords do not match.'], 422);
+    }
+
+    if (strlen($new) < 8) {
+        return response()->json(['success' => false, 'message' => 'New password must be at least 8 characters.'], 422);
+    }
+
+    DB::table('users')->where('user_id', $userId)->update([
+        'password_hash' => Hash::make($new),
+    ]);
+
+    // Successful change — clear ang rate limit counter
+    RateLimiter::clear($rateLimitKey);
+
+    return response()->json(['success' => true, 'message' => 'Password changed successfully!']);
+}
 }

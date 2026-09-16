@@ -351,67 +351,61 @@
                     </div>
                 </div>
 
-                <!-- Valid ID -->
-                @if (($app->id_file_path ?? null) || ($app->id_file_path_back ?? null))
-                    <div class="section-card mb-3">
-                        <p class="section-title">Submitted Valid ID</p>
-                        <div class="row g-3 mb-1">
-                            <div class="col-md-6">
-                                <div class="ld-field"><span class="info-label">ID Type</span><span
-                                        class="info-value">{{ ucfirst(str_replace('_', ' ', $app->id_type ?? '—')) }}</span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="ld-field"><span class="info-label">ID Number</span><span
-                                        class="info-value">{{ $app->id_number ?? '—' }}</span></div>
-                            </div>
-                        </div>
+               <!-- Valid ID -->
+@if ($idFrontUrl || $idBackUrl)
+    <div class="section-card mb-3">
+        <p class="section-title">Submitted Valid ID</p>
+        <div class="row g-3 mb-1">
+            <div class="col-md-6">
+                <div class="ld-field"><span class="info-label">ID Type</span><span
+                        class="info-value">{{ ucfirst(str_replace('_', ' ', $app->id_type ?? '—')) }}</span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="ld-field"><span class="info-label">ID Number</span><span
+                        class="info-value">{{ $app->id_number ?? '—' }}</span></div>
+            </div>
+        </div>
 
-                        <div class="mt-1 d-flex flex-wrap gap-4">
-                            @if ($app->id_file_path ?? null)
-                                <div>
-                                    <label class="form-label fw-semibold"
-                                        style="font-size:0.7rem; color:#8a9bb0; text-transform:uppercase; letter-spacing:0.4px;">Front
-                                        ID</label><br>
-                                    @php $extFront = strtolower(pathinfo($app->id_file_path, PATHINFO_EXTENSION)); @endphp
-                                    @if (in_array($extFront, ['jpg', 'jpeg', 'png', 'gif', 'webp']))
-                                        <span class="id-thumb-wrap"
-                                            onclick="openIdViewer('{{ asset('storage/' . $app->id_file_path) }}')">
-                                            <img src="{{ asset('storage/' . $app->id_file_path) }}"
-                                                alt="Valid ID — Front">
-                                        </span>
-                                    @else
-                                        <a href="{{ asset('storage/' . $app->id_file_path) }}" target="_blank"
-                                            class="btn btn-sm btn-outline-primary">
-                                            <i class="feather-file me-1"></i> View Front ID
-                                        </a>
-                                    @endif
-                                </div>
-                            @endif
+        <div class="mt-1 d-flex flex-wrap gap-4">
+            @if ($idFrontUrl)
+                <div>
+                    <label class="form-label fw-semibold"
+                        style="font-size:0.7rem; color:#8a9bb0; text-transform:uppercase; letter-spacing:0.4px;">Front
+                        ID</label><br>
+                    @php $extFront = strtolower(pathinfo($app->id_file_path, PATHINFO_EXTENSION)); @endphp
+                    @if (in_array($extFront, ['jpg', 'jpeg', 'png', 'gif', 'webp']))
+                        <span class="id-thumb-wrap" onclick="openIdViewer('{{ $idFrontUrl }}')">
+                            <img src="{{ $idFrontUrl }}" alt="Valid ID — Front">
+                        </span>
+                    @else
+                        <a href="{{ $idFrontUrl }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="feather-file me-1"></i> View Front ID
+                        </a>
+                    @endif
+                </div>
+            @endif
 
-                            @if ($app->id_file_path_back ?? null)
-                                <div>
-                                    <label class="form-label fw-semibold"
-                                        style="font-size:0.7rem; color:#8a9bb0; text-transform:uppercase; letter-spacing:0.4px;">Back
-                                        ID</label><br>
-                                    @php $extBack = strtolower(pathinfo($app->id_file_path_back, PATHINFO_EXTENSION)); @endphp
-                                    @if (in_array($extBack, ['jpg', 'jpeg', 'png', 'gif', 'webp']))
-                                        <span class="id-thumb-wrap"
-                                            onclick="openIdViewer('{{ asset('storage/' . $app->id_file_path_back) }}')">
-                                            <img src="{{ asset('storage/' . $app->id_file_path_back) }}"
-                                                alt="Valid ID — Back">
-                                        </span>
-                                    @else
-                                        <a href="{{ asset('storage/' . $app->id_file_path_back) }}" target="_blank"
-                                            class="btn btn-sm btn-outline-primary">
-                                            <i class="feather-file me-1"></i> View Back ID
-                                        </a>
-                                    @endif
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                @endif
+            @if ($idBackUrl)
+                <div>
+                    <label class="form-label fw-semibold"
+                        style="font-size:0.7rem; color:#8a9bb0; text-transform:uppercase; letter-spacing:0.4px;">Back
+                        ID</label><br>
+                    @php $extBack = strtolower(pathinfo($app->id_file_path_back, PATHINFO_EXTENSION)); @endphp
+                    @if (in_array($extBack, ['jpg', 'jpeg', 'png', 'gif', 'webp']))
+                        <span class="id-thumb-wrap" onclick="openIdViewer('{{ $idBackUrl }}')">
+                            <img src="{{ $idBackUrl }}" alt="Valid ID — Back">
+                        </span>
+                    @else
+                        <a href="{{ $idBackUrl }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="feather-file me-1"></i> View Back ID
+                        </a>
+                    @endif
+                </div>
+            @endif
+        </div>
+    </div>
+@endif
 
                 <!-- Payment Schedule -->
                 @if ($paymentSchedule->isNotEmpty())

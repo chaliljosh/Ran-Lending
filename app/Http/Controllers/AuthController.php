@@ -87,10 +87,13 @@ class AuthController extends Controller
         $otp       = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
         $expiresAt = now()->addMinutes(10);
 
+        // I-store yung HASHED na version ng OTP, hindi yung raw code.
+        // Yung raw $otp lang ang ipinapadala sa email — hindi na siya
+        // naka-store kahit saan sa DB pagkatapos nito.
         DB::table('otp_verifications')->where('email', $email)->where('type', 'login')->delete();
         DB::table('otp_verifications')->insert([
             'email'      => $email,
-            'otp'        => $otp,
+            'otp'        => Hash::make($otp),
             'type'       => 'login',
             'expires_at' => $expiresAt,
         ]);
@@ -127,15 +130,17 @@ class AuthController extends Controller
             return response()->json(['success' => false, 'message' => 'Session expired. Please log in again.']);
         }
 
+        // Kunin muna yung record base sa email/type/expiry/is_used lang —
+        // hindi na natin pwedeng gamitin ang WHERE otp = $otp dahil
+        // hashed na siya sa DB. I-compare gamit Hash::check() sa halip.
         $record = DB::table('otp_verifications')
             ->where('email', $email)
-            ->where('otp', $otp)
             ->where('type', 'login')
             ->where('expires_at', '>', now())
             ->where('is_used', 0)
             ->first();
 
-        if (!$record) {
+        if (!$record || !Hash::check($otp, $record->otp)) {
             return response()->json(['success' => false, 'message' => 'Invalid or expired OTP.']);
         }
 
@@ -172,7 +177,7 @@ class AuthController extends Controller
         DB::table('otp_verifications')->where('email', $email)->where('type', 'login')->delete();
         DB::table('otp_verifications')->insert([
             'email'      => $email,
-            'otp'        => $otp,
+            'otp'        => Hash::make($otp),
             'type'       => 'login',
             'expires_at' => $expiresAt,
         ]);
@@ -256,7 +261,7 @@ class AuthController extends Controller
         DB::table('otp_verifications')->where('email', $email)->where('type', 'register')->delete();
         DB::table('otp_verifications')->insert([
             'email'      => $email,
-            'otp'        => $otp,
+            'otp'        => Hash::make($otp),
             'type'       => 'register',
             'expires_at' => $expiresAt,
         ]);
@@ -282,13 +287,12 @@ class AuthController extends Controller
 
         $record = DB::table('otp_verifications')
             ->where('email', $email)
-            ->where('otp', $otp)
             ->where('type', 'register')
             ->where('expires_at', '>', now())
             ->where('is_used', 0)
             ->first();
 
-        if (!$record) {
+        if (!$record || !Hash::check($otp, $record->otp)) {
             return response()->json(['success' => false, 'message' => 'Invalid or expired OTP.']);
         }
 
@@ -329,7 +333,7 @@ class AuthController extends Controller
         DB::table('otp_verifications')->where('email', $email)->where('type', 'register')->delete();
         DB::table('otp_verifications')->insert([
             'email'      => $email,
-            'otp'        => $otp,
+            'otp'        => Hash::make($otp),
             'type'       => 'register',
             'expires_at' => $expiresAt,
         ]);
