@@ -379,7 +379,7 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Co-Maker Middle Name</label>
-<input type="text" class="form-control" id="coMakerMiddleName" placeholder="Enter middle name" required>
+<input type="text" class="form-control" id="coMakerMiddleName" placeholder="M.I." maxlength="1" required>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Relationship to Borrower</label>

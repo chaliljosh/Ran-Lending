@@ -24,6 +24,62 @@
         : 10000;
 
     // =========================================================
+    // ERROR TOAST — pamalit sa native alert() para sa submit
+    // errors. Self-contained (inline styles) para walang kailangang
+    // idagdag na CSS file.
+    // =========================================================
+
+    function showErrorToast(message) {
+        let toast = document.getElementById("loanErrorToast");
+
+        if (!toast) {
+            toast = document.createElement("div");
+            toast.id = "loanErrorToast";
+            toast.style.cssText = `
+                display: none;
+                align-items: center;
+                gap: 10px;
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 100000;
+                min-width: 320px;
+                max-width: 90vw;
+                background: #fef2f2;
+                border: 1px solid #fecaca;
+                border-left: 4px solid #dc2626;
+                color: #b91c1c;
+                border-radius: 10px;
+                padding: 12px 16px;
+                font-size: 0.9rem;
+                font-family: inherit;
+                box-shadow: 0 12px 32px rgba(15,23,42,0.18);
+            `;
+            toast.innerHTML = `
+                <i class="feather-alert-circle" style="flex-shrink:0;font-size:16px;"></i>
+                <span class="loan-toast-message" style="flex:1;line-height:1.4;"></span>
+                <button type="button" class="loan-toast-close" aria-label="Close" style="background:none;border:none;color:#b91c1c;opacity:0.6;cursor:pointer;padding:0 0 0 6px;font-size:16px;line-height:1;flex-shrink:0;">&times;</button>
+            `;
+            document.body.appendChild(toast);
+
+            toast
+                .querySelector(".loan-toast-close")
+                .addEventListener("click", function () {
+                    toast.style.display = "none";
+                });
+        }
+
+        toast.querySelector(".loan-toast-message").textContent = message;
+        toast.style.display = "flex";
+
+        clearTimeout(toast._hideTimer);
+        toast._hideTimer = setTimeout(function () {
+            toast.style.display = "none";
+        }, 6000);
+    }
+
+    // =========================================================
     // POST-SUBMIT SUCCESS TOAST
     // =========================================================
     //
@@ -353,12 +409,13 @@
             body: formData,
         })
             .then(function (response) {
-                if (!response.ok) {
-                    throw new Error(
-                        "Request failed with status " + response.status,
-                    );
-                }
-
+                // MAHALAGA: hindi na natin ginagamit ang response.ok bilang
+                // basehan kung dapat throw. Isang valid na JSON error
+                // response pa rin ang 422 (hal. "You already have an
+                // active or pending loan application.") — kailangan
+                // pa rin nating i-parse ang JSON nito bago tayo mag-desisyon.
+                // Genuine network errors/connection failures na lang
+                // ang dapat tumapon papunta sa .catch() sa ibaba.
                 return response.json();
             })
 
@@ -380,7 +437,7 @@
 
                     window.location.reload();
                 } else {
-                    alert(
+                    showErrorToast(
                         data.message ||
                             "Something went wrong. Please try again.",
                     );
@@ -390,9 +447,11 @@
             })
 
             .catch(function (error) {
+                // Dito na lang dapat tumatama ang totoong network
+                // failures o hindi-JSON na responses.
                 console.error("Loan submission error:", error);
 
-                alert(
+                showErrorToast(
                     "Something went wrong. Please check your connection and try again.",
                 );
 

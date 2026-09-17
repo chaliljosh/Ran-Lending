@@ -623,15 +623,6 @@ private function getProfilePictureUrl($userId)
             return response()->json(['success' => false, 'message' => 'You are not yet eligible to apply for a loan.'], 403);
         }
 
-        $existing = DB::table('loan_applications')
-            ->where('user_id', $userId)
-            ->whereIn('status', ['pending', 'approved', 'active', 'on_hold'])
-            ->first();
-
-        if ($existing) {
-            return response()->json(['success' => false, 'message' => 'You already have an active or pending loan application.'], 422);
-        }
-
         // Same eligibility check as applyLoan() — enforced here too since
         // the frontend limit can be bypassed (devtools, direct API call).
         $eligibility = $this->getLoanEligibility($userId);
@@ -653,26 +644,61 @@ private function getProfilePictureUrl($userId)
         $monthlyPayment = round($totalAmount / $loanTerm, 2);
 
         try {
-            $applicationId = DB::table('loan_applications')->insertGetId([
-                'user_id'         => $userId,
-                'loan_amount'     => $loanAmount,
-                'loan_term'       => $loanTerm,
-                'interest_rate'   => $interestRate,
-                 'total_interest'  => $totalInterest,
-                'total_amount'    => $totalAmount,
-                'monthly_payment' => $monthlyPayment,
-                'loan_purpose'    => $request->input('loanPurpose'),
-                'referral_source' => $request->input('referralSource'),
-                'referral_name'   => $request->input('referralName'),
-                'status'          => 'pending',
-                'applied_at'      => now(),
-            ], 'application_id');
+            // Buong "check-then-insert" ay ginawa nating iisang atomic
+            // operation gamit ang DB::transaction() + lockForUpdate().
+            // Ang lockForUpdate() ay nag-a-acquire ng row-level lock sa
+            // mga existing na loan_applications row ng user na ito habang
+            // nasa loob tayo ng transaction — kung may kasabay na request
+            // (double-click, dalawang tabs), hihintayin muna niyan na
+            // matapos ang una bago siya makapag-check ng sarili niya,
+            // kaya hindi na sila pareho makakakita ng "wala pang existing."
+            $result = DB::transaction(function () use ($userId, $loanAmount, $loanTerm, $interestRate, $totalInterest, $totalAmount, $monthlyPayment, $request) {
+                $existing = DB::table('loan_applications')
+                    ->where('user_id', $userId)
+                    ->whereIn('status', ['pending', 'approved', 'active', 'on_hold'])
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($existing) {
+                    return ['duplicate' => true];
+                }
+
+                $applicationId = DB::table('loan_applications')->insertGetId([
+                    'user_id'         => $userId,
+                    'loan_amount'     => $loanAmount,
+                    'loan_term'       => $loanTerm,
+                    'interest_rate'   => $interestRate,
+                    'total_interest'  => $totalInterest,
+                    'total_amount'    => $totalAmount,
+                    'monthly_payment' => $monthlyPayment,
+                    'loan_purpose'    => $request->input('loanPurpose'),
+                    'referral_source' => $request->input('referralSource'),
+                    'referral_name'   => $request->input('referralName'),
+                    'status'          => 'pending',
+                    'applied_at'      => now(),
+                ], 'application_id');
+
+                return ['duplicate' => false, 'application_id' => $applicationId];
+            });
+
+            if ($result['duplicate']) {
+                return response()->json(['success' => false, 'message' => 'You already have an active or pending loan application.'], 422);
+            }
 
             return response()->json([
                 'success' => true,
                 'message' => 'Application submitted successfully!',
-                'application_id' => $applicationId,
+                'application_id' => $result['application_id'],
             ]);
+        } catch (QueryException $e) {
+            // Postgres unique_violation = SQLSTATE 23505 — huling harang
+            // kung sakaling may partial unique index tayo sa DB (tingnan
+            // ang SQL sa ibaba) at nakalusot pa rin dito.
+            if ($e->getCode() === '23505') {
+                return response()->json(['success' => false, 'message' => 'You already have an active or pending loan application.'], 422);
+            }
+
+            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
         }

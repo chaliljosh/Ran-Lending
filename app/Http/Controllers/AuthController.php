@@ -11,32 +11,82 @@ use Illuminate\Support\Facades\RateLimiter;
 
 class AuthController extends Controller
 {
+    /**
+     * I-normalize ang email bago ito gamitin sa anumang uniqueness check,
+     * OTP rate-limit key, o pag-store sa DB. Tinatanggal ang "+alias" na
+     * bahagi ng local part (RFC 5233 sub-addressing, suportado ng Gmail,
+     * Outlook, Yahoo, atbp.) — ito yung ginagamit na loophole para
+     * makagawa ng maraming "magkaibang" account gamit ang parehong
+     * totoong inbox (hal. juan@gmail.com at juan+2@gmail.com).
+     *
+     * Para sa Gmail/Googlemail specifically, tinatanggal din ang mga
+     * tuldok (.) sa local part, dahil kinakatas ito ni Gmail sa totoong
+     * pag-deliver (juan.delacruz@gmail.com === juandelacruz@gmail.com —
+     * parehong loophole din pala 'to). Hindi ito ginagawa sa ibang
+     * domain dahil may mga provider na treated bilang significant ang
+     * tuldok sa kanilang local part.
+     */
+    private function normalizeEmail(string $email): string
+    {
+        $email = strtolower(trim($email));
+
+        if (!str_contains($email, '@')) {
+            return $email;
+        }
+
+        [$local, $domain] = explode('@', $email, 2);
+
+        // Tanggalin ang "+alias" suffix
+        $local = preg_replace('/\+.*$/', '', $local);
+
+        // Gmail-specific: tanggalin din ang mga tuldok
+        if (in_array($domain, ['gmail.com', 'googlemail.com'], true)) {
+            $local = str_replace('.', '', $local);
+        }
+
+        return $local . '@' . $domain;
+    }
+
     public function login(Request $request)
     {
-        $email    = trim($request->input('email'));
+        $email    = $this->normalizeEmail($request->input('email'));
         $password = $request->input('password');
 
         if (!$email || !$password) {
             return response()->json(['success' => false, 'message' => 'Email and password are required.']);
         }
 
-        $key = 'login:' . $request->ip();
-        if (RateLimiter::tooManyAttempts($key, 5)) {
-            $seconds = RateLimiter::availableIn($key);
-            return response()->json([
-                'success' => false,
-                'message' => "Too many login attempts. Try again in {$seconds} seconds."
-            ]);
-        }
+        // Dalawang klase ng rate limit, pareho tinitignan:
+        // - per-IP: pumipigil sa isang machine na mag-spam ng attempts
+        //   sa maraming accounts.
+        // - per-email: pumipigil sa distributed attack (maraming IP,
+        //   proxy/VPN/botnet) laban sa isang specific na account —
+        //   hindi kayang harangin ng per-IP limit lang.
+        $ipKey    = 'login:' . $request->ip();
+        $emailKey = 'login-email:' . $email;
+
+       if (RateLimiter::tooManyAttempts($ipKey, 5) || RateLimiter::tooManyAttempts($emailKey, 5)) {
+    $seconds = max(
+        RateLimiter::availableIn($ipKey),
+        RateLimiter::availableIn($emailKey)
+    );
+    $minutes = ceil($seconds / 60);
+    return response()->json([
+        'success' => false,
+        'message' => "Too many login attempts. Try again in {$minutes} minute(s)."
+    ]);
+}
 
         $user = DB::table('users')->where('email', $email)->where('is_active', 1)->first();
 
         if (!$user || !Hash::check($password, $user->password_hash)) {
-            RateLimiter::hit($key, 600);
+            RateLimiter::hit($ipKey, 600);
+            RateLimiter::hit($emailKey, 600);
             return response()->json(['success' => false, 'message' => 'Invalid email or password.']);
         }
 
-        RateLimiter::clear($key);
+        RateLimiter::clear($ipKey);
+        RateLimiter::clear($emailKey);
 
         if ($user->role === 'admin') {
           Session::regenerate();   
@@ -60,7 +110,8 @@ class AuthController extends Controller
         }
 
         // OTP flow for borrowers — rate-limited so a hard-refresh + re-login
-        // can't bypass the resend cooldown. Keyed per email, 1 send per 60s.
+        // can't bypass the resend cooldown. Keyed per (normalized) email,
+        // 1 send per 60s.
         $otpKey = 'otp-send:' . $email;
 
         if (RateLimiter::tooManyAttempts($otpKey, 1)) {
@@ -118,7 +169,7 @@ class AuthController extends Controller
 
     public function verifyOtp(Request $request)
     {
-        $email = trim($request->input('email'));
+        $email = $this->normalizeEmail($request->input('email'));
         $otp   = trim($request->input('otp'));
 
         if (!$email || !$otp) {
@@ -126,7 +177,7 @@ class AuthController extends Controller
         }
 
         $pending = Session::get('pending_login');
-        if (!$pending || $pending['email'] !== $email) {
+        if (!$pending || $this->normalizeEmail($pending['email']) !== $email) {
             return response()->json(['success' => false, 'message' => 'Session expired. Please log in again.']);
         }
 
@@ -164,10 +215,10 @@ class AuthController extends Controller
 
     public function resendOtp(Request $request)
     {
-        $email   = trim($request->input('email'));
+        $email   = $this->normalizeEmail($request->input('email'));
         $pending = Session::get('pending_login');
 
-        if (!$pending || $pending['email'] !== $email) {
+        if (!$pending || $this->normalizeEmail($pending['email']) !== $email) {
             return response()->json(['success' => false, 'message' => 'Session expired. Please log in again.']);
         }
 
@@ -212,7 +263,7 @@ class AuthController extends Controller
         $lastName        = trim($request->input('lastName'));
         $firstName       = trim($request->input('firstName'));
         $middleName      = trim($request->input('middleName'));
-        $email           = trim($request->input('email'));
+        $email           = $this->normalizeEmail($request->input('email'));
         $password        = $request->input('password');
         $confirmPassword = $request->input('confirmPassword');
         $birthMonth      = $request->input('birthMonth');
@@ -241,6 +292,9 @@ class AuthController extends Controller
             return response()->json(['success' => false, 'message' => 'Please enter your complete birthday.']);
         }
 
+        // Uniqueness check gamit ang NORMALIZED email — kaya kahit
+        // "juan+2@gmail.com" o "j.uan@gmail.com" ang itype, mahaharang
+        // pa rin kung existing na ang "juan@gmail.com".
         $exists = DB::table('users')->where('email', $email)->exists();
         if ($exists) {
             return response()->json(['success' => false, 'message' => 'Email is already registered.']);
@@ -268,12 +322,15 @@ class AuthController extends Controller
 
         Mail::to($email)->send(new \App\Mail\OtpMail($firstName, $otp));
 
+        // Ibinabalik yung NORMALIZED email para 'yun din ang gamitin ng
+        // frontend sa susunod na verify/resend calls — dapat magkatugma
+        // laging ang email na pinapadala pabalik-balik.
         return response()->json(['success' => true, 'email' => $email]);
     }
 
     public function verifyRegisterOtp(Request $request)
     {
-        $email = trim($request->input('email'));
+        $email = $this->normalizeEmail($request->input('email'));
         $otp   = trim($request->input('otp'));
 
         if (!$email || !$otp) {
@@ -281,7 +338,7 @@ class AuthController extends Controller
         }
 
         $pending = Session::get('pending_register');
-        if (!$pending || $pending['email'] !== $email) {
+        if (!$pending || $this->normalizeEmail($pending['email']) !== $email) {
             return response()->json(['success' => false, 'message' => 'Session expired. Please register again.']);
         }
 
@@ -305,7 +362,7 @@ class AuthController extends Controller
             'middle_name'   => $pending['middle_name'],
             'last_name'     => $pending['last_name'],
             'name'          => $fullName,
-            'email'         => $pending['email'],
+            'email'         => $pending['email'], // naka-normalize na dahil galing sa register()
             'password_hash' => Hash::make($pending['password']),
             'birthday'      => $pending['birthday'],
             'role'          => 'borrower',
@@ -320,10 +377,10 @@ class AuthController extends Controller
 
     public function resendRegisterOtp(Request $request)
     {
-        $email   = trim($request->input('email'));
+        $email   = $this->normalizeEmail($request->input('email'));
         $pending = Session::get('pending_register');
 
-        if (!$pending || $pending['email'] !== $email) {
+        if (!$pending || $this->normalizeEmail($pending['email']) !== $email) {
             return response()->json(['success' => false, 'message' => 'Session expired. Please register again.']);
         }
 

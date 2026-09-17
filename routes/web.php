@@ -63,8 +63,13 @@ Route::post('/notifications/mark-all-read', [BorrowerController::class, 'markAll
     ->name('borrower.notifications.mark-all-read');
 });
 
-// Borrower API — save actions, protected by 'borrower' middleware
-Route::middleware(['borrower', 'no-cache'])->prefix('api/borrower')->group(function () {
+// Borrower API — save actions, protected by 'borrower' middleware.
+// Dagdag na 'throttle:20,1' dito (20 requests/minute) — mas mataas
+// kaysa sa login/register (5,10) dahil naka-login na sila at hindi
+// brute-forceable, pero pumipigil pa rin sa abuse/spam (hal. paulit-
+// ulit na profile picture upload) o sa isang na-compromise na session
+// na mag-mass-abuse ng mga endpoints na 'to.
+Route::middleware(['borrower', 'no-cache', 'throttle:20,1'])->prefix('api/borrower')->group(function () {
     Route::post('/personal-details', [BorrowerController::class, 'savePersonalDetails']);
     Route::post('/apply-loan', [BorrowerController::class, 'submitLoanApplication']);
     Route::post('/profile/update-section', [BorrowerController::class, 'updateProfileSection']);
@@ -73,9 +78,10 @@ Route::middleware(['borrower', 'no-cache'])->prefix('api/borrower')->group(funct
     Route::post('/profile/remove-picture', [BorrowerController::class, 'removeProfilePicture'])->name('borrower.profile.remove-picture');
 });
 
-// Admin pages
-
-Route::middleware(['admin', 'no-cache'])->prefix('admin')->name('admin.')->group(function () {
+// Admin pages — 'throttle:60,1' (60 requests/minute) dito, mas
+// mataas kaysa sa borrower API dahil kasama rito ang normal na page
+// browsing (GET requests), hindi lang ang mutating actions.
+Route::middleware(['admin', 'no-cache', 'throttle:60,1'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
 
     // Notifications (header bell dropdown)
