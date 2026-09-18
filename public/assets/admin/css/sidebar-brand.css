@@ -39,3 +39,34 @@ body.sidebar-mini-mode .m-header {
 body.sidebar-mini-mode .b-brand {
     overflow: visible;
 }
+
+/* ============================================================
+   DARK MODE — full sidebar + navbar override.
+
+   FIX: theme.min.css hardcodes navy (#0f172a) as the dark-mode
+   background for BOTH .nxl-navigation (sidebar) and .nxl-header
+   (top navbar), tied to html.app-skin-dark — with !important on
+   the header rule already, so a plain override loses. Previously
+   only .m-header (the logo strip) was overridden here, leaving
+   the rest of the sidebar and the whole navbar navy blue.
+   Now overriding all three to match the black used elsewhere
+   (modals use #0d0d0d, this uses #0A0A0A to match the existing
+   .m-header token) with matching #262626 borders.
+============================================================ */
+html.app-skin-dark .m-header {
+    background: #0A0A0A !important;
+    border-bottom: 1px solid #262626 !important;
+}
+
+html.app-skin-dark .nxl-navigation {
+    background: #0A0A0A !important;
+}
+
+html.app-skin-dark .nxl-navigation .navbar-content {
+    border-right: 1px solid #262626 !important;
+}
+
+html.app-skin-dark .nxl-header {
+    background: #0A0A0A !important;
+    border-bottom: 1px solid #262626 !important;
+}

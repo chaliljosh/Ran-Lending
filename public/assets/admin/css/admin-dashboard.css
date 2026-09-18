@@ -3,26 +3,17 @@
    DASHBOARD-ONLY — Recent Loan Applications, Attention Required,
    Upcoming Payments, Recent Activity cards.
 
-   UPDATE 11: full redesign to match the "LoanHub" reference —
-   every panel now gets an icon+title+subtitle header with a
-   "View all" link; Recent Loan Applications rows get avatar
-   circles + a trailing chevron; Attention Required becomes a
-   soft-red-tinted card with colored left-border items; Upcoming
-   Payments gets a stacked month/day date badge; Recent Activity
-   gets a category pill on the right. Page background is now a
-   light gray canvas (was pure white in UPDATE 7) so the white
-   cards stand out, matching the reference.
+   UPDATE 12 (layout pass): Attention Required no longer stretches
+   to match the taller Recent Loan Applications card; table rows
+   got more vertical breathing room; stat cards got a slightly
+   stronger shadow + hover lift; panel links brightened in dark
+   mode for contrast.
 
-   New optional data keys (safe if absent — blade falls back
-   gracefully): $item['description'] for Attention Required,
-   $payment->loan_number for Upcoming Payments, $activity['category']
-   for Recent Activity.
-
-   DARK MODE UPDATE: switched from a standalone "true black"
-   palette (#000000/#0d0d0d/#262626) to the navy palette used by
-   the sidebar and the rest of the admin pages (#0f172a page bg,
-   #1e2a3a cards, #2d3f55 borders, #e2e8f0 text, #94a3b8 muted) —
-   so the dashboard now matches instead of clashing.
+   UPDATE 13 (full black dark mode): dark mode repalette from navy
+   (#0f172a/#1e2a3a) to true black (#0A0A0A/#141414), extended to
+   cover the sidebar (.nxl-navigation), header (.nxl-header), and
+   header dropdowns — previously only theme.min.css controlled
+   those, causing a navy sidebar/header vs. black dashboard clash.
 ============================================================ */
 
 :root {
@@ -45,9 +36,7 @@
     --adm-dash-red-soft: #FEF2F2;
 }
 
-/* ---------- Page background — white (naka-light-gray dati sa
-     UPDATE 11 para tumugma sa LoanHub reference, pero balik sa
-     puti per request) ---------- */
+/* ---------- Page background — white ---------- */
 html body .nxl-content {
     background: #FFFFFF;
 }
@@ -78,9 +67,7 @@ html body .main-content .card.adm-stat-card {
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08) !important;
 }
 
-/* ---------- Top stat cards — icon top-right, big bold value,
-     muted subtitle below (dating na-drop nang hindi sinasadya
-     sa UPDATE 11 rewrite — ibinalik) ---------- */
+/* ---------- Top stat cards ---------- */
 .adm-stat-body {
     padding: 20px 22px;
 }
@@ -123,6 +110,15 @@ html body .main-content .card.adm-stat-card {
 }
 .adm-stat-link:hover { text-decoration: underline; }
 
+html body .main-content .card.adm-stat-card {
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1) !important;
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+html body .main-content .card.adm-stat-card:hover {
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12) !important;
+    transform: translateY(-1px);
+}
+
 /* ---------- Card titles ---------- */
 html body .main-content .card-title {
     font-weight: 600 !important;
@@ -130,7 +126,7 @@ html body .main-content .card-title {
     font-size: 0.98rem;
 }
 
-/* ---------- Panel header — icon + title/subtitle + "View all" ---------- */
+/* ---------- Panel header ---------- */
 .adm-panel-header {
     display: flex;
     align-items: flex-start;
@@ -189,7 +185,7 @@ html body .main-content table.adm-table thead th {
     border: none !important;
 }
 .adm-table tbody td {
-    padding: 14px 22px;
+    padding: 17px 22px;
     vertical-align: middle;
     border-color: var(--adm-dash-border) !important;
 }
@@ -222,10 +218,13 @@ html body .main-content table.adm-table thead th {
 .adm-table-chevron-col { width: 32px; text-align: right; padding-right: 20px !important; }
 .adm-table-chevron { color: var(--adm-dash-gray-light); font-size: 0.9rem; }
 
-/* ---------- Attention Required — soft red-tinted card, colored
-     left-border items ---------- */
+/* ---------- Attention Required ---------- */
 .adm-attn-card {
     background: linear-gradient(180deg, var(--adm-dash-red-soft), #ffffff 140px) !important;
+}
+.adm-attn-card.stretch-full {
+    height: auto !important;
+    align-self: start;
 }
 .adm-attn-count-badge {
     width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
@@ -313,43 +312,47 @@ html body .main-content table.adm-table thead th {
 }
 
 /* ============================================================
-   DARK MODE — navy palette matched to the sidebar
-   (.nxl-navigation) and the rest of the admin pages: page bg
-   #0f172a, card bg #1e2a3a, borders #2d3f55, primary text
-   #e2e8f0, muted text #94a3b8. Status badges/pills keep their
-   own semantic tints since color there carries meaning.
+   DARK MODE — DASHBOARD CARDS — true black palette
+   (#0A0A0A page bg, #141414 cards, #262626 borders,
+   #F5F5F5 text, #9A9A9A muted)
 ============================================================ */
 html.app-skin-dark body .nxl-content {
-    background: #0f172a;
+    background: #0A0A0A;
 }
 html.app-skin-dark body .main-content .card,
 html.app-skin-dark body .main-content .card.stretch,
 html.app-skin-dark body .main-content .card.stretch-full,
 html.app-skin-dark body .main-content .card.adm-stat-card {
-    background: #1e2a3a !important;
-    border: 1px solid #2d3f55 !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+    background: #141414 !important;
+    border: 1px solid #262626 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+}
+html.app-skin-dark .main-content .card.adm-stat-card {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6) !important;
+}
+html.app-skin-dark .main-content .card.adm-stat-card:hover {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7) !important;
 }
 html.app-skin-dark .adm-attn-card {
-    background: linear-gradient(180deg, rgba(220,38,38,0.1), #1e2a3a 140px) !important;
+    background: linear-gradient(180deg, rgba(220,38,38,0.12), #141414 140px) !important;
 }
 html.app-skin-dark .adm-stat-label,
 html.app-skin-dark .adm-stat-value {
-    color: #e2e8f0;
+    color: #F5F5F5;
 }
 html.app-skin-dark .adm-stat-icon,
 html.app-skin-dark .adm-stat-sub {
-    color: #94a3b8;
+    color: #9A9A9A;
 }
 html.app-skin-dark .main-content .card-title,
 html.app-skin-dark .adm-panel-title {
-    color: #e2e8f0 !important;
+    color: #F5F5F5 !important;
 }
 html.app-skin-dark .adm-panel-sub {
-    color: #94a3b8;
+    color: #9A9A9A;
 }
 html.app-skin-dark .main-content table.adm-table thead th {
-    color: #94a3b8 !important;
+    color: #9A9A9A !important;
 }
 .adm-table thead tr,
 html.app-skin-dark .adm-table thead tr {
@@ -359,7 +362,7 @@ html.app-skin-dark .adm-table tbody td,
 html.app-skin-dark .adm-attn-item,
 html.app-skin-dark .adm-upcoming-row,
 html.app-skin-dark .adm-activity-row {
-    border-color: #2d3f55 !important;
+    border-color: #262626 !important;
 }
 html.app-skin-dark .adm-table-name,
 html.app-skin-dark .adm-table-amount,
@@ -367,18 +370,194 @@ html.app-skin-dark .adm-attn-item-title,
 html.app-skin-dark .adm-upcoming-name,
 html.app-skin-dark .adm-upcoming-amount,
 html.app-skin-dark .adm-activity-text {
-    color: #e2e8f0;
+    color: #F5F5F5;
 }
 html.app-skin-dark .adm-table-date,
 html.app-skin-dark .adm-attn-item-desc,
 html.app-skin-dark .adm-attn-item-count,
 html.app-skin-dark .adm-upcoming-sub,
 html.app-skin-dark .adm-activity-meta {
-    color: #94a3b8;
+    color: #9A9A9A;
 }
 html.app-skin-dark .adm-upcoming-date {
-    background: rgba(37, 99, 235, 0.15);
+    background: rgba(37, 99, 235, 0.18);
 }
 html.app-skin-dark .adm-upcoming-date-day {
-    color: #e2e8f0;
+    color: #F5F5F5;
+}
+html.app-skin-dark .adm-panel-link,
+html.app-skin-dark .adm-stat-link {
+    color: #60A5FA;
+}
+
+/* ============================================================
+   DARK MODE — SIDEBAR + HEADER — true black override
+   Naka-scope lang sa html.app-skin-dark; !important para manalo
+   laban sa vendor theme.min.css (navy by default doon).
+============================================================ */
+
+/* ---------- Sidebar ---------- */
+html.app-skin-dark .nxl-navigation {
+    background: #0A0A0A !important;
+    border-right: 1px solid #262626 !important;
+}
+html.app-skin-dark .nxl-navigation .b-brand-text,
+html.app-skin-dark .nxl-navigation .nxl-mtext {
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-micon i {
+    color: #9A9A9A !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-link {
+    color: #C4C4C4 !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-link:hover {
+    background: #1C1C1C !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-item.active > .nxl-link,
+html.app-skin-dark .nxl-navigation .nxl-link.active {
+    background: #1C1C1C !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-item.active > .nxl-link .nxl-micon i,
+html.app-skin-dark .nxl-navigation .nxl-link.active .nxl-micon i {
+    color: #9BBE4A !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-submenu {
+    background: #0A0A0A !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-link {
+    color: #9A9A9A !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-link:hover {
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-item[data-current="true"] > .nxl-link {
+    color: #9BBE4A !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-link.text-danger {
+    color: #EF4444 !important;
+}
+
+/* ---------- Header ---------- */
+html.app-skin-dark .nxl-header {
+    background: #0A0A0A !important;
+    border-bottom: 1px solid #262626 !important;
+}
+html.app-skin-dark .nxl-header .nxl-head-link i {
+    color: #C4C4C4 !important;
+}
+html.app-skin-dark .nxl-header .nxl-head-link:hover i {
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .nxl-admin-name-header {
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .nxl-admin-caret-header {
+    color: #9A9A9A !important;
+}
+
+/* ---------- Header dropdowns (notifications + admin menu) ---------- */
+html.app-skin-dark .nxl-notif-dropdown-menu,
+html.app-skin-dark .nxl-admin-dropdown-menu {
+    background: #141414 !important;
+    border: 1px solid #262626 !important;
+}
+html.app-skin-dark .nxl-notif-dropdown-head,
+html.app-skin-dark .nxl-admin-name,
+html.app-skin-dark .nxl-notif-title {
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .nxl-notif-sub,
+html.app-skin-dark .nxl-notif-time,
+html.app-skin-dark .nxl-admin-email {
+    color: #9A9A9A !important;
+}
+html.app-skin-dark .nxl-admin-dropdown-item {
+    color: #C4C4C4 !important;
+}
+html.app-skin-dark .nxl-admin-dropdown-item:hover {
+    background: #1C1C1C !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .nxl-admin-dropdown-divider,
+html.app-skin-dark .nxl-notif-dropdown-foot {
+    border-color: #262626 !important;
+}
+
+/* ---------- Footer ---------- */
+html.app-skin-dark .footer {
+    background: #0A0A0A !important;
+    color: #9A9A9A !important;
+}
+
+/* ---------- Page header / breadcrumb bar — dating navy mula sa
+     vendor theme.min.css, i-override papuntang black ---------- */
+html.app-skin-dark .page-header {
+    background: #0A0A0A !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .page-header-title h5 {
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .breadcrumb-item,
+html.app-skin-dark .breadcrumb-item a {
+    color: #9A9A9A !important;
+}
+html.app-skin-dark .breadcrumb-item.active,
+html.app-skin-dark .breadcrumb-item:last-child {
+    color: #C4C4C4 !important;
+}
+
+/* ---------- Table rows — bootstrap's default table-hover/striped
+     navy background, override to black/transparent ---------- */
+html.app-skin-dark .adm-table tbody tr {
+    background: transparent !important;
+}
+html.app-skin-dark .adm-table.table-hover tbody tr:hover {
+    background: #1C1C1C !important;
+}
+html.app-skin-dark .adm-table tbody tr:nth-child(even) {
+    background: transparent !important;
+}
+
+/* ---------- Theme toggle button circle ---------- */
+html.app-skin-dark .dark-light-theme .nxl-head-link {
+    background: #141414 !important;
+    border-color: #262626 !important;
+}
+
+/* ---------- Table rows — mas specific + covers common striping
+     patterns (nth-of-type, table-striped, inline bg) ---------- */
+html.app-skin-dark table.adm-table tbody tr,
+html.app-skin-dark table.adm-table tbody tr td,
+html.app-skin-dark .adm-table tbody tr:nth-of-type(odd),
+html.app-skin-dark .adm-table tbody tr:nth-of-type(even),
+html.app-skin-dark .table-striped tbody tr:nth-of-type(odd) {
+    background-color: transparent !important;
+}
+html.app-skin-dark table.adm-table.table-hover tbody tr:hover td {
+    background-color: #1C1C1C !important;
+}
+/* ---------- Table striping — Bootstrap 5 uses CSS variables +
+     box-shadow inset for striped/hover rows, hindi plain
+     background-color. I-override yung variables mismo. ---------- */
+html.app-skin-dark .adm-table,
+html.app-skin-dark .adm-table > :not(caption) > * {
+    --bs-table-bg: transparent !important;
+    --bs-table-striped-bg: transparent !important;
+    --bs-table-accent-bg: transparent !important;
+    --bs-table-hover-bg: #1C1C1C !important;
+    --bs-table-color: #F5F5F5 !important;
+    --bs-table-striped-color: #F5F5F5 !important;
+    --bs-table-hover-color: #F5F5F5 !important;
+}
+html.app-skin-dark .adm-table tbody tr {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+html.app-skin-dark .adm-table tbody tr td {
+    background-color: transparent !important;
+    box-shadow: none !important;
 }

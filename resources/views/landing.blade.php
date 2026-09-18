@@ -8,12 +8,26 @@
   <meta name="login-route" content="{{ route('login') }}">
   <title>RAN Serenity</title>
 
+  <!-- ============================================================
+       DARK MODE — set theme attribute BAGO mag-load ang CSS, para
+       hindi "kumurap" (flash) papunta sa maling theme pag-reload.
+       ============================================================ -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('ran-theme');
+        var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) {}
+    })();
+  </script>
+
   <!-- Favicon -->
   <link href="{{ asset('assets/landingpage/img/ranlogo1.jpg') }}" rel="icon">
 
   <!-- Google Fonts -->
-   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Raleway:wght@400;600;700;800&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
 
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bootstrap & Icons -->
   <link href="{{ asset('assets/landingpage/vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
@@ -26,8 +40,8 @@
   <link href="{{ asset('assets/landingpage/css/main.css') }}" rel="stylesheet">
   <link href="{{ asset('assets/landingpage/css/section.css') }}" rel="stylesheet">
   <link href="{{ asset('assets/landingpage/css/user-menu.css') }}" rel="stylesheet">
-  <link href="{{ asset('assets/landingpage/css/theme-emerald.css') }}" rel="stylesheet">
-   
+  <link href="{{ asset('assets/landingpage/css/theme-calamansi.css') }}" rel="stylesheet">
+
 <body class="index-page">
 
   <!-- ============================================================
@@ -48,20 +62,28 @@
         <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
       </nav>
 
+      <!-- ============================================================
+           DARK MODE TOGGLE
+           ============================================================ -->
+      <button type="button" class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle dark mode">
+        <i class="bi bi-sun-fill theme-icon-light"></i>
+        <i class="bi bi-moon-stars-fill theme-icon-dark"></i>
+      </button>
+
       @if(session('user_id'))
         {{-- Logged in: AVATAR LANG, walang pangalan na nakikita sa navbar --}}
         <div class="landing-user-menu">
           <button type="button" class="landing-user-trigger" id="landingUserTrigger">
             <span class="landing-user-avatar">
-              @if(session('user_profile_picture'))
-                <img src="{{ asset('storage/' . session('user_profile_picture')) }}"
-                     alt="{{ session('user_name') }}"
-                     style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;"
-                     onerror="this.style.display='none'; this.parentElement.textContent='{{ strtoupper(substr(session('user_name','U'),0,1)) }}';">
-              @else
-                {{ strtoupper(substr(session('user_name', 'U'), 0, 1)) }}
-              @endif
-            </span>
+    @if($userProfilePictureUrl)
+        <img src="{{ $userProfilePictureUrl }}"
+             alt="{{ session('user_name') }}"
+             style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;"
+             onerror="this.style.display='none'; this.parentElement.textContent='{{ strtoupper(substr(session('user_name','U'),0,1)) }}';">
+    @else
+        {{ strtoupper(substr(session('user_name', 'U'), 0, 1)) }}
+    @endif
+</span>
             <span class="landing-user-name">{{ session('user_name') }}</span>
             <i class="bi bi-chevron-down"></i>
           </button>
@@ -69,15 +91,15 @@
           <div class="landing-user-dropdown" id="landingUserDropdown">
             <div class="landing-user-dropdown-head">
               <span class="landing-user-avatar-lg">
-                @if(session('user_profile_picture'))
-                  <img src="{{ asset('storage/' . session('user_profile_picture')) }}"
-                       alt="{{ session('user_name') }}"
-                       style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;"
-                       onerror="this.style.display='none'; this.parentElement.textContent='{{ strtoupper(substr(session('user_name','U'),0,1)) }}';">
-                @else
-                  {{ strtoupper(substr(session('user_name', 'U'), 0, 1)) }}
-                @endif
-              </span>
+    @if($userProfilePictureUrl)
+        <img src="{{ $userProfilePictureUrl }}"
+             alt="{{ session('user_name') }}"
+             style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;"
+             onerror="this.style.display='none'; this.parentElement.textContent='{{ strtoupper(substr(session('user_name','U'),0,1)) }}';">
+    @else
+        {{ strtoupper(substr(session('user_name', 'U'), 0, 1)) }}
+    @endif
+</span>
               <div>
                 <div class="landing-user-dd-name">{{ session('user_name') }}</div>
                 <div class="landing-user-dd-email">{{ session('user_email') }}</div>
@@ -129,13 +151,9 @@
       <div class="hero-inner">
 
         <!-- Left: headline + stats -->
-        <div class="hero-text">
-          <div class="hero-badge">Lending Made Simple</div>
-          <h1>Smart.<br>Secure.<br><span class="red">Simple</span> Lending.</h1>
-        
-          
-        </div>
-
+   <div class="hero-text">
+<h1>Smart. Secure.<br><span class="gray">Simple Lending.</span></h1>
+</div>
         <!-- Right: calculator card -->
         <div class="calc-card">
           <h3>Try it yourself</h3>
@@ -189,9 +207,6 @@
     </section>
 
     <!-- ============================================================
-         ABOUT
-         ============================================================ -->
-  <!-- ============================================================
          PROCESS
          ============================================================ -->
     <section id="services-2" class="services-2 section light-background">
@@ -354,7 +369,7 @@
 
 
     <!-- ============================================================
-         CONTACT
+         ABOUT
          ============================================================ -->
 
           <section id="about" class="about section">
@@ -384,6 +399,10 @@
         </div>
       </div>
     </section>
+
+    <!-- ============================================================
+         CONTACT
+         ============================================================ -->
     <section id="contact" class="contact section">
   <div class="container section-title" data-aos="fade-up">
     <h2>Contact</h2>
@@ -484,6 +503,7 @@
   <script src="{{ asset('assets/landingpage/vendor/purecounter/purecounter_vanilla.js') }}"></script>
   <script src="{{ asset('assets/landingpage/js/main.js') }}"></script>
   <script src="{{ asset('functions/landing-page.js') }}"></script>
+  <script src="{{ asset('functions/theme-toggle.js') }}"></script>
 
   @if(session('user_id'))
   <script>

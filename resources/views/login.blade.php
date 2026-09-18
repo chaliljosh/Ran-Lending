@@ -7,6 +7,7 @@
   <title>Login - RAN Lending</title>
     <link href="{{ asset('assets/landingpage/img/ranlogo1.jpg') }}" rel="icon">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  
   <link rel="shortcut icon" type="image/png" href="{{ asset('assets/login/images/logos/seodashlogo.png') }}" />
   <link rel="stylesheet" href="{{ asset('assets/login/css/styles.min.css') }}" />
   <link rel="stylesheet" href="{{ asset('assets/login/css/login.css') }}" />

@@ -10,6 +10,12 @@
    true-black dark mode #0d0d0d/#262626) rather than the
    borrower page's older navy/#4a7cf7 tokens, so this stays
    consistent with Borrower Verification / Loan Applications.
+
+   FIX: dark-mode block now uses !important throughout — vendor
+   theme.min.css ships its own dark palette for generic .modal /
+   .form-control elements, tied to the same html.app-skin-dark
+   class, and was winning over our un-!important overrides,
+   which is why modals still showed navy instead of true black.
 ============================================================ */
 
 :root {
@@ -398,36 +404,72 @@
 .nxl-crop-wrap.is-round-crop .cropper-face { border-radius: 50%; }
 .nxl-crop-hint { font-size: 0.75rem; color: var(--nxl-acct-gray); margin: 10px 0 0; }
 
-/* ---------- Dark mode ---------- */
-html.app-skin-dark .nxl-account-modal .modal-content { background: #0d0d0d; box-shadow: 0 20px 60px -20px rgba(0,0,0,0.6); }
-html.app-skin-dark .nxl-profile-modal-header { background: linear-gradient(180deg, #0a0a0a, #0d0d0d); border-color: #262626; }
-html.app-skin-dark .nxl-profile-modal-header .modal-title { color: #EDEDED; }
-html.app-skin-dark .nxl-profile-modal-name { color: #EDEDED; }
-html.app-skin-dark .nxl-profile-modal-divider { background: #262626; }
+/* ============================================================
+   DARK MODE — all rules !important now, since theme.min.css
+   ships its own generic dark palette for .modal-content /
+   .form-control tied to the same html.app-skin-dark class and
+   was winning by load-order/specificity before.
+============================================================ */
+html.app-skin-dark .nxl-account-modal .modal-content {
+    background: #0d0d0d !important;
+    box-shadow: 0 20px 60px -20px rgba(0,0,0,0.6) !important;
+}
+html.app-skin-dark .nxl-profile-modal-header {
+    background: linear-gradient(180deg, #0a0a0a, #0d0d0d) !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .nxl-profile-modal-header .modal-title { color: #EDEDED !important; }
+html.app-skin-dark .nxl-profile-modal-name { color: #EDEDED !important; }
+html.app-skin-dark .nxl-profile-modal-divider { background: #262626 !important; }
 html.app-skin-dark .nxl-account-field label,
 html.app-skin-dark .nxl-settings-card-label,
-html.app-skin-dark .nxl-settings-card-sub { color: #8A8A8A; }
+html.app-skin-dark .nxl-settings-card-sub { color: #8A8A8A !important; }
 html.app-skin-dark .nxl-account-field span,
-html.app-skin-dark .nxl-settings-card-value { color: #EDEDED; }
-html.app-skin-dark .nxl-account-section-label { color: #8A8A8A; }
-html.app-skin-dark .nxl-settings-card { background: #0d0d0d; border-color: #262626; }
-html.app-skin-dark .nxl-settings-card-btn { background: #0d0d0d; border-color: #262626; color: #EDEDED; }
-html.app-skin-dark .nxl-settings-card-btn:hover:not(:disabled) { border-color: #2563EB; color: #6ea8fe; background: rgba(37,99,235,.12); }
-html.app-skin-dark .nxl-account-modal .form-control { background: #0d0d0d; border-color: #262626; color: #EDEDED; }
-html.app-skin-dark .nxl-pw-label { color: #EDEDED; }
-html.app-skin-dark .nxl-pw-btn-discard { background: #0d0d0d; border-color: #262626; color: #EDEDED; }
-html.app-skin-dark .nxl-pw-btn-discard:hover { background: #16202e; }
+html.app-skin-dark .nxl-settings-card-value { color: #EDEDED !important; }
+html.app-skin-dark .nxl-account-section-label { color: #8A8A8A !important; }
+html.app-skin-dark .nxl-settings-card {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .nxl-settings-card-btn {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #EDEDED !important;
+}
+html.app-skin-dark .nxl-settings-card-btn:hover:not(:disabled) {
+    border-color: #2563EB !important;
+    color: #6ea8fe !important;
+    background: rgba(37,99,235,.12) !important;
+}
+html.app-skin-dark .nxl-account-modal .form-control {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #EDEDED !important;
+}
+html.app-skin-dark .nxl-pw-label { color: #EDEDED !important; }
+html.app-skin-dark .nxl-pw-btn-discard {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #EDEDED !important;
+}
+html.app-skin-dark .nxl-pw-btn-discard:hover { background: #16202e !important; }
 html.app-skin-dark .nxl-remove-confirm-title,
-html.app-skin-dark .nxl-pw-success-title { color: #EDEDED; }
+html.app-skin-dark .nxl-pw-success-title { color: #EDEDED !important; }
 html.app-skin-dark .nxl-remove-confirm-desc,
-html.app-skin-dark .nxl-pw-success-desc { color: #8A8A8A; }
-html.app-skin-dark .nxl-pw-strength-seg { background: #262626; }
-html.app-skin-dark .nxl-pw-checklist-label { color: #8A8A8A; }
-html.app-skin-dark .nxl-pw-check-item { color: #8A8A8A; }
-html.app-skin-dark .nxl-pw-check-icon i { color: #3D4B60; }
-html.app-skin-dark .nxl-pw-check-item.is-met { color: #EDEDED; }
-html.app-skin-dark .nxl-pw-clear-btn { color: #8A8A8A; }
-html.app-skin-dark .nxl-pw-clear-btn:hover { color: #EDEDED; }
+html.app-skin-dark .nxl-pw-success-desc { color: #8A8A8A !important; }
+html.app-skin-dark .nxl-pw-strength-seg { background: #262626 !important; }
+html.app-skin-dark .nxl-pw-checklist-label { color: #8A8A8A !important; }
+html.app-skin-dark .nxl-pw-check-item { color: #8A8A8A !important; }
+html.app-skin-dark .nxl-pw-check-icon i { color: #3D4B60 !important; }
+html.app-skin-dark .nxl-pw-check-item.is-met { color: #EDEDED !important; }
+html.app-skin-dark .nxl-pw-clear-btn { color: #8A8A8A !important; }
+html.app-skin-dark .nxl-pw-clear-btn:hover { color: #EDEDED !important; }
+
+/* FIX: bootstrap's .btn-close icon is a dark SVG by default —
+   near-invisible on a black modal. Invert it in dark mode. */
+html.app-skin-dark .nxl-account-modal .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%) !important;
+}
 
 /* ---------- Header trigger avatar (small, top bar) ---------- */
 .nxl-admin-avatar-header {

@@ -10,11 +10,12 @@
    centered pagination for the Pending tab only. Reviewed/Filtered
    tabs are untouched.
 
-   DARK MODE UPDATE: switched from a standalone "true black"
-   palette (#3a3a3a/#0d0d0d/#262626) to the navy palette used by
-   the sidebar and the rest of the admin pages (#0f172a page bg,
-   #1e2a3a cards, #2d3f55 borders, #e2e8f0 text, #94a3b8 muted) —
-   so this page now matches instead of clashing.
+   DARK MODE UPDATE 2: switched OFF the navy palette (#0f172a/
+   #1e2a3a/#2d3f55) and onto the true-black palette used
+   everywhere else now (#0A0A0A page bg, #141414 cards, #262626
+   borders, #F5F5F5 text, #9A9A9A muted) — this page had been
+   left on the old navy tokens from before the rest of the admin
+   panel switched to true black, so it was the one clashing.
    ======================================== */
 
 /* ---------- Page-wide: white bg + Inter font
@@ -700,50 +701,50 @@ html body .main-content .reviewed-pagination {
 }
 
 /* ========================================
-   DARK MODE STYLES — navy palette matched to the sidebar
-   (.nxl-navigation) and the rest of the admin pages: page bg
-   #0f172a, card bg #1e2a3a, borders #2d3f55, primary text
-   #e2e8f0, muted text #94a3b8, hover #24334a. Status/badge
-   tints keep their own semantic hues (amber/green/red) since
-   those carry meaning independent of the base palette.
+   DARK MODE STYLES — true-black palette, matched to the rest
+   of the admin panel: page bg #0A0A0A, card bg #141414, borders
+   #262626, primary text #F5F5F5, muted text #9A9A9A, hover
+   #1C1C1C, input bg #0d0d0d. Status/badge tints keep their own
+   semantic hues (amber/green/red) since those carry meaning
+   independent of the base palette.
    ======================================== */
 
 html.app-skin-dark body .nxl-content {
-    background: #0f172a !important;
+    background: #0A0A0A !important;
 }
 
 html.app-skin-dark .remarks-input {
-    background-color: #16202e;
-    color: #e2e8f0;
-    border-color: #2d3f55;
+    background-color: #0d0d0d;
+    color: #F5F5F5;
+    border-color: #262626;
 }
 
 html.app-skin-dark .remarks-input::placeholder {
-    color: #94a3b8;
+    color: #9A9A9A;
 }
 
 html.app-skin-dark .detail-card {
-    background: #1e2a3a;
-    border-color: #2d3f55;
+    background: #141414;
+    border-color: #262626;
 }
 
 html.app-skin-dark .detail-card .bname {
-    color: #e2e8f0;
+    color: #F5F5F5;
 }
 
 html.app-skin-dark .info-item span {
-    color: #e2e8f0;
+    color: #F5F5F5;
 }
 
 /* ---------- Summary cards — dark ---------- */
 html.app-skin-dark .la-stat-card {
-    background: #1e2a3a;
-    border-color: #2d3f55;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    background: #141414;
+    border-color: #262626;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
-html.app-skin-dark .la-stat-value { color: #e2e8f0; }
-html.app-skin-dark .la-stat-label { color: #94a3b8; }
-html.app-skin-dark .la-stat-sub { color: #94a3b8; }
+html.app-skin-dark .la-stat-value { color: #F5F5F5; }
+html.app-skin-dark .la-stat-label { color: #9A9A9A; }
+html.app-skin-dark .la-stat-sub { color: #9A9A9A; }
 html.app-skin-dark .la-stat-card.is-attention {
     background: rgba(180, 83, 9, 0.12);
     border-color: rgba(245, 158, 11, 0.4);
@@ -752,28 +753,28 @@ html.app-skin-dark .la-stat-card.is-attention .la-stat-value { color: #f0b756; }
 html.app-skin-dark .la-stat-card.is-attention .la-stat-icon { color: #f0b756; }
 
 html.app-skin-dark .search-bar-wrap {
-    background: #16202e;
-    border-color: #2d3f55;
+    background: #0d0d0d;
+    border-color: #262626;
 }
 
 html.app-skin-dark .search-bar-wrap input {
-    color: #e2e8f0;
-    caret-color: #e2e8f0;
+    color: #F5F5F5;
+    caret-color: #F5F5F5;
 }
 
 html.app-skin-dark .search-bar-wrap input::placeholder {
-    color: #94a3b8;
+    color: #9A9A9A;
 }
 
 html.app-skin-dark .search-bar-wrap i,
 html.app-skin-dark .search-bar-wrap svg {
-    color: #94a3b8;
+    color: #9A9A9A;
 }
 
 html.app-skin-dark body .main-content .reviewed-card {
-    background: #1e2a3a !important;
-    border: 1px solid #2d3f55 !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+    background: #141414 !important;
+    border: 1px solid #262626 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
 }
 
 html.app-skin-dark body .main-content .reviewed-card-head,
@@ -781,40 +782,40 @@ html.app-skin-dark body .main-content .reviewed-toolbar,
 html.app-skin-dark body .main-content .reviewed-table thead th,
 html.app-skin-dark body .main-content .reviewed-pagination,
 html.app-skin-dark body .main-content .reviewed-table tbody td {
-    border-color: #2d3f55 !important;
+    border-color: #262626 !important;
 }
 
 html.app-skin-dark .reviewed-title {
-    color: #e2e8f0;
+    color: #F5F5F5;
 }
 
 html.app-skin-dark .reviewed-subtitle {
-    color: #94a3b8;
+    color: #9A9A9A;
 }
 
 html.app-skin-dark .reviewed-decision-filter,
 html.app-skin-dark .reviewed-rpp-select {
-    background: #16202e;
-    border-color: #2d3f55;
-    color: #e2e8f0;
+    background: #0d0d0d;
+    border-color: #262626;
+    color: #F5F5F5;
 }
 
 html.app-skin-dark .reviewed-count-label,
 html.app-skin-dark .reviewed-count-text {
-    color: #94a3b8;
+    color: #9A9A9A;
 }
 
 html.app-skin-dark .reviewed-empty {
-    color: #94a3b8;
+    color: #9A9A9A;
 }
 
 html.app-skin-dark body .main-content table.reviewed-table thead th {
-    background: #16202e !important;
-    color: #e2e8f0 !important;
+    background: #0d0d0d !important;
+    color: #F5F5F5 !important;
 }
 
 html.app-skin-dark .reviewed-table tbody tr:hover {
-    background: #24334a;
+    background: #1C1C1C;
 }
 
 html.app-skin-dark .reviewed-table tbody tr.is-attention-row {
@@ -825,87 +826,87 @@ html.app-skin-dark .reviewed-table tbody tr.is-attention-row:hover {
 }
 
 html.app-skin-dark .rt-name {
-    color: #e2e8f0;
+    color: #F5F5F5;
 }
 
 html.app-skin-dark .rt-email {
-    color: #94a3b8;
+    color: #9A9A9A;
 }
 
 html.app-skin-dark .rt-date,
 html.app-skin-dark .rt-remarks {
-    color: #cbd5e1;
+    color: #C4C4C4;
 }
 
 html.app-skin-dark .rt-detailid {
-    color: #e2e8f0;
+    color: #F5F5F5;
 }
 
 /* Status badges — slightly deeper/darker tints so they read
-   clearly against the navy card instead of glowing. */
+   clearly against the black card instead of glowing. */
 html.app-skin-dark .badge-pending  { background: rgba(183, 121, 31, 0.18); color: #f0b756; }
 html.app-skin-dark .badge-approved { background: rgba(22, 163, 74, 0.18);  color: #4ade80; }
 html.app-skin-dark .badge-rejected { background: rgba(220, 38, 38, 0.18);  color: #f87171; }
 html.app-skin-dark .badge-onhold   { background: rgba(146, 114, 13, 0.18); color: #eab308; }
 
 /* ---------- Empty states — dark ---------- */
-html.app-skin-dark .la-empty { background: #1e2a3a; border-color: #2d3f55; }
-html.app-skin-dark .la-empty-title { color: #e2e8f0; }
-html.app-skin-dark .la-empty-desc { color: #94a3b8; }
+html.app-skin-dark .la-empty { background: #141414; border-color: #262626; }
+html.app-skin-dark .la-empty-title { color: #F5F5F5; }
+html.app-skin-dark .la-empty-desc { color: #9A9A9A; }
 
-html.app-skin-dark .la-empty-large { background: #1e2a3a; border-color: #2d3f55; }
+html.app-skin-dark .la-empty-large { background: #141414; border-color: #262626; }
 html.app-skin-dark .la-empty-icon-lg { background: rgba(22, 163, 74, 0.18); color: #4ade80; }
-html.app-skin-dark .la-empty-icon-lg-muted { background: #2d3f55; color: #94a3b8; }
-html.app-skin-dark .la-empty-large .la-empty-title { color: #e2e8f0; }
-html.app-skin-dark .la-empty-large .la-empty-desc { color: #94a3b8; }
+html.app-skin-dark .la-empty-icon-lg-muted { background: #262626; color: #9A9A9A; }
+html.app-skin-dark .la-empty-large .la-empty-title { color: #F5F5F5; }
+html.app-skin-dark .la-empty-large .la-empty-desc { color: #9A9A9A; }
 
-/* "View Details" button — solid navy fill in dark mode
+/* "View Details" button — solid fill in dark mode
    (not transparent/outline). Selector strength matched to the
    light-mode override above so dark mode always wins. */
 html.app-skin-dark body .main-content a.action-link-btn {
-    border-color: #2d3f55 !important;
-    color: #e2e8f0 !important;
-    background-color: #16202e !important;
-    background: #16202e !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+    background-color: #0d0d0d !important;
+    background: #0d0d0d !important;
 }
 html.app-skin-dark body .main-content a.action-link-btn:hover {
-    background-color: #24334a !important;
-    background: #24334a !important;
-    border-color: #4a7cf7 !important;
-    color: #e2e8f0 !important;
+    background-color: #1C1C1C !important;
+    background: #1C1C1C !important;
+    border-color: #2563EB !important;
+    color: #F5F5F5 !important;
 }
 
 html.app-skin-dark .reviewed-pagination {
-    background: #1e2a3a;
+    background: #141414;
 }
 
 html.app-skin-dark .pending-rpp-wrap .reviewed-count-label,
 html.app-skin-dark .pending-pagination-row .reviewed-count-text {
-    color: #94a3b8;
+    color: #9A9A9A;
 }
 
 html.app-skin-dark .btn-page {
-    background: #16202e;
-    border-color: #2d3f55;
-    color: #cbd5e1;
+    background: #0d0d0d;
+    border-color: #262626;
+    color: #C4C4C4;
 }
 
 html.app-skin-dark .btn-page:hover:not(:disabled) {
     border-color: #2563EB;
     color: #6ea8fe;
-    background: #24334a;
+    background: #1C1C1C;
 }
 
 html.app-skin-dark .rv-page-num {
-    background: #16202e;
-    border-color: #2d3f55;
-    color: #cbd5e1;
+    background: #0d0d0d;
+    border-color: #262626;
+    color: #C4C4C4;
 }
 
 html.app-skin-dark .rv-page-num:hover {
     border-color: #2563EB;
     color: #6ea8fe;
-    background: #24334a;
+    background: #1C1C1C;
 }
 
 html.app-skin-dark .rv-page-num.active {
@@ -915,7 +916,7 @@ html.app-skin-dark .rv-page-num.active {
 }
 
 html.app-skin-dark .rv-page-ellipsis {
-    color: #94a3b8;
+    color: #9A9A9A;
 }
 
 .decision-card-form.is-submitting {

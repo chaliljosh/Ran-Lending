@@ -16,8 +16,13 @@
 
 .landing-user-avatar,
 .landing-user-avatar-lg{
-    background:#e02b3d;
-    color:#fff;
+    background-color: #CBD5E1;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='36' r='18' fill='white'/%3E%3Ccircle cx='50' cy='104' r='38' fill='white'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 100% 100%;
+    color: transparent;
+    font-size: 0;
     border-radius:50%;
     display:flex;
     align-items:center;

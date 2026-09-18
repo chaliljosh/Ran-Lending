@@ -1,13 +1,24 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\BorrowerController;
 
 Route::get('/', function () {
-    return view('landing');
+    $userProfilePictureUrl = null;
+
+    if (session('user_id')) {
+        $user = DB::table('users')->where('user_id', session('user_id'))->first();
+        if ($user && !empty($user->profile_picture)) {
+            $userProfilePictureUrl = Storage::disk('supabase')->url($user->profile_picture);
+        }
+    }
+
+    return view('landing', compact('userProfilePictureUrl'));
 });
 
 // Legal pages — public, no auth required (linked from the registration
