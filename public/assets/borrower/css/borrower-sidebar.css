@@ -1,6 +1,6 @@
 /* ============================================================
-   BORROWER SIDEBAR — v2, grouped sections (kagaya ng bagong
-   reference screenshot: "Loan Management", "Account", etc.)
+   BORROWER SIDEBAR — v2, grouped sections. Dark mode converted
+   to true-black palette to match the admin panel.
 
    IMPORTANT: ilagay ito sa GLOBAL na CSS ng borrower layout,
    hindi sa borrower-dashboard.css, dahil lumalabas yung sidebar
@@ -19,8 +19,6 @@
     height: 100%;
 }
 
-/* ---------- Brand row (icon + name + tagline), kagaya ng
-   "Shadcn Admin" block sa reference ---------- */
 .bwl-sidebar-brand {
     display: flex;
     align-items: center;
@@ -57,13 +55,6 @@
     margin-bottom: 4px;
 }
 
-/* section label, e.g. "LOAN MANAGEMENT"
-   note: dati naka-cut yung unang letra (hal. "oan Management")
-   dahil sumasabay yung li sa default padding/margin ng theme na
-   nxl-navbar > li instead of yung 14px na gusto natin. Kaya
-   ini-force natin dito ng box-sizing + margin reset + !important
-   para sigurado na yung 14px lang talaga yung left inset niya,
-   parehas ng .nxl-link. */
 .nxl-navigation .nxl-navbar .nxl-nav-label {
     display: block;
     box-sizing: border-box;
@@ -95,7 +86,6 @@
     color: #0F172A;
 }
 
-/* active page — light gray pill, kagaya ng reference (hindi dark) */
 .nxl-navigation .nxl-item.active > .nxl-link,
 .nxl-navigation .nxl-link.active {
     background: #F1F3F6 !important;
@@ -115,14 +105,12 @@
     min-width: 0;
 }
 
-/* divider bago yung Logout */
 .nxl-navigation .nxl-nav-divider {
     height: 1px;
     background: #ECEEF2;
     margin: 14px 14px 10px;
 }
 
-/* Logout — walang bg, pulang text/icon, subtle red hover */
 .nxl-navigation .nxl-link.is-logout {
     color: #E11D48;
 }
@@ -131,8 +119,6 @@
     color: #E11D48;
 }
 
-/* ---------- Footer account row (bottom of sidebar),
-   kagaya ng "satnaing / satnaingdev@gmail.com" block sa reference ---------- */
 .bwl-sidebar-footer {
     display: flex;
     align-items: center;
@@ -162,35 +148,28 @@
 }
 .bwl-sidebar-footer-caret { color: #94A3B8; font-size: 0.85rem; flex-shrink: 0; }
 
-/* Dark mode, sakto sa existing app-skin-dark pattern niyo */
-html.app-skin-dark .nxl-navigation {
-    background: #1E2A3A !important;
-    border-color: #2D3F55;
-}
+/* ---------- Dark mode — true black, matched to admin panel ---------- */
+html.app-skin-dark .nxl-navigation { background: #0A0A0A !important; border-color: #262626; }
 html.app-skin-dark .bwl-sidebar-brand,
-html.app-skin-dark .bwl-sidebar-footer { border-color: #2D3F55; }
-html.app-skin-dark .bwl-sidebar-footer:hover { background: #16202E; }
+html.app-skin-dark .bwl-sidebar-footer { border-color: #262626; }
+html.app-skin-dark .bwl-sidebar-footer:hover { background: #1C1C1C; }
 html.app-skin-dark .bwl-sidebar-brand-name,
-html.app-skin-dark .bwl-sidebar-footer-name { color: #E2E8F0; }
+html.app-skin-dark .bwl-sidebar-footer-name { color: #F5F5F5; }
 html.app-skin-dark .bwl-sidebar-brand-sub,
 html.app-skin-dark .bwl-sidebar-footer-email,
-html.app-skin-dark .bwl-sidebar-footer-caret { color: #64748B; }
-html.app-skin-dark .nxl-navigation .nxl-nav-label { color: #64748B; }
-html.app-skin-dark .nxl-navigation .nxl-link { color: #94A3B8; }
-html.app-skin-dark .nxl-navigation .nxl-link:hover { background: #16202E; color: #E2E8F0; }
+html.app-skin-dark .bwl-sidebar-footer-caret { color: #9A9A9A; }
+html.app-skin-dark .nxl-navigation .nxl-nav-label { color: #9A9A9A; }
+html.app-skin-dark .nxl-navigation .nxl-link { color: #C4C4C4; }
+html.app-skin-dark .nxl-navigation .nxl-link:hover { background: #1C1C1C; color: #F5F5F5; }
 html.app-skin-dark .nxl-navigation .nxl-item.active > .nxl-link,
 html.app-skin-dark .nxl-navigation .nxl-link.active {
-    background: #16202E !important;
-    color: #E2E8F0 !important;
+    background: #1C1C1C !important;
+    color: #F5F5F5 !important;
 }
-html.app-skin-dark .nxl-navigation .nxl-nav-divider { background: #2D3F55; }
+html.app-skin-dark .nxl-navigation .nxl-nav-divider { background: #262626; }
 
 /* ---------- Brand logo — icon swaps in for the text logo when the
-   sidebar is collapsed to icon-only mode (toggled by the header's
-   hamburger/mini-menu button). Independent of whatever internal
-   class the theme's own minified JS uses — .sidebar-mini-mode is
-   applied by our own small script in layout.blade.php listening to
-   the same #menu-mini-button / #menu-expend-button clicks. ---------- */
+   sidebar is collapsed to icon-only mode. ---------- */
 .b-brand {
     display: flex;
     align-items: center;
@@ -218,4 +197,9 @@ body.sidebar-mini-mode .m-header {
 }
 body.sidebar-mini-mode .b-brand {
     overflow: visible;
+}
+
+html.app-skin-dark .m-header {
+    background: #0A0A0A !important;
+    border-bottom: 1px solid #262626 !important;
 }

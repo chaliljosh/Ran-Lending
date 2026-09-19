@@ -509,23 +509,28 @@ html body .main-content i[class*="bi-"]::before {
 }
 
 /* ══════════════════════════════════════════
-   DARK MODE
+   DARK MODE — true black palette
    ══════════════════════════════════════════ */
-html.app-skin-dark .nxl-content { background: #0f172a; }
+html.app-skin-dark .nxl-content { background: #0A0A0A !important; }
 
 html.app-skin-dark .pd-card,
 html.app-skin-dark .pd-header-card,
 html.app-skin-dark .pt-info-card,
 html.app-skin-dark .pd-status-box {
-    background: #1e2a3a !important;
-    border-color: #2d3f55 !important;
+    background: #141414 !important;
+    border-color: #262626 !important;
 }
 html.app-skin-dark .pd-back-btn {
-    background: #1e2a3a;
-    border-color: #2d3f55;
-    color: #e2e8f0;
+    background: #141414 !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
 }
-html.app-skin-dark .pd-card-header { border-bottom-color: #2d3f55; }
+html.app-skin-dark .pd-back-btn:hover {
+    border-color: #9BBE4A !important;
+    color: #9BBE4A !important;
+    background: #1C1C1C !important;
+}
+html.app-skin-dark .pd-card-header { border-bottom-color: #262626 !important; }
 html.app-skin-dark .pd-card-title,
 html.app-skin-dark .pd-borrower-name,
 html.app-skin-dark .pd-stat-value,
@@ -533,9 +538,9 @@ html.app-skin-dark .pd-status-box-value,
 html.app-skin-dark .pt-info-value,
 html.app-skin-dark .pt-modal-title,
 html.app-skin-dark .pd-info-value {
-    color: #e2e8f0;
+    color: #F5F5F5 !important;
 }
-html.app-skin-dark .pd-stat-value.is-danger { color: #f87171; }
+html.app-skin-dark .pd-stat-value.is-danger { color: #f87171 !important; }
 html.app-skin-dark .pd-borrower-sub,
 html.app-skin-dark .pd-meta-row,
 html.app-skin-dark .pd-stat-label,
@@ -546,10 +551,47 @@ html.app-skin-dark .pt-info-label,
 html.app-skin-dark .pt-modal-subtitle,
 html.app-skin-dark .pd-footer,
 html.app-skin-dark .pd-footer-links a {
-    color: #94a3b8;
+    color: #9A9A9A !important;
 }
-html.app-skin-dark .pd-table thead th { border-bottom-color: #2d3f55; color: #94a3b8; }
-html.app-skin-dark .pd-table tbody td { border-bottom-color: #2d3f55; color: #e2e8f0; }
-html.app-skin-dark .pd-table tfoot td { background: #16202e; border-top-color: #2d3f55; color: #e2e8f0; }
-html.app-skin-dark .pt-modal .modal-content { background: #1e2a3a; }
-html.app-skin-dark .pt-textarea { background: #16202e; border-color: #2d3f55; color: #e2e8f0; }
+html.app-skin-dark .pd-meta-row i { color: #9A9A9A !important; }
+html.app-skin-dark .pd-stat-item { border-left-color: #262626 !important; }
+
+html.app-skin-dark .pd-table thead th { border-bottom-color: #262626 !important; color: #9A9A9A !important; }
+html.app-skin-dark .pd-table tbody td { border-bottom-color: #262626 !important; color: #F5F5F5 !important; }
+html.app-skin-dark .pd-table tfoot td { background: #0d0d0d !important; border-top-color: #262626 !important; color: #F5F5F5 !important; }
+html.app-skin-dark .pd-point-badge { background: rgba(37,99,235,.18) !important; color: #93c5fd !important; }
+
+html.app-skin-dark .pd-status-box-icon.is-green { background: rgba(22,163,74,.18) !important; color: #4ade80 !important; }
+html.app-skin-dark .pd-status-box-icon.is-blue  { background: rgba(37,99,235,.18) !important; color: #93c5fd !important; }
+html.app-skin-dark .pd-status-box-icon.is-gray  { background: #262626 !important; color: #C4C4C4 !important; }
+html.app-skin-dark .pd-status-box-icon.is-red   { background: rgba(220,38,38,.18) !important; color: #f87171 !important; }
+html.app-skin-dark .pd-status-box-value.is-green { color: #4ade80 !important; }
+html.app-skin-dark .pd-status-box-value.is-gray  { color: #C4C4C4 !important; }
+html.app-skin-dark .pd-status-box-value.is-red   { color: #f87171 !important; }
+
+html.app-skin-dark .pd-badge-paid   { background: rgba(22,163,74,.18) !important; color: #4ade80 !important; }
+html.app-skin-dark .pd-badge-waived { background: #262626 !important; color: #C4C4C4 !important; }
+html.app-skin-dark .pd-badge-unpaid { background: rgba(220,38,38,.18) !important; color: #f87171 !important; }
+
+/* ---------- Modals — duplicated styles sa file na ito, hiwalay
+     sa penalty-tracking.css, kaya kailangan din i-override dito ---------- */
+html.app-skin-dark .pt-modal .modal-content { background: #141414 !important; }
+html.app-skin-dark .pt-modal .modal-header,
+html.app-skin-dark .pt-modal .modal-footer { border-color: #262626 !important; }
+html.app-skin-dark .pt-modal-icon { background: rgba(249,115,22,.18) !important; color: #fb923c !important; }
+html.app-skin-dark .pt-modal-icon.is-confirm { background: rgba(37,99,235,.18) !important; color: #93c5fd !important; }
+html.app-skin-dark .pt-textarea {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .pt-warning-line {
+    background: rgba(220,38,38,.15) !important;
+    border-color: rgba(220,38,38,.35) !important;
+    color: #f87171 !important;
+}
+html.app-skin-dark .pt-btn-cancel {
+    background: #1C1C1C !important;
+    color: #C4C4C4 !important;
+}
+html.app-skin-dark .pt-form-label { color: #C4C4C4 !important; }

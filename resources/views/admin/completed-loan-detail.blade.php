@@ -11,7 +11,8 @@
          white-bg/border/shadow/typography language to the Loan Summary,
          Repayment Performance, and Payment Schedule panels without
          touching the shared ongoing-loan-detail.css file. --}}
-    <link rel="stylesheet" href="{{ asset('assets/admin/css/completed-loan-detail.css') }}" />
+     <link rel="stylesheet" href="{{ asset('assets/admin/css/completed-loan-detail.css') }}?v={{ time() }}" />
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/darkmode-global.css') }}?v={{ time() }}" />
 @endsection
 
 @section('content')

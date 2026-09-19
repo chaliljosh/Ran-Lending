@@ -1,0 +1,149 @@
+/* ============================================================
+   borrower-black-final.css
+   ------------------------------------------------------------
+   HULING CSS na ni-load sa borrower/layout.blade.php (kasunod
+   ng layout-fixes.css). Ang trabaho niya: gawing TRUE BLACK ang
+   lahat ng navy na natitira — header, breadcrumb bar, footer,
+   notification + profile dropdowns, at yung sidebar border.
+
+   Bakit "html.app-skin-dark.app-skin-dark body ...": doble ang
+   class para tumaas ang specificity (0,3,2) at matalo ang
+   kahit anong navy rule ng vendor theme o ng ibang file, kahit
+   pareho silang may !important.
+
+   Palette:
+     #0A0A0A page/header/footer    #141414 cards/dropdowns
+     #0d0d0d inner surfaces        #262626 borders
+     #1C1C1C hover                 #F5F5F5 text   #9A9A9A muted
+============================================================ */
+
+/* ---------- Header ---------- */
+html.app-skin-dark.app-skin-dark body .nxl-header,
+html.app-skin-dark.app-skin-dark body .nxl-header .header-wrapper,
+html.app-skin-dark.app-skin-dark body .nxl-header .header-left,
+html.app-skin-dark.app-skin-dark body .nxl-header .header-right {
+    background: #0A0A0A !important;
+    background-color: #0A0A0A !important;
+    background-image: none !important;
+    box-shadow: none !important;
+}
+html.app-skin-dark.app-skin-dark body .nxl-header {
+    border-bottom: 1px solid #262626 !important;
+}
+
+/* ---------- Page header (Dashboard | Home > Dashboard) ---------- */
+html.app-skin-dark.app-skin-dark body .page-header,
+html.app-skin-dark.app-skin-dark body .nxl-content .page-header,
+html.app-skin-dark.app-skin-dark body .page-header .page-header-left,
+html.app-skin-dark.app-skin-dark body .page-header .page-header-right {
+    background: #0A0A0A !important;
+    background-color: #0A0A0A !important;
+    background-image: none !important;
+    box-shadow: none !important;
+}
+html.app-skin-dark.app-skin-dark body .page-header {
+    border-bottom: 1px solid #262626 !important;
+}
+
+/* ---------- Footer ---------- */
+html.app-skin-dark.app-skin-dark body footer.footer,
+html.app-skin-dark.app-skin-dark body .nxl-container footer.footer {
+    background: #0A0A0A !important;
+    background-color: #0A0A0A !important;
+    background-image: none !important;
+    border-top: 1px solid #262626 !important;
+    box-shadow: none !important;
+}
+html.app-skin-dark.app-skin-dark body footer.footer p,
+html.app-skin-dark.app-skin-dark body footer.footer span,
+html.app-skin-dark.app-skin-dark body footer.footer a {
+    color: #9A9A9A !important;
+}
+html.app-skin-dark.app-skin-dark body footer.footer a:hover {
+    color: #F5F5F5 !important;
+}
+
+/* ---------- Notification dropdown ---------- */
+html.app-skin-dark.app-skin-dark body .bwl-notif-dropdown,
+html.app-skin-dark.app-skin-dark body .bwl-notif-dropdown .bwl-notif-head,
+html.app-skin-dark.app-skin-dark body .bwl-notif-dropdown .bwl-notif-list {
+    background: #141414 !important;
+    background-color: #141414 !important;
+    background-image: none !important;
+}
+html.app-skin-dark.app-skin-dark body .bwl-notif-dropdown {
+    border: 1px solid #262626 !important;
+}
+html.app-skin-dark.app-skin-dark body .bwl-notif-item {
+    background: transparent !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark.app-skin-dark body .bwl-notif-item:hover {
+    background: #1C1C1C !important;
+}
+/* Unread = neutral dark gray + blue accent bar sa kaliwa (dating blue tint
+   ang dahilan kaya mukhang navy ang buong dropdown). */
+html.app-skin-dark.app-skin-dark body .bwl-notif-list a.bwl-notif-item {
+    background: #141414 !important;
+    background-color: #141414 !important;
+    background-image: none !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark.app-skin-dark body .bwl-notif-list a.bwl-notif-item::before,
+html.app-skin-dark.app-skin-dark body .bwl-notif-list a.bwl-notif-item::after {
+    background: transparent !important;
+    background-image: none !important;
+}
+html.app-skin-dark.app-skin-dark body .bwl-notif-list a.bwl-notif-item:hover {
+    background: #1C1C1C !important;
+    background-color: #1C1C1C !important;
+}
+html.app-skin-dark.app-skin-dark body .bwl-notif-list a.bwl-notif-item.is-unread {
+    background: #1C1C1C !important;
+    background-color: #1C1C1C !important;
+    box-shadow: inset 3px 0 0 #2563EB !important;
+}
+html.app-skin-dark.app-skin-dark body .bwl-notif-list a.bwl-notif-item.is-unread:hover {
+    background: #262626 !important;
+    background-color: #262626 !important;
+}
+
+/* ---------- Profile dropdown ---------- */
+html.app-skin-dark.app-skin-dark body .bwl-dropdown-menu,
+html.app-skin-dark.app-skin-dark body .bwl-dropdown-menu .bwl-dropdown-head {
+    background: #141414 !important;
+    background-color: #141414 !important;
+    background-image: none !important;
+}
+html.app-skin-dark.app-skin-dark body .bwl-dropdown-menu {
+    border: 1px solid #262626 !important;
+}
+html.app-skin-dark.app-skin-dark body .bwl-dropdown-item {
+    background: transparent !important;
+}
+html.app-skin-dark.app-skin-dark body .bwl-dropdown-item:hover {
+    background: #1C1C1C !important;
+}
+
+/* ---------- Sidebar edge — alisin yung asul na linya sa gilid ---------- */
+html.app-skin-dark.app-skin-dark body .nxl-navigation,
+html.app-skin-dark.app-skin-dark body .nxl-navigation .navbar-wrapper,
+html.app-skin-dark.app-skin-dark body .nxl-navigation .m-header {
+    background: #0A0A0A !important;
+    border-color: #262626 !important;
+    box-shadow: none !important;
+}
+html.app-skin-dark.app-skin-dark body .nxl-navigation {
+    border-right: 1px solid #262626 !important;
+}
+html.app-skin-dark.app-skin-dark body .nxl-container,
+html.app-skin-dark.app-skin-dark body .nxl-header {
+    border-color: #262626 !important;
+    box-shadow: none !important;
+}
+
+/* ---------- Base ---------- */
+html.app-skin-dark.app-skin-dark,
+html.app-skin-dark.app-skin-dark body {
+    background-color: #0A0A0A !important;
+}

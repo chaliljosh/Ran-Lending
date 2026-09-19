@@ -5,7 +5,8 @@
 @section('page-styles')
     <link rel="stylesheet" href="{{ asset('assets/admin/css/modals-modern.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/admin/css/avatar-placeholder.css') }}">
-     <link rel="stylesheet" href="{{ asset('assets/admin/css/defaulted-loan-detail.css') }}">
+  <link rel="stylesheet" href="{{ asset('assets/admin/css/defaulted-loan-detail.css') }}?v={{ time() }}" />
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/darkmode-global.css') }}?v={{ time() }}" />
 @endsection
 
 @section('content')

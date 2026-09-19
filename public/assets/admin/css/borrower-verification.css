@@ -973,3 +973,66 @@ html.app-skin-dark .rv-page-ellipsis {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
 }
+
+/* ========================================
+   DARK MODE — page-header/breadcrumb/footer
+   (kinopya mula sa admin-dashboard.css — nawala ito dito dahil
+   "dashboard-only" ang file na yun, hindi na-load sa page na ito)
+   ======================================== */
+
+html.app-skin-dark .page-header {
+    background: #0A0A0A !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .page-header-title h5 {
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .breadcrumb-item,
+html.app-skin-dark .breadcrumb-item a {
+    color: #9A9A9A !important;
+}
+html.app-skin-dark .breadcrumb-item.active,
+html.app-skin-dark .breadcrumb-item:last-child {
+    color: #C4C4C4 !important;
+}
+html.app-skin-dark .footer {
+    background: #0A0A0A !important;
+    color: #9A9A9A !important;
+}
+
+/* ========================================
+   DARK MODE — .reviewed-table Bootstrap 5 CSS-variable fix
+   (parehong technique na ginamit na sa admin-dashboard.css
+   para sa .adm-table — kailangan i-override ang mismong
+   --bs-table-* variables, hindi lang plain background:,
+   dahil box-shadow inset technique ang gamit ni Bootstrap 5
+   para sa table striping/hover, hindi background-color lang.)
+   ======================================== */
+
+html.app-skin-dark .reviewed-table,
+html.app-skin-dark .reviewed-table > :not(caption) > * {
+    --bs-table-bg: transparent !important;
+    --bs-table-striped-bg: transparent !important;
+    --bs-table-accent-bg: transparent !important;
+    --bs-table-hover-bg: #1C1C1C !important;
+    --bs-table-color: #F5F5F5 !important;
+    --bs-table-striped-color: #F5F5F5 !important;
+    --bs-table-hover-color: #F5F5F5 !important;
+}
+html.app-skin-dark .reviewed-table tbody tr {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+html.app-skin-dark .reviewed-table tbody tr td {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/* is-attention-row dapat manalo pa rin laban sa variable reset
+   sa itaas — mas specific na selector + inuulit ang tint. */
+html.app-skin-dark .reviewed-table tbody tr.is-attention-row td {
+    background-color: rgba(180, 83, 9, 0.12) !important;
+}
+html.app-skin-dark .reviewed-table tbody tr.is-attention-row:hover td {
+    background-color: rgba(180, 83, 9, 0.2) !important;
+}

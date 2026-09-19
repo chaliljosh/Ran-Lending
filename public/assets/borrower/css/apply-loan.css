@@ -564,41 +564,127 @@
 }
 
 /* ══════════════════════════════════════════
-   Dark mode
-   ══════════════════════════════════════════ */
+   DARK MODE — TRUE BLACK (matches sidebar /
+   dashboard / admin panel)
+   ------------------------------------------
+   Palette:
+     page   #0A0A0A    card   #141414    inner  #0d0d0d
+     border #262626    hover  #1C1C1C
+     text   #F5F5F5    muted  #9A9A9A    dim    #737373
 
-html.app-skin-dark .nxl-content { background: #14202e; }
-html.app-skin-dark .aln-section-title,
-html.app-skin-dark .aln-summary-label,
-html.app-skin-dark .aln-info-label,
-html.app-skin-dark .aln-eyebrow,
-html.app-skin-dark .aln-subtext,
-html.app-skin-dark .aln-note,
-html.app-skin-dark .aln-hint { color: #94A3B8; }
-html.app-skin-dark .aln-label,
-html.app-skin-dark .aln-title,
-html.app-skin-dark .aln-summary-value,
-html.app-skin-dark .aln-info-value,
-html.app-skin-dark .aln-modal-title,
-html.app-skin-dark .aln-modal-subtitle { color: #E2E8F0; }
-html.app-skin-dark .aln-hr { background: #2D3F55; }
-html.app-skin-dark .aln-input,
-html.app-skin-dark .form-select.aln-input,
-html.app-skin-dark .aln-input-group { background: #1E2A3A; border-color: #2D3F55; color: #E2E8F0; }
-html.app-skin-dark .aln-input-prefix { background: #16202E; border-color: #2D3F55; color: #94A3B8; }
-html.app-skin-dark .aln-btn--secondary { background: #1E2A3A; border-color: #2D3F55; color: #E2E8F0; }
-html.app-skin-dark .aln-btn--secondary:hover { background: #16202E; }
-html.app-skin-dark .aln-info-item { border-color: #2D3F55; }
-html.app-skin-dark .aln-modal { background: #1E2A3A; border-color: #2D3F55; }
-html.app-skin-dark .aln-modal-footer { background: #1E2A3A; border-color: #2D3F55; }
-html.app-skin-dark .aln-modal .modal-body p,
-html.app-skin-dark .aln-modal-footer .form-check-label { color: #94A3B8; }
-html.app-skin-dark .aln-section {
-    background: #1a2632 !important;
-    border-color: #2d3f55 !important;
+   Step 1: palitan ang color variables — karamihan ng
+   rules sa taas ay gumagamit ng var(--aln-...), sila
+   na ang magsasalin ng kulay automatically.
+   Step 2: yung mga hardcoded na white lang ang
+   ino-override isa-isa sa ibaba.
+══════════════════════════════════════════ */
+
+html.app-skin-dark {
+    --aln-navy: #F5F5F5;
+    --aln-gray: #9A9A9A;
+    --aln-gray-light: #737373;
+    --aln-border: #262626;
+    --aln-blue-soft: rgba(37, 99, 235, 0.15);
 }
-html.app-skin-dark .aln-toast { background: #1E2A3A; border-color: #2D3F55; }
-html.app-skin-dark .aln-toast-text h6 { color: #E2E8F0; }
-html.app-skin-dark .aln-toast-text p { color: #94A3B8; }
-html.app-skin-dark .aln-toast-icon { background: rgba(22, 163, 74, 0.18); color: #4ade80; }
-html.app-skin-dark .aln-toast-close:hover { background: #16202E; color: #E2E8F0; }
+
+/* ---------- Page + sections ---------- */
+html.app-skin-dark .nxl-content { background: #0A0A0A; }
+html.app-skin-dark .aln-section {
+    background: #141414 !important;
+    border-color: #262626 !important;
+    box-shadow: none !important;
+}
+html.app-skin-dark .aln-notice,
+html.app-skin-dark .aln-modal-notice { color: #93C5FD; }
+
+/* ---------- Form fields ---------- */
+html.app-skin-dark .aln-input,
+html.app-skin-dark .form-select.aln-input {
+    background-color: #0d0d0d;
+    border-color: #262626;
+    color: #F5F5F5;
+    color-scheme: dark;
+}
+html.app-skin-dark .aln-input::placeholder { color: #737373; }
+html.app-skin-dark .aln-input:focus,
+html.app-skin-dark .form-select.aln-input:focus {
+    background-color: #0d0d0d;
+    color: #F5F5F5;
+    border-color: var(--aln-blue);
+}
+html.app-skin-dark .aln-input-group { background: #0d0d0d; border-color: #262626; }
+html.app-skin-dark .aln-input-prefix {
+    background: #141414;
+    border-color: #262626;
+    color: #9A9A9A;
+}
+
+/* ---------- Buttons ---------- */
+html.app-skin-dark .aln-btn--secondary {
+    background: #141414;
+    border-color: #262626;
+    color: #F5F5F5;
+}
+html.app-skin-dark .aln-btn--secondary:hover { background: #1C1C1C; color: #F5F5F5; }
+html.app-skin-dark .aln-btn--primary:disabled {
+    background: #262626;
+    color: #737373;
+}
+
+/* ---------- Pending / active loan card ---------- */
+html.app-skin-dark .aln-info-item {
+    background: #0d0d0d;
+    border-color: #262626;
+}
+html.app-skin-dark .aln-status--pending {
+    background: rgba(245, 158, 11, 0.15);
+    color: #FBBF24;
+}
+html.app-skin-dark .aln-status--on_hold {
+    background: rgba(220, 38, 38, 0.15);
+    color: #F87171;
+}
+html.app-skin-dark .aln-status--approved,
+html.app-skin-dark .aln-status--active {
+    background: rgba(22, 163, 74, 0.15);
+    color: #4ADE80;
+}
+html.app-skin-dark .aln-link { color: #60A5FA; }
+html.app-skin-dark .aln-link:hover { color: #93C5FD; }
+
+/* ---------- Terms modal ---------- */
+html.app-skin-dark .aln-modal {
+    background: #141414;
+    border-color: #262626;
+    box-shadow: 0 20px 50px -14px rgba(0, 0, 0, 0.6);
+}
+html.app-skin-dark .aln-modal-footer {
+    background: #141414;
+    border-color: #262626;
+}
+html.app-skin-dark .aln-modal-footer .form-check-label { color: #9A9A9A; }
+html.app-skin-dark .aln-modal .form-check-input:not(:checked) {
+    background-color: #0d0d0d;
+    border-color: #404040;
+}
+
+/* ---------- Success toast ---------- */
+html.app-skin-dark .aln-toast {
+    background: #141414;
+    border-color: #262626;
+    box-shadow: 0 20px 50px -14px rgba(0, 0, 0, 0.6);
+}
+html.app-skin-dark .aln-toast-icon { background: rgba(22, 163, 74, 0.18); color: #4ADE80; }
+html.app-skin-dark .aln-toast-close:hover { background: #1C1C1C; color: #F5F5F5; }
+html.app-skin-dark .aln-toast-link { color: #60A5FA; }
+
+/* ---------- Error toast — ginagawa ng apply-loan.js (#loanErrorToast)
+   na may inline light-red styles, kaya !important ang panalo dito ---------- */
+html.app-skin-dark #loanErrorToast {
+    background: #141414 !important;
+    border-color: #262626 !important;
+    border-left-color: #DC2626 !important;
+    color: #F87171 !important;
+    box-shadow: 0 20px 50px -14px rgba(0, 0, 0, 0.6) !important;
+}
+html.app-skin-dark #loanErrorToast .loan-toast-close { color: #F87171 !important; }

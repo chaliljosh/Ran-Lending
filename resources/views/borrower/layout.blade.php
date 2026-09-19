@@ -24,6 +24,7 @@
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/header-profile.css') }}?v={{ time() }}">
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/header-notifications.css') }}?v={{ time() }}">
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/borrower-layout.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/borrower/css/darkmode-global.css') }}?v={{ time() }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/avatar-placeholder.css') }}" />
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
@@ -35,6 +36,10 @@
          needs to override the wildcard font-family overrides in
          borrower-sidebar.css, header-profile.css, borrower-dashboard.css). --}}
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/layout-fixes.css') }}?v={{ time() }}">
+    {{-- TRUE BLACK dark mode — final override. Dapat ito ang PINAKA-HULING
+         <link> (kasunod ng layout-fixes.css) para matalo ang lahat ng
+         natitirang navy rules. --}}
+    <link rel="stylesheet" href="{{ asset('assets/borrower/css/borrower-black-final.css') }}?v={{ time() }}">
 </head>
 
 <body>

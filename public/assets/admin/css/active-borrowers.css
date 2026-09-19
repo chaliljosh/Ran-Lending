@@ -211,64 +211,90 @@
         }
 
         /* ══════════════════ Dark mode ══════════════════ */
-        html.app-skin-dark body { background: #0f172a; }
-        html.app-skin-dark .nxl-content { background: #0f172a; }
-        html.app-skin-dark .filter-bar-v2 { background: transparent; }
+html.app-skin-dark body { background: #0A0A0A !important; }
+html.app-skin-dark .nxl-content { background: #0A0A0A !important; }
+html.app-skin-dark .filter-bar-v2 { background: transparent !important; }
 
-        html.app-skin-dark .rs-card {
-            background: #1e2a3a !important;
-            border-color: #2d3f55 !important;
-        }
-        html.app-skin-dark .stat-label-v2 { color: #cbd5e1; }
-        html.app-skin-dark .stat-value-v2,
-        html.app-skin-dark .borrower-name-v2,
-        html.app-skin-dark .loan-amount-v2,
-        html.app-skin-dark .btn-view-v2,
-        html.app-skin-dark .empty-state-v2 h6 { color: #e2e8f0; }
-        html.app-skin-dark .stat-sub-v2,
-        html.app-skin-dark .borrower-email-v2,
-        html.app-skin-dark .loan-meta-v2,
-        html.app-skin-dark .empty-state-v2 p { color: #94a3b8; }
+html.app-skin-dark .rs-card {
+    background: #141414 !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .stat-label-v2 { color: #C4C4C4 !important; }
+html.app-skin-dark .stat-value-v2,
+html.app-skin-dark .borrower-name-v2,
+html.app-skin-dark .loan-amount-v2,
+html.app-skin-dark .btn-view-v2,
+html.app-skin-dark .empty-state-v2 h6 { color: #F5F5F5 !important; }
+html.app-skin-dark .stat-sub-v2,
+html.app-skin-dark .borrower-email-v2,
+html.app-skin-dark .loan-meta-v2,
+html.app-skin-dark .empty-state-v2 p { color: #9A9A9A !important; }
 
-        html.app-skin-dark .search-wrap-v2 { background: #16202e; border-color: #2d3f55; color: #e2e8f0; }
-        html.app-skin-dark .search-wrap-v2 input { color: #e2e8f0; }
+html.app-skin-dark .search-wrap-v2 { background: #0d0d0d !important; border-color: #262626 !important; color: #F5F5F5 !important; }
+html.app-skin-dark .search-wrap-v2 input { color: #F5F5F5 !important; }
+html.app-skin-dark .search-wrap-v2 input::placeholder { color: #9A9A9A !important; }
 
-        /* Sort dropdown — forced with !important + ID selector,
-           same fix applied on All Borrowers (global dark-mode rule
-           mas matimbang, nagpapawala sa text kung hindi i-override). */
-        html.app-skin-dark .sort-select-v2,
-        html.app-skin-dark #sortFilter {
-            background-color: #16202e !important;
-            border-color: #2d3f55 !important;
-            color: #e2e8f0 !important;
-        }
-        html.app-skin-dark .sort-select-v2 option,
-        html.app-skin-dark #sortFilter option {
-            background-color: #16202e !important;
-            color: #e2e8f0 !important;
-        }
+html.app-skin-dark .sort-select-v2,
+html.app-skin-dark #sortFilter {
+    background-color: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .sort-select-v2 option,
+html.app-skin-dark #sortFilter option {
+    background-color: #0d0d0d !important;
+    color: #F5F5F5 !important;
+}
 
-        html.app-skin-dark .rs-table thead th { background: #16202e; border-color: #2d3f55; color: #94a3b8; }
-        html.app-skin-dark .rs-table tbody td { border-color: #2d3f55; }
-        html.app-skin-dark .rs-table tbody tr:hover { background: #16202e; }
-        html.app-skin-dark .btn-view-v2 { background: #16202e; border-color: #2d3f55; }
-        html.app-skin-dark .purpose-pill { background: rgba(74,124,247,.15); color: #93c5fd; }
-        html.app-skin-dark .rs-pagination-bar { border-color: #2d3f55; }
-        html.app-skin-dark .rs-pagination-info,
-        html.app-skin-dark .rs-per-page { color: #94a3b8; }
-        html.app-skin-dark .rs-pagination-info strong { color: #e2e8f0; }
-        html.app-skin-dark .rs-per-page select,
-        html.app-skin-dark .rs-page-btn {
-            background-color: #16202e !important;
-            border-color: #2d3f55 !important;
-            color: #e2e8f0 !important;
-        }
-        html.app-skin-dark .rs-page-btn.active {
-            background: var(--rs-brand) !important;
-            border-color: var(--rs-brand) !important;
-            color: #fff !important;
-        }
+html.app-skin-dark .rs-table thead th { background: #141414 !important; border-color: #262626 !important; color: #9A9A9A !important; }
+html.app-skin-dark .rs-table tbody td { border-color: #262626 !important; }
+html.app-skin-dark .rs-table tbody tr:hover { background: #1C1C1C !important; }
+html.app-skin-dark .btn-view-v2 { background: #0d0d0d !important; border-color: #262626 !important; }
+html.app-skin-dark .btn-view-v2:hover { border-color: #9BBE4A !important; color: #9BBE4A !important; background: #1C1C1C !important; }
+html.app-skin-dark .purpose-pill { background: rgba(37,99,235,.18) !important; color: #93c5fd !important; }
+html.app-skin-dark .borrower-id-v2 { color: #6ea8fe !important; }
 
+html.app-skin-dark .rs-pagination-bar { border-color: #262626 !important; }
+html.app-skin-dark .rs-pagination-info,
+html.app-skin-dark .rs-per-page { color: #9A9A9A !important; }
+html.app-skin-dark .rs-pagination-info strong { color: #F5F5F5 !important; }
+html.app-skin-dark .rs-per-page select,
+html.app-skin-dark .rs-page-btn {
+    background-color: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .rs-page-btn:hover:not(:disabled):not(.active) {
+    border-color: #9BBE4A !important;
+    color: #9BBE4A !important;
+    background: #1C1C1C !important;
+}
+html.app-skin-dark .rs-page-btn.active {
+    background: #9BBE4A !important;
+    border-color: #9BBE4A !important;
+    color: #0A0A0A !important;
+}
+html.app-skin-dark .rs-page-ellipsis { color: #9A9A9A !important; }
+
+/* ---------- Table row striping — Bootstrap 5 CSS variables ---------- */
+html.app-skin-dark .rs-table,
+html.app-skin-dark .rs-table > :not(caption) > * {
+    --bs-table-bg: transparent !important;
+    --bs-table-striped-bg: transparent !important;
+    --bs-table-accent-bg: transparent !important;
+    --bs-table-hover-bg: #1C1C1C !important;
+    --bs-table-color: #F5F5F5 !important;
+    --bs-table-striped-color: #F5F5F5 !important;
+    --bs-table-hover-color: #F5F5F5 !important;
+}
+html.app-skin-dark .rs-table tbody tr {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+html.app-skin-dark .rs-table tbody tr td {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
         /* ── Responsive ── */
         @media (max-width: 767.98px) {
             .stats-grid-v2 { grid-template-columns: 1fr; }

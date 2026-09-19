@@ -25,6 +25,7 @@
 <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/sidebar-brand.css') }}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/admin-toast.css') }}" />
+     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/admin-darkmode-global.css') }}" />
     {{-- Page-specific stylesheets (e.g. admin-dashboard.css) go here --}}
     @yield('page-styles')
 </head>

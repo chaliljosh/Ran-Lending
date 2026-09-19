@@ -366,66 +366,120 @@
     font-size: 0.76rem;
 }
 
-/* ============================================================
-   DARK MODE
-============================================================ */
+/* ══════════════════════════════════════════
+   DARK MODE — TRUE BLACK PALETTE
+   Kinopya ang eksaktong color scheme ng ibang admin detail pages
+   (#0A0A0A background, #141414 cards, #262626 borders, #F5F5F5 text,
+   #9A9A9A muted text). Nasa dulo ito ng file para mag-override sa
+   navy-blue (#1e2a3a, #2d3f55, #16202e, #6c9bff) na dark mode rules
+   ng completed-loan-detail.css mismo — dahil pinapalitan ulit ng
+   file na ito ang .panel/.review-item/atbp. na style na binigay na
+   ng ongoing-loan-detail.css, kaya kailangan i-override dito rin
+   nang direkta.
+
+   Status colors ng Repayment Performance box (green=excellent/good,
+   amber=fair, red=poor) ay sinadyang hindi ginawang black — meaning-
+   carrying sila. Yung mga plain icon accents (calendar icon, "Total
+   Repaid" highlight) na dating blue ang ginawang neutral/black.
+   ══════════════════════════════════════════ */
+
+html.app-skin-dark .nxl-content { background: #0A0A0A !important; }
+
+/* ---------- Merged borrower header + stats ---------- */
 html.app-skin-dark .cld-summary-card {
-    background: #1e2a3a !important;
-    border-color: #2d3f55 !important;
+    background: #141414 !important;
+    border-color: #262626 !important;
 }
-html.app-skin-dark .cld-borrower-info h5 { color: #e2e8f0; }
-html.app-skin-dark .cld-borrower-meta { color: #94a3b8; }
-html.app-skin-dark .cld-borrower-meta strong { color: #e2e8f0; }
-html.app-skin-dark .cld-dot { color: #475569; }
-html.app-skin-dark .cld-summary-left { border-right-color: #2d3f55; }
+html.app-skin-dark .cld-summary-left { border-right-color: #262626 !important; }
+html.app-skin-dark .cld-borrower-info h5 { color: #F5F5F5 !important; }
+html.app-skin-dark .cld-borrower-meta { color: #9A9A9A !important; }
+html.app-skin-dark .cld-borrower-meta strong { color: #F5F5F5 !important; }
+html.app-skin-dark .cld-dot { color: #4a4a4a !important; }
+html.app-skin-dark .cld-stat-value { color: #F5F5F5 !important; }
+html.app-skin-dark .cld-stat-label { color: #9A9A9A !important; }
 
-html.app-skin-dark .cld-stat-value { color: #e2e8f0; }
-html.app-skin-dark .cld-stat-label { color: #94a3b8; }
 @media (max-width: 991.98px) {
-    html.app-skin-dark .cld-summary-left { border-bottom-color: #2d3f55; }
+    html.app-skin-dark .cld-summary-left { border-bottom-color: #262626 !important; }
 }
 
+/* ---------- Loan Summary / Repayment Performance panel shells ---------- */
 html.app-skin-dark .cld-page .panel {
-    background: #1e2a3a !important;
-    border-color: #2d3f55 !important;
+    background: #141414 !important;
+    border-color: #262626 !important;
 }
-html.app-skin-dark .cld-page .panel-header { color: #e2e8f0; }
-html.app-skin-dark .cld-page .panel-header i { color: #6c9bff; }
-html.app-skin-dark .cld-page .info-item2 label { color: #94a3b8; }
-html.app-skin-dark .cld-page .info-item2 span { color: #e2e8f0; }
-html.app-skin-dark .cld-page .info-item2.is-primary span { color: #6c9bff; }
-html.app-skin-dark .cld-page .lsc-progress-title { color: #e2e8f0; }
-html.app-skin-dark .cld-page .old-progress-count { color: #94a3b8; }
-html.app-skin-dark .cld-page .lsc-progress-bar { background: #16202e; }
-html.app-skin-dark .cld-page .old-next-due-label { color: #94a3b8; }
-html.app-skin-dark .cld-page .old-next-due-date { color: #e2e8f0; }
+html.app-skin-dark .cld-page .panel-header { color: #F5F5F5 !important; }
+html.app-skin-dark .cld-page .panel-header i { color: #C4C4C4 !important; }
+html.app-skin-dark .cld-page .info-item2 label { color: #9A9A9A !important; }
+html.app-skin-dark .cld-page .info-item2 span { color: #F5F5F5 !important; }
+/* "Total Repaid" highlight — dating blue, ginawang plain white/bold na lang */
+html.app-skin-dark .cld-page .info-item2.is-primary span { color: #F5F5F5 !important; }
 
+/* ---------- Payment progress ---------- */
+html.app-skin-dark .cld-page .lsc-progress-title { color: #F5F5F5 !important; }
+html.app-skin-dark .cld-page .old-progress-count { color: #9A9A9A !important; }
+html.app-skin-dark .cld-page .lsc-progress-bar { background: #0d0d0d !important; }
+html.app-skin-dark .cld-page .lsc-progress-fill { background: #16A34A !important; } /* green — "fully paid", status color */
+html.app-skin-dark .cld-page .old-next-due-label { color: #9A9A9A !important; }
+html.app-skin-dark .cld-page .old-next-due-date { color: #F5F5F5 !important; }
+html.app-skin-dark .cld-page .old-next-due-box { background: #0d0d0d !important; }
+
+/* ---------- Repayment Performance box — status colors kept ---------- */
 html.app-skin-dark .cld-page .review-item {
-    background: rgba(22, 163, 74, 0.1);
-    border-color: rgba(22, 163, 74, 0.25);
+    background: rgba(22, 163, 74, 0.12) !important;
+    border-color: rgba(22, 163, 74, 0.3) !important;
 }
 html.app-skin-dark .cld-page .review-item.is-onhold {
-    background: rgba(180, 83, 9, 0.14);
-    border-color: rgba(180, 83, 9, 0.3);
+    background: rgba(180, 83, 9, 0.15) !important;
+    border-color: rgba(180, 83, 9, 0.35) !important;
 }
 html.app-skin-dark .cld-page .review-item.is-rejected {
-    background: rgba(220, 38, 38, 0.1);
-    border-color: rgba(220, 38, 38, 0.25);
+    background: rgba(220, 38, 38, 0.12) !important;
+    border-color: rgba(220, 38, 38, 0.3) !important;
 }
-html.app-skin-dark .cld-page .review-avatar { background: none; }
-html.app-skin-dark .cld-page .review-name { color: #e2e8f0; }
-html.app-skin-dark .cld-page .review-remark { color: #94a3b8; }
+html.app-skin-dark .cld-page .review-name { color: #F5F5F5 !important; }
+html.app-skin-dark .cld-page .review-remark { color: #C4C4C4 !important; }
 
+/* ---------- Payment Schedule panel ---------- */
 html.app-skin-dark .cld-page .payment-schedule-panel {
-    background: #1e2a3a !important;
-    border-color: #2d3f55 !important;
+    background: #141414 !important;
+    border-color: #262626 !important;
 }
-html.app-skin-dark .cld-page .ols-sched-title { color: #e2e8f0; }
-html.app-skin-dark .cld-page .ols-sched-subtitle { color: #94a3b8; }
-html.app-skin-dark .cld-page .ols-sched-icon { background: none !important; color: #6c9bff; }
-html.app-skin-dark .cld-page .ols-sched-count-pill { background: none; color: #e2e8f0; }
-html.app-skin-dark .cld-page .ols-sched-table thead th { color: #94a3b8; }
-html.app-skin-dark .cld-page .ols-sched-table tbody td { color: #e2e8f0; }
-html.app-skin-dark .cld-page .ols-status-pill.is-paid { background: rgba(22,163,74,.15); color: #6ee7a4; }
-html.app-skin-dark .cld-page .ols-status-pill.is-overdue { background: rgba(180,83,9,.18); color: #fbbf24; }
-html.app-skin-dark .cld-page .ols-sched-footnote { color: #94a3b8; }
+html.app-skin-dark .cld-page .ols-sched-title { color: #F5F5F5 !important; }
+html.app-skin-dark .cld-page .ols-sched-subtitle { color: #9A9A9A !important; }
+html.app-skin-dark .cld-page .ols-sched-icon { color: #C4C4C4 !important; }
+html.app-skin-dark .cld-page .ols-sched-count-pill { color: #F5F5F5 !important; }
+html.app-skin-dark .cld-page .ols-sched-table thead th {
+    color: #9A9A9A !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .cld-page .ols-sched-table tbody td {
+    color: #F5F5F5 !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .cld-page .ols-row-num { background: #262626 !important; color: #C4C4C4 !important; }
+html.app-skin-dark .cld-page .ols-due-date { color: #F5F5F5 !important; }
+html.app-skin-dark .cld-page .ols-amount-due { color: #F5F5F5 !important; }
+html.app-skin-dark .cld-page .ols-amount-paid-value { color: #F5F5F5 !important; }
+
+/* ---------- Status pills — kept green/amber (status colors) ---------- */
+html.app-skin-dark .cld-page .ols-status-pill.is-paid {
+    background: rgba(22,163,74,.18) !important;
+    color: #4ade80 !important;
+}
+html.app-skin-dark .cld-page .ols-status-pill.is-overdue {
+    background: rgba(180,83,9,.18) !important;
+    color: #fbbf24 !important;
+}
+html.app-skin-dark .cld-page .ols-sched-footnote { color: #9A9A9A !important; }
+
+/* ---------- Back button ---------- */
+html.app-skin-dark .btn-light {
+    background: #141414 !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .btn-light:hover {
+    border-color: #4a4a4a !important;
+    color: #F5F5F5 !important;
+    background: #262626 !important;
+}

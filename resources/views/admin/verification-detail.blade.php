@@ -3,8 +3,9 @@
 @section('title', 'Borrower Details')
 
 @section('page-styles')
-    <link rel="stylesheet" href="{{ asset('assets/admin/css/modals-modern.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/admin/css/verification-detail.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/modals-modern.css') }}?v={{ time() }}">
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/verification-detail.css') }}?v={{ time() }}" />
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/darkmode-global.css') }}?v={{ time() }}" />
 @endsection
 
 @section('content')

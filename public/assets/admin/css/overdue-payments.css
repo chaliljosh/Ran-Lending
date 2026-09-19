@@ -269,12 +269,23 @@ html body .main-content i[class*="feather-"]::before {
 .nxl-content .main-content { flex: 1 !important; }
 .footer { flex-shrink: 0 !important; margin-top: auto !important; }
 
-/* ============================================================
-   DARK MODE — matched sa Ongoing Loans' dark tokens (#1e2a3a
-   card bg, #2d3f55 border, #e2e8f0 ink, #94a3b8 muted).
-============================================================ */
-html.app-skin-dark body { background: #0f172a; }
-html.app-skin-dark .rs-card { background: #1e2a3a; border-color: #2d3f55; }
+/* ══════════════════════════════════════════
+   DARK MODE — TRUE BLACK PALETTE
+   Kinopya ang eksaktong color scheme ng ibang admin detail pages
+   (#0A0A0A background, #141414 cards, #262626 borders, #F5F5F5 text,
+   #9A9A9A muted text). Nasa dulo ito ng file para mag-override sa
+   lahat ng naunang navy-blue (#1e2a3a, #2d3f55, #16202e, #93c5fd)
+   na dark mode rules.
+
+   Status colors (orange = days late, red = severe/defaulted) ay
+   sinadyang hindi ginawang black — meaning-carrying sila. Yung
+   Borrower ID (dating blue) at avatar gradient (dating blue) ay
+   ginawang neutral/black na rin dahil hindi naman status color,
+   theme accent lang talaga.
+   ══════════════════════════════════════════ */
+
+html.app-skin-dark body { background: #0A0A0A !important; }
+html.app-skin-dark .rs-card { background: #141414 !important; border-color: #262626 !important; }
 
 html.app-skin-dark .stat-value-v2,
 html.app-skin-dark .stat-label-v2,
@@ -282,40 +293,115 @@ html.app-skin-dark .borrower-name-v2,
 html.app-skin-dark .loan-amount-v2,
 html.app-skin-dark .btn-view-v2,
 html.app-skin-dark .empty-state-v2 h6,
-html.app-skin-dark .page-indicator-v2 { color: #e2e8f0; }
+html.app-skin-dark .page-indicator-v2 {
+    color: #F5F5F5 !important;
+}
 
 html.app-skin-dark .borrower-email-v2,
 html.app-skin-dark .loan-meta-v2,
 html.app-skin-dark .pagination-info-v2,
 html.app-skin-dark .rows-per-page-label-v2,
-html.app-skin-dark .empty-state-v2 p { color: #94a3b8; }
+html.app-skin-dark .empty-state-v2 p {
+    color: #9A9A9A !important;
+}
 
-html.app-skin-dark .stat-icon-v2 { color: #94a3b8; }
+html.app-skin-dark .stat-icon-v2 { color: #C4C4C4 !important; }
 
+/* ---------- Search / sort / rows-per-page inputs ---------- */
 html.app-skin-dark .search-wrap-v2,
 html.app-skin-dark .sort-select-v2,
-html.app-skin-dark .rows-per-page-select-v2 { background: #16202e; border-color: #2d3f55; color: #e2e8f0; }
+html.app-skin-dark .rows-per-page-select-v2 {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .search-wrap-v2 i { color: #9A9A9A !important; }
+html.app-skin-dark .search-wrap-v2 input::placeholder { color: #6b6b6b !important; }
 
-html.app-skin-dark .rs-table thead th { background: #16202e; border-color: #2d3f55; color: #94a3b8; }
-html.app-skin-dark .rs-table tbody td { border-color: #2d3f55; color: #e2e8f0; }
-html.app-skin-dark .rs-table tbody tr:hover { background: #16202e; }
+/* ---------- Table ---------- */
+html.app-skin-dark .rs-table thead th {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #9A9A9A !important;
+}
+html.app-skin-dark .rs-table tbody td {
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .rs-table tbody tr:hover { background: #16181c !important; }
 
-html.app-skin-dark .borrower-avatar-v2 { background: linear-gradient(135deg, var(--rs-brand), #7ea3ff); }
-html.app-skin-dark .borrower-id-v2 { color: #93c5fd; }
+/* ---------- Borrower cell — avatar + ID no longer blue ---------- */
+html.app-skin-dark .borrower-avatar-v2 {
+    background: linear-gradient(135deg, #3a3a3a, #5a5a5a) !important;
+}
+html.app-skin-dark .borrower-id-v2 { color: #C4C4C4 !important; }
 
-html.app-skin-dark .days-late-pill { background: rgba(180, 83, 9, 0.18); color: #fbbf24; }
-html.app-skin-dark .days-late-pill.severe { background: rgba(220, 38, 38, 0.18); color: #f87171; }
-html.app-skin-dark .overdue-amount-v2 { color: #f87171; }
+/* ---------- Days late / overdue amount (status colors — kept) ---------- */
+html.app-skin-dark .days-late-pill { background: rgba(180, 83, 9, 0.20) !important; color: #fbbf24 !important; }
+html.app-skin-dark .days-late-pill.severe { background: rgba(220, 38, 38, 0.20) !important; color: #f87171 !important; }
+html.app-skin-dark .overdue-amount-v2 { color: #f87171 !important; }
 
-html.app-skin-dark .ov-status-pill { background: rgba(180, 83, 9, 0.18); color: #fbbf24; }
-html.app-skin-dark .dl-status-pill { background: rgba(220, 38, 38, 0.18); color: #f87171; }
+/* ---------- Status pills ---------- */
+html.app-skin-dark .ov-status-pill { background: rgba(180, 83, 9, 0.20) !important; color: #fbbf24 !important; }
+html.app-skin-dark .dl-status-pill { background: rgba(220, 38, 38, 0.20) !important; color: #f87171 !important; }
 
-html.app-skin-dark .btn-view-v2 { background: #1e2a3a; border-color: #2d3f55; color: #e2e8f0; }
-html.app-skin-dark .btn-view-v2:hover { border-color: var(--rs-brand); color: #93c5fd; background: rgba(74,124,247,.15); }
+/* ---------- "View Details" button ---------- */
+html.app-skin-dark .btn-view-v2 {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .btn-view-v2:hover {
+    border-color: #4a4a4a !important;
+    color: #F5F5F5 !important;
+    background: #262626 !important;
+}
 
-html.app-skin-dark .empty-state-v2 i { color: #94a3b8; }
-html.app-skin-dark .empty-state-v2 .feather-check-circle { color: #16a34a; }
+/* ---------- Empty state ---------- */
+html.app-skin-dark .empty-state-v2 i { color: #9A9A9A !important; }
+html.app-skin-dark .empty-state-v2 .feather-check-circle { color: #4ade80 !important; }
 
-html.app-skin-dark .pagination-bar-v2 { background: #16202e; border-color: #2d3f55; }
-html.app-skin-dark .btn-page-v2 { background: #1e2a3a; border-color: #2d3f55; color: #cbd5e1; }
-html.app-skin-dark .btn-page-v2:hover:not(:disabled) { border-color: var(--rs-brand); color: #93c5fd; background: rgba(74,124,247,.15); }
+/* ---------- Pagination bar ---------- */
+html.app-skin-dark .pagination-bar-v2 {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .btn-page-v2 {
+    background: #141414 !important;
+    border-color: #262626 !important;
+    color: #C4C4C4 !important;
+}
+html.app-skin-dark .btn-page-v2:hover:not(:disabled) {
+    border-color: #4a4a4a !important;
+    color: #F5F5F5 !important;
+    background: #262626 !important;
+}
+
+/* ══════════════════════════════════════════
+   FIX: Bootstrap table CSS variables
+   Ang <table class="table rs-table"> ay may Bootstrap "table" class,
+   kaya gumagamit ito ng --bs-table-bg / --bs-table-hover-bg custom
+   properties na may mas mataas na specificity kaysa sa plain
+   "background" override — kaya may natitirang navy/light row
+   background kahit na-override na natin ang ibang bagay. Parehong
+   fix ito na ginamit sa borrowers.css ("Table row striping" section).
+   ══════════════════════════════════════════ */
+
+html.app-skin-dark .rs-table,
+html.app-skin-dark .rs-table > :not(caption) > * {
+    --bs-table-bg: transparent !important;
+    --bs-table-striped-bg: transparent !important;
+    --bs-table-accent-bg: transparent !important;
+    --bs-table-hover-bg: #16181c !important;
+    --bs-table-color: #F5F5F5 !important;
+    --bs-table-striped-color: #F5F5F5 !important;
+    --bs-table-hover-color: #F5F5F5 !important;
+}
+html.app-skin-dark .rs-table tbody tr {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+html.app-skin-dark .rs-table tbody tr td {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}

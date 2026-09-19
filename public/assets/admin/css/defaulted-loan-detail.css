@@ -362,51 +362,131 @@ html:not(.app-skin-dark) .nxl-content {
     .ols-sched-header { padding: 18px; }
 }
 
-/* ============================================
-   DARK MODE
-============================================ */
-html.app-skin-dark .nxl-content { background: #0f172a; }
+/* ══════════════════════════════════════════
+   DARK MODE — TRUE BLACK PALETTE
+   Kinopya ang eksaktong color scheme ng ibang admin detail pages
+   (#0A0A0A background, #141414 cards, #262626 borders, #F5F5F5 text,
+   #9A9A9A muted text). Nasa dulo ito ng file para mag-override sa
+   navy-blue (#1e2a3a, #2d3f55, #16202e) na dark mode rules.
 
-html.app-skin-dark .panel { background: #1e2a3a; border-color: #2d3f55 !important; }
-html.app-skin-dark .panel-header { color: #e2e8f0; border-color: #2d3f55; }
+   Red ang pangunahing accent ng page na ito (defaulted = danger
+   status), kaya pinanatili ito buong-buo. Ang navy "Mark as Paid"
+   button (#0f172a) ay ginawang black na rin para consistent sa
+   buong theme.
+   ══════════════════════════════════════════ */
 
-html.app-skin-dark .dlh-card { background: #1e2a3a; border-color: #2d3f55; }
-html.app-skin-dark .dlh-name { color: #e2e8f0; }
-html.app-skin-dark .dlh-meta-row { color: #94a3b8; }
-html.app-skin-dark .dlh-meta-row strong { color: #cbd5e1; }
-html.app-skin-dark .dlh-stats { border-color: #2d3f55; }
-html.app-skin-dark .dlh-stat:not(:last-child) { border-color: #2d3f55; }
-html.app-skin-dark .dlh-stat-value { color: #e2e8f0; }
-html.app-skin-dark .dlh-stat-value.is-danger { color: #f87171; }
-html.app-skin-dark .dlh-stat-value.is-success { color: #6ee7a4; }
-html.app-skin-dark .dlh-stat-label { color: #94a3b8; }
+html.app-skin-dark .nxl-content { background: #0A0A0A !important; }
 
-html.app-skin-dark .info-item2 label { color: #94a3b8; }
-html.app-skin-dark .info-item2 span { color: #e2e8f0; }
-html.app-skin-dark .info-item2.is-primary span { color: #f87171; }
-
-html.app-skin-dark .ols-sched-table thead th {
-    background: #16202e;
-    border-color: #2d3f55;
-    color: #94a3b8;
+html.app-skin-dark .panel {
+    background: #141414 !important;
+    border-color: #262626 !important;
 }
-html.app-skin-dark .ols-sched-table tbody td { color: #e2e8f0; border-color: #2d3f55; }
-html.app-skin-dark .ols-sched-table tbody tr:hover { background: #16202e; }
-html.app-skin-dark .ols-row-num { background: #16202e; color: #94a3b8; }
-html.app-skin-dark .ols-due-date { color: #e2e8f0; }
+html.app-skin-dark .panel-header {
+    color: #F5F5F5 !important;
+    border-color: #262626 !important;
+}
+
+/* ---------- Merged borrower header ---------- */
+html.app-skin-dark .dlh-card {
+    background: #141414 !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .dlh-name { color: #F5F5F5 !important; }
+html.app-skin-dark .dlh-meta-row { color: #9A9A9A !important; }
+html.app-skin-dark .dlh-meta-row strong { color: #F5F5F5 !important; }
+html.app-skin-dark .dlh-stats { border-color: #262626 !important; }
+html.app-skin-dark .dlh-stat:not(:last-child) { border-color: #262626 !important; }
+html.app-skin-dark .dlh-stat-value { color: #F5F5F5 !important; }
+html.app-skin-dark .dlh-stat-label { color: #9A9A9A !important; }
+/* Status colors kept — red for danger, green for recovered amount */
+html.app-skin-dark .dlh-stat-value.is-danger { color: #f87171 !important; }
+html.app-skin-dark .dlh-stat-value.is-success { color: #4ade80 !important; }
+html.app-skin-dark .dlh-overdue-text { color: #f87171 !important; }
+
+/* ---------- Loan Summary info grid ---------- */
+html.app-skin-dark .info-item2 label { color: #9A9A9A !important; }
+html.app-skin-dark .info-item2 span { color: #F5F5F5 !important; }
+html.app-skin-dark .info-item2.is-primary span { color: #f87171 !important; }
+
+/* ---------- Payment Schedule ---------- */
+html.app-skin-dark .ols-sched-table thead th {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #9A9A9A !important;
+}
+html.app-skin-dark .ols-sched-table tbody td {
+    color: #F5F5F5 !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .ols-sched-table tbody tr:hover { background: #16181c !important; }
+html.app-skin-dark .ols-row-num { background: #262626 !important; color: #C4C4C4 !important; }
+html.app-skin-dark .ols-due-date { color: #F5F5F5 !important; }
 html.app-skin-dark .ols-amount-due,
-html.app-skin-dark .ols-amount-paid-value { color: #e2e8f0; }
-html.app-skin-dark .ols-sched-count-pill { background: #16202e; border-color: #2d3f55; color: #cbd5e1; }
-html.app-skin-dark .btn-record-payment { background: rgba(220,38,38,0.15); border-color: rgba(220,38,38,0.4); color: #f87171; }
-html.app-skin-dark .btn-record-payment:hover:not(:disabled) { background: #dc2626; color: #fff; }
-html.app-skin-dark .action-recorded-badge { color: #6ee7a4; }
-html.app-skin-dark .ols-sched-footnote { background: rgba(220,38,38,0.1); color: #f87171; }
-html.app-skin-dark .ols-sched-footnote i { color: #f87171; }
+html.app-skin-dark .ols-amount-paid-value { color: #F5F5F5 !important; }
+html.app-skin-dark .ols-sched-count-pill {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #C4C4C4 !important;
+}
 
-html.app-skin-dark .btn-light { background: #1e2a3a; border-color: #2d3f55; color: #e2e8f0; }
-html.app-skin-dark .btn-light:hover { border-color: #dc2626; color: #f87171; background: rgba(220,38,38,0.1); }
-html.app-skin-dark .text-muted { color: #94a3b8 !important; }
+/* Status pills — kept: red=overdue, amber=upcoming, green=paid */
+html.app-skin-dark .ols-status-pill.is-paid { background: rgba(22,163,74,.18) !important; color: #4ade80 !important; }
+html.app-skin-dark .ols-status-pill.is-overdue { background: rgba(220,38,38,.18) !important; color: #f87171 !important; }
+html.app-skin-dark .ols-status-pill.is-upcoming { background: rgba(180,83,9,.18) !important; color: #fbbf24 !important; }
 
+/* "Record Payment" button — kept red (matches danger context of this page) */
+html.app-skin-dark .btn-record-payment {
+    background: rgba(220,38,38,0.15) !important;
+    border-color: rgba(220,38,38,0.4) !important;
+    color: #f87171 !important;
+}
+html.app-skin-dark .btn-record-payment:hover:not(:disabled) {
+    background: #dc2626 !important;
+    color: #fff !important;
+}
+html.app-skin-dark .action-recorded-badge { color: #4ade80 !important; }
+html.app-skin-dark .ols-sched-footnote {
+    background: rgba(220,38,38,0.10) !important;
+    color: #f87171 !important;
+}
+html.app-skin-dark .ols-sched-footnote i { color: #f87171 !important; }
+
+/* ---------- Back button ---------- */
+html.app-skin-dark .btn-light {
+    background: #141414 !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .btn-light:hover {
+    border-color: #dc2626 !important;
+    color: #f87171 !important;
+    background: rgba(220,38,38,0.1) !important;
+}
+html.app-skin-dark .text-muted { color: #9A9A9A !important; }
+
+/* ---------- "Mark as Paid" confirmation modal ---------- */
+html.app-skin-dark #dlMarkPaidConfirmModal .modal-content { background: #141414 !important; }
+html.app-skin-dark #dlMarkPaidConfirmModal .nxl-pw-btn-discard {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+}
+/* Navy button (#0f172a) — ginawang black para consistent sa theme */
+html.app-skin-dark #dlMarkPaidConfirmModal .dlh-btn-apply {
+    background: #262626 !important;
+    border-color: #3a3a3a !important;
+}
+html.app-skin-dark #dlMarkPaidConfirmModal .dlh-btn-apply:hover {
+    background: #1a1a1a !important;
+    border-color: #1a1a1a !important;
+}
+
+html.app-skin-dark .ols-confirm-title { color: #F5F5F5 !important; }
+html.app-skin-dark .ols-confirm-desc { color: #9A9A9A !important; }
+html.app-skin-dark .ols-confirm-icon {
+    background: rgba(220,38,38,0.15) !important;
+    color: #f87171 !important;
+}
 /* ============================================================
    RECORD PAYMENT MODAL — narrower dialog + dark navy button,
    matched to the reference screenshot.

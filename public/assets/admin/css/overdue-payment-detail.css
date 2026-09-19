@@ -1,32 +1,6 @@
 /* ============================================================
    overdue-payment-detail.css
-   Standalone stylesheet — used ONLY by admin.overdue-payment-detail.
-   Not shared with loan-details.css or any other admin page, so
-   changes here never ripple into other loan/borrower detail pages.
-
-   REDESIGN: borders, shadows, and typography matched 1:1 to
-   ongoing-loan-detail.css's tokens — #e5e7eb border, 14px radius,
-   0 1px 3px rgba(15,23,42,.15) shadow, Inter font enforced on
-   .main-content, field labels at font-weight 600 (not 700) with
-   text-transform: none (not uppercase), field values at
-   font-weight 600, status pills fully rounded at font-weight 700.
-   Class names/structure unchanged — only visual tokens updated.
-
-   UPDATE: Loan Summary card (.opd-summary-card) is now white
-   instead of the muted #FBFCFD gray, and its title/labels/values
-   use the same lively weight as the other cards on this page
-   (matched to Active Borrower Detail's Loan Summary look) instead
-   of the small muted "secondary card" treatment it had before.
-   Also added .opd-borrower-email (bold "Email:" label prefix,
-   matched to Active Borrower Detail's meta line format).
-
-   UPDATE 2: Borrower avatar now uses the shared .js-borrower-avatar
-   silhouette-placeholder pattern (same one used site-wide for
-   admin/borrower avatars) instead of a feather-user <i> icon, so
-   the "no profile picture" look matches Active Borrower Detail
-   exactly. .borrower-avatar now only controls circle size/shape;
-   the actual placeholder look (gray bg + white silhouette) comes
-   from .js-borrower-avatar below.
+   
 ============================================================ */
 
 /* ---------- Inter font — applied to the whole page content area,
@@ -342,113 +316,144 @@ tr.ld-schedule-row-current {
     box-shadow: inset 3px 0 0 #DC2626;
 }
 
-/* ============================================================
-   DARK MODE OVERRIDES
-============================================================ */
+/* ══════════════════════════════════════════
+   DARK MODE — TRUE BLACK PALETTE
+   Kinopya ang eksaktong color scheme ng penalty-tracking-detail.css /
+   ongoing-loan-detail.css (#0A0A0A background, #141414 cards, #262626
+   borders, #F5F5F5 text, #9A9A9A muted text). Nasa dulo ito ng file
+   para mag-override sa lahat ng naunang navy-blue dark mode rules.
+
+   Status colors (red = overdue, orange = penalty, green = paid)
+   ay sinadyang hindi ginawang black — meaning-carrying sila, hindi
+   theme accent, kaya dapat manatiling malinaw ang kulay. Ang "Upcoming"
+   badge lang na blue ang pinalitan ng neutral gray/black dahil hindi
+   naman ito kailangang maging blue talaga — status label lang ito.
+   ══════════════════════════════════════════ */
+
+html.app-skin-dark .nxl-content { background: #0A0A0A !important; }
+
+/* ---------- Overdue summary card ---------- */
 html.app-skin-dark .opd-overdue-card {
-    background: #1e2a3a;
-    border-color: #7F1D1D;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    background: #141414 !important;
+    border-color: #7F1D1D !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4) !important;
 }
-html.app-skin-dark .opd-overdue-card .opd-card-title { color: #F87171; }
-html.app-skin-dark .opd-overdue-card .opd-card-title i { color: #F87171; }
+html.app-skin-dark .opd-overdue-card .opd-card-title { color: #f87171 !important; }
+html.app-skin-dark .opd-overdue-card .opd-card-title i { color: #f87171 !important; }
 
-html.app-skin-dark .opd-field-label { color: #94a3b8; }
-html.app-skin-dark .opd-field-value { color: #e2e8f0; }
-html.app-skin-dark .opd-field-value.is-danger { color: #F87171; }
-html.app-skin-dark .opd-field-value.is-orange { color: #FB923C; }
+html.app-skin-dark .opd-field-label { color: #9A9A9A !important; }
+html.app-skin-dark .opd-field-value { color: #F5F5F5 !important; }
+html.app-skin-dark .opd-field-value.is-danger { color: #f87171 !important; }
+html.app-skin-dark .opd-field-value.is-orange { color: #fb923c !important; }
 
-html.app-skin-dark .opd-overdue-strip { border-bottom-color: #7F1D1D; }
-html.app-skin-dark .opd-outstanding-inline .opd-outstanding-label { color: #e2e8f0; }
-html.app-skin-dark .opd-outstanding-inline .opd-outstanding-value { color: #F87171; }
+html.app-skin-dark .opd-overdue-strip { border-bottom-color: #7F1D1D !important; }
+html.app-skin-dark .opd-outstanding-inline .opd-outstanding-label { color: #F5F5F5 !important; }
+html.app-skin-dark .opd-outstanding-inline .opd-outstanding-value { color: #f87171 !important; }
 
-html.app-skin-dark .opd-overdue-card .opd-btn-waive {
-    background: #16202e;
-    border-color: #2d3f55;
-    color: #e2e8f0;
+/* ---------- Action buttons — black instead of navy/blue ---------- */
+html.app-skin-dark .opd-btn-mark-paid {
+    background: #262626 !important;
+    color: #fff !important;
 }
-html.app-skin-dark .opd-overdue-card .opd-btn-waive:hover { border-color: #4a7cf7; color: #6c9bff; background: #16233a; }
-html.app-skin-dark .opd-overdue-card .opd-btn-mark-paid:hover { background: #020617; }
-
-html.app-skin-dark .opd-summary-row {
-    border-color: #2d3f55;
+html.app-skin-dark .opd-btn-mark-paid:hover { background: #1a1a1a !important; }
+html.app-skin-dark .opd-overdue-card .opd-btn-waive,
+html.app-skin-dark .opd-btn-waive {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
 }
-html.app-skin-dark .opd-days-overdue-text {
-    color: #F87171;
+html.app-skin-dark .opd-overdue-card .opd-btn-waive:hover,
+html.app-skin-dark .opd-btn-waive:hover {
+    border-color: #4a4a4a !important;
+    color: #F5F5F5 !important;
+    background: #262626 !important;
+}
+html.app-skin-dark .opd-btn:disabled { opacity: 0.4 !important; }
+
+/* ---------- Borrower header ---------- */
+html.app-skin-dark .opd-borrower-header h6 { color: #F5F5F5 !important; }
+html.app-skin-dark .opd-borrower-email { color: #9A9A9A !important; }
+html.app-skin-dark .opd-borrower-email strong { color: #F5F5F5 !important; }
+html.app-skin-dark .opd-days-overdue-text { color: #f87171 !important; }
+
+/* ---------- Payment Schedule + Loan Summary card shells ---------- */
+html.app-skin-dark .opd-card {
+    background: #141414 !important;
+    border-color: #262626 !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4) !important;
+}
+html.app-skin-dark .opd-card-title { color: #F5F5F5 !important; }
+html.app-skin-dark .opd-card-title i { color: #C4C4C4 !important; }
+
+html.app-skin-dark .opd-summary-card { background: #141414 !important; }
+html.app-skin-dark .opd-summary-card .opd-card-title { color: #F5F5F5 !important; }
+html.app-skin-dark .opd-summary-card .opd-card-title i { color: #C4C4C4 !important; }
+html.app-skin-dark .opd-summary-row { border-color: #262626 !important; }
+html.app-skin-dark .opd-summary-label { color: #9A9A9A !important; }
+html.app-skin-dark .opd-summary-value { color: #F5F5F5 !important; }
+
+/* ---------- Payment Schedule table ---------- */
+html.app-skin-dark .opd-table thead th {
+    color: #9A9A9A !important;
+    border-bottom-color: #262626 !important;
+}
+html.app-skin-dark .opd-table tbody td {
+    color: #F5F5F5 !important;
+    border-bottom-color: #262626 !important;
+}
+html.app-skin-dark .opd-table tbody tr:hover { background: #16181c !important; }
+html.app-skin-dark .opd-table tbody tr.is-current-overdue {
+    background: rgba(220, 38, 38, 0.10) !important;
 }
 
-html.app-skin-dark .opd-borrower-email { color: #94a3b8; }
-html.app-skin-dark .opd-borrower-email strong { color: #e2e8f0; }
+/* ---------- Status badges ---------- */
+html.app-skin-dark .opd-badge-paid { background: rgba(22,163,74,.18) !important; color: #4ade80 !important; }
+html.app-skin-dark .opd-badge-overdue { background: rgba(220,38,38,.18) !important; color: #f87171 !important; }
+/* "Upcoming" — neutral black/gray sa halip na blue, dahil hindi ito
+   critical status color (di tulad ng paid/overdue) */
+html.app-skin-dark .opd-badge-upcoming { background: #262626 !important; color: #C4C4C4 !important; }
 
-@media (max-width: 767.98px) {
-    html.app-skin-dark .opd-table tbody tr { border-color: #2d3f55; }
-    html.app-skin-dark .opd-table tbody td::before { color: #64748B; }
+/* ---------- Back button ---------- */
+html.app-skin-dark .btn-light {
+    background: #141414 !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .btn-light:hover {
+    border-color: #4a4a4a !important;
+    color: #F5F5F5 !important;
+    background: #262626 !important;
 }
 
-/* ============================================================
-   DARK MODE — CONFIRM / WAIVE / SUCCESS MODALS
-============================================================ */
-html.app-skin-dark .opd-modal-title { color: #e2e8f0; }
-html.app-skin-dark .opd-modal-desc { color: #94a3b8; }
+/* ---------- Modals (confirm / waive) ---------- */
+html.app-skin-dark .opd-modal .modal-content { background: #141414 !important; }
+html.app-skin-dark .opd-modal-title { color: #F5F5F5 !important; }
+html.app-skin-dark .opd-modal-desc { color: #9A9A9A !important; }
 
 html.app-skin-dark .opd-modal-icon.is-confirm {
-    background: rgba(234, 88, 12, 0.16);
-    color: #FB923C;
+    background: rgba(234, 88, 12, 0.18) !important;
+    color: #fb923c !important;
 }
 html.app-skin-dark .opd-modal-icon.is-success {
-    background: rgba(22, 163, 74, 0.16);
-    color: #4ADE80;
+    background: rgba(22, 163, 74, 0.18) !important;
+    color: #4ade80 !important;
 }
 
 html.app-skin-dark .opd-modal-textarea {
-    background: #16202e;
-    color: #e2e8f0;
-    border-color: #2d3f55;
+    background: #0d0d0d !important;
+    color: #F5F5F5 !important;
+    border-color: #262626 !important;
 }
-html.app-skin-dark .opd-modal-textarea::placeholder { color: #64748B; }
+html.app-skin-dark .opd-modal-textarea::placeholder { color: #6b6b6b !important; }
 html.app-skin-dark .opd-modal-textarea:focus {
-    border-color: #4a7cf7;
-    box-shadow: 0 0 0 3px rgba(74, 124, 247, 0.18);
+    border-color: #4a4a4a !important;
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.06) !important;
 }
-
-/* ============================================================
-   DARK MODE — PAYMENT SCHEDULE & LOAN SUMMARY CARDS
-============================================================ */
-html.app-skin-dark .opd-card {
-    background: #1e2a3a;
-    border-color: #2d3f55;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-html.app-skin-dark .opd-card-title { color: #e2e8f0; }
-html.app-skin-dark .opd-card-title i { color: #6c9bff; }
-
-html.app-skin-dark .opd-summary-card { background: #1e2a3a; }
-html.app-skin-dark .opd-summary-card .opd-card-title { color: #e2e8f0; }
-html.app-skin-dark .opd-summary-card .opd-card-title i { color: #6c9bff; }
-html.app-skin-dark .opd-summary-label { color: #94a3b8; }
-html.app-skin-dark .opd-summary-value { color: #e2e8f0; }
-
-html.app-skin-dark .opd-table thead th {
-    color: #94a3b8;
-    border-bottom-color: #2d3f55;
-}
-html.app-skin-dark .opd-table tbody td {
-    color: #e2e8f0;
-    border-bottom-color: #2d3f55;
-}
-html.app-skin-dark .opd-table tbody tr:hover { background: #16202e; }
-html.app-skin-dark .opd-table tbody tr.is-current-overdue {
-    background: rgba(220, 38, 38, 0.08);
-}
-
-html.app-skin-dark .opd-badge-paid { background: rgba(22, 163, 74, 0.16); color: #4ADE80; }
-html.app-skin-dark .opd-badge-overdue { background: rgba(220, 38, 38, 0.16); color: #F87171; }
-html.app-skin-dark .opd-badge-upcoming { background: rgba(37, 99, 235, 0.16); color: #60A5FA; }
 
 @media (max-width: 767.98px) {
-    html.app-skin-dark .opd-table tbody tr { border-color: #2d3f55; }
+    html.app-skin-dark .opd-table tbody tr { border-color: #262626 !important; }
+    html.app-skin-dark .opd-table tbody td::before { color: #6b6b6b !important; }
 }
-
 /* ---------- Borrower avatar sizing/shape — the js-borrower-avatar
    class (below) supplies the actual placeholder look (gray bg +
    silhouette background); this block only controls circle size,

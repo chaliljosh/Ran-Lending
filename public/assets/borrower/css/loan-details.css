@@ -193,6 +193,9 @@
 .bwl-ld-info-value.is-primary {
     color: #4a7cf7;
 }
+.bwl-ld-info-value.is-danger {
+    color: #e63946;
+}
 .bwl-ld-info-sub {
     font-size: 0.78rem;
     color: #8a9bb0;
@@ -332,45 +335,111 @@
     .bwl-ld-section__head { flex-wrap: wrap; }
 }
 
-/* ---------- Dark mode ---------- */
-html.app-skin-dark .nxl-content { background: #14202e; }
+/* ══════════════════════════════════════════
+   DARK MODE — TRUE BLACK (matches sidebar /
+   dashboard / apply-loan / admin panel)
+   ------------------------------------------
+   Palette:
+     page   #0A0A0A    card   #141414    inner  #0d0d0d
+     border #262626    hover  #1C1C1C
+     text   #F5F5F5    muted  #9A9A9A
+══════════════════════════════════════════ */
+
+/* ---------- Page + cards ---------- */
+html.app-skin-dark .nxl-content { background: #0A0A0A; }
 html.app-skin-dark .bwl-ld-section,
 html.app-skin-dark .bwl-ld-card,
 html.app-skin-dark .bwl-ld-empty {
-    background: #1a2632 !important;
-    border-color: #2d3f55 !important;
+    background: #141414 !important;
+    border-color: #262626 !important;
+    box-shadow: none !important;
 }
 html.app-skin-dark .bwl-ld-stat-card {
-    background: #1e2a3a !important;
-    border-color: #2d3f55 !important;
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    box-shadow: none !important;
 }
+
+/* ---------- Text ---------- */
 html.app-skin-dark .bwl-ld-section__head-text h5,
 html.app-skin-dark .bwl-ld-card-header h6,
 html.app-skin-dark .bwl-ld-stat-value,
 html.app-skin-dark .bwl-ld-info-value,
 html.app-skin-dark .bwl-ld-timeline-title,
-html.app-skin-dark .bwl-ld-table tbody td { color: #e2e8f0; }
+html.app-skin-dark .bwl-ld-empty h5,
+html.app-skin-dark .bwl-ld-table tbody td { color: #F5F5F5; }
 html.app-skin-dark .bwl-ld-eyebrow,
 html.app-skin-dark .bwl-ld-stat-label,
 html.app-skin-dark .bwl-ld-info-label,
 html.app-skin-dark .bwl-ld-info-sub,
 html.app-skin-dark .bwl-ld-note,
 html.app-skin-dark .bwl-ld-timeline-date,
-html.app-skin-dark .bwl-ld-table thead th { color: #94a3b8; }
+html.app-skin-dark .bwl-ld-empty p,
+html.app-skin-dark .bwl-ld-table thead th { color: #9A9A9A; }
+html.app-skin-dark .bwl-ld-info-value.is-primary { color: #60A5FA; }
+html.app-skin-dark .bwl-ld-info-value.is-danger,
+html.app-skin-dark .bwl-ld-info-sub.is-danger { color: #F87171; }
+
+/* ---------- Borders / dividers ---------- */
 html.app-skin-dark .bwl-ld-card-header,
 html.app-skin-dark .bwl-ld-info-row,
-html.app-skin-dark .bwl-ld-table tbody td,
 html.app-skin-dark .bwl-ld-table thead th,
+html.app-skin-dark .bwl-ld-table tbody td,
 html.app-skin-dark .bwl-ld-timeline-item:not(:last-child)::before {
-    border-color: #2d3f55;
+    border-color: #262626;
 }
-html.app-skin-dark .bwl-ld-reminders {
-    background: #1e2d4a;
+html.app-skin-dark .bwl-ld-timeline-item:not(:last-child)::before { background: #262626; }
+
+/* ---------- Payment schedule table ----------
+   Ang navy/striped rows ay galing sa Bootstrap + theme table variables,
+   kaya dito natin sila ni-reset. */
+html.app-skin-dark .bwl-ld-table {
+    --bs-table-bg: transparent;
+    --bs-table-color: #F5F5F5;
+    --bs-table-striped-bg: transparent;
+    --bs-table-striped-color: #F5F5F5;
+    --bs-table-hover-bg: #1C1C1C;
+    --bs-table-hover-color: #F5F5F5;
+    --bs-table-border-color: #262626;
 }
+html.app-skin-dark .bwl-ld-table > :not(caption) > * > * {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+html.app-skin-dark .bwl-ld-table tbody tr:hover > * { background-color: #1C1C1C !important; }
+
+/* ---------- Status pills (dark tints, bright text) ---------- */
+html.app-skin-dark .bwl-ld-status.bg-warning {
+    background: rgba(245, 158, 11, 0.15) !important;
+    color: #FBBF24 !important;
+}
+html.app-skin-dark .bwl-ld-status.bg-success {
+    background: rgba(22, 163, 74, 0.15) !important;
+    color: #4ADE80 !important;
+}
+html.app-skin-dark .bwl-ld-status.bg-primary {
+    background: rgba(37, 99, 235, 0.18) !important;
+    color: #60A5FA !important;
+}
+html.app-skin-dark .bwl-ld-status.bg-danger {
+    background: rgba(220, 38, 38, 0.15) !important;
+    color: #F87171 !important;
+}
+html.app-skin-dark .bwl-ld-status.bg-secondary {
+    background: #1C1C1C !important;
+    color: #9A9A9A !important;
+}
+
+/* ---------- Reminders ---------- */
+html.app-skin-dark .bwl-ld-reminders { background: rgba(37, 99, 235, 0.12); }
 html.app-skin-dark .bwl-ld-reminders-title,
-html.app-skin-dark .bwl-ld-reminders ul {
-    color: #93c5fd;
-}
-.bwl-ld-info-value.is-danger {
-    color: #e63946;
+html.app-skin-dark .bwl-ld-reminders ul { color: #93C5FD; }
+
+/* ---------- Timeline dots ---------- */
+html.app-skin-dark .bwl-ld-timeline-item.is-upcoming .bwl-ld-timeline-dot { background: #141414; }
+
+/* ---------- Empty state ---------- */
+html.app-skin-dark .bwl-ld-empty-icon {
+    background: rgba(37, 99, 235, 0.15);
+    color: #60A5FA;
 }

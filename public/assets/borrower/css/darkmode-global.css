@@ -1,0 +1,208 @@
+/* ============================================================
+   borrower-dark-mode-global.css
+   ------------------------------------------------------------
+   LAYOUT-LEVEL dark mode fixes lang — sidebar, header, header
+   dropdowns (profile + notifications), page-header (breadcrumb
+   bar), footer. Naka-link diretso sa borrower/layout.blade.php
+   (hindi sa @yield('page-head-links')) kaya AUTOMATIC itong
+   gumagana sa LAHAT ng borrower pages, kasama ang mga susunod
+   na gagawin — same pattern na ginamit sa
+   admin-dark-mode-global.css.
+
+   IMPORTANT: dapat ito ang HULING <link> sa <head>, kasunod pa
+   ng layout-fixes.css, para talunin ang vendor theme.min.css
+   AT ang mga page-specific dark-mode rules na baka mahina pa
+   ang specificity/walang !important.
+
+   TRUE BLACK palette:
+     #0A0A0A page/sidebar/header   #141414 cards/dropdowns
+     #0d0d0d inner surfaces        #262626 borders
+     #1C1C1C hover                 #F5F5F5 text   #9A9A9A muted
+============================================================ */
+
+/* ---------- Theme variables — talunin ang navy ng vendor theme ---------- */
+html.app-skin-dark {
+    --bs-body-bg: #0A0A0A;
+    --bs-body-bg-rgb: 10, 10, 10;
+    --bs-card-bg: #141414;
+    --bs-border-color: #262626;
+}
+
+/* ---------- Sidebar ---------- */
+html.app-skin-dark .nxl-navigation {
+    background: #0A0A0A !important;
+    border-right: 1px solid #262626 !important;
+    min-height: 100vh;
+    height: 100%;
+}
+html.app-skin-dark .nxl-navigation .b-brand-text,
+html.app-skin-dark .nxl-navigation .bwl-sidebar-brand-name,
+html.app-skin-dark .nxl-navigation .nxl-mtext {
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-nav-label {
+    color: #9A9A9A !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-micon i {
+    color: #9A9A9A !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-link {
+    color: #C4C4C4 !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-link:hover {
+    background: #1C1C1C !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-item.active > .nxl-link,
+html.app-skin-dark .nxl-navigation .nxl-link.active {
+    background: #1C1C1C !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-link.is-logout {
+    color: #F87171 !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-link.is-logout:hover {
+    background: rgba(220, 38, 38, 0.15) !important;
+    color: #F87171 !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-nav-divider {
+    background: #262626 !important;
+}
+html.app-skin-dark .m-header {
+    background: #0A0A0A !important;
+    border-bottom: 1px solid #262626 !important;
+}
+
+/* ---------- Header ---------- */
+html.app-skin-dark .nxl-header,
+html.app-skin-dark .nxl-header .header-wrapper {
+    background: #0A0A0A !important;
+    background-color: #0A0A0A !important;
+    background-image: none !important;
+}
+html.app-skin-dark .nxl-header {
+    border-bottom: 1px solid #262626 !important;
+    box-shadow: none !important;
+}
+html.app-skin-dark .nxl-header .nxl-head-link i {
+    color: #C4C4C4 !important;
+}
+html.app-skin-dark .nxl-header .nxl-head-link:hover i {
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .dark-light-theme .nxl-head-link {
+    background: #141414 !important;
+    border-color: #262626 !important;
+}
+
+/* ---------- Header — profile dropdown ---------- */
+html.app-skin-dark .bwl-name { color: #F5F5F5 !important; }
+html.app-skin-dark .bwl-role,
+html.app-skin-dark .bwl-caret { color: #9A9A9A !important; }
+html.app-skin-dark .bwl-header-profile:hover .bwl-profile-trigger,
+html.app-skin-dark .bwl-header-profile[open] .bwl-profile-trigger {
+    background: rgba(255, 255, 255, 0.06) !important;
+}
+html.app-skin-dark .bwl-dropdown-menu {
+    background: #141414 !important;
+    border: 1px solid #262626 !important;
+    box-shadow: 0 20px 50px -14px rgba(0, 0, 0, 0.6) !important;
+}
+html.app-skin-dark .bwl-dropdown-name { color: #F5F5F5 !important; }
+html.app-skin-dark .bwl-dropdown-role { color: #9A9A9A !important; }
+html.app-skin-dark .bwl-dropdown-divider { background: #262626 !important; }
+html.app-skin-dark .bwl-dropdown-item { color: #F5F5F5 !important; }
+html.app-skin-dark .bwl-dropdown-item-icon { color: #9A9A9A !important; }
+html.app-skin-dark .bwl-dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .bwl-dropdown-item.text-danger { color: #F87171 !important; }
+html.app-skin-dark .bwl-dropdown-item.text-danger:hover { background: rgba(220, 38, 38, 0.15) !important; }
+html.app-skin-dark .bwl-dropdown-item.text-danger .bwl-dropdown-item-icon { color: #F87171 !important; }
+
+/* ---------- Header — notification bell dropdown ---------- */
+html.app-skin-dark .bwl-notif-trigger { color: #9A9A9A !important; }
+html.app-skin-dark .bwl-notif-bell:hover .bwl-notif-trigger,
+html.app-skin-dark .bwl-notif-bell[open] .bwl-notif-trigger {
+    background: rgba(255, 255, 255, 0.06) !important;
+}
+html.app-skin-dark .bwl-notif-badge { border-color: #0A0A0A !important; }
+html.app-skin-dark .bwl-notif-dropdown {
+    background: #141414 !important;
+    border: 1px solid #262626 !important;
+    box-shadow: 0 20px 50px -14px rgba(0, 0, 0, 0.6) !important;
+}
+html.app-skin-dark .bwl-notif-head { border-color: #262626 !important; }
+html.app-skin-dark .bwl-notif-head h6 { color: #F5F5F5 !important; }
+html.app-skin-dark .bwl-notif-item { border-color: #262626 !important; color: #F5F5F5 !important; }
+html.app-skin-dark .bwl-notif-item:hover { background: rgba(255, 255, 255, 0.05) !important; }
+html.app-skin-dark .bwl-notif-item.is-unread { background: rgba(37, 99, 235, 0.1) !important; }
+html.app-skin-dark .bwl-notif-item-title { color: #F5F5F5 !important; }
+html.app-skin-dark .bwl-notif-item-sub { color: #9A9A9A !important; }
+html.app-skin-dark .bwl-notif-item-time { color: #9A9A9A !important; }
+html.app-skin-dark .bwl-notif-item-icon { background: #0d0d0d !important; color: #9A9A9A !important; }
+html.app-skin-dark .bwl-notif-empty { color: #9A9A9A !important; }
+
+/* ---------- Account Settings / Change Password modals ---------- */
+html.app-skin-dark .bwl-acct-modal .modal-content { background: #141414 !important; box-shadow: 0 20px 60px -20px rgba(0,0,0,0.6) !important; }
+html.app-skin-dark .bwl-acct-header { background: linear-gradient(180deg, #0a0a0a, #141414) !important; border-color: #262626 !important; }
+html.app-skin-dark .bwl-acct-header .modal-title { color: #F5F5F5 !important; }
+html.app-skin-dark .bwl-acct-name { color: #F5F5F5 !important; }
+html.app-skin-dark .bwl-acct-divider { background: #262626 !important; }
+html.app-skin-dark .bwl-acct-field label { color: #9A9A9A !important; }
+html.app-skin-dark .bwl-acct-field span { color: #F5F5F5 !important; }
+html.app-skin-dark .bwl-acct-input { background: #0d0d0d !important; border-color: #262626 !important; color: #F5F5F5 !important; }
+html.app-skin-dark .bwl-acct-form-field label { color: #F5F5F5 !important; }
+html.app-skin-dark .bwl-acct-btn-cancel { background: #141414 !important; border-color: #262626 !important; color: #F5F5F5 !important; }
+html.app-skin-dark .bwl-acct-btn-cancel:hover { background: #1C1C1C !important; }
+html.app-skin-dark .bwl-acct-modal .btn-close { filter: invert(1) grayscale(100%) brightness(200%) !important; }
+html.app-skin-dark .bwl-pw-strength-seg { background: #262626 !important; }
+html.app-skin-dark .bwl-pw-checklist li { color: #9A9A9A !important; }
+html.app-skin-dark .bwl-pw-checklist li.is-met { color: #F5F5F5 !important; }
+
+/* ---------- Page header / breadcrumb bar ---------- */
+html.app-skin-dark body .page-header,
+html.app-skin-dark .nxl-container .page-header,
+html.app-skin-dark .main-content .page-header {
+    background: #0A0A0A !important;
+    border-color: #262626 !important;
+    box-shadow: none !important;
+}
+html.app-skin-dark body .page-header-title h5,
+html.app-skin-dark .page-header-left h5 {
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark body .breadcrumb-item,
+html.app-skin-dark body .breadcrumb-item a {
+    color: #9A9A9A !important;
+}
+html.app-skin-dark body .breadcrumb-item.active,
+html.app-skin-dark body .breadcrumb-item:last-child {
+    color: #C4C4C4 !important;
+}
+
+/* ---------- Footer ---------- */
+html.app-skin-dark.app-skin-dark body footer.footer.footer {
+    background: #0A0A0A !important;
+    background-color: #0A0A0A !important;
+    background-image: none !important;
+    border-top: 1px solid #262626 !important;
+    box-shadow: none !important;
+}
+html.app-skin-dark.app-skin-dark .footer p,
+html.app-skin-dark.app-skin-dark .footer span,
+html.app-skin-dark.app-skin-dark .footer a {
+    color: #9A9A9A !important;
+}
+
+/* ---------- Base backgrounds ---------- */
+html.app-skin-dark,
+html.app-skin-dark body {
+    background-color: #0A0A0A !important;
+}
+html.app-skin-dark body .nxl-container,
+html.app-skin-dark body .nxl-content,
+html.app-skin-dark body .nxl-content .main-content {
+    background: #0A0A0A !important;
+}

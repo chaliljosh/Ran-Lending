@@ -3,7 +3,8 @@
 @section('title', 'Penalty Tracking')
 
 @section('page-styles')
-    <link rel="stylesheet" href="{{ asset('assets/admin/css/penalty-tracking.css') }}">
+      <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/penalty-tracking.css') }}?v={{ time() }}" />
+         <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/darkmode-global.css') }}?v={{ time() }}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">

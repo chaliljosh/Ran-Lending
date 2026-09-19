@@ -266,67 +266,155 @@ body { background: var(--rs-bg); }
     .dl-pagination-controls { justify-content: center; }
 }
 
-/* ══════════════════ Dark mode ══════════════════ */
-html.app-skin-dark body { background: #0f172a; }
-html.app-skin-dark .nxl-content { background: #0f172a; }
+/* ══════════════════════════════════════════
+   DARK MODE — TRUE BLACK PALETTE
+   Kinopya ang eksaktong color scheme ng ibang admin detail pages
+   (#0A0A0A background, #141414 cards, #262626 borders, #F5F5F5 text,
+   #9A9A9A muted text). Nasa dulo ito ng file para mag-override sa
+   lahat ng naunang navy-blue (#0f172a, #1e2a3a, #2d3f55, #16202e)
+   na dark mode rules.
+
+   Red (outstanding balance, days overdue, "Defaulted" status pill)
+   ay sinadyang hindi ginawang black — meaning-carrying sila. Ang
+   Borrower ID / Loan ID (dating blue) lang ang ginawang neutral.
+   ══════════════════════════════════════════ */
+
+html.app-skin-dark body { background: #0A0A0A !important; }
+html.app-skin-dark .nxl-content { background: #0A0A0A !important; }
 
 html.app-skin-dark .rs-card {
-    background: #1e2a3a !important;
-    border-color: #2d3f55 !important;
+    background: #141414 !important;
+    border-color: #262626 !important;
 }
-html.app-skin-dark .stat-label-v2 { color: #cbd5e1; }
+html.app-skin-dark .stat-label-v2 { color: #C4C4C4 !important; }
 html.app-skin-dark .stat-value-v2,
 html.app-skin-dark .borrower-name-v2,
 html.app-skin-dark .loan-amount-v2,
 html.app-skin-dark .btn-view-v2,
-html.app-skin-dark .empty-state-v2 h6 { color: #e2e8f0; }
+html.app-skin-dark .empty-state-v2 h6 {
+    color: #F5F5F5 !important;
+}
 html.app-skin-dark .stat-sub-v2,
 html.app-skin-dark .borrower-email-v2,
 html.app-skin-dark .loan-meta-v2,
-html.app-skin-dark .empty-state-v2 p { color: #94a3b8; }
+html.app-skin-dark .empty-state-v2 p {
+    color: #9A9A9A !important;
+}
+html.app-skin-dark .stat-icon-v2 { color: #C4C4C4 !important; }
 
-html.app-skin-dark .dl-search-wrap { background: #16202e; border-color: #2d3f55; }
-html.app-skin-dark .dl-search-wrap input { color: #e2e8f0; }
+/* ---------- Search / filter selects ---------- */
+html.app-skin-dark .dl-search-wrap {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .dl-search-wrap input { color: #F5F5F5 !important; }
+html.app-skin-dark .dl-search-wrap input::placeholder { color: #6b6b6b !important; }
+html.app-skin-dark .dl-search-wrap i { color: #9A9A9A !important; }
 
 html.app-skin-dark .dl-select,
 html.app-skin-dark #dlDaysFilter,
 html.app-skin-dark #dlSortFilter {
-    background-color: #16202e !important;
-    border-color: #2d3f55 !important;
-    color: #e2e8f0 !important;
+    background-color: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
 }
 html.app-skin-dark .dl-select option,
 html.app-skin-dark #dlDaysFilter option,
 html.app-skin-dark #dlSortFilter option {
-    background-color: #16202e !important;
-    color: #e2e8f0 !important;
+    background-color: #0d0d0d !important;
+    color: #F5F5F5 !important;
 }
 
-html.app-skin-dark .rs-table thead th { background: #16202e; border-color: #2d3f55; color: #94a3b8; }
-html.app-skin-dark .rs-table tbody td { border-color: #2d3f55; }
-html.app-skin-dark .rs-table tbody tr:hover { background: #16202e; }
-html.app-skin-dark .btn-view-v2 { background: #16202e; border-color: #2d3f55; }
-html.app-skin-dark .dl-status-pill { background: rgba(220,38,38,.18); color: #f87171; }
-html.app-skin-dark .dl-loan-id { color: #6c9bff; }
-html.app-skin-dark .dl-kebab-btn { background: #1e2a3a; border-color: #2d3f55; color: #94a3b8; }
+/* ---------- Table ---------- */
+html.app-skin-dark .rs-table thead th {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #9A9A9A !important;
+}
+html.app-skin-dark .rs-table tbody td {
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .rs-table tbody tr:hover { background: #16181c !important; }
 
-html.app-skin-dark .dl-pagination-bar { background: #16202e; border-color: #2d3f55; }
+/* Avatar gradient — dating red-to-lightred, pinatingkad lang
+   para maganda pa rin sa itim (status-adjacent color, hindi pure
+   theme accent, kaya pinanatili) */
+html.app-skin-dark .dl-avatar {
+    background: linear-gradient(135deg, #dc2626, #f87171) !important;
+}
+
+/* Borrower ID / Loan ID — dating blue, ginawang neutral gray */
+html.app-skin-dark .borrower-id-v2 { color: #C4C4C4 !important; }
+html.app-skin-dark .dl-loan-id { color: #C4C4C4 !important; }
+
+/* ---------- Status colors (kept — red = danger/default indicator) ---------- */
+html.app-skin-dark .dl-outstanding-v2 { color: #f87171 !important; }
+html.app-skin-dark .dl-days-text { color: #f87171 !important; }
+html.app-skin-dark .dl-status-pill {
+    background: rgba(220,38,38,.18) !important;
+    color: #f87171 !important;
+}
+
+/* ---------- "View Details" button + kebab ---------- */
+html.app-skin-dark .btn-view-v2 {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .btn-view-v2:hover {
+    border-color: #4a4a4a !important;
+    color: #F5F5F5 !important;
+    background: #262626 !important;
+}
+html.app-skin-dark .dl-kebab-btn {
+    background: #141414 !important;
+    border-color: #262626 !important;
+    color: #9A9A9A !important;
+}
+html.app-skin-dark .dl-kebab-btn:hover {
+    border-color: #f87171 !important;
+    color: #f87171 !important;
+    background: rgba(220,38,38,.12) !important;
+}
+
+/* ---------- Empty state ---------- */
+html.app-skin-dark .empty-state-v2 i { color: #9A9A9A !important; }
+html.app-skin-dark .empty-state-v2 .feather-check-circle { color: #4ade80 !important; }
+
+/* ---------- Pagination ---------- */
+html.app-skin-dark .dl-pagination-bar {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+}
 html.app-skin-dark .dl-rows-per-page,
-html.app-skin-dark .dl-pagination-info { color: #94a3b8; }
-html.app-skin-dark .dl-page-text-btn { color: #94a3b8; }
-html.app-skin-dark .dl-page-text-btn:hover:not(:disabled) { color: #6c9bff; }
-html.app-skin-dark .dl-page-label { color: #e2e8f0; }
+html.app-skin-dark .dl-pagination-info { color: #9A9A9A !important; }
+html.app-skin-dark .dl-page-text-btn { color: #9A9A9A !important; }
+html.app-skin-dark .dl-page-text-btn:hover:not(:disabled) { color: #F5F5F5 !important; }
+html.app-skin-dark .dl-page-label { color: #F5F5F5 !important; }
 
-/* ── Footer sa ibaba ── */
-.nxl-container {
-    min-height: calc(100vh - 80px) !important;
-    display: flex !important;
-    flex-direction: column !important;
+/* ══════════════════════════════════════════
+   FIX: Bootstrap table CSS variables
+   Ang <table class="table rs-table" id="dlTable"> ay may Bootstrap
+   "table" class, kaya gumagamit ito ng --bs-table-bg custom
+   properties na may mas mataas na specificity — parehong fix na
+   ginamit sa Overdue Payments / Borrowers / Completed Loans.
+   ══════════════════════════════════════════ */
+html.app-skin-dark .rs-table,
+html.app-skin-dark .rs-table > :not(caption) > * {
+    --bs-table-bg: transparent !important;
+    --bs-table-striped-bg: transparent !important;
+    --bs-table-accent-bg: transparent !important;
+    --bs-table-hover-bg: #16181c !important;
+    --bs-table-color: #F5F5F5 !important;
+    --bs-table-striped-color: #F5F5F5 !important;
+    --bs-table-hover-color: #F5F5F5 !important;
 }
-.nxl-content {
-    flex: 1 !important;
-    display: flex !important;
-    flex-direction: column !important;
+html.app-skin-dark .rs-table tbody tr {
+    background-color: transparent !important;
+    box-shadow: none !important;
 }
-.nxl-content .main-content { flex: 1 !important; }
-.footer { flex-shrink: 0 !important; margin-top: auto !important; }
+html.app-skin-dark .rs-table tbody tr td {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}

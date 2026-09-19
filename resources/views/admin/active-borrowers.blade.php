@@ -5,7 +5,8 @@
 @section('page-styles')
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('assets/admin/css/active-borrowers.css') }}">
+  <link rel="stylesheet" href="{{ asset('assets/admin/css/active-borrowers.css') }}?v={{ time() }}" />
+     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/darkmode-global.css') }}?v={{ time() }}" />
 @endsection
 
 @section('content')

@@ -1,0 +1,226 @@
+/* ============================================================
+   admin-dark-mode-global.css
+   ------------------------------------------------------------
+   LAYOUT-LEVEL dark mode fixes lang — sidebar, header, page-header
+   (breadcrumb bar), footer. Naka-link diretso sa admin.layout.blade.php
+   (hindi sa @yield('page-styles')) kaya AUTOMATIC itong gumagana sa
+   LAHAT ng admin pages, kasama ang mga susunod na gagawin.
+
+   Bago ito: nasa admin-dashboard.css lang ang mga rules na ito,
+   pero "dashboard-only" ang file na yun (naka-load lang sa
+   @yield('page-styles') ng dashboard page), kaya ibang pages
+   (gaya ng Borrower Verification) ay bumabalik sa default navy
+   ng vendor theme.min.css sa mismong layout-level elements na ito.
+
+   Pwede mo nang alisin ang duplicate na version ng mga rules na ito
+   sa admin-dashboard.css at borrower-verification.css (optional
+   cleanup) — dito na sila dapat nakatira ngayon.
+   ============================================================ */
+
+/* ---------- Sidebar ---------- */
+html.app-skin-dark .nxl-navigation {
+    background: #0A0A0A !important;
+    border-right: 1px solid #262626 !important;
+}
+html.app-skin-dark .nxl-navigation .b-brand-text,
+html.app-skin-dark .nxl-navigation .nxl-mtext {
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-micon i {
+    color: #9A9A9A !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-link {
+    color: #C4C4C4 !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-link:hover {
+    background: #1C1C1C !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-item.active > .nxl-link,
+html.app-skin-dark .nxl-navigation .nxl-link.active {
+    background: #1C1C1C !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-item.active > .nxl-link .nxl-micon i,
+html.app-skin-dark .nxl-navigation .nxl-link.active .nxl-micon i {
+    color: #9BBE4A !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-submenu {
+    background: #0A0A0A !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-link {
+    color: #9A9A9A !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-link:hover {
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-item[data-current="true"] > .nxl-link {
+    color: #9BBE4A !important;
+}
+html.app-skin-dark .nxl-navigation .nxl-link.text-danger {
+    color: #EF4444 !important;
+}
+
+/* ---------- Header ---------- */
+html.app-skin-dark .nxl-header {
+    background: #0A0A0A !important;
+    border-bottom: 1px solid #262626 !important;
+}
+html.app-skin-dark .nxl-header .nxl-head-link i {
+    color: #C4C4C4 !important;
+}
+html.app-skin-dark .nxl-header .nxl-head-link:hover i {
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .nxl-admin-name-header {
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .nxl-admin-caret-header {
+    color: #9A9A9A !important;
+}
+
+/* ---------- Header dropdowns (notifications + admin menu) ---------- */
+html.app-skin-dark .nxl-notif-dropdown-menu,
+html.app-skin-dark .nxl-admin-dropdown-menu {
+    background: #141414 !important;
+    border: 1px solid #262626 !important;
+}
+html.app-skin-dark .nxl-notif-dropdown-head,
+html.app-skin-dark .nxl-admin-name,
+html.app-skin-dark .nxl-notif-title {
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .nxl-notif-sub,
+html.app-skin-dark .nxl-notif-time,
+html.app-skin-dark .nxl-admin-email {
+    color: #9A9A9A !important;
+}
+html.app-skin-dark .nxl-admin-dropdown-item {
+    color: #C4C4C4 !important;
+}
+html.app-skin-dark .nxl-admin-dropdown-item:hover {
+    background: #1C1C1C !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .nxl-admin-dropdown-divider,
+html.app-skin-dark .nxl-notif-dropdown-foot {
+    border-color: #262626 !important;
+}
+
+/* ---------- Theme toggle button circle ---------- */
+html.app-skin-dark .dark-light-theme .nxl-head-link {
+    background: #141414 !important;
+    border-color: #262626 !important;
+}
+
+/* ---------- Page header / breadcrumb bar ---------- */
+html.app-skin-dark .page-header {
+    background: #0A0A0A !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .page-header-title h5 {
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .breadcrumb-item,
+html.app-skin-dark .breadcrumb-item a {
+    color: #9A9A9A !important;
+}
+html.app-skin-dark .breadcrumb-item.active,
+html.app-skin-dark .breadcrumb-item:last-child {
+    color: #C4C4C4 !important;
+}
+
+/* ---------- Footer ---------- */
+html.app-skin-dark .footer {
+    background: #0A0A0A !important;
+    color: #9A9A9A !important;
+}
+
+/* ---------- Page background — pinaka-labas na container, para
+     laging tama ang bg kahit walang page-specific CSS pa
+     naka-define nito. ---------- */
+html.app-skin-dark body .nxl-content {
+    background: #0A0A0A !important;
+}
+
+/* ---------- Base html/body background — kapag mas mahaba ang
+     page content kaysa sa fixed-height sidebar, lumalabas ang
+     background ng <body>/<html> sa ibaba nito. Kailangan itim
+     din ito, hindi lang ang .nxl-content. ---------- */
+html.app-skin-dark,
+html.app-skin-dark body {
+    background-color: #0A0A0A !important;
+}
+
+/* ---------- Footer — mas specific na selector, kasama ang
+     posibleng nested container/box-shadow mula sa vendor CSS ---------- */
+html.app-skin-dark body footer.footer,
+html.app-skin-dark .nxl-container footer.footer {
+    background: #0A0A0A !important;
+    background-color: #0A0A0A !important;
+    border-top: 1px solid #262626 !important;
+    box-shadow: none !important;
+}
+html.app-skin-dark .footer p,
+html.app-skin-dark .footer span {
+    color: #9A9A9A !important;
+}
+
+/* ---------- Sidebar — palawigin ang height/background papunta
+     sa buong scroll height ng page, hindi lang sa viewport ---------- */
+html.app-skin-dark .nxl-navigation {
+    min-height: 100vh;
+    height: 100%;
+}
+
+/* ---------- Page header / breadcrumb bar — mas specific na
+     selector, dahil natatalo pa rin ng vendor theme.min.css
+     kahit parehong may !important ---------- */
+html.app-skin-dark body .page-header,
+html.app-skin-dark .nxl-container .page-header,
+html.app-skin-dark .main-content .page-header {
+    background: #0A0A0A !important;
+    background-color: #0A0A0A !important;
+    border-color: #262626 !important;
+    box-shadow: none !important;
+}
+html.app-skin-dark body .page-header-title h5,
+html.app-skin-dark .page-header-left h5 {
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark body .breadcrumb-item,
+html.app-skin-dark body .breadcrumb-item a {
+    color: #9A9A9A !important;
+}
+html.app-skin-dark body .breadcrumb-item.active,
+html.app-skin-dark body .breadcrumb-item:last-child {
+    color: #C4C4C4 !important;
+}
+
+/* ---------- "BACK" button sa page header — kadalasan
+     btn-light class, override din para hindi puti/mismatch ---------- */
+html.app-skin-dark .page-header .btn-light,
+html.app-skin-dark .page-header-right .btn-light {
+    background: #141414 !important;
+    border: 1px solid #262626 !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .page-header .btn-light:hover {
+    background: #1C1C1C !important;
+    border-color: #9BBE4A !important;
+    color: #9BBE4A !important;
+}
+
+/* ---------- Footer — specificity boost via repeated class
+     selector, para talunin ang vendor rule kahit parehong
+     may !important ---------- */
+html.app-skin-dark.app-skin-dark body footer.footer.footer {
+    background: #0A0A0A !important;
+    background-color: #0A0A0A !important;
+    background-image: none !important;
+    border-top: 1px solid #262626 !important;
+}
+html.app-skin-dark.app-skin-dark .footer p,
+html.app-skin-dark.app-skin-dark .footer span {
+    color: #9A9A9A !important;
+}

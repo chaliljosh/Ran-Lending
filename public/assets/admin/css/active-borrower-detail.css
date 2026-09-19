@@ -261,40 +261,59 @@ html:not(.app-skin-dark) .nxl-content {
 .abd-schedule-card .ld-schedule-table tbody td { padding: 12px 14px; font-size: 0.82rem; }
 .abd-schedule-card .ld-schedule-table tbody td:first-child { font-weight: 600; color: #0f172a; }
 
-/* ---------- Dark mode ---------- */
-html.app-skin-dark .nxl-content { background: #0f172a; }
+/* ---------- Dark mode — true black palette, may !important ---------- */
+html.app-skin-dark .nxl-content { background: #0A0A0A !important; }
 
 html.app-skin-dark .section-card,
 html.app-skin-dark .abd-summary-card {
-    background: #1e2a3a !important;
-    border-color: #2d3f55 !important;
+    background: #141414 !important;
+    border-color: #262626 !important;
 }
 
-html.app-skin-dark .abd-summary-info h5 { color: #e2e8f0; }
-html.app-skin-dark .abd-summary-meta { color: #94a3b8; }
-html.app-skin-dark .abd-summary-meta strong { color: #e2e8f0; }
-html.app-skin-dark .abd-summary-left { border-right-color: #2d3f55; }
-html.app-skin-dark .abd-summary-stat { border-left-color: #2d3f55; }
-html.app-skin-dark .abd-summary-stat-value { color: #e2e8f0; }
-html.app-skin-dark .abd-summary-stat-label { color: #94a3b8; }
+html.app-skin-dark .abd-summary-info h5 { color: #F5F5F5 !important; }
+html.app-skin-dark .abd-summary-meta { color: #9A9A9A !important; }
+html.app-skin-dark .abd-summary-meta strong { color: #F5F5F5 !important; }
+html.app-skin-dark .abd-summary-left { border-right-color: #262626 !important; }
+html.app-skin-dark .abd-summary-stat { border-left-color: #262626 !important; }
+html.app-skin-dark .abd-summary-stat-value { color: #F5F5F5 !important; }
+html.app-skin-dark .abd-summary-stat-label { color: #9A9A9A !important; }
 @media (max-width: 991.98px) {
-    html.app-skin-dark .abd-summary-left { border-bottom-color: #2d3f55; }
+    html.app-skin-dark .abd-summary-left { border-bottom-color: #262626 !important; }
 }
 
-html.app-skin-dark .abd-standing.is-good    { background: rgba(22,163,74,.15); color: #6ee7a4; border-color: rgba(22,163,74,.3); }
-html.app-skin-dark .abd-standing.is-delayed { background: rgba(180,83,9,.18); color: #fbbf24; border-color: rgba(180,83,9,.35); }
-html.app-skin-dark .abd-standing.is-risk    { background: rgba(220,38,38,.15); color: #f87171; border-color: rgba(220,38,38,.3); }
+html.app-skin-dark .abd-standing.is-good    { background: rgba(22,163,74,.18) !important; color: #4ade80 !important; border-color: rgba(22,163,74,.3) !important; }
+html.app-skin-dark .abd-standing.is-delayed { background: rgba(180,83,9,.18) !important; color: #f0b756 !important; border-color: rgba(180,83,9,.35) !important; }
+html.app-skin-dark .abd-standing.is-risk    { background: rgba(220,38,38,.18) !important; color: #f87171 !important; border-color: rgba(220,38,38,.3) !important; }
 
-html.app-skin-dark .abd-info-item label { color: #94a3b8; }
-html.app-skin-dark .abd-info-item span { color: #e2e8f0; }
-html.app-skin-dark .abd-info-item.abd-info-highlight { background: rgba(37, 99, 235, 0.1); }
+html.app-skin-dark .abd-info-item label { color: #9A9A9A !important; }
+html.app-skin-dark .abd-info-item span { color: #F5F5F5 !important; }
+html.app-skin-dark .abd-info-item.abd-info-highlight { background: rgba(37,99,235,.12) !important; }
 html.app-skin-dark .abd-info-item.abd-info-highlight label,
-html.app-skin-dark .abd-info-item.abd-info-highlight span { color: #60a5fa; }
+html.app-skin-dark .abd-info-item.abd-info-highlight span { color: #60A5FA !important; }
 
-html.app-skin-dark .abd-progress-label { color: #e2e8f0; }
-html.app-skin-dark .abd-progress-count { color: #94a3b8; }
-html.app-skin-dark .abd-progress-track { background: #16202e; }
-html.app-skin-dark .abd-next-payment { border-color: #2d3f55; }
+html.app-skin-dark .abd-progress-label { color: #F5F5F5 !important; }
+html.app-skin-dark .abd-progress-count { color: #9A9A9A !important; }
+html.app-skin-dark .abd-progress-track { background: #0d0d0d !important; }
+html.app-skin-dark .abd-next-payment { border-color: #262626 !important; }
 html.app-skin-dark .abd-next-payment-date,
-html.app-skin-dark .abd-next-payment-amount { color: #e2e8f0; }
-html.app-skin-dark .abd-next-payment-label { color: #94a3b8; }
+html.app-skin-dark .abd-next-payment-amount { color: #F5F5F5 !important; }
+html.app-skin-dark .abd-next-payment-label { color: #9A9A9A !important; }
+
+/* ---------- Payment Schedule table row striping ---------- */
+html.app-skin-dark .ld-schedule-table,
+html.app-skin-dark .ld-schedule-table > :not(caption) > * {
+    --bs-table-bg: transparent !important;
+    --bs-table-striped-bg: transparent !important;
+    --bs-table-accent-bg: transparent !important;
+    --bs-table-hover-bg: #1C1C1C !important;
+    --bs-table-color: #F5F5F5 !important;
+    --bs-table-striped-color: #F5F5F5 !important;
+}
+html.app-skin-dark .ld-schedule-table tbody tr {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+html.app-skin-dark .ld-schedule-table tbody tr td {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}

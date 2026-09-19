@@ -595,44 +595,108 @@ html.app-skin-dark .ld-review-table tbody td { color: #e2e8f0; border-color: #2d
 }
 
 /* ============================================================
-   DARK MODE
+   DARK MODE — true black palette, may !important para manalo
+   laban sa vendor theme.min.css
    ============================================================ */
-html.app-skin-dark body { background: #0f172a; }
+html.app-skin-dark body { background: #0A0A0A !important; }
 html.app-skin-dark .section-card,
-html.app-skin-dark .ld-header-card { background: #1e2a3a; border-color: #2d3f55; }
-html.app-skin-dark .section-title { color: #e2e8f0; border-color: #2d3f55; }
+html.app-skin-dark .ld-header-card {
+    background: #141414 !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .section-title {
+    color: #F5F5F5 !important;
+    border-color: #262626 !important;
+}
 html.app-skin-dark .info-value,
-html.app-skin-dark .table-loan-summary .info-value { color: #e2e8f0; }
+html.app-skin-dark .table-loan-summary .info-value { color: #F5F5F5 !important; }
 html.app-skin-dark .info-label,
-html.app-skin-dark .table-loan-summary .info-label { color: #94a3b8; }
-html.app-skin-dark .table-loan-summary td { border-color: #2d3f55; }
-html.app-skin-dark .btn-light { background: #16202e; border-color: #2d3f55; color: #e2e8f0; }
-html.app-skin-dark .ld-id-viewer { background: #16202e; border-color: #2d3f55; }
-html.app-skin-dark .btn-id-action { background: #16202e; border-color: #2d3f55; color: #e2e8f0; }
-html.app-skin-dark .review-box { background: #16202e; border-color: #2d3f55; }
-html.app-skin-dark .ld-review-remark { background: #1e2a3a; border-color: #2d3f55; color: #cbd5e1; }
-html.app-skin-dark .ld-comment-body { background: #16202e; border-color: #2d3f55; }
-html.app-skin-dark .ld-comment-name { color: #e2e8f0; }
-html.app-skin-dark .ld-comment-text { color: #cbd5e1; }
-html.app-skin-dark .ld-header-info h6 { color: #e2e8f0; }
-html.app-skin-dark .ld-stat-value { color: #e2e8f0; }
+html.app-skin-dark .table-loan-summary .info-label { color: #9A9A9A !important; }
+html.app-skin-dark .table-loan-summary td { border-color: #262626 !important; }
+html.app-skin-dark .btn-light {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .ld-id-viewer { background: #0d0d0d !important; border-color: #262626 !important; }
+html.app-skin-dark .btn-id-action { background: #0d0d0d !important; border-color: #262626 !important; color: #F5F5F5 !important; }
+html.app-skin-dark .review-box { background: #0d0d0d !important; border-color: #262626 !important; }
+html.app-skin-dark .ld-review-remark { background: #141414 !important; border-color: #262626 !important; color: #C4C4C4 !important; }
+html.app-skin-dark .ld-comment-body { background: #0d0d0d !important; border-color: #262626 !important; }
+html.app-skin-dark .ld-comment-name { color: #F5F5F5 !important; }
+html.app-skin-dark .ld-comment-text { color: #C4C4C4 !important; }
+html.app-skin-dark .ld-header-info h6 { color: #F5F5F5 !important; }
+html.app-skin-dark .ld-stat-value { color: #F5F5F5 !important; }
 
-html.app-skin-dark #decisionModal .modal-content { background: #1e2a3a; border-color: #2d3f55; }
+html.app-skin-dark #decisionModal .modal-content { background: #141414 !important; border-color: #262626 !important; }
 html.app-skin-dark #decisionModal .modal-header-clean,
-html.app-skin-dark #decisionModal .modal-footer { border-color: #2d3f55; }
+html.app-skin-dark #decisionModal .modal-footer { border-color: #262626 !important; }
 html.app-skin-dark #decisionModal .modal-header-clean h6,
 html.app-skin-dark #decisionModal .modal-title-text,
-html.app-skin-dark #decisionModal .modal-detail-value { color: #e2e8f0; }
-html.app-skin-dark #decisionModal .modal-subtext-text { color: #94a3b8; }
-html.app-skin-dark #decisionModal .modal-detail-card { background: #16202e; border-color: #2d3f55; }
-html.app-skin-dark #decisionModal textarea#decisionRemarks { background: #16202e; border-color: #2d3f55; color: #e2e8f0; }
-html.app-skin-dark .decision-char-counter { color: #64748b; }
+html.app-skin-dark #decisionModal .modal-detail-value { color: #F5F5F5 !important; }
+html.app-skin-dark #decisionModal .modal-subtext-text { color: #9A9A9A !important; }
+html.app-skin-dark #decisionModal .modal-detail-card { background: #0d0d0d !important; border-color: #262626 !important; }
+html.app-skin-dark #decisionModal textarea#decisionRemarks { background: #0d0d0d !important; border-color: #262626 !important; color: #F5F5F5 !important; }
+html.app-skin-dark .decision-char-counter { color: #9A9A9A !important; }
 
-html.app-skin-dark .btn-decision-cancel { background: #1e2a3a; border-color: #2d3f55; color: #cbd5e1; }
-html.app-skin-dark .btn-decision-cancel:hover { border-color: #3d5170; }
-html.app-skin-dark .btn-decision-reject { background: #1e2a3a; border-color: #4a2020; color: #f87171; }
-html.app-skin-dark .btn-decision-reject:hover { background: #2a1616; }
+html.app-skin-dark .btn-decision-cancel { background: #141414 !important; border-color: #262626 !important; color: #C4C4C4 !important; }
+html.app-skin-dark .btn-decision-cancel:hover { border-color: #3d3d3d !important; }
+html.app-skin-dark .btn-decision-reject { background: #141414 !important; border-color: rgba(220,38,38,.35) !important; color: #f87171 !important; }
+html.app-skin-dark .btn-decision-reject:hover { background: rgba(220,38,38,.15) !important; }
 
+html.app-skin-dark .id-thumb-wrap img { border-color: #262626 !important; }
+html.app-skin-dark .ld-review-table thead th { color: #9A9A9A !important; border-color: #262626 !important; }
+html.app-skin-dark .ld-review-table tbody td { color: #F5F5F5 !important; border-color: #262626 !important; }
+
+html.app-skin-dark .ld-schedule-table thead th { color: #9A9A9A !important; border-color: #262626 !important; }
+html.app-skin-dark .ld-schedule-table tbody td { color: #F5F5F5 !important; border-color: #262626 !important; }
+html.app-skin-dark .ld-schedule-paid    { background: rgba(22,163,74,.18) !important; color: #4ade80 !important; }
+html.app-skin-dark .ld-schedule-late    { background: rgba(220,38,38,.18) !important; color: #f87171 !important; }
+html.app-skin-dark .ld-schedule-pending { background: rgba(154,154,154,.18) !important; color: #C4C4C4 !important; }
+
+/* ---------- Footer / nxl-content ---------- */
+html.app-skin-dark .nxl-content { background: #0A0A0A !important; }
+
+/* ---------- Admin Review Status table rows — Bootstrap
+     table-striped/hover background, hindi pa covered dati ---------- */
+html.app-skin-dark .ld-review-table,
+html.app-skin-dark .ld-review-table > :not(caption) > * {
+    --bs-table-bg: transparent !important;
+    --bs-table-striped-bg: transparent !important;
+    --bs-table-accent-bg: transparent !important;
+    --bs-table-hover-bg: #1C1C1C !important;
+    --bs-table-color: #F5F5F5 !important;
+    --bs-table-striped-color: #F5F5F5 !important;
+    --bs-table-hover-color: #F5F5F5 !important;
+}
+html.app-skin-dark .ld-review-table tbody tr {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+html.app-skin-dark .ld-review-table tbody tr td {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/* ---------- Payment Schedule table rows — same fix, in case
+     ito rin ang parehong issue ---------- */
+html.app-skin-dark .ld-schedule-table,
+html.app-skin-dark .ld-schedule-table > :not(caption) > * {
+    --bs-table-bg: transparent !important;
+    --bs-table-striped-bg: transparent !important;
+    --bs-table-accent-bg: transparent !important;
+    --bs-table-hover-bg: #1C1C1C !important;
+    --bs-table-color: #F5F5F5 !important;
+    --bs-table-striped-color: #F5F5F5 !important;
+}
+html.app-skin-dark .ld-schedule-table tbody tr {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+html.app-skin-dark .ld-schedule-table tbody tr td {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
 /* ============================================================
    FOOTER
    ============================================================ */

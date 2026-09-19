@@ -8,7 +8,8 @@
          uses), so that stylesheet needs to load here too. --}}
     <link rel="stylesheet" href="{{ asset('assets/admin/css/loan-details.css') }}">
     {{-- Standalone stylesheet for this page only — not shared with loan-details.css --}}
-    <link rel="stylesheet" href="{{ asset('assets/admin/css/overdue-payment-detail.css') }}">
+     <link rel="stylesheet" href="{{ asset('assets/admin/css/overdue-payment-detail.css') }}?v={{ time() }}">
+  <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/darkmode-global.css') }}?v={{ time() }}" />
     <link rel="stylesheet" href="{{ asset('assets/admin/css/avatar-placeholder.css') }}">
 @endsection
 

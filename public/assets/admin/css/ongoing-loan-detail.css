@@ -401,53 +401,214 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
     .review-item { flex-wrap: wrap; }
 }
 
-/* ============================================
-   DARK MODE
-============================================ */
-html.app-skin-dark .nxl-content { background: #0f172a; }
+/* ══════════════════════════════════════════
+   DARK MODE — TRUE BLACK PALETTE
+   Kinopya ang eksaktong color scheme ng penalty-tracking-detail.css
+   (#0A0A0A background, #141414 cards, #262626 borders, #F5F5F5 text,
+   #9A9A9A muted text) para consistent ang lahat ng admin detail pages.
+   Nasa dulo ito ng file para mag-override sa lahat ng naunang navy-blue
+   (#0f172a, #1e2a3a, #2d3f55, #e2e8f0, #94a3b8) na dark mode rules.
+   ══════════════════════════════════════════ */
 
-html.app-skin-dark .panel { background: #1e2a3a; border-color: #2d3f55 !important; }
-html.app-skin-dark .panel-header { color: #e2e8f0; border-color: #2d3f55; }
-html.app-skin-dark .panel-footer { background: #16202e; border-color: #2d3f55; color: #94a3b8; }
+html.app-skin-dark .nxl-content { background: #0A0A0A !important; }
 
-html.app-skin-dark .olh-card { background: #1e2a3a; border-color: #2d3f55; }
-html.app-skin-dark .olh-name { color: #e2e8f0; }
-html.app-skin-dark .olh-meta-row { color: #94a3b8; }
-html.app-skin-dark .olh-meta-row strong { color: #cbd5e1; }
-html.app-skin-dark .olh-stats { border-color: #2d3f55; }
-html.app-skin-dark .olh-stat:not(:last-child) { border-color: #2d3f55; }
-html.app-skin-dark .olh-stat-value { color: #e2e8f0; }
-html.app-skin-dark .olh-stat-label { color: #94a3b8; }
+/* ---------- Panel shell ---------- */
+html.app-skin-dark .panel {
+    background: #141414 !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .panel-header {
+    color: #F5F5F5 !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .panel-header i { color: #C4C4C4 !important; }
+html.app-skin-dark .panel-footer {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #9A9A9A !important;
+}
 
-html.app-skin-dark .info-item2 label { color: #94a3b8; }
-html.app-skin-dark .info-item2 span { color: #e2e8f0; }
-html.app-skin-dark .info-item2.is-primary span { color: #6c9bff; }
+/* ---------- Merged header card (.olh-*) ---------- */
+html.app-skin-dark .olh-card {
+    background: #141414 !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .olh-name { color: #F5F5F5 !important; }
+html.app-skin-dark .olh-meta-row { color: #9A9A9A !important; }
+html.app-skin-dark .olh-meta-row strong { color: #C4C4C4 !important; }
+html.app-skin-dark .olh-meta-sep { color: #4a4a4a !important; }
+html.app-skin-dark .olh-stats { border-color: #262626 !important; }
+html.app-skin-dark .olh-stat:not(:last-child) { border-color: #262626 !important; }
+html.app-skin-dark .olh-stat-value { color: #F5F5F5 !important; }
+html.app-skin-dark .olh-stat-label { color: #9A9A9A !important; }
 
-html.app-skin-dark .lsc-progress { border-color: #2d3f55; }
-html.app-skin-dark .lsc-progress-title { color: #94a3b8; }
-html.app-skin-dark .lsc-progress-bar { background: #2d3f55; }
-html.app-skin-dark .of-total { color: #64748b; }
+/* "Active" status badge — black instead of blue */
+html.app-skin-dark .badge-active {
+    background: #262626 !important;
+    color: #F5F5F5 !important;
+    border: 1px solid #3a3a3a !important;
+}
 
-html.app-skin-dark .review-item { background: #16202e; }
-html.app-skin-dark .review-item.is-approved { background: #12251c; }
-html.app-skin-dark .review-item.is-rejected { background: #2a1616; }
-html.app-skin-dark .review-item.is-comment { background: #142033; }
-html.app-skin-dark .review-avatar { background: #16202e; color: #64748b; }
-html.app-skin-dark .review-avatar.mine { background: #4a7cf7; color: #fff; }
-html.app-skin-dark .review-name { color: #e2e8f0; }
-html.app-skin-dark .review-remark { color: #b8c4d6; }
-html.app-skin-dark .review-time { color: #94a3b8; }
-html.app-skin-dark .comments-label { color: #94a3b8; }
+/* ---------- Loan Summary info items ---------- */
+html.app-skin-dark .info-item2 label { color: #9A9A9A !important; }
+html.app-skin-dark .info-item2 span { color: #F5F5F5 !important; }
+html.app-skin-dark .info-item2.is-primary span { color: #F5F5F5 !important; }
 
-html.app-skin-dark .loan-schedule-table thead th { color: #94a3b8; border-color: #2d3f55; }
-html.app-skin-dark .loan-schedule-table tbody td { color: #e2e8f0; border-color: #2d3f55; }
-html.app-skin-dark .loan-schedule-table tbody tr:hover { background: #16202e; }
+/* ---------- Payment progress ---------- */
+html.app-skin-dark .old-progress-row { border-color: #262626 !important; }
+html.app-skin-dark .old-progress-count { color: #F5F5F5 !important; }
+html.app-skin-dark .lsc-progress-title { color: #9A9A9A !important; }
+html.app-skin-dark .lsc-progress-bar { background: #262626 !important; }
+html.app-skin-dark .lsc-progress-fill {
+    background: linear-gradient(90deg, #4a4a4a, #6b6b6b) !important;
+}
+html.app-skin-dark .old-next-due-box { background: #0d0d0d !important; }
+html.app-skin-dark .old-next-due-label { color: #9A9A9A !important; }
+html.app-skin-dark .old-next-due-date { color: #F5F5F5 !important; }
+html.app-skin-dark .old-next-due-date i { color: #C4C4C4 !important; }
 
-html.app-skin-dark .btn-light { background: #1e2a3a; border-color: #2d3f55; color: #e2e8f0; }
-html.app-skin-dark .btn-light:hover { border-color: #4a7cf7; color: #6c9bff; background: #16233a; }
+/* ---------- Admin Review Status ---------- */
+html.app-skin-dark .old-view-all-link { color: #C4C4C4 !important; }
+html.app-skin-dark .review-item { background: #0d0d0d !important; }
+html.app-skin-dark .review-item.is-approved { background: rgba(22,163,74,.12) !important; }
+html.app-skin-dark .review-item.is-rejected { background: rgba(220,38,38,.12) !important; }
+html.app-skin-dark .review-item.is-comment { background: #16181c !important; }
+html.app-skin-dark .review-avatar { background: #262626 !important; color: #9A9A9A !important; }
+html.app-skin-dark .review-avatar.mine { background: #3a3a3a !important; color: #fff !important; }
+html.app-skin-dark .review-avatar.is-purple { background: rgba(139,92,246,.18) !important; color: #c4b5fd !important; }
+html.app-skin-dark .review-avatar.is-blue { background: #262626 !important; color: #C4C4C4 !important; }
+html.app-skin-dark .review-name { color: #F5F5F5 !important; }
+html.app-skin-dark .review-remark { color: #C4C4C4 !important; }
+html.app-skin-dark .review-time { color: #9A9A9A !important; }
+html.app-skin-dark .comments-label { color: #9A9A9A !important; }
+html.app-skin-dark .badge-approved { background: rgba(22,163,74,.18) !important; color: #4ade80 !important; }
+html.app-skin-dark .badge-rejected { background: rgba(220,38,38,.18) !important; color: #f87171 !important; }
 
-html.app-skin-dark .text-muted { color: #94a3b8 !important; }
+/* ---------- Payment Schedule table ---------- */
+html.app-skin-dark .ols-sched-header { border-color: #262626 !important; }
+html.app-skin-dark .ols-sched-title { color: #F5F5F5 !important; }
+html.app-skin-dark .ols-sched-subtitle { color: #9A9A9A !important; }
+html.app-skin-dark .ols-sched-icon { background: #262626 !important; color: #F5F5F5 !important; }
+html.app-skin-dark .ols-sched-count-pill {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #C4C4C4 !important;
+}
+html.app-skin-dark .ols-sched-count-pill i { color: #C4C4C4 !important; }
+html.app-skin-dark .ols-sched-count-pill strong { color: #F5F5F5 !important; }
 
+html.app-skin-dark .ols-sched-table thead th {
+    background: #0d0d0d !important;
+    color: #9A9A9A !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .ols-sched-table tbody td {
+    color: #F5F5F5 !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .ols-sched-table tbody tr:hover { background: #16181c !important; }
+
+html.app-skin-dark .ols-row-num { background: #262626 !important; color: #C4C4C4 !important; }
+html.app-skin-dark .ols-due-date { color: #F5F5F5 !important; }
+html.app-skin-dark .ols-due-sub { color: #9A9A9A !important; }
+html.app-skin-dark .ols-amount-due { color: #F5F5F5 !important; }
+html.app-skin-dark .ols-amount-paid-value { color: #F5F5F5 !important; }
+html.app-skin-dark .ols-mini-progress-track { background: #262626 !important; }
+html.app-skin-dark .ols-mini-progress-fill {
+    background: linear-gradient(90deg, #4a4a4a, #6b6b6b) !important;
+}
+html.app-skin-dark .ols-mini-progress-pct { color: #9A9A9A !important; }
+
+html.app-skin-dark .ols-status-pill.is-paid     { background: rgba(22,163,74,.18) !important; color: #4ade80 !important; }
+html.app-skin-dark .ols-status-pill.is-overdue  { background: rgba(220,38,38,.18) !important; color: #f87171 !important; }
+html.app-skin-dark .ols-status-pill.is-upcoming { background: rgba(245,158,11,.18) !important; color: #fbbf24 !important; }
+
+html.app-skin-dark .btn-record-payment {
+    border: 1px solid #3a3a3a !important;
+    background: #262626 !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .btn-record-payment:hover:not(:disabled) {
+    background: #3a3a3a !important;
+    color: #fff !important;
+}
+html.app-skin-dark .sched-paid-note { color: #6b6b6b !important; }
+
+html.app-skin-dark .ols-kebab-btn {
+    border: 1px solid #262626 !important;
+    background: #0d0d0d !important;
+    color: #9A9A9A !important;
+}
+html.app-skin-dark .ols-kebab-btn:hover {
+    border-color: #4a4a4a !important;
+    color: #F5F5F5 !important;
+    background: #262626 !important;
+}
+html.app-skin-dark .ols-sched-footnote {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #9A9A9A !important;
+}
+html.app-skin-dark .ols-sched-footnote i { color: #9A9A9A !important; }
+
+html.app-skin-dark .ols-page-arrow {
+    border: 1px solid #262626 !important;
+    background: #0d0d0d !important;
+    color: #9A9A9A !important;
+}
+html.app-skin-dark .ols-page-arrow:hover:not(:disabled) {
+    border-color: #4a4a4a !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .ols-page-indicator {
+    background: #262626 !important;
+    color: #F5F5F5 !important;
+}
+
+/* ---------- "Mark as Paid" confirmation modal ---------- */
+html.app-skin-dark .ols-confirm-modal.modal-content { background: #141414 !important; }
+html.app-skin-dark .ols-confirm-eyebrow { color: #6b6b6b !important; }
+html.app-skin-dark .ols-confirm-title { color: #F5F5F5 !important; }
+html.app-skin-dark .ols-confirm-desc { color: #9A9A9A !important; }
+html.app-skin-dark .ols-confirm-icon { background: #262626 !important; color: #F5F5F5 !important; }
+html.app-skin-dark #olsMarkPaidConfirmModal .nxl-pw-btn-discard {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark #olsMarkPaidConfirmModal .nxl-pw-btn-discard:hover {
+    background: #16181c !important;
+}
+html.app-skin-dark #olsMarkPaidConfirmModal .nxl-pw-btn-apply {
+    background: #262626 !important;
+    border: 1px solid #3a3a3a !important;
+    color: #fff !important;
+}
+html.app-skin-dark #olsMarkPaidConfirmModal .nxl-pw-btn-apply:hover {
+    background: #1a1a1a !important;
+    border-color: #1a1a1a !important;
+}
+
+/* ---------- Back button + text-muted ---------- */
+html.app-skin-dark .btn-light {
+    background: #141414 !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .btn-light:hover {
+    border-color: #4a4a4a !important;
+    color: #F5F5F5 !important;
+    background: #262626 !important;
+}
+html.app-skin-dark .text-muted { color: #9A9A9A !important; }
+html.app-skin-dark .empty-note { color: #9A9A9A !important; }
+
+/* ---------- Action recorded badge (kept green — status color) ---------- */
+html.app-skin-dark .action-recorded-badge { color: #4ade80 !important; }
+/* ---------- Success / "Recorded" note (kept green — status color, not accent) ---------- */
+/* Sinadyang hindi binago ang .action-recorded-badge dahil status color
+   ito (paid = green), hindi theme accent — pareho ang treatment sa
+   badge-approved/badge-paid na mga ibang status indicators. */
 /* ---------- Payment Progress row ---------- */
 .old-progress-row {
     display: flex;

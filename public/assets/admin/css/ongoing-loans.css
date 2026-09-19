@@ -139,7 +139,10 @@
         .rows-per-page-select-v2:focus { border-color: var(--rs-brand); box-shadow: 0 0 0 3px var(--rs-brand-soft); }
 
         /* ── Table ── */
-        .rs-table-card { overflow: hidden; }
+.rs-table-card { overflow: hidden; }
+.rs-table {
+    width: 100%;
+}
         .rs-table thead th {
             background: #fbfcfe; color: var(--rs-muted);
             font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
@@ -224,34 +227,99 @@
         .empty-state-v2 h6 { margin-top: 14px; font-weight: 700; color: var(--rs-ink); }
         .empty-state-v2 p { color: var(--rs-muted); font-size: 0.85rem; margin: 0; }
 
-        /* ── Dark mode ── */
-        html.app-skin-dark body { background: #0f172a; }
-        html.app-skin-dark .rs-card { background: #1e2a3a; border-color: #2d3f55; }
+        /* ============================================================
+           DARK MODE — true black palette
+           ============================================================ */
+        html.app-skin-dark .nxl-content { background: #0A0A0A !important; }
+        html.app-skin-dark body { background: #0A0A0A !important; }
+
+        html.app-skin-dark .rs-card {
+            background: #141414 !important;
+            border-color: #262626 !important;
+        }
+
         html.app-skin-dark .stat-value-v2,
         html.app-skin-dark .stat-label-v2,
         html.app-skin-dark .borrower-name-v2,
         html.app-skin-dark .loan-amount-v2,
         html.app-skin-dark .btn-view-v2,
-        html.app-skin-dark .empty-state-v2 h6 { color: #e2e8f0; }
+        html.app-skin-dark .empty-state-v2 h6 { color: #e2e8f0 !important; }
+
         html.app-skin-dark .borrower-email-v2,
         html.app-skin-dark .loan-meta-v2,
         html.app-skin-dark .next-due-amount-v2,
-        html.app-skin-dark .empty-state-v2 p { color: #94a3b8; }
+        html.app-skin-dark .empty-state-v2 p { color: #94a3b8 !important; }
+
         html.app-skin-dark .search-wrap-v2,
         html.app-skin-dark .sort-select-v2,
-        html.app-skin-dark .rows-per-page-select-v2 { background: #16202e; border-color: #2d3f55; color: #e2e8f0; }
-        html.app-skin-dark .rows-per-page-label-v2 { color: #94a3b8; }
-        html.app-skin-dark .rs-table thead th { background: #16202e; border-color: #2d3f55; color: #94a3b8; }
-        html.app-skin-dark .rs-table tbody td { border-color: #2d3f55; }
-        html.app-skin-dark .rs-table tbody tr:hover { background: #16202e; }
-        html.app-skin-dark .btn-view-v2 { background: #16202e; border-color: #2d3f55; }
-        html.app-skin-dark .purpose-pill { background: rgba(22,163,74,.15); color: #6ee7a4; }
-        html.app-skin-dark .progress-bar-track-v2 { background: #2d3f55; }
-        html.app-skin-dark .pagination-bar-v2 { background: #16202e; border-color: #2d3f55; }
-        html.app-skin-dark .pagination-info-v2 { color: #94a3b8; }
-        html.app-skin-dark .page-indicator-v2 { color: #cbd5e1; }
-        html.app-skin-dark .btn-page-v2 { background: #1e2a3a; border-color: #2d3f55; color: #cbd5e1; }
-        html.app-skin-dark .btn-page-v2:hover:not(:disabled) { border-color: var(--rs-brand); color: #93c5fd; background: rgba(74,124,247,.15); }
+        html.app-skin-dark .rows-per-page-select-v2 {
+            background: #141414 !important;
+            border-color: #262626 !important;
+            color: #e2e8f0 !important;
+        }
+        html.app-skin-dark .rows-per-page-label-v2 { color: #94a3b8 !important; }
+
+        html.app-skin-dark .rs-table thead th {
+            background: #141414 !important;
+            border-color: #262626 !important;
+            color: #94a3b8 !important;
+        }
+        html.app-skin-dark .rs-table tbody td { border-color: #262626 !important; }
+
+        /* ── Table row backgrounds — Bootstrap variable override ──
+             Bootstrap 5's .table styles set background via
+             --bs-table-bg on the cells themselves (not on <tr>),
+             so a plain background rule on tr/td gets overridden.
+             We override the CSS variable directly here. ── */
+        html.app-skin-dark .rs-table,
+        html.app-skin-dark .rs-table > :not(caption) > * > * {
+            --bs-table-bg: #141414 !important;
+            --bs-table-striped-bg: #141414 !important;
+            --bs-table-accent-bg: #141414 !important;
+            --bs-table-hover-bg: #1a1a1a !important;
+            background-color: #141414 !important;
+            color: #e2e8f0 !important;
+        }
+        html.app-skin-dark .rs-table tbody tr:hover > * {
+            --bs-table-bg: #1a1a1a !important;
+            background-color: #1a1a1a !important;
+        }
+
+        html.app-skin-dark .btn-view-v2 {
+            background: #141414 !important;
+            border-color: #262626 !important;
+        }
+
+        html.app-skin-dark .purpose-pill {
+            background: rgba(22,163,74,.15) !important;
+            color: #6ee7a4 !important;
+        }
+
+        html.app-skin-dark .progress-bar-track-v2 { background: #262626 !important; }
+        html.app-skin-dark .progress-bar-fill-v2 {
+            background: #ffffff !important;
+        }
+        html.app-skin-dark .borrower-id-v2 {
+            color: #a3a3a3 !important;
+        }
+
+        html.app-skin-dark .pagination-bar-v2 {
+            background: #141414 !important;
+            border-color: #262626 !important;
+        }
+        html.app-skin-dark .pagination-info-v2 { color: #94a3b8 !important; }
+        html.app-skin-dark .page-indicator-v2 { color: #cbd5e1 !important; }
+
+        html.app-skin-dark .btn-page-v2 {
+            background: #141414 !important;
+            border-color: #262626 !important;
+            color: #cbd5e1 !important;
+        }
+        html.app-skin-dark .btn-page-v2:hover:not(:disabled) {
+            border-color: var(--rs-brand) !important;
+            color: #93c5fd !important;
+            background: rgba(74,124,247,.15) !important;
+        }
 
         /* ── Responsive ── */
         @media (max-width: 767.98px) {

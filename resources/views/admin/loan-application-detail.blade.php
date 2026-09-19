@@ -3,8 +3,9 @@
 @section('title', 'Application Detail')
 
 @section('page-styles')
-    <link rel="stylesheet" href="{{ asset('assets/admin/css/modals-modern.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/admin/css/loan-details.css') }}">
+   <link rel="stylesheet" href="{{ asset('assets/admin/css/modals-modern.css') }}?v={{ time() }}">
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/loan-details.css') }}?v={{ time() }}" />
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/darkmode-global.css') }}?v={{ time() }}" />
 @endsection
 
 @section('content')

@@ -673,103 +673,8 @@
     }
 }
 
-/* ---------- Responsive ---------- */
-@media (max-width: 1199.98px) {
-    .bwl-dash-widgets { grid-template-columns: repeat(2, 1fr); }
-    .bwl-dash-row,
-    .bwl-dash-row.bwl-dash-row-cal { grid-template-columns: 1fr; }
-    .bwl-dash-overview-body { flex-direction: column; }
-    .bwl-dash-overview-list { width: 100%; }
-    .bwl-dash-calendar { width: 100%; }
-}
-@media (min-width: 1200px) and (max-width: 1500px) {
-    .bwl-dash-calendar { width: 300px; }
-    .bwl-dash-overview-list { width: 260px; }
-    .bwl-dash-cal-grid { grid-template-columns: repeat(7, 32px); gap: 4px; }
-    .bwl-dash-cal-day { width: 32px; height: 32px; font-size: 0.72rem; }
-}
-@media (max-width: 575.98px) {
-    .bwl-dash-widgets { grid-template-columns: 1fr; }
-    .bwl-status-simple-footer { flex-direction: column; align-items: flex-start; gap: 6px; }
-}
-
-/* ---------- Dark mode ---------- */
-html.app-skin-dark .nxl-content { background: #14202e; }
-html.app-skin-dark .bwl-dash-widget,
-html.app-skin-dark .bwl-dash-card { background: #1E2A3A !important; border-color: #2D3F55 !important; }
-html.app-skin-dark .bwl-dash-widget-icon { background: #16202E; color: #94A3B8; }
-html.app-skin-dark .bwl-dash-widget-value,
-html.app-skin-dark .bwl-dash-card-header h6,
-html.app-skin-dark .bwl-dash-overview-row strong,
-html.app-skin-dark .bwl-dash-progress-title,
-html.app-skin-dark .bwl-dash-donut-pct,
-html.app-skin-dark .bwl-dash-timeline-title,
-html.app-skin-dark .bwl-dash-payment-title,
-html.app-skin-dark .bwl-dash-payment-amount,
-html.app-skin-dark .bwl-dash-cal-month,
-html.app-skin-dark .bwl-dash-cal-day,
-html.app-skin-dark .bwl-dash-cal-next-label { color: #E2E8F0; }
-html.app-skin-dark .bwl-dash-widget-label,
-html.app-skin-dark .bwl-dash-widget-sub,
-html.app-skin-dark .bwl-dash-overview-row span,
-html.app-skin-dark .bwl-dash-progress-sub,
-html.app-skin-dark .bwl-dash-cal-dow,
-html.app-skin-dark .bwl-dash-cal-nav,
-html.app-skin-dark .bwl-dash-timeline-date,
-html.app-skin-dark .bwl-dash-payment-date,
-html.app-skin-dark .bwl-dash-cal-next-sub { color: #94A3B8; }
-html.app-skin-dark .bwl-dash-cal-nav:hover { background: #16202E; color: #E2E8F0; }
-html.app-skin-dark .bwl-dash-card-header,
-html.app-skin-dark .bwl-dash-overview-row,
-html.app-skin-dark .bwl-dash-payment-item,
-html.app-skin-dark .bwl-dash-timeline-item:not(:last-child)::before { border-color: #2D3F55; }
-html.app-skin-dark .bwl-dash-donut-inner { background: #1E2A3A; }
-html.app-skin-dark .bwl-dash-cal-next { background: #16202E; }
-html.app-skin-dark .bwl-dash-progress-track { background: #2D3F55; }
-
-/* ---------- Dark mode: status panel ---------- */
-html.app-skin-dark .bwl-status-panel,
-html.app-skin-dark .bwl-status-card {
-    background: #1E2A3A;
-    border-color: #2D3F55;
-}
-html.app-skin-dark .bwl-status-panel.is-danger,
-html.app-skin-dark .bwl-status-card.is-danger { border-color: #5a2a2a; }
-html.app-skin-dark .bwl-status-title { color: #E2E8F0; }
-html.app-skin-dark .bwl-status-desc { color: #94A3B8; }
-html.app-skin-dark .bwl-status-eyebrow { color: #64748B; }
-html.app-skin-dark .bwl-status-stat-icon,
-html.app-skin-dark .bwl-status-approvals-icon {
-    background: #16202E;
-    color: #94A3B8;
-}
-html.app-skin-dark .bwl-status-stat-label,
-html.app-skin-dark .bwl-status-approvals-label { color: #94A3B8; }
-html.app-skin-dark .bwl-status-stat-value,
-html.app-skin-dark .bwl-status-approvals-value { color: #E2E8F0; }
-html.app-skin-dark .bwl-status-divider { background: #2D3F55; }
-html.app-skin-dark .bwl-status-simple-footer { border-color: #2D3F55; }
-html.app-skin-dark .bwl-status-meta { color: #94A3B8; }
-html.app-skin-dark .bwl-status-footnote,
-html.app-skin-dark .bwl-status-note { color: #64748B; }
-html.app-skin-dark .bwl-status-btn.is-danger {
-    background: #1E2A3A;
-    border-color: #5a2a2a;
-}
-
-/* ---------- Dark mode: loan status tracker ---------- */
-html.app-skin-dark .bwl-tracker-card { background: #1E2A3A; border-color: #2D3F55; }
-html.app-skin-dark .bwl-tracker-eyebrow,
-html.app-skin-dark .bwl-tracker-message { color: #94A3B8; }
-html.app-skin-dark .bwl-tracker-summary { color: #E2E8F0; border-color: #2D3F55; }
-html.app-skin-dark .bwl-tracker-dot { background: #16202E; border-color: #2D3F55; }
-html.app-skin-dark .bwl-tracker-label { color: #64748B; }
-html.app-skin-dark .bwl-tracker-line { background: #2D3F55; }
-html.app-skin-dark .bwl-tracker-empty-title { color: #E2E8F0; }
-
 /* ============================================================
     Onboarding empty state — "Complete Your Profile"
-    Idagdag ito sa dulo ng borrower-dashboard.css
 ============================================================ */
 
 .bwl-onboard-wrap {
@@ -921,20 +826,138 @@ html.app-skin-dark .bwl-tracker-empty-title { color: #E2E8F0; }
     }
 }
 
-/* ---------- Dark mode ---------- */
+/* ---------- Responsive ---------- */
+@media (max-width: 1199.98px) {
+    .bwl-dash-widgets { grid-template-columns: repeat(2, 1fr); }
+    .bwl-dash-row,
+    .bwl-dash-row.bwl-dash-row-cal { grid-template-columns: 1fr; }
+    .bwl-dash-overview-body { flex-direction: column; }
+    .bwl-dash-overview-list { width: 100%; }
+    .bwl-dash-calendar { width: 100%; }
+}
+@media (min-width: 1200px) and (max-width: 1500px) {
+    .bwl-dash-calendar { width: 300px; }
+    .bwl-dash-overview-list { width: 260px; }
+    .bwl-dash-cal-grid { grid-template-columns: repeat(7, 32px); gap: 4px; }
+    .bwl-dash-cal-day { width: 32px; height: 32px; font-size: 0.72rem; }
+}
+@media (max-width: 575.98px) {
+    .bwl-dash-widgets { grid-template-columns: 1fr; }
+    .bwl-status-simple-footer { flex-direction: column; align-items: flex-start; gap: 6px; }
+}
+
+/* ============================================================
+    DARK MODE — TRUE BLACK (matches sidebar / admin panel)
+    ------------------------------------------------------------
+    Palette:
+      page bg   #0A0A0A     card bg   #141414     inner bg  #0d0d0d
+      border    #262626     hover     #1C1C1C
+      text      #F5F5F5     muted     #9A9A9A     dim       #737373
+
+    Step 1: palitan yung color variables — dahil karamihan ng
+    rules sa taas ay gumagamit ng var(--bwl-dash-...), sila na
+    ang magsasalin ng kulay automatically.
+    Step 2: yung mga hardcoded na white (#fff) lang ang
+    ino-override isa-isa sa ibaba.
+============================================================ */
+
+html.app-skin-dark {
+    --bwl-dash-ink: #F5F5F5;
+    --bwl-dash-gray: #9A9A9A;
+    --bwl-dash-gray-light: #737373;
+    --bwl-dash-border: #262626;
+    --bwl-dash-bg-soft: #0d0d0d;
+
+    --bwl-dash-blue-soft: rgba(37, 99, 235, 0.18);
+    --bwl-dash-orange-soft: rgba(234, 88, 12, 0.18);
+    --bwl-dash-purple-soft: rgba(124, 58, 237, 0.18);
+    --bwl-dash-green-soft: rgba(22, 163, 74, 0.18);
+    --bwl-dash-red-soft: rgba(220, 38, 38, 0.18);
+
+    --bwl-dash-shadow: none;
+}
+
+/* ---------- Page background ---------- */
+html.app-skin-dark .nxl-content { background: #0A0A0A; }
+
+/* ---------- Cards & widgets ---------- */
+html.app-skin-dark .bwl-dash-widget,
+html.app-skin-dark .bwl-dash-card {
+    background: #141414 !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .bwl-dash-widget-icon { color: #9A9A9A; }
+html.app-skin-dark .bwl-dash-widget-icon.is-green { color: #22C55E; }
+html.app-skin-dark .bwl-dash-widget-icon.is-red   { color: #F87171; }
+html.app-skin-dark .bwl-dash-progress-track { background: #262626; }
+
+/* ---------- Pills & badges (brighter text para mabasa sa black) ---------- */
+html.app-skin-dark .bwl-dash-pill.is-info,
+html.app-skin-dark .bwl-dash-timeline-badge.is-upcoming { color: #60A5FA; }
+html.app-skin-dark .bwl-dash-pill.is-danger { color: #F87171; }
+html.app-skin-dark .bwl-dash-timeline-badge.is-done { color: #4ADE80; }
+
+/* ---------- Loan overview donut ---------- */
+html.app-skin-dark .bwl-dash-donut {
+    background: conic-gradient(var(--bwl-dash-blue) calc(var(--pct) * 1%), #262626 0);
+}
+html.app-skin-dark .bwl-dash-donut-inner { background: #141414; }
+
+/* ---------- Calendar ---------- */
+html.app-skin-dark .bwl-dash-cal-nav:hover { background: #1C1C1C; color: #F5F5F5; }
+html.app-skin-dark .bwl-dash-cal-day.has-payment:not(.is-today) { color: #60A5FA; }
+html.app-skin-dark .bwl-dash-cal-next { background: #0d0d0d; }
+
+/* ---------- Timeline ---------- */
+html.app-skin-dark .bwl-dash-timeline-item.is-upcoming .bwl-dash-timeline-dot { background: #141414; }
+
+/* ---------- Status panel ---------- */
+html.app-skin-dark .bwl-status-panel,
+html.app-skin-dark .bwl-status-card,
+html.app-skin-dark .bwl-status-panel.is-full {
+    background: #141414;
+    border-color: #262626;
+}
+html.app-skin-dark .bwl-status-panel.is-danger,
+html.app-skin-dark .bwl-status-card.is-danger { border-color: #5a2a2a; }
+html.app-skin-dark .bwl-status-btn.is-danger {
+    background: #141414;
+    border-color: #5a2a2a;
+    color: #F87171;
+}
+html.app-skin-dark .bwl-status-btn.is-danger:hover { background: rgba(220, 38, 38, 0.15); }
+
+/* ---------- Loan status tracker ---------- */
+html.app-skin-dark .bwl-tracker-card {
+    background: #141414;
+    border-color: #262626;
+}
+html.app-skin-dark .bwl-tracker-dot {
+    background: #0d0d0d;
+    border-color: #262626;
+}
+html.app-skin-dark .bwl-tracker-step.is-done .bwl-tracker-dot {
+    background: var(--bwl-dash-green);
+    border-color: var(--bwl-dash-green);
+}
+html.app-skin-dark .bwl-tracker-step.is-current .bwl-tracker-dot { border-color: var(--bwl-dash-blue); }
+html.app-skin-dark .bwl-tracker-step.is-current .bwl-tracker-label { color: #60A5FA; }
+html.app-skin-dark .bwl-tracker-step.is-rejected .bwl-tracker-dot {
+    background: var(--bwl-dash-red);
+    border-color: var(--bwl-dash-red);
+}
+html.app-skin-dark .bwl-tracker-line { background: #262626; }
+html.app-skin-dark .bwl-tracker-line.is-done { background: var(--bwl-dash-green); }
+html.app-skin-dark .bwl-tracker-line.is-rejected { background: var(--bwl-dash-red); }
+
+/* ---------- Onboarding card ---------- */
 html.app-skin-dark .bwl-onboard-card {
-    background: #1E2A3A;
-    border-color: #2D3F55;
+    background: #141414;
+    border-color: #262626;
 }
-html.app-skin-dark .bwl-onboard-title { color: #E2E8F0; }
-html.app-skin-dark .bwl-onboard-desc { color: #94A3B8; }
-html.app-skin-dark .bwl-onboard-eyebrow { color: #64748B; }
-html.app-skin-dark .bwl-onboard-icon { background: #16202E; }
-html.app-skin-dark .bwl-onboard-icon::before { border-color: #16202E; }
-html.app-skin-dark .bwl-onboard-checklist { background: #16202E; }
+html.app-skin-dark .bwl-onboard-icon::before { border-color: rgba(37, 99, 235, 0.18); }
+html.app-skin-dark .bwl-onboard-checklist { background: #0d0d0d; }
 html.app-skin-dark .bwl-onboard-check-icon {
-    background: #1E2A3A;
-    border-color: #2D3F55;
-    color: #94A3B8;
+    background: #141414;
+    border-color: #262626;
 }
-html.app-skin-dark .bwl-onboard-check-label { color: #94A3B8; }

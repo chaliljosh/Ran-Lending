@@ -6,10 +6,11 @@
     {{-- Reuses section-card / info-label / table-loan-summary / ld-schedule-*
          / borrower-avatar / badges / sidebar-highlight / dark-mode / footer
          rules already defined here — nothing below duplicates them. --}}
-    <link rel="stylesheet" href="{{ asset('assets/admin/css/loan-details.css') }}">
+        <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/loan-details.css') }}?v={{ time() }}" />
     {{-- Standalone, page-specific additions only (top summary card,
          horizontal loan summary grid, standing badge, progress bar) --}}
-    <link rel="stylesheet" href="{{ asset('assets/admin/css/active-borrower-detail.css') }}">
+     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/active-borrower-detail.css') }}?v={{ time() }}" />
+         <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/darkmode-global.css') }}?v={{ time() }}" />
 @endsection
 
 @section('content')

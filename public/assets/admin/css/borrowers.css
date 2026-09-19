@@ -423,88 +423,121 @@ body {
 }
 
 /* ══════════════════ Dark mode ══════════════════ */
-html.app-skin-dark body { background: #0f172a; }
+html.app-skin-dark body { background: #0A0A0A !important; }
 
 html.app-skin-dark .search-bar-wrap {
-    background: #1e2a3a;
-    border-color: #2d3f55;
+    background: #141414 !important;
+    border-color: #262626 !important;
 }
-html.app-skin-dark .search-bar-wrap input {
-    color: #e2e8f0;
-}
-html.app-skin-dark .search-bar-wrap input::placeholder {
-    color: #64748b;
-}
+html.app-skin-dark .search-bar-wrap input { color: #F5F5F5 !important; }
+html.app-skin-dark .search-bar-wrap input::placeholder { color: #9A9A9A !important; }
 
-/* Status/Sort dropdowns — forced with !important + ID selectors
-   kasi may global dark-mode rule na nangyayaring mas matimbang
-   at nagpapawala sa text (blangko lumalabas). */
 html.app-skin-dark .filter-bar select.form-select,
 html.app-skin-dark #statusFilter,
 html.app-skin-dark #sortFilter {
-    background-color: #1e2a3a !important;
-    border-color: #2d3f55 !important;
-    color: #e2e8f0 !important;
+    background-color: #141414 !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
 }
 html.app-skin-dark .filter-bar select.form-select option,
 html.app-skin-dark #statusFilter option,
 html.app-skin-dark #sortFilter option {
-    background-color: #1e2a3a !important;
-    color: #e2e8f0 !important;
+    background-color: #141414 !important;
+    color: #F5F5F5 !important;
 }
 
 html.app-skin-dark .card {
-    background: #1e2a3a !important;
-    border-color: #2d3f55 !important;
+    background: #141414 !important;
+    border-color: #262626 !important;
 }
 html.app-skin-dark .stat-card {
-    background: #1e2a3a !important;
-    border-color: #2d3f55 !important;
+    background: #141414 !important;
+    border-color: #262626 !important;
 }
-html.app-skin-dark .stat-card .stat-label { color: #cbd5e1; }
-html.app-skin-dark .stat-card .stat-value { color: #e2e8f0; }
-html.app-skin-dark .stat-card .stat-sub { color: #94a3b8; }
+html.app-skin-dark .stat-card .stat-label { color: #C4C4C4 !important; }
+html.app-skin-dark .stat-card .stat-value { color: #F5F5F5 !important; }
+html.app-skin-dark .stat-card .stat-sub { color: #9A9A9A !important; }
 
 html.app-skin-dark .borrower-table thead th {
-    background: #1e2a3a;
-    border-bottom-color: #2d3f55;
-    color: #94a3b8;
+    background: #141414 !important;
+    border-bottom-color: #262626 !important;
+    color: #9A9A9A !important;
 }
 html.app-skin-dark .borrower-table tbody td {
-    border-bottom-color: #2d3f55;
-    color: #e2e8f0;
+    border-bottom-color: #262626 !important;
+    color: #F5F5F5 !important;
 }
 html.app-skin-dark .borrower-table tbody tr:hover {
-    background-color: #24334a;
+    background-color: #1C1C1C !important;
 }
-html.app-skin-dark .borrower-cell .borrower-name { color: #e2e8f0; }
-html.app-skin-dark .borrower-cell .borrower-id-text { color: #64748b; }
-html.app-skin-dark .borrower-cell .borrower-email { color: #94a3b8; }
+html.app-skin-dark .borrower-cell .borrower-name { color: #F5F5F5 !important; }
+html.app-skin-dark .borrower-cell .borrower-id-text { color: #9A9A9A !important; }
+html.app-skin-dark .borrower-cell .borrower-email { color: #9A9A9A !important; }
 html.app-skin-dark .borrower-table .btn-view {
-    background: #16202e;
-    border-color: #2d3f55;
-    color: #e2e8f0;
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
 }
+html.app-skin-dark .borrower-table .btn-view:hover {
+    border-color: #9BBE4A !important;
+    color: #9BBE4A !important;
+    background: #1C1C1C !important;
+}
+
 html.app-skin-dark .table-footer {
-    background: #1e2a3a;
-    border-top-color: #2d3f55;
+    background: #141414 !important;
+    border-top-color: #262626 !important;
 }
 html.app-skin-dark .rows-per-page .per-page-select {
-    background-color: #16202e;
-    border-color: #2d3f55;
-    color: #e2e8f0;
+    background-color: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
 }
-html.app-skin-dark .table-footer-info strong { color: #e2e8f0; }
+html.app-skin-dark .table-footer-info { color: #9A9A9A !important; }
+html.app-skin-dark .table-footer-info strong { color: #F5F5F5 !important; }
+html.app-skin-dark .pagination-controls .page-btn { color: #9A9A9A !important; }
 html.app-skin-dark .pagination-controls .page-btn:hover:not(:disabled) {
-    background: #24334a;
-    border-color: #2d3f55;
+    background: #1C1C1C !important;
+    border-color: #262626 !important;
+    color: #9BBE4A !important;
 }
-html.app-skin-dark .nxl-content {
-    background: #0f172a;
+html.app-skin-dark .pagination-controls .page-btn.active {
+    background: #9BBE4A !important;
+    border-color: #9BBE4A !important;
+    color: #0A0A0A !important;
 }
-html.app-skin-dark .filter-bar {
-    background: transparent;
+
+html.app-skin-dark .nxl-content { background: #0A0A0A !important; }
+html.app-skin-dark .filter-bar { background: transparent !important; }
+
+/* ---------- Table row striping — Bootstrap 5 CSS variables,
+     hindi covered ng plain background-color override ---------- */
+html.app-skin-dark .borrower-table,
+html.app-skin-dark .borrower-table > :not(caption) > * {
+    --bs-table-bg: transparent !important;
+    --bs-table-striped-bg: transparent !important;
+    --bs-table-accent-bg: transparent !important;
+    --bs-table-hover-bg: #1C1C1C !important;
+    --bs-table-color: #F5F5F5 !important;
+    --bs-table-striped-color: #F5F5F5 !important;
+    --bs-table-hover-color: #F5F5F5 !important;
 }
+html.app-skin-dark .borrower-table tbody tr {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+html.app-skin-dark .borrower-table tbody tr td {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/* ---------- Badges — deeper tints against black card ---------- */
+html.app-skin-dark .badge-approved  { background: rgba(22,163,74,.18) !important;  color: #4ade80 !important; border-color: rgba(22,163,74,.3) !important; }
+html.app-skin-dark .badge-onhold    { background: rgba(180,83,9,.18) !important;   color: #f0b756 !important; border-color: rgba(180,83,9,.3) !important; }
+html.app-skin-dark .badge-noloan    { background: #1C1C1C !important; color: #C4C4C4 !important; border-color: #262626 !important; }
+html.app-skin-dark .badge-pending   { background: rgba(180,83,9,.18) !important;   color: #f0b756 !important; border-color: rgba(180,83,9,.3) !important; }
+html.app-skin-dark .badge-completed { background: rgba(37,99,235,.18) !important;  color: #93c5fd !important; border-color: rgba(37,99,235,.3) !important; }
+html.app-skin-dark .badge-suspended { background: rgba(220,38,38,.18) !important;  color: #f87171 !important; border-color: rgba(220,38,38,.3) !important; }
 
 /* Footer sa ibaba, kahit konti lang laman ng page */
 .nxl-container {

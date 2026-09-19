@@ -1025,3 +1025,111 @@ html.app-skin-dark .rv-page-num.active {
 html.app-skin-dark .rv-page-ellipsis {
     color: #8A8A8A;
 }
+
+/* ============================================================
+   DARK MODE OVERRIDE — true black palette (pinapalitan ang
+   navy-only palette sa itaas, para tumugma sa itim na sidebar/
+   dashboard/verification pages)
+   ============================================================ */
+html.app-skin-dark body .nxl-content { background: #0A0A0A !important; }
+html.app-skin-dark .app-card,
+html.app-skin-dark .la-stat-card,
+html.app-skin-dark .btn-la-outline,
+html.app-skin-dark .status-subtle,
+html.app-skin-dark .tab-btn,
+html.app-skin-dark .la-empty,
+html.app-skin-dark .la-empty-large,
+html.app-skin-dark .search-bar-wrap,
+html.app-skin-dark body .main-content .reviewed-card,
+html.app-skin-dark .reviewed-decision-filter,
+html.app-skin-dark .reviewed-rpp-select,
+html.app-skin-dark body .main-content table.reviewed-table thead th,
+html.app-skin-dark .btn-page,
+html.app-skin-dark .rv-page-num {
+    background-color: #141414 !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .la-stat-card::before,
+html.app-skin-dark .tab-count,
+html.app-skin-dark .tab-count.is-muted {
+    background: #262626 !important;
+}
+html.app-skin-dark .la-stat-value,
+html.app-skin-dark .la-name,
+html.app-skin-dark .info-item span,
+html.app-skin-dark .tab-btn,
+html.app-skin-dark .la-empty-title,
+html.app-skin-dark .la-empty-large .la-empty-title,
+html.app-skin-dark .rt-name,
+html.app-skin-dark body .main-content table.reviewed-table thead th {
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .la-stat-label,
+html.app-skin-dark .la-stat-sub,
+html.app-skin-dark .la-email,
+html.app-skin-dark .status-subtle,
+html.app-skin-dark .info-item label,
+html.app-skin-dark .la-empty-desc,
+html.app-skin-dark .la-empty-large .la-empty-desc,
+html.app-skin-dark .search-bar-wrap input::placeholder,
+html.app-skin-dark .search-bar-wrap i,
+html.app-skin-dark .search-bar-wrap svg,
+html.app-skin-dark .pending-rpp-wrap .reviewed-count-label,
+html.app-skin-dark .pending-pagination-row .reviewed-count-text,
+html.app-skin-dark .reviewed-count-label,
+html.app-skin-dark .reviewed-count-text,
+html.app-skin-dark .reviewed-empty,
+html.app-skin-dark .rt-email,
+html.app-skin-dark .rv-page-ellipsis {
+    color: #9A9A9A !important;
+}
+html.app-skin-dark .search-bar-wrap input { color: #F5F5F5 !important; caret-color: #F5F5F5 !important; }
+html.app-skin-dark .reviewed-decision-filter,
+html.app-skin-dark .reviewed-rpp-select { color: #F5F5F5 !important; }
+html.app-skin-dark .rt-date,
+html.app-skin-dark .rt-remarks { color: #C4C4C4 !important; }
+
+html.app-skin-dark .la-stat-card:hover { border-color: #3d3d3d !important; }
+html.app-skin-dark .btn-la-outline:hover { border-color: #9BBE4A !important; color: #9BBE4A !important; }
+html.app-skin-dark .tab-btn:hover { border-color: #3d3d3d !important; }
+html.app-skin-dark .tab-btn.active { background: #9BBE4A !important; border-color: #9BBE4A !important; color: #0A0A0A !important; }
+html.app-skin-dark .tab-btn.active .tab-count { background: rgba(255,255,255,0.25) !important; color: #fff !important; }
+html.app-skin-dark .btn-page:hover:not(:disabled),
+html.app-skin-dark .rv-page-num:hover { border-color: #9BBE4A !important; color: #9BBE4A !important; background: #1C1C1C !important; }
+html.app-skin-dark .rv-page-num.active { background: #9BBE4A !important; border-color: #9BBE4A !important; color: #0A0A0A !important; }
+html.app-skin-dark .reviewed-table tbody tr:hover { background: #1C1C1C !important; }
+
+html.app-skin-dark body .main-content .reviewed-toolbar,
+html.app-skin-dark body .main-content .reviewed-table thead th,
+html.app-skin-dark body .main-content .reviewed-pagination,
+html.app-skin-dark body .main-content .reviewed-table tbody td {
+    border-color: #262626 !important;
+}
+html.app-skin-dark .reviewed-pagination { background: #0A0A0A !important; }
+
+html.app-skin-dark body .main-content .reviewed-table .btn-light,
+html.app-skin-dark body .main-content .btn-light {
+    background: #1C1C1C !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark body .main-content .reviewed-table .btn-light:hover,
+html.app-skin-dark body .main-content .btn-light:hover {
+    background: #3d3d3d !important;
+    border-color: #9BBE4A !important;
+    color: #9BBE4A !important;
+}
+
+html.app-skin-dark .la-stat-card.is-attention { background: rgba(180,83,9,.12) !important; border-color: rgba(245,158,11,.4) !important; }
+html.app-skin-dark .reviewed-table tbody tr.is-attention-row { background: rgba(180,83,9,.12) !important; }
+html.app-skin-dark .reviewed-table tbody tr.is-attention-row:hover { background: rgba(180,83,9,.2) !important; }
+
+html.app-skin-dark .badge-pending  { background: rgba(183,121,31,.18) !important; color: #f0b756 !important; }
+html.app-skin-dark .badge-approved { background: rgba(22,163,74,.18) !important;  color: #4ade80 !important; }
+html.app-skin-dark .badge-rejected { background: rgba(220,38,38,.18) !important;  color: #f87171 !important; }
+html.app-skin-dark .badge-onhold   { background: rgba(146,114,13,.18) !important; color: #eab308 !important; }
+html.app-skin-dark .pm-item.is-approved { background: rgba(22,163,74,.18) !important; color: #4ade80 !important; }
+html.app-skin-dark .pm-item.is-rejected { background: rgba(220,38,38,.18) !important; color: #f87171 !important; }
+
+html.app-skin-dark .la-empty-icon-lg { background: rgba(22,163,74,.18) !important; color: #4ade80 !important; }
+html.app-skin-dark .la-empty-icon-lg-muted { background: #262626 !important; color: #9A9A9A !important; }
