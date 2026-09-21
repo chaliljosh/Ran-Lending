@@ -65,17 +65,17 @@ class AuthController extends Controller
         $ipKey    = 'login:' . $request->ip();
         $emailKey = 'login-email:' . $email;
 
-       if (RateLimiter::tooManyAttempts($ipKey, 5) || RateLimiter::tooManyAttempts($emailKey, 5)) {
-    $seconds = max(
-        RateLimiter::availableIn($ipKey),
-        RateLimiter::availableIn($emailKey)
-    );
-    $minutes = ceil($seconds / 60);
-    return response()->json([
-        'success' => false,
-        'message' => "Too many login attempts. Try again in {$minutes} minute(s)."
-    ]);
-}
+        if (RateLimiter::tooManyAttempts($ipKey, 5) || RateLimiter::tooManyAttempts($emailKey, 5)) {
+            $seconds = max(
+                RateLimiter::availableIn($ipKey),
+                RateLimiter::availableIn($emailKey)
+            );
+            $minutes = ceil($seconds / 60);
+            return response()->json([
+                'success' => false,
+                'message' => "Too many login attempts. Try again in {$minutes} minute(s)."
+            ]);
+        }
 
         $user = DB::table('users')->where('email', $email)->where('is_active', 1)->first();
 
@@ -88,170 +88,35 @@ class AuthController extends Controller
         RateLimiter::clear($ipKey);
         RateLimiter::clear($emailKey);
 
-        if ($user->role === 'admin') {
-          Session::regenerate();   
+        // Walang OTP step — diretso nang mag-lo-login pagkatapos ma-verify
+        // ang email/password, kapwa admin at borrower. (Adviser's call:
+        // OTP na lang sa register at forgot-password.)
+        Session::regenerate();
 
+        Session::put('user_id',    $user->user_id);
+        Session::put('user_name',  $user->name);
+        Session::put('user_email', $user->email);
+        Session::put('user_role',  $user->role);
+        Session::put('user_profile_picture', $user->profile_picture ?? null);
 
-            Session::put('user_id',    $user->user_id);
-            Session::put('user_name',  $user->name);
-            Session::put('user_email', $user->email);
-            Session::put('user_role',  $user->role);
-            Session::put('user_profile_picture', $user->profile_picture ?? null);
-
-            DB::table('users')->where('user_id', $user->user_id)->update([
-                'last_login_at' => now(),
-            ]);
-
-            return response()->json([
-                'success'      => true,
-                'otp_required' => false,
-                'redirect'     => route('admin.dashboard'),
-            ]);
-        }
-
-        // OTP flow for borrowers — rate-limited so a hard-refresh + re-login
-        // can't bypass the resend cooldown. Keyed per (normalized) email,
-        // 1 send per 60s.
-        $otpKey = 'otp-send:' . $email;
-
-        if (RateLimiter::tooManyAttempts($otpKey, 1)) {
-            // Still within cooldown — don't send a new OTP, just re-show
-            // the modal so the user can enter the code already sent.
-            Session::put('pending_login', [
-                'email'      => $user->email,
-                'user_id'    => $user->user_id,
-                'user_name'  => $user->name,
-                'user_email' => $user->email,
-                'user_role'  => $user->role,
-                'user_profile_picture' => $user->profile_picture ?? null,
-            ]);
-
-            return response()->json([
-                'success'      => true,
-                'otp_required' => true,
-                'masked_email' => $this->maskEmail($email),
-            ]);
-        }
-
-        RateLimiter::hit($otpKey, 60);
-
-        $otp       = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        $expiresAt = now()->addMinutes(10);
-
-        // I-store yung HASHED na version ng OTP, hindi yung raw code.
-        // Yung raw $otp lang ang ipinapadala sa email — hindi na siya
-        // naka-store kahit saan sa DB pagkatapos nito.
-        DB::table('otp_verifications')->where('email', $email)->where('type', 'login')->delete();
-        DB::table('otp_verifications')->insert([
-            'email'      => $email,
-            'otp'        => Hash::make($otp),
-            'type'       => 'login',
-            'expires_at' => $expiresAt,
+        DB::table('users')->where('user_id', $user->user_id)->update([
+            'last_login_at' => now(),
         ]);
 
-        Session::put('pending_login', [
-            'email'      => $user->email,
-            'user_id'    => $user->user_id,
-            'user_name'  => $user->name,
-            'user_email' => $user->email,
-            'user_role'  => $user->role,
-            'user_profile_picture' => $user->profile_picture ?? null,
-        ]);
-
-        Mail::to($email)->send(new \App\Mail\OtpMail($user->name, $otp));
-
-        return response()->json([
-            'success'      => true,
-            'otp_required' => true,
-            'masked_email' => $this->maskEmail($email),
-        ]);
-    }
-
-    public function verifyOtp(Request $request)
-    {
-        $email = $this->normalizeEmail($request->input('email'));
-        $otp   = trim($request->input('otp'));
-
-        if (!$email || !$otp) {
-            return response()->json(['success' => false, 'message' => 'OTP is required.']);
-        }
-
-        $pending = Session::get('pending_login');
-        if (!$pending || $this->normalizeEmail($pending['email']) !== $email) {
-            return response()->json(['success' => false, 'message' => 'Session expired. Please log in again.']);
-        }
-
-        // Kunin muna yung record base sa email/type/expiry/is_used lang —
-        // hindi na natin pwedeng gamitin ang WHERE otp = $otp dahil
-        // hashed na siya sa DB. I-compare gamit Hash::check() sa halip.
-        $record = DB::table('otp_verifications')
-            ->where('email', $email)
-            ->where('type', 'login')
-            ->where('expires_at', '>', now())
-            ->where('is_used', 0)
-            ->first();
-
-        if (!$record || !Hash::check($otp, $record->otp)) {
-            return response()->json(['success' => false, 'message' => 'Invalid or expired OTP.']);
-        }
-
-        DB::table('otp_verifications')->where('id', $record->id)->update(['is_used' => 1]);
-        RateLimiter::clear('otp-send:' . $email);
-
-        Session::regenerate();              
-
-        Session::put('user_id',    $pending['user_id']);
-        Session::put('user_name',  $pending['user_name']);
-        Session::put('user_email', $pending['user_email']);
-        Session::put('user_role',  $pending['user_role']);
-        Session::put('user_profile_picture', $pending['user_profile_picture'] ?? null);
-        Session::forget('pending_login');
+        $redirect = $user->role === 'admin'
+            ? route('admin.dashboard')
+            : route('borrower.dashboard');
 
         return response()->json([
             'success'  => true,
-            'redirect' => route('borrower.dashboard'),
+            'redirect' => $redirect,
         ]);
-    }
-
-    public function resendOtp(Request $request)
-    {
-        $email   = $this->normalizeEmail($request->input('email'));
-        $pending = Session::get('pending_login');
-
-        if (!$pending || $this->normalizeEmail($pending['email']) !== $email) {
-            return response()->json(['success' => false, 'message' => 'Session expired. Please log in again.']);
-        }
-
-        $otp       = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        $expiresAt = now()->addMinutes(10);
-
-        DB::table('otp_verifications')->where('email', $email)->where('type', 'login')->delete();
-        DB::table('otp_verifications')->insert([
-            'email'      => $email,
-            'otp'        => Hash::make($otp),
-            'type'       => 'login',
-            'expires_at' => $expiresAt,
-        ]);
-
-        RateLimiter::hit('otp-send:' . $email, 60);
-
-        Mail::to($email)->send(new \App\Mail\OtpMail($pending['user_name'], $otp));
-
-        return response()->json(['success' => true]);
     }
 
     public function logout()
     {
         Session::flush();
         return redirect()->route('login');
-    }
-
-    private function maskEmail(string $email): string
-    {
-        [$name, $domain] = explode('@', $email);
-        $visible = min(2, strlen($name));
-        $masked  = substr($name, 0, $visible) . str_repeat('*', max(strlen($name) - $visible, 3));
-        return $masked . '@' . $domain;
     }
 
     // =====================================================================

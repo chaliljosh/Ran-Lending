@@ -208,6 +208,9 @@
 
     <!-- ============================================================
          PROCESS
+         ------------------------------------------------------------
+         Buong card clickable papunta sa Sign In gamit ang
+         .stretched-link (fills the whole .service-item box).
          ============================================================ -->
     <section id="services-2" class="services-2 section light-background">
       <div class="container section-title" data-aos="fade-up">
@@ -220,7 +223,7 @@
             <div class="service-item d-flex position-relative h-100">
               <i class="bi bi-card-text icon flex-shrink-0"></i>
               <div>
-                <h4 class="title"><a href="#" class="stretched-link">1. Fill up a form</a></h4>
+                <h4 class="title"><a href="{{ route('login') }}" class="stretched-link">1. Fill up a form</a></h4>
                 <p class="description">Complete the loan application form by providing all required personal and loan information.</p>
               </div>
             </div>
@@ -229,7 +232,7 @@
             <div class="service-item d-flex position-relative h-100">
               <i class="bi bi-file-earmark-arrow-up icon flex-shrink-0"></i>
               <div>
-                <h4 class="title"><a href="#" class="stretched-link">2. Send Documents</a></h4>
+                <h4 class="title"><a href="{{ route('login') }}" class="stretched-link">2. Send Documents</a></h4>
                 <p class="description">Upload or submit the necessary documents required  for verification and loan processing.</p>
               </div>
             </div>
@@ -238,7 +241,7 @@
             <div class="service-item d-flex position-relative h-100">
               <i class="bi bi-clock-history icon flex-shrink-0"></i>
               <div>
-                <h4 class="title"><a href="#" class="stretched-link">3. Wait for approval</a></h4>
+                <h4 class="title"><a href="{{ route('login') }}" class="stretched-link">3. Wait for approval</a></h4>
                 <p class="description">The admin reviews the submitted application and documents before approving the loan request.</p>
               </div>
             </div>
@@ -247,7 +250,7 @@
             <div class="service-item d-flex position-relative h-100">
               <i class="bi bi-cash-stack icon flex-shrink-0"></i>
               <div>
-                <h4 class="title">4. <a href="#" class="stretched-link">Get your money</a></h4>
+                <h4 class="title">4. <a href="{{ route('login') }}" class="stretched-link">Get your money</a></h4>
                 <p class="description">Once approved, the loan is released and recorded in the system for monitoring.</p>
               </div>
             </div>
@@ -373,20 +376,20 @@
          ============================================================ -->
 
           <section id="about" class="about section">
+      <div class="container section-title" data-aos="fade-up">
+        <h2>About</h2>
+        <p>About Ran Serenity</p>
+      </div>
       <div class="container">
-        <div class="row gy-4">
+        <div class="row gy-4 align-items-start">
           <div class="col-lg-6" data-aos="fade-up" data-aosg-delay="100">
-            <h3>About Ran Serenity</h3>
-            <img src="{{ asset('assets/landingpage/img/ranlogo.png') }}" class="img-fluid rounded-4 mb-4" alt="">
-           
+            <div class="about-logo-wrap">
+              <img src="{{ asset('assets/landingpage/img/ranlogo2.png') }}" class="about-logo-light" alt="Ran Serenity logo">
+              <img src="{{ asset('assets/landingpage/img/ranlogo-dark.png') }}" class="about-logo-dark" alt="Ran Serenity logo">
+            </div>
           </div>
           <div class="col-lg-6" data-aos="fade-up" data-aos-delay="250">
             <div class="content ps-0 ps-lg-5">
-              
-          <br>
-          <br>
-          <br>
-          <br>
              <p>Ran Serenity is a lending company established in 2022 in Olongapo City. Founded by three individuals, the company began as a small-scale, trust-based lending business focused on providing accessible financial assistance.</p>
             <p>As demand increased, the company transitioned into a more structured operation, formalizing loan processes and improving record management while maintaining integrity, reliability, and personalized customer service.</p>
               <ul>
@@ -476,11 +479,11 @@
         <div class="col-lg-2 col-md-3 footer-links">
           <h4>Useful Links</h4>
           <ul>
-            <li><i class="bi bi-chevron-right"></i> <a href="#">Home</a></li>
-            <li><i class="bi bi-chevron-right"></i> <a href="#">About us</a></li>
-            <li><i class="bi bi-chevron-right"></i> <a href="#">Services</a></li>
-            <li><i class="bi bi-chevron-right"></i> <a href="#">Terms of service</a></li>
-            <li><i class="bi bi-chevron-right"></i> <a href="#">Privacy policy</a></li>
+            <li><i class="bi bi-chevron-right"></i> <a href="/">Home</a></li>
+            <li><i class="bi bi-chevron-right"></i> <a href="/#about">About us</a></li>
+            <li><i class="bi bi-chevron-right"></i> <a href="/#services-2">Services</a></li>
+            <li><i class="bi bi-chevron-right"></i> <a href="{{ route('legal.terms') }}">Terms of service</a></li>
+            <li><i class="bi bi-chevron-right"></i> <a href="{{ route('legal.privacy') }}">Privacy policy</a></li>
           </ul>
         </div>
       </div>

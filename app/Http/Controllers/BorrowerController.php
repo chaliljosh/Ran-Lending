@@ -105,7 +105,7 @@ private function getProfilePictureUrl($userId)
         $runningTotal = 0;
 
         for ($i = 1; $i <= $term; $i++) {
-            $due = $appliedDate->copy()->addMonths($i)->day(15);
+           $due = $appliedDate->copy()->addMonthsNoOverflow($i);
             $amount = ($i === $term) ? round($totalAmount - $runningTotal, 2) : $monthlyBase;
             $runningTotal += $amount;
 
@@ -714,10 +714,17 @@ private function getProfilePictureUrl($userId)
             return redirect()->route('borrower.dashboard');
         }
 
-        $app = DB::table('loan_applications')
-            ->where('user_id', $userId)
-            ->orderByDesc('applied_at')
-            ->first();
+$loans = DB::table('loan_applications')
+    ->where('user_id', $userId)
+    ->orderByDesc('applied_at')
+    ->get();
+
+
+$requestedLoanId = $request->query('loan');
+$app = $requestedLoanId
+    ? $loans->firstWhere('application_id', $requestedLoanId)
+    : null;
+$app = $app ?? $loans->first();
 
         $statusMap = [
             'pending'   => ['label' => 'Pending Review', 'badge' => 'bg-warning', 'icon' => 'feather-clock',          'icon_color' => 'text-warning'],
@@ -761,6 +768,7 @@ private function getProfilePictureUrl($userId)
                     'due'    => $due,
                     'amount' => (float) $s->amount_due,
                     'status' => $rowStatus,
+                      'paid_at' => !is_null($s->paid_at) ? Carbon::parse($s->paid_at) : null,
                 ];
             })->all();
 
@@ -785,7 +793,8 @@ private function getProfilePictureUrl($userId)
             'userName', 'initials', 'profilePicture', 'isFullyApproved', 'app', 'status', 'loanId', 'paymentSchedule',
             'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
             'headerNotifications', 'unreadNotifCount',
-            'totalCount', 'paidCount', 'amountCollected', 'remainingBalance', 'nextUnpaid', 'isOverdue'
+            'totalCount', 'paidCount', 'amountCollected', 'remainingBalance', 'nextUnpaid', 'isOverdue',
+             'loans' 
         ));
     }
 

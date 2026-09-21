@@ -11,8 +11,6 @@ function togglePw(id, btn) {
     }
 }
 
-let pendingLoginEmail = '';
-
 /* ── CROSS-TAB LOGIN SYNC ──
    Mirror of the logout broadcast in logout-modal.js, but the other
    way around: when this tab successfully logs in, any other open
@@ -75,14 +73,17 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     function hideError() { errorAlert.classList.add('d-none'); }
 
+    // Swaps the "Sign In" label for the spinner (instead of just
+    // clearing the text) so the button keeps a clean, centered
+    // loading state — see the #loginBtn flex rules in login.css.
     function showLoading() {
-        loginBtn.disabled        = true;
-        loginBtnText.textContent = '';
+        loginBtn.disabled = true;
+        loginBtnText.classList.add('d-none');
         loginSpinner.classList.remove('d-none');
     }
     function hideLoading() {
-        loginBtn.disabled        = false;
-        loginBtnText.textContent = 'Sign In';
+        loginBtn.disabled = false;
+        loginBtnText.classList.remove('d-none');
         loginSpinner.classList.add('d-none');
     }
 
@@ -126,13 +127,10 @@ document.addEventListener('DOMContentLoaded', function () {
             } else {
                 localStorage.removeItem('rememberedEmail');
             }
-            if (data.otp_required) {
-                pendingLoginEmail = email;
-                openLoginOtpModal(data.masked_email);
-            } else {
-                broadcastLogin(data.redirect);
-                window.location.href = data.redirect;
-            }
+            // Walang OTP step — diretso nang mag-redirect pagkatapos
+            // ma-verify ang email/password sa /api/login.
+            broadcastLogin(data.redirect);
+            window.location.href = data.redirect;
         })
         .catch(() => {
             hideLoading();
@@ -143,47 +141,3 @@ document.addEventListener('DOMContentLoaded', function () {
     emailInput.addEventListener('input',    hideError);
     passwordInput.addEventListener('input', hideError);
 });
-
-/* ── Opens the shared OtpModal, wired up to the login OTP endpoints. ── */
-function openLoginOtpModal(maskedEmail) {
-    OtpModal.open({
-        maskedEmail: maskedEmail,
-        onVerify: function (code) {
-            const formData = new FormData();
-            formData.append('email', pendingLoginEmail);
-            formData.append('otp',   code);
-
-            return fetch('/api/login/verify-otp', {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: { 'X-XSRF-TOKEN': getCsrfToken() },
-                body: formData
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (!data.success) throw new Error(data.message || 'Invalid OTP.');
-                    return data;
-                });
-        },
-        onResend: function () {
-            const formData = new FormData();
-            formData.append('email', pendingLoginEmail);
-
-            return fetch('/api/login/resend-otp', {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: { 'X-XSRF-TOKEN': getCsrfToken() },
-                body: formData
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (!data.success) throw new Error(data.message || 'Failed to resend OTP.');
-                    return data;
-                });
-        },
-        onSuccess: function (data) {
-            broadcastLogin(data.redirect);
-            window.location.href = data.redirect;
-        }
-    });
-}

@@ -81,6 +81,21 @@
     border-color: #000000 !important;
 }
 
+/* ---------- Sign In button: loading state ----------
+   Flex-center the content so the spinner sits dead-center
+   once the text is hidden, instead of drifting right from
+   its leftover margin. login.js toggles the `is-loading`
+   class on the button and `d-none` on the text span. */
+#loginBtn.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+#loginBtn.btn-primary #loginSpinner {
+    margin-left: 0 !important;
+}
+
 /* ---------- Checkbox: solid navy fill ---------- */
 #rememberMe.form-check-input:checked {
     background-color: #0F172A !important;

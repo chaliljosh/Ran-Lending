@@ -68,6 +68,108 @@
 .bwl-ld-status.bg-danger    { background: #fee2e2 !important; color: #dc2626 !important; }
 .bwl-ld-status.bg-secondary { background: #f1f5f9 !important; color: #64748b !important; }
 
+/* ---------- Tabs (Loan Details / Loan History) ---------- */
+.bwl-ld-tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 20px;
+}
+.bwl-ld-tab {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    padding: 10px 16px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+.bwl-ld-tab:hover {
+    color: #0f172a;
+}
+.bwl-ld-tab.is-active {
+    color: #2563eb;
+    border-bottom-color: #2563eb;
+}
+.bwl-ld-tab:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: -2px;
+    border-radius: 6px;
+}
+.bwl-ld-tab__count {
+    min-width: 20px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1.3;
+    text-align: center;
+}
+.bwl-ld-tab.is-active .bwl-ld-tab__count {
+    background: #dbeafe;
+    color: #2563eb;
+}
+[data-ld-panel][hidden] {
+    display: none !important;
+}
+
+/* ---------- Completed banner ---------- */
+.bwl-ld-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px 24px;
+    background: #F0FDF4;
+    border: 1px solid #BBF7D0;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+}
+.bwl-ld-banner__title {
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: #0f172a;
+    margin-bottom: 4px;
+}
+.bwl-ld-banner__text {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #334155;
+}
+.bwl-ld-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 42px;
+    padding: 0 22px;
+    border-radius: 999px;
+    background: #2563eb;
+    color: #fff;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s ease;
+}
+.bwl-ld-btn:hover {
+    background: #1d4ed8;
+    color: #fff;
+}
+
 /* ---------- Stat grid (Loan Summary numbers) ---------- */
 .bwl-ld-stat-grid {
     display: grid;
@@ -100,14 +202,10 @@
     font-size: 0.95rem;
     font-weight: 600;
 }
-
-/* ---------- Two-column row (Payment Schedule / Loan Info) ---------- */
-.bwl-ld-row {
-    display: grid;
-    grid-template-columns: 1.4fr 1fr;
-    gap: 16px;
-    margin-bottom: 20px;
-    align-items: stretch;
+.bwl-ld-stat-value.is-danger  { color: #e63946; }
+.bwl-ld-stat-value.is-success { color: #16a34a; }
+.bwl-ld-stat-grid--second {
+    margin-top: 20px;
 }
 
 /* ---------- Bordered card (Payment Schedule / Loan Info / Timeline) ---------- */
@@ -118,9 +216,6 @@
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15) !important;
     overflow: hidden;
     margin-bottom: 20px;
-}
-.bwl-ld-row .bwl-ld-card {
-    margin-bottom: 0;
 }
 .bwl-ld-card-header {
     padding: 18px 22px;
@@ -141,7 +236,7 @@
     margin-bottom: 16px;
 }
 
-/* ---------- Payment schedule table ---------- */
+/* ---------- Payment schedule / history table ---------- */
 .bwl-ld-table thead th {
     font-size: 0.72rem;
     font-weight: 600;
@@ -161,18 +256,36 @@
 .bwl-ld-table tbody tr:last-child td {
     border-bottom: none;
 }
+.bwl-ld-cell-strong {
+    font-weight: 600;
+}
 
-/* ---------- Loan Information mini list ---------- */
-.bwl-ld-info-row {
-    padding-bottom: 16px;
-    margin-bottom: 16px;
-    border-bottom: 1px dashed #e5e7eb;
+/* Clickable rows in the Loan History table */
+.bwl-ld-table tbody tr.bwl-ld-row-link {
+    cursor: pointer;
 }
-.bwl-ld-info-row:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
+.bwl-ld-table tbody tr.bwl-ld-row-link > td {
+    transition: background-color 0.15s ease;
 }
+.bwl-ld-table tbody tr.bwl-ld-row-link:hover > td {
+    background-color: #f8fafc;
+}
+.bwl-ld-link {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #2563eb;
+    text-decoration: none;
+}
+.bwl-ld-link:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+.bwl-ld-viewing {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #8a9bb0;
+}
+
 .bwl-ld-info-label {
     display: block;
     font-size: 0.75rem;
@@ -196,6 +309,9 @@
 .bwl-ld-info-value.is-danger {
     color: #e63946;
 }
+.bwl-ld-info-value.is-success {
+    color: #16a34a;
+}
 .bwl-ld-info-sub {
     font-size: 0.78rem;
     color: #8a9bb0;
@@ -204,6 +320,61 @@
 .bwl-ld-info-sub.is-danger {
     color: #dc2626;
     font-weight: 600;
+}
+
+/* ---------- Payment progress (Payment Schedule footer) ---------- */
+.bwl-ld-progress {
+    margin: 0 0 18px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #f1f5f9;
+}
+.bwl-ld-progress__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin-bottom: 10px;
+}
+.bwl-ld-progress__label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #8a9bb0;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.bwl-ld-progress__value {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #0f172a;
+}
+.bwl-ld-progress__track {
+    height: 8px;
+    border-radius: 999px;
+    background: #e5e7eb;
+    overflow: hidden;
+}
+.bwl-ld-progress__bar {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: #2563eb;
+    transition: width 0.4s ease;
+}
+.bwl-ld-progress__bar.is-complete {
+    background: #16a34a;
+}
+.bwl-ld-progress__note {
+    margin: 10px 0 0;
+    font-size: 0.78rem;
+    color: #8a9bb0;
+}
+@media (prefers-reduced-motion: reduce) {
+    .bwl-ld-progress__bar { transition: none; }
+}
+
+.bwl-ld-cell-muted {
+    color: #64748b !important;
 }
 
 /* ---------- Reminders box ---------- */
@@ -316,23 +487,13 @@
 }
 
 /* ---------- Responsive ---------- */
-@media (max-width: 1199.98px) {
-    .bwl-ld-row {
-        grid-template-columns: 1fr;
-    }
-    .bwl-ld-row .bwl-ld-card {
-        margin-bottom: 20px;
-    }
-    .bwl-ld-row .bwl-ld-card:last-child {
-        margin-bottom: 0;
-    }
-}
 @media (max-width: 991.98px) {
     .bwl-ld-stat-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 640px) {
     .bwl-ld-stat-grid { grid-template-columns: 1fr; }
     .bwl-ld-section__head { flex-wrap: wrap; }
+    .bwl-ld-banner { padding: 14px 16px; }
 }
 
 /* ══════════════════════════════════════════
@@ -367,6 +528,7 @@ html.app-skin-dark .bwl-ld-stat-value,
 html.app-skin-dark .bwl-ld-info-value,
 html.app-skin-dark .bwl-ld-timeline-title,
 html.app-skin-dark .bwl-ld-empty h5,
+html.app-skin-dark .bwl-ld-banner__title,
 html.app-skin-dark .bwl-ld-table tbody td { color: #F5F5F5; }
 html.app-skin-dark .bwl-ld-eyebrow,
 html.app-skin-dark .bwl-ld-stat-label,
@@ -375,20 +537,59 @@ html.app-skin-dark .bwl-ld-info-sub,
 html.app-skin-dark .bwl-ld-note,
 html.app-skin-dark .bwl-ld-timeline-date,
 html.app-skin-dark .bwl-ld-empty p,
+html.app-skin-dark .bwl-ld-viewing,
 html.app-skin-dark .bwl-ld-table thead th { color: #9A9A9A; }
 html.app-skin-dark .bwl-ld-info-value.is-primary { color: #60A5FA; }
+html.app-skin-dark .bwl-ld-info-value.is-success { color: #4ADE80; }
 html.app-skin-dark .bwl-ld-info-value.is-danger,
 html.app-skin-dark .bwl-ld-info-sub.is-danger { color: #F87171; }
 
 /* ---------- Borders / dividers ---------- */
 html.app-skin-dark .bwl-ld-card-header,
-html.app-skin-dark .bwl-ld-info-row,
 html.app-skin-dark .bwl-ld-table thead th,
 html.app-skin-dark .bwl-ld-table tbody td,
 html.app-skin-dark .bwl-ld-timeline-item:not(:last-child)::before {
     border-color: #262626;
 }
 html.app-skin-dark .bwl-ld-timeline-item:not(:last-child)::before { background: #262626; }
+
+/* ---------- Tabs ---------- */
+html.app-skin-dark .bwl-ld-tabs { border-bottom-color: #262626; }
+html.app-skin-dark .bwl-ld-tab { color: #9A9A9A; }
+html.app-skin-dark .bwl-ld-tab:hover { color: #F5F5F5; }
+html.app-skin-dark .bwl-ld-tab.is-active {
+    color: #60A5FA;
+    border-bottom-color: #60A5FA;
+}
+html.app-skin-dark .bwl-ld-tab__count {
+    background: #1C1C1C;
+    color: #9A9A9A;
+}
+html.app-skin-dark .bwl-ld-tab.is-active .bwl-ld-tab__count {
+    background: rgba(37, 99, 235, 0.18);
+    color: #60A5FA;
+}
+
+/* ---------- Stat value colors + payment progress ---------- */
+html.app-skin-dark .bwl-ld-stat-value.is-danger  { color: #F87171; }
+html.app-skin-dark .bwl-ld-stat-value.is-success { color: #4ADE80; }
+html.app-skin-dark .bwl-ld-progress { border-bottom-color: #262626; }
+html.app-skin-dark .bwl-ld-progress__label,
+html.app-skin-dark .bwl-ld-progress__note { color: #9A9A9A; }
+html.app-skin-dark .bwl-ld-progress__value { color: #F5F5F5; }
+html.app-skin-dark .bwl-ld-progress__track { background: #262626; }
+html.app-skin-dark .bwl-ld-progress__bar { background: #60A5FA; }
+html.app-skin-dark .bwl-ld-progress__bar.is-complete { background: #4ADE80; }
+html.app-skin-dark .bwl-ld-cell-muted { color: #9A9A9A !important; }
+
+/* ---------- Completed banner + history links ---------- */
+html.app-skin-dark .bwl-ld-banner {
+    background: rgba(22, 163, 74, 0.10);
+    border-color: rgba(74, 222, 128, 0.25);
+}
+html.app-skin-dark .bwl-ld-banner__text { color: #CBD5E1; }
+html.app-skin-dark .bwl-ld-link { color: #60A5FA; }
+html.app-skin-dark .bwl-ld-link:hover { color: #93C5FD; }
 
 /* ---------- Payment schedule table ----------
    Ang navy/striped rows ay galing sa Bootstrap + theme table variables,

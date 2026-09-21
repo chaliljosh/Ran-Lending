@@ -87,9 +87,7 @@
                               
                             </div>
                         </div>
-                        <a href="{{ route('admin.loan-applications') }}" class="adm-panel-link">
-                            View all 
-                        </a>
+                       
                     </div>
                     <div class="card-body custom-card-action p-0">
                         <div class="table-responsive">
@@ -196,9 +194,7 @@
                           
                             </div>
                         </div>
-                        <a href="{{ route('admin.ongoing-loans') }}" class="adm-panel-link">
-                            View all
-                        </a>
+                       
                     </div>
                     <div class="card-body p-0">
                         @forelse($upcomingPayments as $payment)
@@ -247,9 +243,7 @@
                                
                             </div>
                         </div>
-                        <a href="{{ route('admin.dashboard') }}" class="adm-panel-link">
-                            View all
-                        </a>
+                
                     </div>
                     <div class="card-body p-0">
                         @forelse($recentActivity as $activity)

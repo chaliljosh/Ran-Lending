@@ -113,7 +113,11 @@
     // =========================================================
 
     const loanAmountInput = document.getElementById("loanAmount");
-    const loanTermSelect = document.getElementById("loanTerm");
+
+    // Term is now a group of radio "chips" (name="loanTerm")
+    // instead of a <select>.
+    const loanTermInputs = document.querySelectorAll('input[name="loanTerm"]');
+
     const loanPurposeSelect = document.getElementById("loanPurpose");
     const referralSelect = document.getElementById("referralSource");
 
@@ -168,6 +172,17 @@
     }
 
     // =========================================================
+    // SELECTED TERM (from the radio chips)
+    // =========================================================
+
+    function getSelectedTerm() {
+        const checked = document.querySelector(
+            'input[name="loanTerm"]:checked',
+        );
+        return checked ? checked.value : "";
+    }
+
+    // =========================================================
     // CLAMP LOAN AMOUNT
     // =========================================================
 
@@ -212,7 +227,7 @@
 
         const validAmount = amount >= MIN_AMOUNT && amount <= MAX_AMOUNT;
 
-        const validTerm = loanTermSelect && !!loanTermSelect.value;
+        const validTerm = !!getSelectedTerm();
 
         const validPurpose = loanPurposeSelect && !!loanPurposeSelect.value;
 
@@ -244,10 +259,8 @@
     function updateSummary() {
         const amount = clampLoanAmount();
 
-        const term =
-            loanTermSelect && loanTermSelect.value
-                ? parseInt(loanTermSelect.value, 10)
-                : 0;
+        const selectedTerm = getSelectedTerm();
+        const term = selectedTerm ? parseInt(selectedTerm, 10) : 0;
 
         const totalInterest = amount * INTEREST_RATE * term;
 
@@ -309,10 +322,10 @@
         passive: true,
     });
 
-    // Loan term
-    if (loanTermSelect) {
-        loanTermSelect.addEventListener("change", updateSummary);
-    }
+    // Loan term (radio chips)
+    loanTermInputs.forEach(function (input) {
+        input.addEventListener("change", updateSummary);
+    });
 
     // Loan purpose
     if (loanPurposeSelect) {
@@ -375,7 +388,7 @@
 
         formData.append("loanAmount", loanAmountInput.value);
 
-        formData.append("loanTerm", loanTermSelect ? loanTermSelect.value : "");
+        formData.append("loanTerm", getSelectedTerm());
 
         formData.append(
             "loanPurpose",

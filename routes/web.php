@@ -49,8 +49,6 @@ Route::post('/api/register/verify-otp', [AuthController::class, 'verifyRegisterO
 Route::post('/api/register/resend-otp', [AuthController::class, 'resendRegisterOtp'])->middleware('throttle:5,10');
 
 Route::post('/api/login',               [AuthController::class, 'login']);
-Route::post('/api/login/verify-otp',    [AuthController::class, 'verifyOtp'])->middleware('throttle:5,10');
-Route::post('/api/login/resend-otp',    [AuthController::class, 'resendOtp'])->middleware('throttle:5,10');
 Route::post('/api/logout',              [AuthController::class, 'logout'])->name('logout');
 
 Route::post('/api/forgot-password/send-otp', [ForgotPasswordController::class, 'sendOtp'])->middleware('throttle:5,10');

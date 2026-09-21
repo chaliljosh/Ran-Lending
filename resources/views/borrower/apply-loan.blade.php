@@ -80,13 +80,17 @@
                     {{-- INFO NOTICE --}}
                     <div class="aln-notice">
                         @if ($isFirstTime)
-                            <strong>First-Time Borrowers:</strong>
-                            Maximum loan amount is ₱10,000. After successful repayment, you may apply for higher amounts up to
-                            ₱100,000.
+                            <span class="aln-notice__title">First-Time Borrowers</span>
+                            <p class="aln-notice__text">
+                                Maximum loan amount is ₱10,000. After successful repayment, you may apply for
+                                higher amounts up to ₱100,000.
+                            </p>
                         @else
-                            <strong>You're Eligible for Higher Amounts:</strong>
-                            Since you've successfully repaid a previous loan, you may now apply for up to
-                            ₱{{ number_format($maxLoanAmount) }}.
+                            <span class="aln-notice__title">You're Eligible for Higher Amounts</span>
+                            <p class="aln-notice__text">
+                                Since you've successfully repaid a previous loan, you may now apply for up to
+                                ₱{{ number_format($maxLoanAmount) }}.
+                            </p>
                         @endif
                     </div>
 
@@ -115,17 +119,20 @@
                                         ₱{{ number_format($maxLoanAmount) }}</small>
                                 </div>
 
-                                {{-- Loan Term --}}
+                                {{-- Loan Term (chips) --}}
                                 <div class="col-md-6">
-                                    <label class="aln-label">
+                                    <span class="aln-label" id="loanTermLabel">
                                         Term <span class="aln-required">*</span>
-                                    </label>
-                                    <select class="form-select aln-input" id="loanTerm" required>
-                                        <option value="">Select term</option>
-                                        <option value="3">3 Months</option>
-                                        <option value="6">6 Months</option>
-                                        <option value="12">12 Months</option>
-                                    </select>
+                                    </span>
+                                    <div class="aln-chip-group" role="radiogroup" aria-labelledby="loanTermLabel">
+                                        @foreach ([3, 6, 12] as $months)
+                                            <label class="aln-choice">
+                                                <input type="radio" class="aln-choice__input" name="loanTerm"
+                                                    value="{{ $months }}">
+                                                <span class="aln-choice__chip">{{ $months }} Months</span>
+                                            </label>
+                                        @endforeach
+                                    </div>
                                 </div>
 
                                 {{-- Loan Purpose --}}
@@ -219,21 +226,21 @@
                                 </div>
                                 <div class="aln-summary-item">
                                     <span class="aln-summary-label">Due Date</span>
-                                    <span class="aln-summary-value">15th of each month</span>
+                                    <span class="aln-summary-value">Every month</span>
                                 </div>
                             </div>
                         </section>
 
                         {{-- FORM BUTTONS --}}
                         <div class="aln-actions">
+                            <a href="{{ route('borrower.dashboard') }}" class="aln-btn aln-btn--secondary">
+                                Cancel
+                            </a>
+
                             <button type="button" class="aln-btn aln-btn--primary" id="submitBtn"
                                 data-bs-toggle="modal" data-bs-target="#termsModal" disabled>
                                 Submit Application
                             </button>
-
-                            <a href="{{ route('borrower.dashboard') }}" class="aln-btn aln-btn--secondary">
-                                Cancel
-                            </a>
                         </div>
 
                     </form>
@@ -282,7 +289,7 @@
                         <p>Fixed at <strong>5% monthly</strong> on the principal loan amount.</p>
 
                         <h6 class="aln-modal-subtitle">3. Repayment</h6>
-                        <p>Payments are due on the <strong>15th of each month</strong>.</p>
+                        <p>Payments are due <strong>monthly</strong>, based on your payment schedule.</p>
 
                         <h6 class="aln-modal-subtitle">4. Late Payment Penalty</h6>
                         <p>A <strong>2% penalty</strong> will be charged on any late payment.</p>

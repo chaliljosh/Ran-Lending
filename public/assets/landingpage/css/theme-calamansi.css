@@ -1,21 +1,17 @@
 /* ============================================================
    RAN SERENITY — CALAMANSI UI INSPIRED THEME
    ------------------------------------------------------------
-   Cream background, dark olive headings, gray-green secondary
-   text, lime/olive accent. Layout HINDI ginalaw — color/font
-   token replacement lang, kapareho ng theme-emerald.css na
-   pinalitan nito.
-
-   Palitan ang theme-emerald.css sa <head> ng theme-calamansi.css
-   na ito para gumana.
+   Cream/white background, dark headings, gray-green secondary
+   text, ROYAL VIOLET accent (was lime/olive). Layout HINDI
+   ginalaw — color token replacement lang.
    ============================================================ */
 
 :root {
   --cal-bg:        #FAFAF5;   /* mas malapit sa puti, kaunting warm tint lang */
   --cal-surface:   #FFFFFF;
-  --cal-primary:   #8BA33F;
-  --cal-hover:     #74882F;
-  --cal-light:     #F1F3E7;   /* mas light na version din */
+  --cal-primary:   #9B7FD8;   /* Royal Violet — mid shade mula sa palette */
+  --cal-hover:     #7B3FC0;   /* isang shade na mas madilim — ginagamit din bilang solid-fill sa mga button na may puting text, para sigurado ang contrast */
+  --cal-light:     #F1EDF8;   /* napakalight na lavender tint, kapareho ng subtlety ng dati */
   --cal-text:      #1E2114;
   --cal-text-2:    #8B8F7C;   /* mas light/malumanay, dating masyadong madilim */
   --cal-text-2-strong: #55594A; /* mas madilim/visible na gray — para sa body copy na dapat mabasa agad */
@@ -97,7 +93,7 @@ h1, h2, h3, h4, h5, h6 {
   display: none !important;
 }
 #header .cta-btn {
-  background: var(--cal-text) !important;
+  background: var(--cal-primary) !important;
   color: #fff !important;
   border: none !important;
   border-radius: 6px;
@@ -110,7 +106,7 @@ h1, h2, h3, h4, h5, h6 {
   transition: background 0.2s;
 }
 #header .cta-btn:hover {
-  background: #000 !important;
+  background: var(--cal-hover) !important;
 }
 .mobile-nav-toggle { color: var(--cal-text) !important; }
 
@@ -216,11 +212,10 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.02em !important;
 }
 .hero-text h1 .gray {
-  color: var(--cal-text-2) !important;
+  color: var(--cal-primary) !important;
   display: block;
   margin-top: 4px;
 }
-.hero-text h1 .gray { color: var(--cal-text-2) !important; }
 .hero-text > p { color: var(--cal-text-2) !important; }
 .hero-stats h4 { color: var(--cal-text) !important; font-family: var(--cal-font-head) !important; }
 .hero-stats p { color: var(--cal-text-2) !important; }
@@ -262,8 +257,8 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--cal-hover) !important;
 }
 .term-pills button.active {
-  background: var(--cal-primary) !important;
-  border-color: var(--cal-primary) !important;
+  background: var(--cal-hover) !important;
+  border-color: var(--cal-hover) !important;
   color: #fff !important;
 }
 
@@ -276,7 +271,7 @@ h1, h2, h3, h4, h5, h6 {
 .calc-summary .sum-amount { color: var(--cal-text) !important; font-family: var(--cal-font-head) !important; }
 
 .calc-cta {
-  background: var(--cal-text) !important;
+  background: var(--cal-primary) !important;
   color: #fff !important;
   border-radius: 10px;
   font-weight: 700;
@@ -284,7 +279,7 @@ h1, h2, h3, h4, h5, h6 {
   transition: background 0.2s;
 }
 .calc-cta:hover {
-  background: #000 !important;
+  background: var(--cal-hover) !important;
 }
 
 /* ============================================================
@@ -298,15 +293,35 @@ h1, h2, h3, h4, h5, h6 {
    Regulation" na section heading sa Terms.
    ============================================================ */
 #about { background: var(--cal-bg) !important; }
-#about h3 {
+#about .section-title h2 {
   color: var(--cal-text) !important;
   font-family: var(--cal-font-head) !important;
-  font-weight: 700 !important;
+  text-transform: none !important;
+}
+#about .section-title p {
+  color: var(--cal-text) !important;
+  font-family: var(--cal-font-head) !important;
+  font-weight: 700;
+  text-transform: none !important;
 }
 #about p { color: var(--cal-text-2-strong) !important; }
 #about ul li { color: var(--cal-text-2-strong) !important; }
 #about ul li i { color: var(--cal-primary) !important; }
 #about .pulsating-play-btn { background: var(--cal-primary) !important; }
+
+/* ---- Logo artwork: smaller, centered, theme-swapped ---- */
+#about .about-logo-wrap {
+  max-width: 360px;
+  margin: 0 auto 1.5rem;
+}
+#about .about-logo-wrap img {
+  width: 100%;
+  display: block;
+  border-radius: 1rem;
+}
+#about .about-logo-dark { display: none !important; }
+:root[data-theme="dark"] #about .about-logo-light { display: none !important; }
+:root[data-theme="dark"] #about .about-logo-dark { display: block !important; }
 
 /* ============================================================
    TERMS / FEATURES SECTION
@@ -334,8 +349,8 @@ h1, h2, h3, h4, h5, h6 {
 
 #features .nav-tabs .nav-link:hover,
 #features .nav-tabs .nav-link.active {
-  background: var(--cal-primary) !important;
-  border-color: var(--cal-primary) !important;
+  background: var(--cal-hover) !important;
+  border-color: var(--cal-hover) !important;
   color: #fff !important;
 }
 #features .nav-tabs .nav-link:hover i,
@@ -372,15 +387,17 @@ h1, h2, h3, h4, h5, h6 {
   text-transform: none !important;
 }
 #services-2 .service-item {
-  background: var(--cal-light) !important;
-  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  background: var(--cal-surface) !important;
+  border: 1px solid var(--cal-border) !important;
   box-shadow: none !important;
   border-radius: 16px;
   padding: 28px !important;
+  cursor: pointer;
   transition: 0.25s;
 }
 #services-2 .service-item:hover {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
+  border-color: var(--cal-primary) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06) !important;
 }
 #services-2 .service-item .icon {
   color: var(--cal-text) !important;
@@ -405,7 +422,7 @@ h1, h2, h3, h4, h5, h6 {
 #contact .section-title p {
   color: var(--cal-text) !important;
   font-family: var(--cal-font-head) !important;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: none !important;
 }
 #contact .info-item {
@@ -428,15 +445,15 @@ h1, h2, h3, h4, h5, h6 {
 }
 #contact .form-control:focus {
   border-color: var(--cal-primary) !important;
-  box-shadow: 0 0 0 3px rgba(139, 163, 63, 0.15) !important;
+  box-shadow: 0 0 0 3px rgba(155, 127, 216, 0.15) !important;
 }
 #contact button[type="submit"] {
-  background: var(--cal-primary) !important;
+  background: var(--cal-hover) !important;
   color: #fff !important;
   border-radius: 8px;
   transition: background 0.2s;
 }
-#contact button[type="submit"]:hover { background: var(--cal-hover) !important; }
+#contact button[type="submit"]:hover { background: #5A0FAF !important; }
 
 /* ============================================================
    FOOTER
@@ -468,10 +485,10 @@ h1, h2, h3, h4, h5, h6 {
    SCROLL-TO-TOP / PRELOADER
    ============================================================ */
 #scroll-top {
-  background: var(--cal-primary) !important;
+  background: var(--cal-hover) !important;
   border-radius: 8px;
 }
-#scroll-top:hover { background: var(--cal-hover) !important; }
+#scroll-top:hover { background: #5A0FAF !important; }
 #preloader { background: var(--cal-bg) !important; }
 #preloader:before {
   border-color: var(--cal-primary) transparent var(--cal-primary) transparent !important;
@@ -507,9 +524,9 @@ h1, h2, h3, h4, h5, h6 {
 :root[data-theme="dark"] {
   --cal-bg:        #0A0A0A;   /* halos pure black, kagaya ng Calamansi UI */
   --cal-surface:   #141414;
-  --cal-primary:   #9BBE4A;
-  --cal-hover:     #AED65E;
-  --cal-light:     #1C1C1C;
+  --cal-primary:   #9B7FD8;
+  --cal-hover:     #D1C4E9;   /* mas light sa dark mode — parehong logic ng dati (hover mas maliwanag kaysa primary sa dark bg) */
+  --cal-light:     #1A1522;   /* subtle purple-tinted dark surface, kapareho ng lightness ng dating #1C1C1C */
   --cal-text:      #F5F5F5;
   --cal-text-2:    #9A9A9A;
   --cal-text-2-strong: #C4C4C4;
@@ -542,28 +559,9 @@ h1, h2, h3, h4, h5, h6 {
 :root[data-theme="dark"] .theme-toggle-btn .theme-icon-dark { display: inline-block; }
 
 /* ============================================================
-   DARK MODE BUTTON FIX — explicit override, laging susunod
-   dito kahit ano pa mangyari sa ibang rules. Ito yung
-   "insurance" para hindi na maulit yung white-on-white o
-   red na button.
+   DARK MODE — service-item cards (Process section)
+   ------------------------------------------------------------
+   Sa light mode puti na ang card (--cal-surface). Sa dark mode
+   --cal-surface ay #141414 na, so automatic siyang mag-a-adjust
+   nang walang extra override.
    ============================================================ */
-:root[data-theme="dark"] #header .cta-btn {
-  background: #F5F5F5 !important;
-  color: #0A0A0A !important;
-}
-:root[data-theme="dark"] #header .cta-btn:hover {
-  background: #FFFFFF !important;
-}
-
-:root[data-theme="dark"] .calc-cta {
-  background: #F5F5F5 !important;
-  color: #0A0A0A !important;
-}
-:root[data-theme="dark"] .calc-cta:hover {
-  background: #FFFFFF !important;
-}
-
-:root[data-theme="dark"] #about img {
-  filter: invert(1) brightness(1.1);
-}
-

@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\Hash;
 use App\Services\PenaltyHelper;
 use App\Services\LoanActivationService;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use App\Mail\LoanStatusUpdated;
+use App\Mail\PaymentRecorded;
 
 class AdminController extends Controller
 {
@@ -1065,6 +1069,92 @@ if ($redirect && str_starts_with($redirect, '/') && !str_starts_with($redirect, 
 
     DB::table('borrowerpersonaldetails')->where('detail_id', $detailId)->update(['status' => $status]);
 }
+
+private function sendLoanStatusEmail(int $applicationId, string $status): void
+{
+    if (!in_array($status, ['approved', 'rejected', 'on_hold'], true)) {
+        return;
+    }
+
+    try {
+        $loan = DB::table('loan_applications')
+            ->where('application_id', $applicationId)
+            ->first();
+
+        if (!$loan) {
+            return;
+        }
+
+        $borrower = DB::table('users as u')
+            ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'u.user_id')
+            ->where('u.user_id', $loan->user_id)
+            ->select('u.email', 'u.name', 'bpd.first_name')
+            ->first();
+
+        if (!$borrower || empty($borrower->email)) {
+            return;
+        }
+
+        $displayName = $borrower->first_name ?: ($borrower->name ?: 'Borrower');
+
+        Mail::to($borrower->email)->send(
+            new LoanStatusUpdated($loan, $displayName, $status)
+        );
+    } catch (\Throwable $e) {
+        // Hindi dapat pumalya ang approval dahil lang sa email.
+        Log::warning("Loan status email failed (application {$applicationId}): " . $e->getMessage());
+    }
+}
+
+private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $isFullyPaid): void
+{
+    try {
+        $loan = DB::table('loan_applications')
+            ->where('application_id', $applicationId)
+            ->first();
+
+        if (!$loan) {
+            return;
+        }
+
+        $borrower = DB::table('users as u')
+            ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'u.user_id')
+            ->where('u.user_id', $loan->user_id)
+            ->select('u.email', 'u.name', 'bpd.first_name')
+            ->first();
+
+        if (!$borrower || empty($borrower->email)) {
+            return;
+        }
+
+        $displayName = $borrower->first_name ?: ($borrower->name ?: 'Borrower');
+
+        // Susunod na unpaid installment (null kung fully paid na)
+        $nextUnpaid = DB::table('loan_payment_schedules')
+            ->where('application_id', $applicationId)
+            ->whereNull('paid_at')
+            ->orderBy('installment_no')
+            ->first();
+
+        Mail::to($borrower->email)->send(
+            new PaymentRecorded(
+                $loan,
+                $displayName,
+                (int) $schedule->installment_no,
+                (float) $schedule->amount_due,
+                $isFullyPaid,
+                $nextUnpaid ? (string) $nextUnpaid->due_date : null,
+                $nextUnpaid ? (float) $nextUnpaid->amount_due : null,
+            )
+        );
+    } catch (\Throwable $e) {
+        // Hindi dapat pumalya ang pag-record ng payment dahil lang sa email.
+        Log::warning("Payment recorded email failed (schedule {$schedule->id}): " . $e->getMessage());
+    }
+}
+
+
+
     private function saveComment($detailId, $adminId, $comment)
     {
         DB::table('detailscomments')->insert([
@@ -1211,12 +1301,28 @@ if ($redirect && str_starts_with($redirect, '/') && !str_starts_with($redirect, 
         'newApplicationsCount', 'needsAttentionCount', 'totalApprovedCount'
     );
 }
-    public function loanApplications(Request $request)
+   public function loanApplications(Request $request)
 {
     $adminId = Session::get('user_id');
 
     if ($request->isMethod('post') && $request->has('action')) {
-        // ...unchanged...
+        $applicationId = $request->input('application_id');
+        $this->saveLoanDecision($request, $adminId);
+
+        $newStatus = DB::table('loan_applications')
+            ->where('application_id', $applicationId)
+            ->value('status');
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'status' => $newStatus,
+            ]);
+        }
+
+        return redirect()->route('admin.loan-applications')
+            ->with('success', true)
+            ->with('decisionStatus', $newStatus);
     }
 
     $viewStatus = $request->query('status', 'pending');
@@ -1229,7 +1335,6 @@ if ($redirect && str_starts_with($redirect, '/') && !str_starts_with($redirect, 
         ]
     ));
 }
-
    public function loanApplicationDetail(Request $request, $id)
 {
     $adminId = Session::get('user_id');
@@ -1424,9 +1529,7 @@ if ($redirect && str_starts_with($redirect, '/') && !str_starts_with($redirect, 
             'updated_at' => now(),
         ]);
 
-    // Kapag wala nang natitirang unpaid installment, tapos na ang loan.
-    // Ito ang nagpapalaya sa borrower na makapag-apply ulit — dati kasi
-    // nananatiling 'active' ang application kahit fully paid na.
+
     $applicationId = $schedule->application_id;
 
     $hasUnpaid = DB::table('loan_payment_schedules')
@@ -1439,6 +1542,8 @@ if ($redirect && str_starts_with($redirect, '/') && !str_starts_with($redirect, 
             ->where('application_id', $applicationId)
             ->update(['status' => 'completed']);
     }
+   
+    $this->sendPaymentRecordedEmail($schedule, (int) $applicationId, !$hasUnpaid);
 
     if ($request->ajax() || $request->wantsJson()) {
         $app = DB::table('loan_applications')->where('application_id', $applicationId)->first();
@@ -1571,6 +1676,11 @@ if ($redirect && str_starts_with($redirect, '/') && !str_starts_with($redirect, 
 
   private function refreshLoanApplicationStatus($applicationId)
 {
+    // Kunin ang status BAGO magbago, para malaman kung nagbago talaga ang desisyon.
+    $previousStatus = DB::table('loan_applications')
+        ->where('application_id', $applicationId)
+        ->value('status');
+
     $counts = DB::table('loan_approvals')
         ->where('application_id', $applicationId)
         ->selectRaw("
@@ -1582,7 +1692,6 @@ if ($redirect && str_starts_with($redirect, '/') && !str_starts_with($redirect, 
 
     $requiredReviewers = 3;
 
-   
     if ($counts->total < $requiredReviewers) {
         $status = 'pending';
     } elseif ($counts->a >= 3) {
@@ -1599,6 +1708,15 @@ if ($redirect && str_starts_with($redirect, '/') && !str_starts_with($redirect, 
 
     if ($status === 'approved') {
         LoanActivationService::activate($applicationId);
+    }
+
+    // Mag-email lang kapag talagang nagbago ang desisyon.
+    // Ang 'active' ay binibilang na 'approved', kaya kapag na-activate na ang loan
+    // at may admin na nag-save ulit ng parehong desisyon, hindi uulit ang email.
+    $before = $previousStatus === 'active' ? 'approved' : $previousStatus;
+
+    if ($status !== $before) {
+        $this->sendLoanStatusEmail((int) $applicationId, $status);
     }
 }
 
