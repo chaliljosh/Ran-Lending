@@ -122,6 +122,9 @@
                             </thead>
                             <tbody>
                                 @foreach ($pendingDetails as $d)
+                                    @php
+                                        $pendingRowUrl = route('admin.verification-detail', $d['uuid']) . '?from=verification';
+                                    @endphp
                                     <tr
                                         data-search="{{ strtolower($d['last_name'] . ' ' . $d['first_name'] . ' ' . $d['email']) }}"
                                         data-status="{{ $d['status'] }}"
@@ -129,7 +132,8 @@
                                         data-applied="{{ \Carbon\Carbon::parse($d['created_at'])->toIso8601String() }}"
                                         data-new="{{ \Carbon\Carbon::parse($d['created_at'])->gt(now()->subDay()) ? '1' : '0' }}"
                                         data-attention="{{ $d['waiting_days'] >= 3 ? '1' : '0' }}"
-                                        class="{{ $d['waiting_days'] >= 3 ? 'is-attention-row' : '' }}">
+                                        class="clickable-row {{ $d['waiting_days'] >= 3 ? 'is-attention-row' : '' }}"
+                                        onclick="window.location.href='{{ $pendingRowUrl }}'">
                                         <td>
                                             <div class="rt-name">{{ $d['last_name'] }}, {{ $d['first_name'] }}
                                                 {{ $d['middle_name'] }}</div>
@@ -140,7 +144,7 @@
                                             @endif
                                         </td>
                                         <td class="rt-date">{{ $d['cellphone_num'] ?? '—' }}</td>
-                                        <td class="rt-detailid">#{{ $d['detail_id'] }}</td>
+                                <td class="rt-detailid">#{{ $d['display_id'] }}</td>
                                         <td class="rt-date">{{ \Carbon\Carbon::parse($d['created_at'])->format('M d, Y') }}</td>
                                         <td>
                                             @if ($d['status'] === 'on_hold')
@@ -154,8 +158,8 @@
                                             rejected
                                         </td>
                                         <td class="text-end">
-                                            <a href="{{ route('admin.verification-detail', $d['detail_id']) }}?from=verification"
-                                                class="action-link-btn">View Details</a>
+                                          <a href="{{ $pendingRowUrl }}"
+                                                class="action-link-btn" onclick="event.stopPropagation()">View Details</a>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -241,9 +245,12 @@
                                         $decisionKey = in_array($r->decision, ['approved', 'rejected'])
                                             ? $r->decision
                                             : 'on_hold';
+                                        $reviewedRowUrl = route('admin.verification-detail', $r->uuid) . '?from=verification';
                                     @endphp
                                     <tr data-search="{{ strtolower($r->last_name . ' ' . $r->first_name . ' ' . $r->email) }}"
-                                        data-decision="{{ $decisionKey }}">
+                                        data-decision="{{ $decisionKey }}"
+                                        class="clickable-row"
+                                        onclick="window.location.href='{{ $reviewedRowUrl }}'">
                                         <td>
                                             <div class="rt-name">{{ $r->last_name }}, {{ $r->first_name }}</div>
                                             <div class="rt-email">{{ $r->email ?? '—' }}</div>
@@ -264,8 +271,8 @@
                                             {{ $r->remarks ? \Illuminate\Support\Str::limit($r->remarks, 70) : 'No remarks' }}
                                         </td>
                                         <td class="text-end">
-                                            <a href="{{ route('admin.verification-detail', $r->detail_id) }}?from=verification"
-                                                class="action-link-btn">View Details</a>
+                                            <a href="{{ $reviewedRowUrl }}"
+                                                class="action-link-btn" onclick="event.stopPropagation()">View Details</a>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -327,8 +334,13 @@
                             </thead>
                             <tbody>
                                 @foreach ($filteredDetails as $d)
+                                    @php
+                                        $filteredRowUrl = route('admin.verification-detail', $d->uuid) . '?from=verification';
+                                    @endphp
                                     <tr
-                                        data-search="{{ strtolower($d->last_name . ' ' . $d->first_name . ' ' . $d->email) }}">
+                                        data-search="{{ strtolower($d->last_name . ' ' . $d->first_name . ' ' . $d->email) }}"
+                                        class="clickable-row"
+                                        onclick="window.location.href='{{ $filteredRowUrl }}'">
                                         <td>
                                             <div class="rt-name">{{ $d->last_name }}, {{ $d->first_name }}
                                                 {{ $d->middle_name }}</div>
@@ -346,8 +358,8 @@
                                             @endif
                                         </td>
                                         <td class="text-end">
-                                            <a href="{{ route('admin.verification-detail', $d->detail_id) }}?from=verification"
-                                                class="action-link-btn">View Details</a>
+                                            <a href="{{ $filteredRowUrl }}"
+                                                class="action-link-btn" onclick="event.stopPropagation()">View Details</a>
                                         </td>
                                     </tr>
                                 @endforeach

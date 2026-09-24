@@ -57,7 +57,7 @@ return [
     'url' => env('SUPABASE_STORAGE_URL'),
     'endpoint' => env('SUPABASE_STORAGE_ENDPOINT'),
     'use_path_style_endpoint' => true,
-    'throw' => true,   // <-- pansamantalang binago mula false
+    'throw' => false,   
 ],
 
 'valid_ids' => [

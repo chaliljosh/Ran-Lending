@@ -660,6 +660,51 @@
     margin-bottom: 20px;
 }
 
+/* ---- On Hold / Rejected verification card ----
+   Reuses .bwl-tracker-card as the shell; adds a left accent bar,
+   a header row with an eyebrow + status badge, and a summary line
+   showing the admin vote breakdown. Orange for "on hold" (mixed
+   decision, needs follow-up), red for an explicit rejection. ---- */
+html.app-skin-dark .bwl-tracker-onhold--rejected {
+    border-left-color: #262626;
+}
+
+.bwl-tracker-onhold-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+.bwl-tracker-onhold-badge {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    background: var(--bwl-dash-orange-soft);
+    color: var(--bwl-dash-orange);
+}
+.bwl-tracker-onhold-badge--rejected {
+    background: var(--bwl-dash-red-soft);
+    color: var(--bwl-dash-red);
+}
+.bwl-tracker-onhold-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+}
+.bwl-tracker-onhold .bwl-tracker-empty-title {
+    margin-bottom: 10px;
+}
+
 @media (max-width: 575.98px) {
     .bwl-tracker-card {
         padding: 24px 20px;
@@ -670,6 +715,9 @@
     }
     .bwl-tracker-label {
         font-size: 0.74rem;
+    }
+    .bwl-tracker-onhold-head {
+        flex-direction: column;
     }
 }
 
@@ -950,6 +998,16 @@ html.app-skin-dark .bwl-tracker-line { background: #262626; }
 html.app-skin-dark .bwl-tracker-line.is-done { background: var(--bwl-dash-green); }
 html.app-skin-dark .bwl-tracker-line.is-rejected { background: var(--bwl-dash-red); }
 
+/* ---------- On Hold / Rejected verification card ---------- */
+html.app-skin-dark .bwl-tracker-onhold-badge {
+    background: rgba(234, 88, 12, 0.18);
+    color: #FB923C;
+}
+html.app-skin-dark .bwl-tracker-onhold-badge--rejected {
+    background: rgba(220, 38, 38, 0.18);
+    color: #F87171;
+}
+
 /* ---------- Onboarding card ---------- */
 html.app-skin-dark .bwl-onboard-card {
     background: #141414;
@@ -960,4 +1018,250 @@ html.app-skin-dark .bwl-onboard-checklist { background: #0d0d0d; }
 html.app-skin-dark .bwl-onboard-check-icon {
     background: #141414;
     border-color: #262626;
+}
+
+.bwl-tracker-remarks {
+    text-align: left;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 16px 0;
+}
+.bwl-tracker-remarks-title {
+    font-weight: 600;
+    font-size: 0.8rem;
+    margin-bottom: 6px;
+}
+.bwl-tracker-remarks-list {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 0.85rem;
+    color: #555;
+}
+
+/* ══════════════════════════════════════════
+   VERIFICATION ON HOLD CARD
+   Palitan ang buong lumang "VERIFICATION ON HOLD CARD" block
+   sa dulo ng borrower-dashboard.css ng file na ito
+   (kasama na ang dark mode).
+   ══════════════════════════════════════════ */
+
+.bwl-hold {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+    padding: 32px;
+}
+
+/* ── Status chip ── */
+.bwl-hold-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 4px 11px 4px 9px;
+    border-radius: 999px;
+    background: #fffbeb;
+    color: #b45309;
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+.bwl-hold-chip-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #d97706;
+}
+
+/* ── Heading + lede ── */
+.bwl-hold-title {
+    margin: 14px 0 6px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: #0f172a;
+}
+.bwl-hold-lede {
+    margin: 0 0 26px;
+    max-width: 58ch;
+    font-size: 0.92rem;
+    line-height: 1.6;
+    color: #64748b;
+}
+
+/* ── Requested changes: editorial block (focal point) ── */
+.bwl-hold-fix {
+    border-top: 2px solid #0f172a;
+}
+.bwl-hold-fix-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 0 10px;
+}
+.bwl-hold-fix-title {
+    margin: 0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #0f172a;
+}
+.bwl-hold-fix-count {
+    font-size: 0.8rem;
+    color: #64748b;
+    font-variant-numeric: tabular-nums;
+}
+.bwl-hold-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.bwl-hold-item {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 14px;
+    align-items: baseline;
+    padding: 16px 0;
+    border-top: 1px solid #e5e7eb;
+}
+.bwl-hold-item:last-child { border-bottom: 1px solid #e5e7eb; }
+.bwl-hold-item-num {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #94a3b8;
+    font-variant-numeric: tabular-nums;
+}
+.bwl-hold-item-text {
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.45;
+    letter-spacing: -0.005em;
+    color: #0f172a;
+    overflow-wrap: anywhere;
+}
+.bwl-hold-empty {
+    margin: 0;
+    padding: 16px 0;
+    border-top: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.6;
+    color: #0f172a;
+}
+
+/* ── Admin decisions (tally) ── */
+.bwl-hold-tally {
+    display: flex;
+    align-items: stretch;
+    margin: 0 0 28px;
+}
+.bwl-hold-tally-item {
+    display: flex;
+    flex-direction: column;
+    padding-right: 36px;
+}
+.bwl-hold-tally-item + .bwl-hold-tally-item {
+    padding-left: 36px;
+    padding-right: 0;
+    border-left: 1px solid #e5e7eb;
+}
+.bwl-hold-tally-num {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+}
+.bwl-hold-tally-label {
+    margin-top: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #64748b;
+}
+.is-approved .bwl-hold-tally-num { color: #15803d; }
+.is-rejected .bwl-hold-tally-num { color: #b91c1c; }
+
+/* ── Action row ── */
+.bwl-hold-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px 18px;
+    margin-top: 24px;
+}
+.bwl-hold-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 24px;
+    border-radius: 999px;
+    background: #334155;
+    color: #FFFFFF;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.18s ease;
+}
+.bwl-hold-btn:hover { background: #475569; color: #FFFFFF; }
+.bwl-hold-btn:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+.bwl-hold-note {
+    margin: 0;
+    font-size: 0.82rem;
+    color: #64748b;
+}
+
+/* ── Mobile ── */
+@media (max-width: 640px) {
+    .bwl-hold { padding: 22px 18px; }
+    .bwl-hold-title { font-size: 1.15rem; }
+    .bwl-hold-item-text { font-size: 1.05rem; }
+    .bwl-hold-actions { flex-direction: column; align-items: stretch; }
+    .bwl-hold-btn { justify-content: center; }
+    .bwl-hold-note { text-align: center; }
+}
+
+/* ── Dark mode (true black palette ng app) ── */
+html.app-skin-dark .bwl-hold {
+    background: #141414;
+    border-color: #262626;
+    box-shadow: none;
+}
+html.app-skin-dark .bwl-hold-chip { background: rgba(217, 119, 6, 0.14); color: #fbbf24; }
+html.app-skin-dark .bwl-hold-chip-dot { background: #fbbf24; }
+html.app-skin-dark .bwl-hold-title { color: #F5F5F5; }
+html.app-skin-dark .bwl-hold-lede,
+html.app-skin-dark .bwl-hold-tally-label,
+html.app-skin-dark .bwl-hold-note { color: #9A9A9A; }
+html.app-skin-dark .bwl-hold-tally-item + .bwl-hold-tally-item { border-left-color: #262626; }
+html.app-skin-dark .is-approved .bwl-hold-tally-num { color: #4ade80; }
+html.app-skin-dark .is-rejected .bwl-hold-tally-num { color: #f87171; }
+
+html.app-skin-dark .bwl-hold-fix { border-top-color: #F5F5F5; }
+html.app-skin-dark .bwl-hold-fix-title,
+html.app-skin-dark .bwl-hold-item-text,
+html.app-skin-dark .bwl-hold-empty { color: #F5F5F5; }
+html.app-skin-dark .bwl-hold-fix-count { color: #9A9A9A; }
+html.app-skin-dark .bwl-hold-item-num { color: #737373; }
+html.app-skin-dark .bwl-hold-item,
+html.app-skin-dark .bwl-hold-item:last-child,
+html.app-skin-dark .bwl-hold-empty { border-color: #262626; }
+.bwl-hold-chip--rejected {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.bwl-hold-btn--rejected {
+    background: #334155;
+    color: #FFFFFF;
+}
+.bwl-hold-btn--rejected:hover {
+    background: #475569;
+    color: #FFFFFF;
 }

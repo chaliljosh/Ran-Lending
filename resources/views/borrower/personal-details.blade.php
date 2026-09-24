@@ -20,9 +20,13 @@
 
     <div class="main-content">
 
-        @if($detailsStatus === 'pending')
+        {{-- FIX: dating "$detailsStatus === 'pending'" lang ang check, kaya
+             pati yung on_hold (2 approved + 1 rejected) ay napupunta dito
+             dahil ang $detailsStatus column sa DB ay 'pending' pa rin kahit
+             on-hold na. Ginamit na ang computed $isOnHold flag. --}}
+        @if($detailsStatus === 'pending' && !$isOnHold)
         <div class="row justify-content-center">
-            <div class="col-lg-6">
+            <div class="col-lg-8">
                 <div class="card bwl-status-card">
                     <div class="bwl-status-header">
                         <div class="bwl-status-icon"><i class="feather-check-circle"></i></div>
@@ -66,18 +70,61 @@
             <div class="col-lg-12">
 
                 @if($detailsStatus === 'rejected')
-                <div class="alert alert-danger d-flex align-items-center gap-3 mb-4" role="alert" style="border-radius:12px; border-left: 4px solid #dc3545;">
-                    <i class="feather-alert-circle" style="font-size:22px;flex-shrink:0;"></i>
-                    <div>
-                        <strong>Submission Rejected</strong><br>
-                        <small>Your previous submission was rejected. Please update your information and resubmit.</small>
+                {{-- ============ REJECTED NOTE (same layout as on_hold, red variant) ============ --}}
+                <section class="bwl-note bwl-note--rejected" aria-label="Submission rejected">
+
+                    <div class="bwl-note-fix">
+                        <p class="bwl-note-label">Submission Rejected — fix these, then resubmit</p>
+
+                        @if(($rejectionRemarks ?? collect())->isNotEmpty())
+                            <ol class="bwl-note-list">
+                                @foreach($rejectionRemarks as $remark)
+                                    <li class="bwl-note-item">
+                                        <span class="bwl-note-num" aria-hidden="true">{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</span>
+                                        <span class="bwl-note-text">{{ $remark }}</span>
+                                    </li>
+                                @endforeach
+                            </ol>
+                        @else
+                            <p class="bwl-note-empty">
+                                The reviewer didn't leave a note. Double-check your ID photos and personal details, then resubmit.
+                            </p>
+                        @endif
                     </div>
-                </div>
+
+                </section>
+                {{-- FIX: dating $detailsStatus === 'on_hold' — hindi ito
+                     nagma-match dahil ang DB status column ay 'pending' pa
+                     rin sa on-hold state. Ginamit na ang $isOnHold flag. --}}
+                @elseif($isOnHold)
+                {{-- ============ ON HOLD NOTE ============ --}}
+                <section class="bwl-note" aria-label="Verification on hold">
+
+                    <div class="bwl-note-fix">
+                        <p class="bwl-note-label">Fix these, then resubmit</p>
+
+                        @if(($rejectionRemarks ?? collect())->isNotEmpty())
+                            <ol class="bwl-note-list">
+                                @foreach($rejectionRemarks as $remark)
+                                    <li class="bwl-note-item">
+                                        <span class="bwl-note-num" aria-hidden="true">{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</span>
+                                        <span class="bwl-note-text">{{ $remark }}</span>
+                                    </li>
+                                @endforeach
+                            </ol>
+                        @else
+                            <p class="bwl-note-empty">
+                                The reviewer didn't leave a note. Double-check your ID photos and personal details, then resubmit.
+                            </p>
+                        @endif
+                    </div>
+
+                </section>
                 @endif
 
                 {{-- ============================================================
                      WIZARD CARD — iisang malaking white card na naglalaman
-                     ng progress bar + buong form (gaya ng reference design).
+                     ng progress bar + buong form.
                      Ang bilang ng .progress-step dito ay dapat KAPAREHO ng
                      bilang ng .pd-step sa loob ng form sa baba.
                    ============================================================ --}}
@@ -120,7 +167,6 @@
                             <div class="form-section-header">
                                 <div>
                                     <p class="form-section-title">Personal Information</p>
-                           
                                 </div>
                             </div>
                             <div class="row g-3">
@@ -202,10 +248,15 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Monthly Income</label>
-                                    <div class="pd-input-icon-wrap">
-                                        <span class="pd-input-icon">&#8369;</span>
-                                        <input type="text" class="form-control" id="monthlyIncome" value="{{ $details->monthly_income ?? '' }}" placeholder="e.g. 25000" inputmode="numeric" maxlength="6" autocomplete="off" required>
-                                    </div>
+                                    <select class="form-select" id="monthlyIncome" required>
+                                        <option value="">Select income range</option>
+                                        <option value="Below ₱10,000" {{ ($details->monthly_income ?? '') === 'Below ₱10,000' ? 'selected' : '' }}>Below ₱10,000</option>
+                                        <option value="₱10,000 - ₱20,000" {{ ($details->monthly_income ?? '') === '₱10,000 - ₱20,000' ? 'selected' : '' }}>₱10,000 - ₱20,000</option>
+                                        <option value="₱20,001 - ₱30,000" {{ ($details->monthly_income ?? '') === '₱20,001 - ₱30,000' ? 'selected' : '' }}>₱20,001 - ₱30,000</option>
+                                        <option value="₱30,001 - ₱50,000" {{ ($details->monthly_income ?? '') === '₱30,001 - ₱50,000' ? 'selected' : '' }}>₱30,001 - ₱50,000</option>
+                                        <option value="₱50,001 - ₱100,000" {{ ($details->monthly_income ?? '') === '₱50,001 - ₱100,000' ? 'selected' : '' }}>₱50,001 - ₱100,000</option>
+                                        <option value="Above ₱100,000" {{ ($details->monthly_income ?? '') === 'Above ₱100,000' ? 'selected' : '' }}>Above ₱100,000</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -219,7 +270,6 @@
                             <div class="form-section-header">
                                 <div>
                                     <p class="form-section-title">Valid ID</p>
-                                 
                                 </div>
                             </div>
                             <div class="row g-3">
@@ -227,20 +277,22 @@
                                     <label class="form-label">Type of ID</label>
                                     <select class="form-select" id="idType" required>
                                         <option value="">Select ID type</option>
-                                        @foreach(['national_id'=>'National ID (PhilSys)','passport'=>'Passport','drivers_license'=>"Driver's License",'umid'=>'UMID','sss'=>'SSS ID','tin'=>'TIN ID','postal'=>'Postal ID','voters'=>"Voter's ID",'prc'=>'PRC ID'] as $val => $label)
+                                        @foreach(['national_id'=>'National ID (PhilSys)','passport'=>'Passport','drivers_license'=>"Driver's License",'umid'=>'UMID','sss'=>'SSS ID','tin'=>'TIN ID','postal'=>'Postal ID','voters'=>"Voter's ID",'prc'=>'PRC ID','others'=>'Others'] as $val => $label)
                                         <option value="{{ $val }}" {{ ($details->id_type ?? '') === $val ? 'selected' : '' }}>{{ $label }}</option>
                                         @endforeach
                                     </select>
+                                </div>
+                                <div class="col-md-6" id="idTypeOthersWrapper" style="display:none;">
+                                    <label class="form-label">Specify ID Type</label>
+                                    <input type="text" class="form-control" id="idTypeOthers" value="{{ $details->id_type_others ?? '' }}" placeholder="Enter ID type">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">ID/Passport Number</label>
                                     <input type="text" class="form-control" id="idNumber" value="{{ $details->id_number ?? '' }}" placeholder="Enter ID or passport number" required>
                                 </div>
 
-                                {{-- ============ ID FRONT / BACK — split into two uploads
-                                     dahil karamihan ng IDs (UMID, driver's license, PhilID)
-                                     ay may importanteng info sa likod (address, signature,
-                                     expiry) na kailangan i-verify ng admin. ============ --}}
+                                {{-- ID FRONT / BACK — dalawang hiwalay na upload dahil
+                                     karamihan ng IDs ay may importanteng info sa likod. --}}
                                 <div class="col-md-6">
                                     <label class="form-label">Front ID</label>
                                     <input type="file" class="form-control" id="validIdFront" accept="image/*,.pdf" {{ ($details->id_file_path ?? null) ? '' : 'required' }}>
@@ -264,7 +316,6 @@
                             <div class="form-section-header">
                                 <div>
                                     <p class="form-section-title">Present Address</p>
-                              
                                 </div>
                             </div>
                             <div class="row g-3">
@@ -290,17 +341,20 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Zipcode</label>
-                                    <input type="text" class="form-control" id="zipcode" value="{{ $details->zipcode ?? '' }}" placeholder="e.g. 1000" maxlength="4">
+                                    <input type="text" class="form-control" id="zipcode" value="{{ $address->zipcode ?? '' }}" placeholder="e.g. 1000" maxlength="4">
                                 </div>
                                 <div class="col-12">
                                     <label class="form-label">Home Address</label>
-                                    <textarea class="form-control" id="homeAddress" rows="2" placeholder="e.g. Block 5 Lot 10, Greenfield Subdivision, Rizal Street"></textarea>
+                                    <textarea class="form-control" id="homeAddress" rows="2" placeholder="e.g. Block 5 Lot 10, Greenfield Subdivision, Rizal Street">{{ $address->home_address ?? '' }}</textarea>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {{-- ============ STEP 4 — WORK INFORMATION ============ --}}
+                    {{-- Ang employment status, company, position, at years/months
+                         ay pine-prefill ng personal-details.js (window.pdSaved),
+                         dahil nire-reset ng handleEmploymentStatus() ang mga field. --}}
                     <div class="pd-step">
                         <div class="pd-step-alert"></div>
 
@@ -308,7 +362,6 @@
                             <div class="form-section-header">
                                 <div>
                                     <p class="form-section-title">Work Information</p>
-
                                 </div>
                             </div>
                             <div class="row g-3">
@@ -317,17 +370,17 @@
                                     <select class="form-select" id="employmentStatus" required>
                                         <option value="">Select status</option>
                                         @foreach(['employed'=>'Employed','self_employed'=>'Self-Employed','unemployed'=>'Unemployed','student'=>'Student','retired'=>'Retired'] as $val => $label)
-                                        <option value="{{ $val }}">{{ $label }}</option>
+                                        <option value="{{ $val }}" {{ ($work->employment_status ?? '') === $val ? 'selected' : '' }}>{{ $label }}</option>
                                         @endforeach
                                     </select>
                                 </div>
                                 <div class="col-md-6" id="companyNameWrapper">
                                     <label class="form-label" id="companyNameLabel">Company/Business Name</label>
-                                    <input type="text" class="form-control" id="companyName" placeholder="Enter company/business name">
+                                    <input type="text" class="form-control" id="companyName" value="{{ $work->company_name ?? '' }}" placeholder="Enter company/business name">
                                 </div>
                                 <div class="col-md-6" id="positionWrapper">
                                     <label class="form-label" id="positionLabel">Position/Occupation</label>
-                                    <input type="text" class="form-control" id="position" placeholder="Enter position/occupation">
+                                    <input type="text" class="form-control" id="position" value="{{ $work->position ?? '' }}" placeholder="Enter position/occupation">
                                 </div>
                                 <div class="col-md-6" id="yearLevelWrapper">
                                     <label class="form-label" id="yearLevelLabel">Year Level</label>
@@ -344,7 +397,7 @@
                                     <label class="form-label" id="yearsLabel">Years</label>
                                     <input type="number" class="form-control" id="yearsInCompany" placeholder="e.g. 2" min="0" max="50" step="1">
                                 </div>
-                            
+
                                 <div class="col-md-3" id="monthsWrapper">
                                     <label class="form-label" id="monthsLabel">Months</label>
                                     <select class="form-select" id="monthsInCompany">
@@ -365,34 +418,33 @@
                             <div class="form-section-header">
                                 <div>
                                     <p class="form-section-title">Co-Maker Information</p>
-                               
                                 </div>
                             </div>
                             <div class="row g-3">
                                 <div class="col-md-4">
                                     <label class="form-label">Co-Maker Last Name</label>
-                                    <input type="text" class="form-control" id="coMakerLastName" placeholder="Enter last name" required>
+                                    <input type="text" class="form-control" id="coMakerLastName" value="{{ $comaker->last_name ?? '' }}" placeholder="Enter last name" required>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Co-Maker First Name</label>
-                                    <input type="text" class="form-control" id="coMakerFirstName" placeholder="Enter first name" required>
+                                    <input type="text" class="form-control" id="coMakerFirstName" value="{{ $comaker->first_name ?? '' }}" placeholder="Enter first name" required>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Co-Maker Middle Name</label>
-<input type="text" class="form-control" id="coMakerMiddleName" placeholder="M.I." maxlength="1" required>
+                                    <input type="text" class="form-control" id="coMakerMiddleName" value="{{ $comaker->middle_name ?? '' }}" placeholder="M.I." maxlength="1" required>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Relationship to Borrower</label>
                                     <select class="form-select" id="coMakerRelationship" required>
                                         <option value="">Select relationship</option>
                                         @foreach(['spouse'=>'Spouse','parent'=>'Parent','sibling'=>'Sibling','child'=>'Child','relative'=>'Other Relative','friend'=>'Friend','colleague'=>'Colleague'] as $val => $label)
-                                        <option value="{{ $val }}">{{ $label }}</option>
+                                        <option value="{{ $val }}" {{ ($comaker->relationship ?? '') === $val ? 'selected' : '' }}>{{ $label }}</option>
                                         @endforeach
                                     </select>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Co-Maker Contact Number</label>
-                                    <input type="tel" class="form-control" id="coMakerContact" value="+63 " placeholder="+63 912 345 6789" maxlength="16" required>
+                                    <input type="tel" class="form-control" id="coMakerContact" value="{{ $comaker->contact_number ?? '+63 ' }}" placeholder="+63 912 345 6789" maxlength="16" required>
                                 </div>
                             </div>
                         </div>
@@ -406,7 +458,7 @@
 
                         <div class="pd-wizard-nav-right">
                             <a href="{{ route('borrower.dashboard') }}" class="btn btn-outline-secondary px-5" style="border-radius:12px;">
-                           Cancel
+                                Cancel
                             </a>
                             <button type="button" class="btn px-5" id="pdBtnNext">
                                 Next
@@ -430,11 +482,11 @@
     <div id="submissionOverlay">
         <div class="modal-box">
             <div class="modal-inner">
-           
+
                 <h5>Submitted Successfully!</h5>
                 <p class="sub-text">Your personal details have been submitted.<br>Please wait for the admin to review your information.</p>
                 <a href="{{ route('borrower.dashboard') }}" class="btn-go">
-                  Go to Dashboard
+                    Go to Dashboard
                 </a>
             </div>
         </div>
@@ -443,7 +495,26 @@
 
 @section('page-scripts')
     <script src="{{ asset('assets/borrower/vendors/js/daterangepicker.min.js') }}"></script>
-    @if($detailsStatus === 'incomplete' || $detailsStatus === 'rejected')
+    {{-- FIX: dating condition ay hindi na-trigger for on_hold kasi
+         $detailsStatus ay 'pending' sa DB, gamit na ang $isOnHold. --}}
+    @if($detailsStatus === 'incomplete' || $detailsStatus === 'rejected' || $isOnHold)
+    {{-- Saved values para sa JS prefill (address cascade + work info) --}}
+    @php
+        $pdSaved = [
+            'region'           => $address->region ?? null,
+            'province'         => $address->province ?? null,
+            'city'             => $address->city ?? null,
+            'barangay'         => $address->barangay ?? null,
+            'zipcode'          => $address->zipcode ?? null,
+            'employmentStatus' => $work->employment_status ?? null,
+            'companyName'      => $work->company_name ?? null,
+            'position'         => $work->position ?? null,
+            'yearsInCompany'   => $work->years_in_company ?? null,
+        ];
+    @endphp
+    <script>
+        window.pdSaved = {!! json_encode($pdSaved) !!};
+    </script>
     <script src="{{ asset('functions/csrf.js') }}"></script>
     <script src="{{ asset('functions/personal-details.js') }}"></script>
     @endif

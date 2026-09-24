@@ -10,26 +10,40 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 class BorrowerController extends Controller
 {
-    // Shared helper — kinukuha ang common data na kailangan ng nav sa lahat ng borrower pages
-    private function commonData($userId)
+    // Shared helper — kinukuha ang common data na kailangan ng nav sa lahat ng borrower pages.
+    // Isang RPC call na lang (borrower_common_data) sa halip na 6+ magkakahiwalay na queries,
+    // kasama na dun yung N+1 loop na dati nasa buildBorrowerNotifications().
+    // Kinukuha ang common fields (userName, initials, profilePicture, atbp.) mula sa
+    // decoded RPC json. Hiwalay na function para magamit ito ng commonData() (para sa
+    // karamihan ng pages) at ng dashboard() (na may sariling merged RPC call).
+    private function extractCommonFields($data)
     {
-        $user = DB::table('users')->where('user_id', $userId)->first();
-        $details = DB::table('borrowerpersonaldetails')->where('user_id', $userId)->first();
+        $user = $data['user'] ? (object) $data['user'] : null;
+        $details = $data['details'] ? (object) $data['details'] : null;
         $detailsStatus = $details->status ?? 'incomplete';
 
-        $approvedCount = 0;
-        if ($details) {
-            $approvedCount = DB::table('detailsapproval')
-                ->where('detail_id', $details->detail_id)
-                ->where('decision', 'approved')
-                ->count();
-        }
+        $approvedCount = $data['approved_count'];
+        $rejectedCount = $data['rejected_count'];
 
         $isFullyApproved = $detailsStatus === 'approved' && $approvedCount >= 3;
+
+        // "On hold" — all 3 admins have already voted (e.g. 2 approve +
+        // 1 reject) but it wasn't a clean unanimous approval, so
+        // $isFullyApproved is false. Excludes an explicit terminal
+        // 'rejected' status, which gets its own dedicated card.
+        $totalVerificationVotes = $approvedCount + $rejectedCount;
+        $isOnHold = $details
+            && $detailsStatus !== 'incomplete'
+            && $detailsStatus !== 'rejected'
+            && $totalVerificationVotes >= 3
+            && !$isFullyApproved;
+
+        $rejectionRemarks = collect($data['rejection_remarks']);
 
         if ($details && $details->first_name) {
             $middleInitial = $details->middle_name ? substr($details->middle_name, 0, 1) . '.' : '';
@@ -44,31 +58,38 @@ class BorrowerController extends Controller
         }
         $initials = substr($initials, 0, 2);
 
-        $profilePicture = $this->getProfilePictureUrl($userId);
+        // Binubuo na lang ang URL gamit ang string. Dati Storage::disk('supabase')->url()
+        // ang gamit, pero binubuo nito ang buong S3 client sa bawat request (~170ms),
+        // kahit walang network call na kasama.
+        $storageUrl = rtrim((string) config('filesystems.disks.supabase.url'), '/');
+        $profilePicture = ($user && !empty($user->profile_picture))
+            ? $storageUrl . '/' . ltrim($user->profile_picture, '/')
+            : null;
 
         $userEmail = $user->email ?? '';
         $userPhone = $details->cellphone_num ?? '';
         $isActive = $user ? (bool) ($user->is_active ?? true) : true;
         $lastLoginAt = $user->last_login_at ?? null;
 
-        $headerNotifications = $this->buildBorrowerNotifications($userId);
+        $headerNotifications = $this->buildBorrowerNotificationsFromData($data);
         $unreadNotifCount = $headerNotifications->where('read', false)->count();
 
         return compact(
-            'details', 'detailsStatus', 'approvedCount', 'isFullyApproved',
+            'details', 'detailsStatus', 'approvedCount', 'rejectedCount', 'isFullyApproved', 'isOnHold',
+            'rejectionRemarks',
             'userName', 'initials', 'profilePicture',
             'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
             'headerNotifications', 'unreadNotifCount'
         );
     }
-private function getProfilePictureUrl($userId)
-{
-    $user = DB::table('users')->where('user_id', $userId)->first();
-    if ($user && !empty($user->profile_picture)) {
-        return Storage::disk('supabase')->url($user->profile_picture);
+
+    private function commonData($userId)
+    {
+        $row = DB::selectOne('select borrower_common_data(?) as data', [$userId]);
+        $data = json_decode($row->data, true);
+
+        return $this->extractCommonFields($data);
     }
-    return null;
-}
 
     /**
      * Loan amount eligibility — first-time borrowers are capped at
@@ -105,7 +126,7 @@ private function getProfilePictureUrl($userId)
         $runningTotal = 0;
 
         for ($i = 1; $i <= $term; $i++) {
-           $due = $appliedDate->copy()->addMonthsNoOverflow($i);
+            $due = $appliedDate->copy()->addMonthsNoOverflow($i);
             $amount = ($i === $term) ? round($totalAmount - $runningTotal, 2) : $monthlyBase;
             $runningTotal += $amount;
 
@@ -115,38 +136,24 @@ private function getProfilePictureUrl($userId)
         return $schedule;
     }
 
-    private function buildBorrowerNotifications($userId)
+    // Kapalit ng dating buildBorrowerNotifications(). Parehong logic sa pag-buo ng
+    // notification cards, pero gamit na yung bulk data na kasama na sa borrower_common_data
+    // RPC — walang bagong query dito, kaya wala nang N+1 kahit ilan pang loan applications.
+    private function buildBorrowerNotificationsFromData($data)
     {
         $items = collect();
-
-        $readKeys = DB::table('borrower_notification_reads')
-            ->where('user_id', $userId)
-            ->whereNotNull('read_at')
-            ->pluck('notification_key')
-            ->flip();
-
+        $readKeys = collect($data['read_keys'])->flip();
         $today = Carbon::today();
 
-        $applications = DB::table('loan_applications')
-            ->where('user_id', $userId)
-            ->orderByDesc('applied_at')
-            ->get();
-
-        $applicationIds = $applications->pluck('application_id');
+        $applications = collect($data['applications']);
 
         foreach ($applications as $app) {
-            if (!in_array($app->status, ['approved', 'active', 'rejected'], true)) {
+            if (!in_array($app['status'], ['approved', 'active', 'rejected'], true)) {
                 continue;
             }
 
-            $decidedAt = DB::table('loan_approvals')
-                ->where('application_id', $app->application_id)
-                ->whereIn('decision', ['approved', 'rejected'])
-                ->orderByDesc('reviewed_at')
-                ->value('reviewed_at') ?? $app->applied_at;
-
-            $isApproved = in_array($app->status, ['approved', 'active'], true);
-            $key = 'loan_status:' . $app->application_id . ':' . $app->status;
+            $isApproved = in_array($app['status'], ['approved', 'active'], true);
+            $key = 'loan_status:' . $app['application_id'] . ':' . $app['status'];
 
             $items->push([
                 'key'      => $key,
@@ -155,117 +162,81 @@ private function getProfilePictureUrl($userId)
                 'color'    => $isApproved ? 'success' : 'danger',
                 'title'    => $isApproved ? 'Loan Application Approved' : 'Loan Application Rejected',
                 'subtitle' => $isApproved
-                    ? 'Your loan of ₱' . number_format($app->loan_amount, 2) . ' has been approved.'
+                    ? 'Your loan of ₱' . number_format($app['loan_amount'], 2) . ' has been approved.'
                     : 'Your loan application was not approved.',
                 'read'     => $readKeys->has($key),
-                'ts'       => Carbon::parse($decidedAt),
+                'ts'       => Carbon::parse($app['decided_at']),
             ]);
         }
 
-        $details = DB::table('borrowerpersonaldetails')->where('user_id', $userId)->first();
+        $details = $data['details'] ? (object) $data['details'] : null;
 
-        if ($details && $details->status === 'approved') {
-            $approvedCount = DB::table('detailsapproval')
-                ->where('detail_id', $details->detail_id)
-                ->where('decision', 'approved')
-                ->count();
+        if ($details && $details->status === 'approved' && $data['approved_count'] >= 3) {
+            $key = 'eligible:' . $details->detail_id;
 
-            if ($approvedCount >= 3) {
-                $decidedAt = DB::table('detailsapproval')
-                    ->where('detail_id', $details->detail_id)
-                    ->where('decision', 'approved')
-                    ->orderByDesc('reviewed_at')
-                    ->value('reviewed_at') ?? now();
-
-                $key = 'eligible:' . $details->detail_id;
-
-                $items->push([
-                    'key'      => $key,
-                    'url'      => route('borrower.apply-loan'),
-                    'icon'     => 'feather-unlock',
-                    'color'    => 'success',
-                    'title'    => "You're Now Eligible to Apply",
-                    'subtitle' => 'Your verification is complete — you can now apply for a loan.',
-                    'read'     => $readKeys->has($key),
-                    'ts'       => Carbon::parse($decidedAt),
-                ]);
-            }
+            $items->push([
+                'key'      => $key,
+                'url'      => route('borrower.apply-loan'),
+                'icon'     => 'feather-unlock',
+                'color'    => 'success',
+                'title'    => "You're Now Eligible to Apply",
+                'subtitle' => 'Your verification is complete — you can now apply for a loan.',
+                'read'     => $readKeys->has($key),
+                'ts'       => $data['eligible_decided_at'] ? Carbon::parse($data['eligible_decided_at']) : now(),
+            ]);
         }
 
-        if ($applicationIds->isNotEmpty()) {
-            $recentPaid = DB::table('loan_payment_schedules')
-                ->whereIn('application_id', $applicationIds)
-                ->whereNotNull('paid_at')
-                ->where('paid_at', '>=', now()->subDays(14))
-                ->get();
+        foreach ($data['recent_paid'] as $s) {
+            $key = 'paid:' . $s['application_id'] . ':' . $s['installment_no'];
 
-            foreach ($recentPaid as $s) {
-                $key = 'paid:' . $s->application_id . ':' . $s->installment_no;
-
-                $items->push([
-                    'key'      => $key,
-                    'url'      => route('borrower.loan-details'),
-                    'icon'     => 'feather-check-circle',
-                    'color'    => 'success',
-                    'title'    => 'Payment Received',
-                    'subtitle' => 'Your payment of ₱' . number_format($s->amount_paid, 2) . ' was confirmed.',
-                    'read'     => $readKeys->has($key),
-                    'ts'       => Carbon::parse($s->paid_at),
-                ]);
-            }
-
-            $penalties = DB::table('loan_penalties')
-                ->whereIn('application_id', $applicationIds)
-                ->where('status', 'unpaid')
-                ->get();
-
-            foreach ($penalties as $p) {
-                $key = 'penalty:' . $p->id;
-
-                $items->push([
-                    'key'      => $key,
-                    'url'      => route('borrower.loan-details'),
-                    'icon'     => 'feather-alert-triangle',
-                    'color'    => 'danger',
-                    'title'    => 'Penalty Charged',
-                    'subtitle' => 'A penalty of ₱' . number_format($p->penalty_amount, 2) . ' was added due to late payment.',
-                    'read'     => $readKeys->has($key),
-                    'ts'       => Carbon::parse($p->created_at),
-                ]);
-            }
+            $items->push([
+                'key'      => $key,
+                'url'      => route('borrower.loan-details'),
+                'icon'     => 'feather-check-circle',
+                'color'    => 'success',
+                'title'    => 'Payment Received',
+                'subtitle' => 'Your payment of ₱' . number_format($s['amount_paid'], 2) . ' was confirmed.',
+                'read'     => $readKeys->has($key),
+                'ts'       => Carbon::parse($s['paid_at']),
+            ]);
         }
 
-        $candidateApp = $applications->first(fn($a) => in_array($a->status, ['active', 'approved'], true));
+        foreach ($data['unpaid_penalties'] as $p) {
+            $key = 'penalty:' . $p['id'];
 
-        if ($candidateApp) {
-            $schedule = DB::table('loan_payment_schedules')
-                ->where('application_id', $candidateApp->application_id)
-                ->whereNull('paid_at')
-                ->orderBy('installment_no')
-                ->get();
+            $items->push([
+                'key'      => $key,
+                'url'      => route('borrower.loan-details'),
+                'icon'     => 'feather-alert-triangle',
+                'color'    => 'danger',
+                'title'    => 'Penalty Charged',
+                'subtitle' => 'A penalty of ₱' . number_format($p['penalty_amount'], 2) . ' was added due to late payment.',
+                'read'     => $readKeys->has($key),
+                'ts'       => Carbon::parse($p['created_at']),
+            ]);
+        }
 
-            foreach ($schedule as $s) {
-                $due = Carbon::parse($s->due_date);
-                $daysUntilDue = $today->diffInDays($due, false);
+        foreach ($data['upcoming_schedule'] as $s) {
+            $due = Carbon::parse($s['due_date']);
+            $daysUntilDue = $today->diffInDays($due, false);
 
-                if ($daysUntilDue > 14) {
-                    continue;
-                }
-
-                $key = 'payment:' . $candidateApp->application_id . ':' . $s->installment_no;
-                $isLate = $daysUntilDue < 0;
-
-                $items->push([
-                    'key'      => $key,
-                    'url'      => route('borrower.loan-details'),
-                    'icon'     => $isLate ? 'feather-alert-circle' : 'feather-clock',
-                    'color'    => $isLate ? 'danger' : 'primary',
-                    'title'    => $isLate ? 'Payment Overdue' : 'Upcoming Payment',
-                    'subtitle' => ($isLate ? 'Was due ' : 'Due ') . $due->format('M j, Y'),
-                    'read'     => $readKeys->has($key),
-                    'ts'       => $due,
-                ]);
+            if ($daysUntilDue > 14) {
+                continue;
             }
+
+            $key = 'payment:' . $s['application_id'] . ':' . $s['installment_no'];
+            $isLate = $daysUntilDue < 0;
+
+            $items->push([
+                'key'      => $key,
+                'url'      => route('borrower.loan-details'),
+                'icon'     => $isLate ? 'feather-alert-circle' : 'feather-clock',
+                'color'    => $isLate ? 'danger' : 'primary',
+                'title'    => $isLate ? 'Payment Overdue' : 'Upcoming Payment',
+                'subtitle' => ($isLate ? 'Was due ' : 'Due ') . $due->format('M j, Y'),
+                'read'     => $readKeys->has($key),
+                'ts'       => $due,
+            ]);
         }
 
         return $items->sortByDesc('ts')->values();
@@ -274,13 +245,20 @@ private function getProfilePictureUrl($userId)
     public function dashboard(Request $request)
     {
         $userId = Session::get('user_id');
-        $common = $this->commonData($userId);
+
+        // Isang RPC call na lang para sa dashboard — pinagsama na ang common data
+        // (nav/header) at ang dashboard-specific data (loan, schedule) sa isang
+        // round-trip, sa halip na dalawang magkahiwalay na tawag papunta sa Supabase.
+        $row = DB::selectOne('select borrower_dashboard_full_data(?) as data', [$userId]);
+        $dashData = json_decode($row->data, true);
+
+        $common = $this->extractCommonFields($dashData);
         extract($common);
 
-        $latestLoan = DB::table('loan_applications')
-            ->where('user_id', $userId)
-            ->orderByDesc('applied_at')
-            ->first();
+        $latestLoan = $dashData['latest_loan'] ? (object) $dashData['latest_loan'] : null;
+        $candidateApp = $dashData['candidate_app'] ? (object) $dashData['candidate_app'] : null;
+        $scheduleRaw = collect($dashData['schedule'])->map(fn($s) => (object) $s);
+        $approvedAtRaw = $dashData['approved_at'] ?? null;
 
         $loanStatusMap = [
             'pending'    => ['label' => 'Pending Review', 'bar' => 'bg-warning', 'progress' => 30],
@@ -322,17 +300,8 @@ private function getProfilePictureUrl($userId)
         $calPrevMonth = $calMonth->copy()->subMonth()->format('Y-m');
         $calNextMonth = $calMonth->copy()->addMonth()->format('Y-m');
 
-        $candidateApp = DB::table('loan_applications')
-            ->where('user_id', $userId)
-            ->whereIn('status', ['active', 'approved'])
-            ->orderByDesc('applied_at')
-            ->first();
-
         if ($candidateApp) {
-            $schedule = DB::table('loan_payment_schedules')
-                ->where('application_id', $candidateApp->application_id)
-                ->orderBy('installment_no')
-                ->get();
+            $schedule = $scheduleRaw;
 
             if ($schedule->isNotEmpty()) {
                 $app = $candidateApp;
@@ -350,13 +319,8 @@ private function getProfilePictureUrl($userId)
                     $daysOverdue = $isOverdue ? $dueDate->diffInDays(now()) : 0;
                 }
 
-                $approvedAt = DB::table('loan_approvals')
-                    ->where('application_id', $app->application_id)
-                    ->where('decision', 'approved')
-                    ->orderByDesc('reviewed_at')
-                    ->value('reviewed_at');
-
-                $activatedAt = $approvedAt;
+                $approvedAt = $approvedAtRaw;
+                $activatedAt = $approvedAtRaw;
 
                 $calDaysWithPayments = $schedule
                     ->filter(fn($s) => Carbon::parse($s->due_date)->isSameMonth($calMonth))
@@ -365,7 +329,7 @@ private function getProfilePictureUrl($userId)
                 $today = Carbon::today();
                 $notifItems = [];
 
-                foreach ($schedule->whereNull('paid_at') as $s) {
+                foreach ($schedule->filter(fn($s) => is_null($s->paid_at)) as $s) {
                     $due = Carbon::parse($s->due_date);
                     $daysUntilDue = $today->diffInDays($due, false);
 
@@ -396,8 +360,8 @@ private function getProfilePictureUrl($userId)
         }
 
         return view('borrower.dashboard', compact(
-            'userName', 'initials', 'profilePicture', 'detailsStatus', 'approvedCount',
-            'isFullyApproved', 'latestLoan', 'loanStatus', 'app', 'notifications', 'recentPayments',
+            'userName', 'initials', 'profilePicture', 'detailsStatus', 'approvedCount', 'rejectedCount',
+            'isFullyApproved', 'isOnHold', 'rejectionRemarks', 'latestLoan', 'loanStatus', 'app', 'notifications', 'recentPayments',
             'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
             'outstandingAmount', 'amountPaid', 'progressPct', 'totalCount', 'paidCount', 'nextUnpaid',
             'isOverdue', 'daysOverdue', 'approvedAt', 'activatedAt',
@@ -421,8 +385,21 @@ private function getProfilePictureUrl($userId)
             'birthday'   => $details->birthday ?? $user->birthday ?? '',
         ];
 
+        // Saved address / work / co-maker — para ma-prefill ang form
+        // kapag nag-eedit o nagre-resubmit ang borrower (on hold / rejected).
+        $address = $details
+            ? DB::table('borroweraddress')->where('detail_id', $details->detail_id)->first()
+            : null;
+        $work = $details
+            ? DB::table('borrowerworkinfo')->where('detail_id', $details->detail_id)->first()
+            : null;
+        $comaker = $details
+            ? DB::table('comakerinfo')->where('detail_id', $details->detail_id)->first()
+            : null;
+
         return view('borrower.personal-details', compact(
-            'userName', 'initials', 'profilePicture', 'detailsStatus', 'approvedCount', 'isFullyApproved', 'regData', 'details',
+            'userName', 'initials', 'profilePicture', 'detailsStatus', 'approvedCount', 'isFullyApproved', 'isOnHold', 'rejectionRemarks', 'regData', 'details',
+            'address', 'work', 'comaker',
             'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
             'headerNotifications', 'unreadNotifCount'
         ));
@@ -430,59 +407,47 @@ private function getProfilePictureUrl($userId)
 
     public function savePersonalDetails(Request $request)
     {
-       $userId = Session::get('user_id');
+        $userId = Session::get('user_id');
 
-    $existing = DB::table('borrowerpersonaldetails')->where('user_id', $userId)->first();
+        $existing = DB::table('borrowerpersonaldetails')->where('user_id', $userId)->first();
 
-    // idNumber: required, at dapat unique sa buong table — maliban kung
-    // ito yung parehong detail_id na ina-update natin (sarili niyang
-    // dating record). Ito yung humaharang sa isang tao na gumagamit ng
-    // maraming magkaibang email (hal. "+alias" trick sa Gmail) pero
-    // parehong government ID lang, para makapag-apply nang paulit-ulit
-    // bilang "first-time borrower."
-    //
-    // NOTE: ito ay app-level check lang — may maliit na race-condition
-    // window kung sabay-sabay dadaan ang dalawang request na parehong
-    // walang existing record pa. Ang totoong huling harang ay yung
-    // UNIQUE constraint sa DB mismo (idagdag via Supabase SQL Editor:
-    // ALTER TABLE borrowerpersonaldetails ADD CONSTRAINT unique_id_number
-    // UNIQUE (id_number);) — ang QueryException catch sa baba ang
-    // humahawak niyan kapag nakalusot dito.
-    $request->validate([
-        'validIdFront' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
-        'validIdBack'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
-        'email'        => 'nullable|email',
-        'cellphone'    => 'nullable|string|max:20',
-        'idNumber'     => [
-            'required',
-            'string',
-            Rule::unique('borrowerpersonaldetails', 'id_number')
-                ->ignore($existing->detail_id ?? null, 'detail_id'),
-        ],
-    ], [
-        'idNumber.unique' => 'This ID number is already registered under another account.',
-    ]);
+        $request->validate([
+            'validIdFront' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'validIdBack'  => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'email'        => 'nullable|email',
+            'cellphone'    => 'nullable|string|max:20',
+            'idTypeOthers' => 'required_if:idType,others|nullable|string|max:100',
+            'idNumber'     => [
+                'required',
+                'string',
+                Rule::unique('borrowerpersonaldetails', 'id_number')
+                    ->ignore($existing->detail_id ?? null, 'detail_id'),
+            ],
+        ], [
+            'idNumber.unique' => 'This ID number is already registered under another account.',
+            'idTypeOthers.required_if' => 'Please specify your ID type.',
+        ]);
 
-    // ID Front / Back — ngayon papunta sa 'valid_ids' disk (private bucket)
-    $idFilePath = $existing->id_file_path ?? null;
-    if ($request->hasFile('validIdFront')) {
-        if ($idFilePath) {
-            Storage::disk('valid_ids')->delete($idFilePath);
+        // ID Front / Back — papunta sa 'valid_ids' disk (private bucket)
+        $idFilePath = $existing->id_file_path ?? null;
+        if ($request->hasFile('validIdFront')) {
+            if ($idFilePath) {
+                Storage::disk('valid_ids')->delete($idFilePath);
+            }
+            $file = $request->file('validIdFront');
+            $idFilePath = 'ids/' . uniqid() . '.' . $file->getClientOriginalExtension();
+            Storage::disk('valid_ids')->put($idFilePath, file_get_contents($file));
         }
-        $file = $request->file('validIdFront');
-        $idFilePath = 'ids/' . uniqid() . '.' . $file->getClientOriginalExtension();
-        Storage::disk('valid_ids')->put($idFilePath, file_get_contents($file));
-    }
 
-    $idFilePathBack = $existing->id_file_path_back ?? null;
-    if ($request->hasFile('validIdBack')) {
-        if ($idFilePathBack) {
-            Storage::disk('valid_ids')->delete($idFilePathBack);
+        $idFilePathBack = $existing->id_file_path_back ?? null;
+        if ($request->hasFile('validIdBack')) {
+            if ($idFilePathBack) {
+                Storage::disk('valid_ids')->delete($idFilePathBack);
+            }
+            $file = $request->file('validIdBack');
+            $idFilePathBack = 'ids/' . uniqid() . '.' . $file->getClientOriginalExtension();
+            Storage::disk('valid_ids')->put($idFilePathBack, file_get_contents($file));
         }
-        $file = $request->file('validIdBack');
-        $idFilePathBack = 'ids/' . uniqid() . '.' . $file->getClientOriginalExtension();
-        Storage::disk('valid_ids')->put($idFilePathBack, file_get_contents($file));
-    }
 
         $personalData = [
             'last_name'         => $request->input('lastName'),
@@ -498,6 +463,11 @@ private function getProfilePictureUrl($userId)
             'birth_city'        => $request->input('birthCity'),
             'cellphone_num'     => $request->input('cellphone'),
             'id_type'           => $request->input('idType'),
+            // Naka-save lang kapag "others" ang piniling ID type;
+            // kung hindi, null para walang naiiwang lumang value.
+            'id_type_others'    => $request->input('idType') === 'others'
+                                    ? trim($request->input('idTypeOthers', ''))
+                                    : null,
             'id_number'         => $request->input('idNumber'),
             'id_file_path'      => $idFilePath,
             'id_file_path_back' => $idFilePathBack,
@@ -536,13 +506,30 @@ private function getProfilePictureUrl($userId)
                 $detailId = $existing->detail_id;
 
                 DB::table('borrowerpersonaldetails')->where('user_id', $userId)->update($personalData);
-                DB::table('borroweraddress')->where('detail_id', $detailId)->update($addressData);
-                DB::table('borrowerworkinfo')->where('detail_id', $detailId)->update($workData);
-                DB::table('comakerinfo')->where('detail_id', $detailId)->update($comakerData);
 
+                // updateOrInsert() para gumawa ng row kung wala pa,
+                // mag-update kung meron na.
+                DB::table('borroweraddress')->updateOrInsert(
+                    ['detail_id' => $detailId],
+                    $addressData
+                );
+
+                DB::table('borrowerworkinfo')->updateOrInsert(
+                    ['detail_id' => $detailId],
+                    $workData
+                );
+
+                DB::table('comakerinfo')->updateOrInsert(
+                    ['detail_id' => $detailId],
+                    $comakerData
+                );
+
+                // Burahin ang lumang votes para makaboto ulit ang 3 admins
+                // sa bagong submission.
                 DB::table('detailsapproval')->where('detail_id', $detailId)->delete();
             } else {
                 $personalData['user_id'] = $userId;
+                $personalData['uuid'] = (string) Str::uuid();
                 $personalData['created_at'] = now();
                 $detailId = DB::table('borrowerpersonaldetails')->insertGetId($personalData, 'detail_id');
 
@@ -562,10 +549,8 @@ private function getProfilePictureUrl($userId)
                 'detail_id' => $detailId,
             ]);
         } catch (QueryException $e) {
-            // Postgres unique_violation = SQLSTATE 23505. Ito yung huling
-            // harang kung nakalusot sa app-level validate() dahil sa race
-            // condition (dalawang sabay na request, parehong "wala pang
-            // existing" nang tumakbo yung unique check).
+            // Postgres unique_violation = SQLSTATE 23505. Huling harang
+            // kung nakalusot sa validate() dahil sa race condition.
             if ($e->getCode() === '23505') {
                 return response()->json([
                     'success' => false,
@@ -644,14 +629,9 @@ private function getProfilePictureUrl($userId)
         $monthlyPayment = round($totalAmount / $loanTerm, 2);
 
         try {
-            // Buong "check-then-insert" ay ginawa nating iisang atomic
-            // operation gamit ang DB::transaction() + lockForUpdate().
-            // Ang lockForUpdate() ay nag-a-acquire ng row-level lock sa
-            // mga existing na loan_applications row ng user na ito habang
-            // nasa loob tayo ng transaction — kung may kasabay na request
-            // (double-click, dalawang tabs), hihintayin muna niyan na
-            // matapos ang una bago siya makapag-check ng sarili niya,
-            // kaya hindi na sila pareho makakakita ng "wala pang existing."
+            // Ang "check-then-insert" ay iisang atomic operation gamit ang
+            // DB::transaction() + lockForUpdate(), para hindi makalusot ang
+            // double-click o dalawang tabs.
             $result = DB::transaction(function () use ($userId, $loanAmount, $loanTerm, $interestRate, $totalInterest, $totalAmount, $monthlyPayment, $request) {
                 $existing = DB::table('loan_applications')
                     ->where('user_id', $userId)
@@ -691,9 +671,6 @@ private function getProfilePictureUrl($userId)
                 'application_id' => $result['application_id'],
             ]);
         } catch (QueryException $e) {
-            // Postgres unique_violation = SQLSTATE 23505 — huling harang
-            // kung sakaling may partial unique index tayo sa DB (tingnan
-            // ang SQL sa ibaba) at nakalusot pa rin dito.
             if ($e->getCode() === '23505') {
                 return response()->json(['success' => false, 'message' => 'You already have an active or pending loan application.'], 422);
             }
@@ -714,17 +691,14 @@ private function getProfilePictureUrl($userId)
             return redirect()->route('borrower.dashboard');
         }
 
-$loans = DB::table('loan_applications')
-    ->where('user_id', $userId)
-    ->orderByDesc('applied_at')
-    ->get();
+        $requestedLoanId = $request->query('loan');
 
+        $row = DB::selectOne('select borrower_loan_details_data(?, ?) as data', [$userId, $requestedLoanId]);
+        $ldData = json_decode($row->data, true);
 
-$requestedLoanId = $request->query('loan');
-$app = $requestedLoanId
-    ? $loans->firstWhere('application_id', $requestedLoanId)
-    : null;
-$app = $app ?? $loans->first();
+        $loans = collect($ldData['loans'])->map(fn($l) => (object) $l);
+        $app = $ldData['selected_app'] ? (object) $ldData['selected_app'] : null;
+        $realSchedule = collect($ldData['schedule'])->map(fn($s) => (object) $s);
 
         $statusMap = [
             'pending'   => ['label' => 'Pending Review', 'badge' => 'bg-warning', 'icon' => 'feather-clock',          'icon_color' => 'text-warning'],
@@ -742,13 +716,6 @@ $app = $app ?? $loans->first();
 
         $loanId = $app ? 'LN-' . str_pad($app->application_id, 6, '0', STR_PAD_LEFT) : null;
 
-        $realSchedule = $app
-            ? DB::table('loan_payment_schedules')
-                ->where('application_id', $app->application_id)
-                ->orderBy('installment_no')
-                ->get()
-            : collect();
-
         $totalCount = 0;
         $paidCount = 0;
         $amountCollected = 0;
@@ -764,11 +731,11 @@ $app = $app ?? $loans->first();
                     : ($due->isPast() ? 'overdue' : 'pending');
 
                 return [
-                    'month'  => $s->installment_no,
-                    'due'    => $due,
-                    'amount' => (float) $s->amount_due,
-                    'status' => $rowStatus,
-                      'paid_at' => !is_null($s->paid_at) ? Carbon::parse($s->paid_at) : null,
+                    'month'   => $s->installment_no,
+                    'due'     => $due,
+                    'amount'  => (float) $s->amount_due,
+                    'status'  => $rowStatus,
+                    'paid_at' => !is_null($s->paid_at) ? Carbon::parse($s->paid_at) : null,
                 ];
             })->all();
 
@@ -794,7 +761,7 @@ $app = $app ?? $loans->first();
             'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
             'headerNotifications', 'unreadNotifCount',
             'totalCount', 'paidCount', 'amountCollected', 'remainingBalance', 'nextUnpaid', 'isOverdue',
-             'loans' 
+            'loans'
         ));
     }
 
@@ -856,13 +823,18 @@ $app = $app ?? $loans->first();
     {
         $userId = Session::get('user_id');
 
-        DB::table('borrower_notification_reads')->updateOrInsert(
-            ['user_id' => $userId, 'notification_key' => $key],
-            ['read_at' => now(), 'updated_at' => now(), 'created_at' => now()]
-        );
+        // Isang query na lang (insertOrIgnore). Dati updateOrInsert = 2 queries
+        // (select tapos insert/update). Kung nasa read table na ang key, walang
+        // kailangang baguhin, kaya okay lang na i-ignore.
+        DB::table('borrower_notification_reads')->insertOrIgnore([
+            'user_id'          => $userId,
+            'notification_key' => $key,
+            'read_at'          => now(),
+            'updated_at'       => now(),
+            'created_at'       => now(),
+        ]);
 
-        // Fixed: naka-block na ang "//evil.com" protocol-relative bypass
-        // (parehong isyu tulad ng na-ayos na sa AdminController::notificationOpen()).
+        // Naka-block ang "//evil.com" protocol-relative bypass.
         $redirect = $request->query('redirect');
 
         if ($redirect && str_starts_with($redirect, '/') && !str_starts_with($redirect, '//')) {
@@ -875,13 +847,27 @@ $app = $app ?? $loans->first();
     public function markAllNotificationsRead(Request $request)
     {
         $userId = Session::get('user_id');
-        $notifications = $this->buildBorrowerNotifications($userId);
 
+        $row = DB::selectOne('select borrower_common_data(?) as data', [$userId]);
+        $data = json_decode($row->data, true);
+        $notifications = $this->buildBorrowerNotificationsFromData($data);
+
+        // Kunin muna lahat ng unread, tapos isang insert na lang para sa lahat.
+        // Dati may updateOrInsert sa loob ng foreach (2 queries kada notification).
+        // Unread na ang mga ito, ibig sabihin wala pa sa read table, kaya insert lang.
+        $rows = [];
         foreach ($notifications->where('read', false) as $n) {
-            DB::table('borrower_notification_reads')->updateOrInsert(
-                ['user_id' => $userId, 'notification_key' => $n['key']],
-                ['read_at' => now(), 'updated_at' => now(), 'created_at' => now()]
-            );
+            $rows[] = [
+                'user_id'          => $userId,
+                'notification_key' => $n['key'],
+                'read_at'          => now(),
+                'updated_at'       => now(),
+                'created_at'       => now(),
+            ];
+        }
+
+        if (!empty($rows)) {
+            DB::table('borrower_notification_reads')->insertOrIgnore($rows);
         }
 
         return response()->json(['success' => true]);
@@ -1033,64 +1019,64 @@ $app = $app ?? $loans->first();
         return response()->json(['success' => true, 'message' => 'Profile information updated.']);
     }
 
-   public function updateProfilePicture(Request $request)
-{
-    $request->validate([
-        'profile_picture' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
-    ]);
-
-    $userId = Session::get('user_id');
-    $user = DB::table('users')->where('user_id', $userId)->first();
-
-    if (!empty($user->profile_picture)) {
-        Storage::disk('supabase')->delete($user->profile_picture);
-    }
-
-    $file = $request->file('profile_picture');
-    $filename = 'profile-pictures/' . uniqid() . '.' . $file->getClientOriginalExtension();
-    Storage::disk('supabase')->put($filename, file_get_contents($file), 'public');
-
-    DB::table('users')->where('user_id', $userId)->update([
-        'profile_picture' => $filename,
-    ]);
-
-    Session::put('user_profile_picture', $filename);
-
-    if ($request->ajax() || $request->wantsJson()) {
-        return response()->json([
-            'success' => true,
-            'message' => 'Profile picture updated.',
-            'profile_picture_url' => Storage::disk('supabase')->url($filename),
+    public function updateProfilePicture(Request $request)
+    {
+        $request->validate([
+            'profile_picture' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
-    }
 
-    return back()->with('success', 'Profile picture updated.');
-}
+        $userId = Session::get('user_id');
+        $user = DB::table('users')->where('user_id', $userId)->first();
 
-   public function removeProfilePicture(Request $request)
-{
-    $userId = Session::get('user_id');
-    $user = DB::table('users')->where('user_id', $userId)->first();
+        if (!empty($user->profile_picture)) {
+            Storage::disk('supabase')->delete($user->profile_picture);
+        }
 
-    if (!empty($user->profile_picture)) {
-        Storage::disk('supabase')->delete($user->profile_picture);
-    }
+        $file = $request->file('profile_picture');
+        $filename = 'profile-pictures/' . uniqid() . '.' . $file->getClientOriginalExtension();
+        Storage::disk('supabase')->put($filename, file_get_contents($file), 'public');
 
-    DB::table('users')->where('user_id', $userId)->update([
-        'profile_picture' => null,
-    ]);
-
-    Session::forget('user_profile_picture');
-
-    if ($request->ajax() || $request->wantsJson()) {
-        return response()->json([
-            'success' => true,
-            'message' => 'Profile picture removed.',
+        DB::table('users')->where('user_id', $userId)->update([
+            'profile_picture' => $filename,
         ]);
+
+        Session::put('user_profile_picture', $filename);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile picture updated.',
+                'profile_picture_url' => Storage::disk('supabase')->url($filename),
+            ]);
+        }
+
+        return back()->with('success', 'Profile picture updated.');
     }
 
-    return back()->with('success', 'Profile picture removed.');
-}
+    public function removeProfilePicture(Request $request)
+    {
+        $userId = Session::get('user_id');
+        $user = DB::table('users')->where('user_id', $userId)->first();
+
+        if (!empty($user->profile_picture)) {
+            Storage::disk('supabase')->delete($user->profile_picture);
+        }
+
+        DB::table('users')->where('user_id', $userId)->update([
+            'profile_picture' => null,
+        ]);
+
+        Session::forget('user_profile_picture');
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile picture removed.',
+            ]);
+        }
+
+        return back()->with('success', 'Profile picture removed.');
+    }
 
     public function updateProfileSection(Request $request)
     {
@@ -1155,47 +1141,47 @@ $app = $app ?? $loans->first();
     }
 
     public function changePassword(Request $request)
-{
-    $userId = Session::get('user_id');
+    {
+        $userId = Session::get('user_id');
 
-    // Rate limit key — per-user (session-based), para hindi ma-brute-force
-    // ang current password kahit na-hijack ang session ng user.
-    $rateLimitKey = 'change-password:' . $userId;
+        // Rate limit key — per-user, para hindi ma-brute-force
+        // ang current password kahit na-hijack ang session ng user.
+        $rateLimitKey = 'change-password:' . $userId;
 
-    if (RateLimiter::tooManyAttempts($rateLimitKey, 5)) {
-        $seconds = RateLimiter::availableIn($rateLimitKey);
-        return response()->json([
-            'success' => false,
-            'message' => 'Too many attempts. Please try again in ' . ceil($seconds / 60) . ' minute(s).',
-        ], 429);
+        if (RateLimiter::tooManyAttempts($rateLimitKey, 5)) {
+            $seconds = RateLimiter::availableIn($rateLimitKey);
+            return response()->json([
+                'success' => false,
+                'message' => 'Too many attempts. Please try again in ' . ceil($seconds / 60) . ' minute(s).',
+            ], 429);
+        }
+
+        $user = DB::table('users')->where('user_id', $userId)->first();
+
+        $current = $request->input('current_password');
+        $new     = $request->input('new_password');
+        $confirm = $request->input('confirm_password');
+
+        if (!$user || !Hash::check($current, $user->password_hash)) {
+            RateLimiter::hit($rateLimitKey, 600); // 10 minutes lockout window
+            return response()->json(['success' => false, 'message' => 'Current password is incorrect.'], 422);
+        }
+
+        if ($new !== $confirm) {
+            return response()->json(['success' => false, 'message' => 'New passwords do not match.'], 422);
+        }
+
+        if (strlen($new) < 8) {
+            return response()->json(['success' => false, 'message' => 'New password must be at least 8 characters.'], 422);
+        }
+
+        DB::table('users')->where('user_id', $userId)->update([
+            'password_hash' => Hash::make($new),
+        ]);
+
+        // Successful change — clear ang rate limit counter
+        RateLimiter::clear($rateLimitKey);
+
+        return response()->json(['success' => true, 'message' => 'Password changed successfully!']);
     }
-
-    $user = DB::table('users')->where('user_id', $userId)->first();
-
-    $current = $request->input('current_password');
-    $new     = $request->input('new_password');
-    $confirm = $request->input('confirm_password');
-
-    if (!$user || !Hash::check($current, $user->password_hash)) {
-        RateLimiter::hit($rateLimitKey, 600); // 10 minutes lockout window
-        return response()->json(['success' => false, 'message' => 'Current password is incorrect.'], 422);
-    }
-
-    if ($new !== $confirm) {
-        return response()->json(['success' => false, 'message' => 'New passwords do not match.'], 422);
-    }
-
-    if (strlen($new) < 8) {
-        return response()->json(['success' => false, 'message' => 'New password must be at least 8 characters.'], 422);
-    }
-
-    DB::table('users')->where('user_id', $userId)->update([
-        'password_hash' => Hash::make($new),
-    ]);
-
-    // Successful change — clear ang rate limit counter
-    RateLimiter::clear($rateLimitKey);
-
-    return response()->json(['success' => true, 'message' => 'Password changed successfully!']);
-}
 }

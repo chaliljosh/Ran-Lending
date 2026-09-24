@@ -190,16 +190,16 @@
             font-size: 0.75rem;
             font-weight: 600;
             color: #8a9bb0;
-       
+
             letter-spacing: 0.3px;
             margin-top: 2px;
             white-space: nowrap;
         }
 
         /* ============================================
-           DECISION TRIGGER BUTTON — compact, outline
-           style (not a large filled CTA). Sits below
-           the stats row (under "Overdue").
+           DECISION TRIGGER BUTTON (legacy — no longer
+           placed in the header card, kept in case other
+           surfaces still reference the compact style)
         ============================================ */
         .btn-review-decision {
             display: inline-flex;
@@ -219,6 +219,40 @@
             border-color: #4a7cf7;
             color: #4a7cf7;
         }
+
+        /* ============================================
+           MAKE DECISION — bottom-right page action.
+           Filled/prominent primary CTA that sits below
+           all info cards, right-aligned.
+        ============================================ */
+        .bsc-page-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 4px;
+              margin-bottom: 24px;
+        }
+    .btn-make-decision {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 11px 22px;
+    border-radius: 10px;
+    border: 1px solid #4a7cf7;
+    background: #4a7cf7;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(74, 124, 247, 0.28);
+    transition: background .15s ease, transform .15s ease, box-shadow .15s ease;
+}
+.btn-make-decision:hover {
+    background: #3866e0;
+    border-color: #3866e0;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(74, 124, 247, 0.38);
+}
+.btn-make-decision i { font-size: 0.95rem; }
 
         /* ============================================
            PROGRESS TIMELINE
@@ -344,6 +378,8 @@
             .bsc-stats { flex-wrap: wrap; gap: 10px 0; }
             .bsc-stat { min-width: 45%; flex: 1 1 45%; border-right: none !important; padding: 6px 0; }
             .btn-review-decision { width: 100%; text-align: center; }
+            .bsc-page-actions { justify-content: stretch; }
+            .btn-make-decision { width: 100%; justify-content: center; }
         }
         /* ============================================
    BACK BUTTON — matched from loan-details.css
@@ -581,6 +617,23 @@ html.app-skin-dark .btn-review-decision {
 }
 html.app-skin-dark .btn-review-decision:hover { border-color: #9BBE4A !important; color: #9BBE4A !important; }
 
+html.app-skin-dark .btn-make-decision {
+    background: #141414 !important;
+    border-color: #262626 !important;
+    color: #C4C4C4 !important;
+    box-shadow: none !important;
+}
+html.app-skin-dark .btn-make-decision i {
+    color: #C4C4C4 !important;
+}
+html.app-skin-dark .btn-make-decision:hover {
+    border-color: #9BBE4A !important;
+    color: #9BBE4A !important;
+}
+html.app-skin-dark .btn-make-decision:hover i {
+    color: #9BBE4A !important;
+}
+
 html.app-skin-dark #decisionModal .modal-content { background: #141414 !important; border-color: #262626 !important; }
 html.app-skin-dark #decisionModal .modal-header-clean,
 html.app-skin-dark #decisionModal .modal-footer { border-color: #262626 !important; }
@@ -636,11 +689,11 @@ body.modal-open .footer {
     opacity: 0.7;
     cursor: not-allowed;
 }
- 
+
 .btn-decision .spinner-border {
     vertical-align: -2px;
 }
- 
+
 .btn-decision:disabled {
     opacity: 0.7;
     cursor: not-allowed;
@@ -649,11 +702,7 @@ body.modal-open .footer {
     align-items: center;
     justify-content: center;
 }
- 
+
 .btn-decision:disabled .spinner-border {
     vertical-align: -2px;
 }
-
-
- 
-

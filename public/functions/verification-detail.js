@@ -1,21 +1,22 @@
-// public/functions/verification-detail.js
-// Used by: resources/views/admin/verification-detail.blade.php
-//
-// REDESIGN: the old single-step "Review" modal + separate native-ish
-// confirm modal have been replaced with a 2-step decision modal
-// (remarks → confirmation) matching loan-application-detail.js
-// exactly. decisionForm now submits normally on step 2 — no AJAX,
-// same as the loan application flow.
-//
-// UPDATE: submitting step 2 now flips the confirm button into a
-// disabled loading-spinner state ("Approving..."/"Rejecting...")
-// right away. Since this is a normal (non-AJAX) form submit, the
-// page will redirect back to Borrower Verification shortly after —
-// the spinner just covers that brief window — and the existing
-// session-based toast on the list page still shows the result like
-// before, unchanged.
-
 function decisionShowConfirm(action) {
+    // NEW: kapag reject, kailangan may laman ang remarks bago
+    // pumunta sa confirmation step — dito papalabas si borrower
+    // ng specific info kung ano dapat ayusin.
+    if (action === 'rejected') {
+        const remarksInput = document.getElementById('decisionRemarks');
+        const errorEl = document.getElementById('decisionRemarksError');
+
+        if (!remarksInput.value.trim()) {
+            remarksInput.classList.add('is-invalid');
+            if (errorEl) errorEl.style.display = 'block';
+            remarksInput.focus();
+            return;
+        }
+
+        remarksInput.classList.remove('is-invalid');
+        if (errorEl) errorEl.style.display = 'none';
+    }
+
     document.getElementById('decisionActionInput').value = action;
 
     document.getElementById('decisionStep1').style.display = 'none';
@@ -70,15 +71,18 @@ document.addEventListener('DOMContentLoaded', function () {
     if (remarksInput && remarksCount) {
         remarksInput.addEventListener('input', function () {
             remarksCount.textContent = remarksInput.value.length;
+
+            // NEW: alisin ang error highlight sa sandaling magsimula
+            // mag-type ulit ang admin.
+            if (remarksInput.value.trim()) {
+                remarksInput.classList.remove('is-invalid');
+                const errorEl = document.getElementById('decisionRemarksError');
+                if (errorEl) errorEl.style.display = 'none';
+            }
         });
     }
 
-    // ========================================
-    // LOADING STATE — flips the confirm button (Approve/Reject) into
-    // a disabled spinner as soon as step 2 is submitted. Normal
-    // (non-AJAX) submit, so the page redirects shortly after; this
-    // just covers that window so the click feels acknowledged.
-    // ========================================
+
     const decisionForm = document.getElementById('decisionForm');
     if (decisionForm) {
         decisionForm.addEventListener('submit', function () {

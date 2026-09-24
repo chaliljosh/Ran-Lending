@@ -1036,3 +1036,10 @@ html.app-skin-dark .reviewed-table tbody tr.is-attention-row td {
 html.app-skin-dark .reviewed-table tbody tr.is-attention-row:hover td {
     background-color: rgba(180, 83, 9, 0.2) !important;
 }
+
+.clickable-row {
+    cursor: pointer;
+}
+.clickable-row:hover {
+    background-color: #f8f9fb;
+}

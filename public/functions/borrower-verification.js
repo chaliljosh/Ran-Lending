@@ -1,21 +1,4 @@
-// public/functions/borrower-verification.js
-// Used by: resources/views/admin/borrower-verification.blade.php
-//
-// PENDING TAB: search box, status/attention filter, and sort dropdown
-// all reorder/show-hide the existing <tr> rows, THEN paginate the
-// matching set (rows-per-page select + numbered pagination) — same
-// pattern as loan-applications.js's Pending tab.
-//
-// REVIEWED / FILTERED tabs are untouched — still use the same
-// numbered pagination (1 2 3 ... N) as before.
 
-// ========================================
-// SHARED — generic numbered-pagination renderer
-// Ginagamit ito ng Pending/Reviewed/Filtered tables (tatlo, magkaparehong
-// pattern). Gumagawa ng: [<] [1] [2] [...] [N] [>] sa loob ng containerId,
-// may ellipsis kapag maraming pages, at direktang tumatawag sa
-// onPageChange(pageNumber) kapag na-click ang isang page button.
-// ========================================
 function buildPageList(current, total) {
     const delta = 1; // ilang numero sa magkabilang gilid ng current page
     const range = [];

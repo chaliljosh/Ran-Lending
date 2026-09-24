@@ -42,17 +42,7 @@
 
         <div class="form-grid">
 
-          <div class="field">
-            <label for="lastName">Last Name</label>
-            <div class="input-wrap">
-              <i class="bi bi-person field-icon"></i>
-              <!-- ✅ Auto capitalize first letter of each word -->
-              <input type="text" id="lastName" placeholder="Enter last name"
-                oninput="this.value = this.value.replace(/\b\w/g, c => c.toUpperCase())">
-            </div>
-          </div>
-
-          <div class="field">
+                    <div class="field">
             <label for="firstName">First Name</label>
             <div class="input-wrap">
               <i class="bi bi-person field-icon"></i>
@@ -63,15 +53,24 @@
           </div>
 
           <div class="field">
-            <label for="middleName">Middle Name</label>
+            <label for="middleName">Middle Initial</label>
             <div class="input-wrap">
               <i class="bi bi-person-badge field-icon"></i>
-              <!-- ✅ Auto capitalize first letter of each word -->
-              <input type="text" id="middleName" placeholder="Enter middle name"
-                oninput="this.value = this.value.replace(/\b\w/g, c => c.toUpperCase())">
+              <!-- ✅ Isang letra lang, auto-uppercase -->
+              <input type="text" id="middleName" placeholder="M" maxlength="1"
+                oninput="this.value = this.value.replace(/[^a-zA-Z]/g, '').toUpperCase()">
             </div>
           </div>
 
+          <div class="field">
+            <label for="lastName">Last Name</label>
+            <div class="input-wrap">
+              <i class="bi bi-person field-icon"></i>
+              <!-- ✅ Auto capitalize first letter of each word -->
+              <input type="text" id="lastName" placeholder="Enter last name"
+                oninput="this.value = this.value.replace(/\b\w/g, c => c.toUpperCase())">
+            </div>
+          </div>
           <div class="field">
             <label for="email">Email Address</label>
             <div class="input-wrap">

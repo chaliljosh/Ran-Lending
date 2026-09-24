@@ -1,0 +1,197 @@
+/* ============================================================
+    Borrower Onboarding — "Getting started" card
+    Kailangan i-load pagkatapos ng borrower-dashboard.css, kasi
+    ginagamit nito ang mga --bwl-dash-* variables doon
+    (kasama na ang dark mode colors).
+============================================================ */
+
+.bwl-ob {
+    font-family: var(--bwl-dash-font);
+    background: #fff;
+    border: 1px solid var(--bwl-dash-border);
+    border-radius: 14px;
+    box-shadow: var(--bwl-dash-shadow);
+    padding: 32px;
+    margin-top: 24px;
+}
+
+/* ── Chip ── */
+.bwl-ob-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 4px 11px 4px 9px;
+    border-radius: 999px;
+    background: var(--bwl-dash-blue-soft);
+    color: var(--bwl-dash-blue);
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+.bwl-ob-chip-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+/* ── Title + lede ── */
+.bwl-ob-title {
+    margin: 14px 0 6px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--bwl-dash-ink);
+}
+.bwl-ob-lede {
+    margin: 0 0 26px;
+    max-width: 58ch;
+    font-size: 0.92rem;
+    line-height: 1.6;
+    color: var(--bwl-dash-gray);
+}
+
+/* ── Steps (numbered list) ── */
+.bwl-ob-steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 2px solid var(--bwl-dash-ink);
+}
+.bwl-ob-step {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 14px;
+    align-items: baseline;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--bwl-dash-border);
+}
+.bwl-ob-step-num {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--bwl-dash-gray-light);
+    font-variant-numeric: tabular-nums;
+}
+.bwl-ob-step-title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--bwl-dash-ink);
+}
+.bwl-ob-step-desc {
+    margin: 4px 0 0;
+    font-size: 0.86rem;
+    line-height: 1.55;
+    color: var(--bwl-dash-gray);
+}
+
+/* ── Unlocked after approval ── */
+.bwl-ob-unlock {
+    margin-top: 24px;
+    padding: 18px 20px;
+    background: var(--bwl-dash-bg-soft);
+    border-radius: 12px;
+}
+.bwl-ob-unlock-title {
+    margin: 0 0 12px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--bwl-dash-ink);
+}
+.bwl-ob-unlock-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.bwl-ob-unlock-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 0.86rem;
+    line-height: 1.5;
+    color: var(--bwl-dash-gray);
+}
+.bwl-ob-unlock-item strong {
+    color: var(--bwl-dash-ink);
+    font-weight: 600;
+}
+.bwl-ob-unlock-icon {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border: 1px solid var(--bwl-dash-border);
+    color: var(--bwl-dash-gray);
+    font-size: 13px;
+}
+
+/* ── Action row ── */
+.bwl-ob-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px 18px;
+    margin-top: 24px;
+}
+.bwl-ob-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
+    border-radius: 999px;
+    background: #334155;
+    color: #FFFFFF;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.18s ease;
+}
+.bwl-ob-btn:hover {
+    background: #475569;
+    color: #FFFFFF;
+}
+.bwl-ob-btn:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+.bwl-ob-btn i {
+    font-size: 16px;
+    transition: transform 0.15s ease;
+}
+.bwl-ob-btn:hover i {
+    transform: translateX(2px);
+}
+.bwl-ob-note {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--bwl-dash-gray);
+}
+
+/* ── Mobile ── */
+@media (max-width: 640px) {
+    .bwl-ob { padding: 22px 18px; }
+    .bwl-ob-title { font-size: 1.15rem; }
+    .bwl-ob-step-title { font-size: 1rem; }
+    .bwl-ob-actions { flex-direction: column; align-items: stretch; }
+    .bwl-ob-btn { justify-content: center; }
+    .bwl-ob-note { text-align: center; }
+}
+
+/* ── Dark mode ── */
+html.app-skin-dark .bwl-ob {
+    background: #141414;
+    box-shadow: none;
+}
+html.app-skin-dark .bwl-ob-chip { color: #60A5FA; }
+html.app-skin-dark .bwl-ob-steps { border-top-color: #F5F5F5; }
+html.app-skin-dark .bwl-ob-unlock-icon { background: #141414; }

@@ -116,10 +116,8 @@ function handleEmploymentStatus() {
         companyLabel.innerHTML = 'Company/Business Name <span class="text-danger">*</span>';
         positionLabel.innerHTML = 'Position/Occupation <span class="text-danger">*</span>';
         yearsLabel.innerHTML = 'Years in Company <span class="text-danger">*</span>';
-        // FIX: Months in Company ay hindi kasama sa [required] validation
-        // (walang `required` attribute yung <select id="monthsInCompany">), kaya
-        // yung red asterisk dati ay nagpapakita ng maling impresyon na kailangan
-        // itong sagutan. Optional talaga ito — tinanggal ang asterisk.
+        // Months in Company ay hindi kasama sa [required] validation,
+        // kaya walang asterisk.
         monthsLabel.innerHTML = 'Months in Company';
 
     } else {
@@ -132,6 +130,30 @@ function handleEmploymentStatus() {
         positionInput.removeAttribute('required');
         yearLevelInput.removeAttribute('required');
         yearsInput.removeAttribute('required');
+    }
+
+    checkFormCompletion();
+}
+
+/* ============================================================
+   TYPE OF ID — "Others" na option, may kasamang text field na
+   lalabas lang kapag pinili ito, para ma-specify ng borrower
+   kung anong klaseng ID meron sila.
+   ============================================================ */
+function handleIdType() {
+    const idType = document.getElementById('idType').value;
+    const wrapper = document.getElementById('idTypeOthersWrapper');
+    const input = document.getElementById('idTypeOthers');
+
+    if (!wrapper || !input) return;
+
+    if (idType === 'others') {
+        wrapper.style.display = '';
+        input.setAttribute('required', 'required');
+    } else {
+        wrapper.style.display = 'none';
+        input.removeAttribute('required');
+        input.value = '';
     }
 
     checkFormCompletion();
@@ -271,29 +293,6 @@ function calculateAge() {
     }
 }
 
-function setupMonthlyIncome() {
-    const input = document.getElementById('monthlyIncome');
-    if (!input) return;
-    input.addEventListener('keydown', function (e) {
-        const allowed = ['Backspace','Delete','Tab','Escape','Enter','ArrowLeft','ArrowRight','Home','End'];
-        if (allowed.includes(e.key) || e.ctrlKey || e.metaKey) return;
-        if (!/^[0-9]$/.test(e.key)) { e.preventDefault(); return; }
-        if (this.value.replace(/[^0-9]/g, '').length >= 6) e.preventDefault();
-    });
-    input.addEventListener('input', function () {
-        let digits = this.value.replace(/[^0-9]/g, '');
-        if (digits.length > 6) digits = digits.slice(0, 6);
-        this.value = digits.replace(/^0+/, '');
-        checkFormCompletion();
-    });
-    input.addEventListener('paste', function (e) {
-        e.preventDefault();
-        let digits = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '').slice(0, 6);
-        this.value = digits.replace(/^0+/, '');
-        checkFormCompletion();
-    });
-}
-
 function setupPhoneInput(id) {
     const input = document.getElementById(id);
     if (!input) return;
@@ -384,6 +383,91 @@ function checkFormCompletion() {
 }
 
 /* ============================================================
+   PREFILL — para sa edit / resubmit (on hold o rejected).
+   ------------------------------------------------------------
+   Ang region/province/city/barangay ay naka-save bilang PANGALAN
+   (text ng option), hindi code. Kaya pangalan ang ima-match natin
+   sa options na galing sa PSGC, isa-isa bawat level.
+   Ang data ay galing sa window.pdSaved (inilagay ng Blade).
+   ============================================================ */
+function selectByText(select, text) {
+    if (!text) return false;
+    const target = String(text).trim().toLowerCase();
+    for (const opt of select.options) {
+        if (opt.textContent.trim().toLowerCase() === target) {
+            select.value = opt.value;
+            return true;
+        }
+    }
+    return false;
+}
+
+async function prefillSaved() {
+    const s = window.pdSaved;
+    if (!s) return;
+
+    // ---- Work info (una, dahil nire-reset ng handleEmploymentStatus ang values) ----
+    if (s.employmentStatus) {
+        document.getElementById('employmentStatus').value = s.employmentStatus;
+        handleEmploymentStatus();
+
+        const status = s.employmentStatus;
+        if (status === 'employed' || status === 'self_employed' || status === 'student') {
+            document.getElementById('companyName').value = s.companyName || '';
+
+            let position = s.position || '';
+            if (status === 'student') {
+                // Naka-save bilang "Course - Year Level"
+                const idx = position.lastIndexOf(' - ');
+                if (idx > -1) {
+                    const level = position.slice(idx + 3);
+                    const levelSel = document.getElementById('yearLevel');
+                    if ([...levelSel.options].some(o => o.value === level)) {
+                        levelSel.value = level;
+                        position = position.slice(0, idx);
+                    }
+                }
+            } else {
+                const total = parseFloat(s.yearsInCompany) || 0;
+                let years = Math.floor(total);
+                let months = Math.round((total - years) * 12);
+                if (months === 12) { years += 1; months = 0; }
+                document.getElementById('yearsInCompany').value = years;
+                document.getElementById('monthsInCompany').value = String(months);
+            }
+            document.getElementById('position').value = position;
+        }
+    }
+
+    // ---- Address cascade: region -> province -> city -> barangay ----
+    const regionSel   = document.getElementById('region');
+    const provinceSel = document.getElementById('province');
+    const citySel     = document.getElementById('city');
+    const barangaySel = document.getElementById('barangay');
+
+    if (s.region && selectByText(regionSel, s.region)) {
+        await loadProvinces(regionSel.value);
+
+        // NCR at mga region na walang province ay kusa nang nag-load ng cities
+        if (regionSel.value !== NCR_CODE && !provinceSel.disabled) {
+            if (s.province && selectByText(provinceSel, s.province)) {
+                await loadCities(provinceSel.value);
+            }
+        }
+
+        if (s.city && selectByText(citySel, s.city)) {
+            await loadBarangays(citySel.value);
+            if (s.barangay) selectByText(barangaySel, s.barangay);
+        }
+    }
+
+    // Zipcode — huling i-set dahil binubura ito ng loadProvinces/loadCities
+    if (s.zipcode) document.getElementById('zipcode').value = s.zipcode;
+
+    checkFormCompletion();
+}
+
+/* ============================================================
    WIZARD — hakbang-hakbang na navigation
    ------------------------------------------------------------
    Hindi ito bagong form. Nasa iisang <form> pa rin lahat ng
@@ -444,7 +528,7 @@ const PDWizard = (function () {
             const alertBox = step.querySelector('.pd-step-alert');
             if (alertBox) {
                 alertBox.innerHTML =
-                    '<i class="feather-alert-circle me-2"></i>May kulang o maling impormasyon sa bahaging ito. Pakikumpletuhin bago magpatuloy.';
+                    '<i class="feather-alert-circle me-2"></i>Some fields in this section are missing or invalid. Please complete them before continuing.';
                 alertBox.classList.add('is-shown');
             }
             firstBad.focus();
@@ -547,9 +631,10 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('yearsWrapper').style.display = 'none';
     document.getElementById('monthsWrapper').style.display = 'none';
 
-    loadRegions();
+    // Iniimbak ang promise para ma-prefill ang address pagkatapos
+    // mag-load ng lahat ng regions.
+    const regionsReady = loadRegions();
     setMaxBirthday();
-    setupMonthlyIncome();
     setupFilePreview('validIdFront', 'idFrontPreview');
     setupFilePreview('validIdBack', 'idBackPreview');
     setupPhoneInput('cellphone');
@@ -566,6 +651,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.getElementById('birthday').addEventListener('change', calculateAge);
     document.getElementById('employmentStatus').addEventListener('change', handleEmploymentStatus);
+
+    const idTypeSelect = document.getElementById('idType');
+    if (idTypeSelect) {
+        idTypeSelect.addEventListener('change', handleIdType);
+        // Kung may prefilled value na (edit/resubmit case), ipakita
+        // agad ang "Specify ID Type" field kung "others" ang laman.
+        if (idTypeSelect.value === 'others') handleIdType();
+    }
 
     document.getElementById('region').addEventListener('change', function () {
         if (this.value) loadProvinces(this.value);
@@ -584,17 +677,19 @@ document.addEventListener('DOMContentLoaded', function () {
     // listeners sa itaas, para tama na agad ang unang render.
     PDWizard.init();
 
+    // Prefill ng saved data (address cascade + work info) pagkatapos
+    // ma-load ang regions. Walang epekto kung first-time na submission.
+    regionsReady.then(() => prefillSaved());
+
     document.getElementById('submitBtn').addEventListener('click', function () {
 
         // Isahang pass sa LAHAT ng steps. Kapag may kulang, awtomatikong
-        // babalik ang view sa step na may problema (hindi tulad ng
-        // form.reportValidity() na hindi kayang mag-focus sa nakatagong field).
+        // babalik ang view sa step na may problema.
         if (!PDWizard.validateAll()) return;
 
         const btn = this;
         btn.disabled = true;
-        // ---- Loading state: spinner icon na lang, walang "Submitting..." text
-        //      (kagaya ng ibang "black button" loading states sa app) ----
+        // Loading state: spinner icon na lang, walang "Submitting..." text
         btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
 
         const formData = new FormData();
@@ -612,6 +707,7 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('birthCity',     document.getElementById('birthCity').value);
         formData.append('cellphone',     document.getElementById('cellphone').value);
         formData.append('idType',        document.getElementById('idType').value);
+        formData.append('idTypeOthers',  document.getElementById('idTypeOthers') ? document.getElementById('idTypeOthers').value : '');
         formData.append('idNumber',      document.getElementById('idNumber').value);
         formData.append('monthlyIncome', document.getElementById('monthlyIncome').value);
         formData.append('email',         document.getElementById('email').value);
@@ -636,7 +732,7 @@ document.addEventListener('DOMContentLoaded', function () {
             : parseFloat((years + (months / 12)).toFixed(2));
 
         // Student: pagsamahin ang Course at Year Level papunta sa "position" column
-        // (walang bagong DB column na kailangan, e.g. "BSIT - 4th Year").
+        // (e.g. "BSIT - 4th Year").
         let positionValue = document.getElementById('position').value;
         if (status === 'student') {
             const yearLevelValue = document.getElementById('yearLevel').value;
@@ -654,7 +750,7 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('coMakerRelationship', document.getElementById('coMakerRelationship').value);
         formData.append('coMakerContact',      document.getElementById('coMakerContact').value);
 
-        // ID Front / Back — dalawang hiwalay na files na
+        // ID Front / Back — dalawang hiwalay na files
         const validIdFront = document.getElementById('validIdFront').files[0];
         const validIdBack  = document.getElementById('validIdBack').files[0];
         if (validIdFront) formData.append('validIdFront', validIdFront);
@@ -667,9 +763,8 @@ document.addEventListener('DOMContentLoaded', function () {
             credentials: 'same-origin',
             headers: {
                 'X-XSRF-TOKEN': getCsrfToken(),
-                'Accept': 'application/json'   // <-- para hindi mag-redirect si Laravel
-                                                //     pag na-fail ang validation, at JSON (422) ang
-                                                //     ibalik sa halip na buong HTML page
+                'Accept': 'application/json'   // para JSON (422) ang ibalik ni Laravel
+                                                // at hindi buong HTML page
             },
             body: formData
         })
@@ -680,9 +775,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 overlay.style.cssText = 'display:flex !important; opacity:1 !important; position:fixed !important; inset:0 !important; z-index:99999 !important; background:rgba(0,0,0,0.55) !important; align-items:center !important; justify-content:center !important; padding:16px !important;';
                 document.body.style.overflow = 'hidden';
             } else {
-                // Kung validation error (422) mula sa Rule::unique/required atbp,
-                // ibinabalik ni Laravel yung errors bilang { errors: { fieldName: [msg] } }
-                // sa halip na direktang "message" — kaya kailangang i-check muna.
+                // Validation error (422) ay may { errors: { field: [msg] } } na format
                 const firstError = data.errors
                     ? Object.values(data.errors)[0][0]
                     : (data.message || 'An error occurred.');

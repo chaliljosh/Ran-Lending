@@ -8,6 +8,24 @@ use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\BorrowerController;
 
+// TEMPORARY DIAGNOSTIC ROUTE — para sa pag-test ng DB connection/query timing.
+// Alisin na ito pagkatapos ng debugging (hindi ito dapat ma-deploy sa production).
+Route::get('/db-test', function () {
+    $start = microtime(true);
+    DB::connection()->getPdo();
+    $connectTime = microtime(true) - $start;
+
+    $start2 = microtime(true);
+    DB::select('SELECT 1');
+    $queryTime = microtime(true) - $start2;
+
+    return response()->json([
+        'connect_ms' => round($connectTime * 1000),
+        'query_ms' => round($queryTime * 1000),
+        'timestamp' => now()->toDateTimeString(),
+    ]);
+});
+
 Route::get('/', function () {
     $userProfilePictureUrl = null;
 

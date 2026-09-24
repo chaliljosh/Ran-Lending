@@ -139,6 +139,11 @@ class AuthController extends Controller
             return response()->json(['success' => false, 'message' => 'Please fill in all required fields.']);
         }
 
+                // Middle name ay optional, pero kung meron, isang letra lang dapat.
+        if ($middleName !== '' && !preg_match('/^[A-Za-z]$/', $middleName)) {
+            return response()->json(['success' => false, 'message' => 'Middle name must be a single letter.']);
+        }
+
         if ($password !== $confirmPassword) {
             return response()->json(['success' => false, 'message' => 'Passwords do not match.']);
         }
