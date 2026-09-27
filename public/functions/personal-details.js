@@ -638,7 +638,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setupFilePreview('validIdFront', 'idFrontPreview');
     setupFilePreview('validIdBack', 'idBackPreview');
     setupPhoneInput('cellphone');
-    setupPhoneInput('coMakerContact');
+   
 
     // Kung may prefilled birthday (from Blade), kalkulahin agad ang edad
     if (document.getElementById('birthday').value) calculateAge();
@@ -744,11 +744,6 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('employmentStatus', status);
         formData.append('yearsInCompany',   yearsInCompany);
 
-        formData.append('coMakerLastName',     document.getElementById('coMakerLastName').value);
-        formData.append('coMakerFirstName',    document.getElementById('coMakerFirstName').value);
-        formData.append('coMakerMiddleName',   document.getElementById('coMakerMiddleName').value);
-        formData.append('coMakerRelationship', document.getElementById('coMakerRelationship').value);
-        formData.append('coMakerContact',      document.getElementById('coMakerContact').value);
 
         // ID Front / Back — dalawang hiwalay na files
         const validIdFront = document.getElementById('validIdFront').files[0];

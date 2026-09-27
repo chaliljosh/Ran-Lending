@@ -141,36 +141,39 @@
 /* ══════════════════════════════════════════
    Save / Cancel Buttons — pill style
    ══════════════════════════════════════════ */
+/* ══════════════════════════════════════════
+   Save / Cancel Buttons — pill style
+   ══════════════════════════════════════════ */
 .btn-save-pill {
-    background: #171e29;
+    background: #22C55E;
     color: #fff !important;
     border: none;
     border-radius: 999px;
-    padding: 7px 16px;
+    padding: 8px 18px;
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 600;
     display: inline-flex;
     align-items: center;
     gap: 6px;
     transition: background 0.2s;
 }
-.btn-save-pill:hover { background: #2b3646; color: #fff; }
+.btn-save-pill:hover { background: #16A34A; color: #fff; }
 .btn-save-pill:disabled { opacity: 1; cursor: default; }
 
 .btn-cancel-pill {
-    background: #eef1f5;
-    color: #45536b !important;
+    background: #EF4444;
+    color: #fff !important;
     border: none;
     border-radius: 999px;
-    padding: 7px 16px;
+    padding: 8px 18px;
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 600;
     display: inline-flex;
     align-items: center;
     gap: 6px;
     transition: background 0.2s;
 }
-.btn-cancel-pill:hover { background: #dfe4ea; color: #2c3648 !important; }
+.btn-cancel-pill:hover { background: #DC2626; color: #fff !important; }
 
 .save-pulse {
     width: 8px;
@@ -309,6 +312,7 @@ html.app-skin-dark .profile-card .badge[style*="e0f2fe"] {
 }
 
 /* ---------- Edit / Save / Cancel ---------- */
+/* ---------- Edit / Save / Cancel ---------- */
 html.app-skin-dark .section-edit-link,
 html.app-skin-dark .section-edit-link i { color: #6ea8fe !important; }
 html.app-skin-dark .section-edit-link:hover,
@@ -317,21 +321,20 @@ html.app-skin-dark .section-edit-link:hover i { color: #93C5FD !important; }
 html.app-skin-dark .section-actions { border-top-color: #262626 !important; }
 
 html.app-skin-dark .btn-save-pill {
-    background: #1C1C1C !important;
-    border: 1px solid #262626 !important;
+    background: #22C55E !important;
+    border: none !important;
 }
-html.app-skin-dark .btn-save-pill:hover { background: #262626 !important; }
+html.app-skin-dark .btn-save-pill:hover { background: #16A34A !important; }
 
 html.app-skin-dark .btn-cancel-pill {
-    background: #141414 !important;
-    border: 1px solid #262626 !important;
-    color: #9A9A9A !important;
+    background: #EF4444 !important;
+    border: none !important;
+    color: #fff !important;
 }
 html.app-skin-dark .btn-cancel-pill:hover {
-    background: #1C1C1C !important;
-    color: #F5F5F5 !important;
+    background: #DC2626 !important;
+    color: #fff !important;
 }
-
 /* ---------- Save toast ---------- */
 html.app-skin-dark .profile-toast {
     background: #141414;

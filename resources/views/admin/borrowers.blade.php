@@ -113,7 +113,6 @@
                                     <th>Total Loans</th>
                                     <th>Last Activity</th>
                                     <th>Joined</th>
-                                    <th class="text-end">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -154,19 +153,6 @@
                                         </td>
                                         <td class="text-muted">
                                             {{ \Carbon\Carbon::parse($b['joined_at'])->format('M d, Y') }}</td>
-                                        <td class="text-end">
-                                            @if ($b['detail_id'])
-                                                <a href="{{ route('admin.verification-detail', $b['detail_id']) }}?from=borrowers"
-                                                    class="btn-view">
-                                                    <i class="feather-eye"></i> View Details
-                                                </a>
-                                            @else
-                                                <button class="btn-view disabled" disabled
-                                                    title="No verification details available">
-                                                    <i class="feather-eye"></i> View Details
-                                                </button>
-                                            @endif
-                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>

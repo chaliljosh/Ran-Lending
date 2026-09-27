@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="{{ asset('assets/admin/css/theme.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/admin/css/logout-modal.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/admin/css/admin-dashboard.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/admin-notifications.css') }}" />
 </head>
 <body>
     <nav class="nxl-navigation">
@@ -25,22 +26,6 @@
                             <span class="nxl-micon"><i class="feather-airplay"></i></span>
                             <span class="nxl-mtext">Dashboard</span>
                         </a>
-                    </li>
-                    <li class="nxl-item nxl-hasmenu">
-                        <a href="javascript:void(0);" class="nxl-link">
-                            <span class="nxl-micon"><i class="feather-user-check"></i></span>
-                            <span class="nxl-mtext">Borrower Verification</span>
-                            @if(($pendingCount ?? 0) > 0)
-                                <span class="badge bg-danger ms-auto">{{ $pendingCount }}</span>
-                            @endif
-                            <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
-                        </a>
-                        <ul class="nxl-submenu">
-                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.borrower-verification') }}">Pending</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.borrower-verification', ['status' => 'approved']) }}">Approved</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.borrower-verification', ['status' => 'rejected']) }}">Rejected</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.borrower-verification', ['status' => 'on_hold']) }}">On Hold</a></li>
-                        </ul>
                     </li>
                     <li class="nxl-item nxl-hasmenu">
                         <a href="javascript:void(0);" class="nxl-link">
@@ -138,7 +123,7 @@
                                 <span class="notif-index-body">
                                     <span class="notif-index-title">{{ $n['title'] }}</span>
                                     <span class="notif-index-sub">{{ $n['subtitle'] }}</span>
-                                    <span class="notif-index-time">{{ \Carbon\Carbon::parse($n['ts'])->diffForHumans() }}</span>
+                                   <span class="notif-index-time">{{ \Carbon\Carbon::parse($n['ts'])->format('F j, g:i A') }}</span>
                                 </span>
                                 @if(!$n['read'])
                                     <span class="notif-index-dot"></span>

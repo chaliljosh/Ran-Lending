@@ -98,7 +98,7 @@
                                             <span class="bwl-notif-item-sub">{{ $n['subtitle'] }}</span>
                                             @if (!empty($n['ts']))
                                                 <span
-                                                    class="bwl-notif-item-time">{{ $n['ts']->diffForHumans() }}</span>
+                                             <span class="bwl-notif-item-time">{{ $n['ts']->format('M j, g:i A') }}</span>
                                             @endif
                                         </span>
                                     </a>

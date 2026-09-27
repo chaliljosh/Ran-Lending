@@ -173,20 +173,20 @@
           </div>
 
           <!-- Term -->
-          <div class="calc-row">
-            <div class="calc-top">
-              <span class="calc-label">Loan Term</span>
-              <span class="calc-value" id="termDisplay">3 <span class="unit">Month</span></span>
-            </div>
-            <div class="term-pills">
-              <button data-term="1">1 Mo</button>
-              <button data-term="2">2 Mo</button>
-              <button data-term="3" class="active">3 Mo</button>
-              <button data-term="4">4 Mo</button>
-              <button data-term="6">6 Mo</button>
-              <button data-term="12">12 Mo</button>
-            </div>
-          </div>
+<div class="calc-row">
+  <div class="calc-top">
+    <span class="calc-label">Loan Term</span>
+    <span class="calc-value" id="termDisplay">3 <span class="unit">Month</span></span>
+  </div>
+  <select id="termSelect" class="calc-term-select">
+    <option value="1">1 Month</option>
+    <option value="2">2 Months</option>
+    <option value="3" selected>3 Months</option>
+    <option value="4">4 Months</option>
+    <option value="6">6 Months</option>
+    <option value="12">12 Months</option>
+  </select>
+</div>
 
           <!-- Result -->
           <div class="calc-summary">

@@ -31,22 +31,6 @@
                     </li>
                     <li class="nxl-item nxl-hasmenu">
                         <a href="javascript:void(0);" class="nxl-link">
-                            <span class="nxl-micon"><i class="feather-user-check"></i></span>
-                            <span class="nxl-mtext">Borrower Verification</span>
-                            @if(($pendingCount ?? 0) > 0)
-                                <span class="badge bg-danger ms-auto">{{ $pendingCount }}</span>
-                            @endif
-                            <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
-                        </a>
-                        <ul class="nxl-submenu">
-                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.borrower-verification') }}">Pending</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.borrower-verification', ['status' => 'approved']) }}">Approved</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.borrower-verification', ['status' => 'rejected']) }}">Rejected</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.borrower-verification', ['status' => 'on_hold']) }}">On Hold</a></li>
-                        </ul>
-                    </li>
-                    <li class="nxl-item nxl-hasmenu">
-                        <a href="javascript:void(0);" class="nxl-link">
                             <span class="nxl-micon"><i class="feather-file-text"></i></span>
                             <span class="nxl-mtext">Loan Applications</span>
                             @if(($pendingLoanCount ?? 0) > 0)

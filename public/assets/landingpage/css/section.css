@@ -48,6 +48,29 @@
       width: 100%;
     }
 
+    .calc-term-select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #0F172A;
+  background: #fff;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748B' stroke-width='1.5' fill='none' fill-rule='evenodd'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+html.app-skin-dark .calc-term-select {
+  background-color: #141414;
+  border-color: #262626;
+  color: #F5F5F5;
+}
+
+
+
     /* --- Left: headline + stats --- */
     .hero-text { flex: 1; }
 

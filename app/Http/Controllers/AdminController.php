@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Mail\LoanStatusUpdated;
 use App\Mail\PaymentRecorded;
-use App\Mail\BorrowerVerificationUpdated;
 use Illuminate\Support\Facades\Cache;
 
 class AdminController extends Controller
@@ -34,7 +33,6 @@ class AdminController extends Controller
     $totalActiveAmount = $data->loan_stats->total_active_amount;
     $totalBorrowers = $data->user_stats->total_borrowers;
     $activeBorrowers = $data->user_stats->active_borrowers;
-    $pendingVerificationCount = $data->pending_verification_count;
     $pendingCount = $data->pending_count_for_admin;
     $pendingLoanCount = $data->pending_loan_count_for_admin;
     $recentApplications = collect($data->recent_applications);
@@ -64,14 +62,7 @@ class AdminController extends Controller
             'action' => 'Review',
             'url' => route('admin.loan-applications'),
         ],
-        [
-            'icon' => 'feather-user-check',
-            'color' => 'warning',
-            'label' => 'Pending Verification',
-            'count' => $pendingVerificationCount,
-            'action' => 'Review',
-            'url' => route('admin.borrower-verification'),
-        ],
+      
     ];
 
     $upcomingPayments = $upcomingPaymentsRaw->map(function ($row) {
@@ -93,7 +84,7 @@ class AdminController extends Controller
     return view('admin.dashboard', array_merge(
         $headerData,
         compact(
-            'pendingVerificationCount', 'totalApplications', 'pendingApplications',
+            'totalApplications', 'pendingApplications',
             'activeLoans', 'totalActiveAmount', 'totalBorrowers', 'activeBorrowers',
             'recentApplications', 'pendingCount', 'pendingLoanCount',
             'attentionItems', 'upcomingPayments', 'recentActivity'
@@ -263,7 +254,6 @@ class AdminController extends Controller
     $items = collect();
 
     if ($preloaded) {
-        $pendingVerifications = collect($preloaded->pending_verifications);
         $pendingLoans = collect($preloaded->pending_loans);
         $onHoldLoans = collect($preloaded->on_hold_loans);
         $overdueRows = collect($preloaded->overdue_rows);
@@ -271,17 +261,7 @@ class AdminController extends Controller
     } else {
         // Fallback — ginagamit ito ng notificationsIndex(), notificationOpen(),
         // notificationsMarkAllRead() na wala namang RPC data.
-        $pendingVerifications = DB::table('borrowerpersonaldetails as bpd')
-            ->where('bpd.status', 'pending')
-            ->whereNotExists(function ($q) use ($adminId) {
-                $q->select(DB::raw(1))->from('detailsapproval as da')
-                    ->whereColumn('da.detail_id', 'bpd.detail_id')
-                    ->where('da.admin_id', $adminId);
-            })
-            ->select('bpd.detail_id', 'bpd.uuid', 'bpd.first_name', 'bpd.last_name', 'bpd.created_at')
-            ->orderByDesc('bpd.detail_id')
-            ->limit(20)
-            ->get();
+       
 
         $pendingLoans = DB::table('loan_applications as la')
             ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
@@ -322,18 +302,7 @@ class AdminController extends Controller
             ->flip();
     }
 
-    foreach ($pendingVerifications as $row) {
-        $name = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? ''));
-        $items->push([
-            'key'      => 'verify:' . $row->detail_id,
-            'title'    => 'Borrower Verification Needed',
-            'subtitle' => $name !== '' ? $name : 'Unnamed borrower',
-            'icon'     => 'feather-user-check',
-            'color'    => 'warning',
-            'url'      => route('admin.verification-detail', $row->uuid),
-            'ts'       => $row->created_at ?? now(),
-        ]);
-    }
+   
 
     foreach ($pendingLoans as $row) {
         $name = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? ''));
@@ -768,172 +737,6 @@ if ($redirect && str_starts_with($redirect, '/') && !str_starts_with($redirect, 
         ]);
     }
 
-   public function borrowerVerification(Request $request)
-{
-    $adminId = Session::get('user_id');
-
-    if ($request->isMethod('post') && $request->has('action')) {
-        $detailId = $request->input('detail_id');
-        $this->saveDecision($request, $adminId);
-
-        $newStatus = DB::table('borrowerpersonaldetails')
-            ->where('detail_id', $detailId)
-            ->value('status');
-
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'status' => $newStatus,
-            ]);
-        }
-
-        return redirect()->route('admin.borrower-verification')
-            ->with('success', true)
-            ->with('decisionStatus', $newStatus);
-    }
-
-    $viewStatus = $request->query('status', 'pending');
-
-    $__t = microtime(true);
-    $listData = $this->buildVerificationListData($adminId, $viewStatus);
-    
-
-    return view('admin.borrower-verification', array_merge(
-        $listData,
-        ['viewStatus' => $viewStatus]
-    ));
-}
-
-    /**
-     * NOTE: ang route parameter ({id} sa web.php) ay UUID na ngayon,
-     * hindi na ang plain integer detail_id. Iniwan lang ang pangalan
-     * ng parameter sa signature na ito bilang $id para tumugma sa
-     * ibinigay na route binding; ang laman ay uuid string.
-     */
-      public function verificationDetail(Request $request, $id)
-{
-    $adminId = Session::get('user_id');
-    $uuid = $id;
-
-  
-
-    if (!\Illuminate\Support\Str::isUuid($uuid)) {
-        \Log::warning('Not a valid UUID, redirecting', ['id' => $id]);
-        return redirect()->route('admin.borrower-verification');
-    }
-
-    $d = $this->getBorrowerDetail($uuid);
-
-    if (!$d) {
-        \Log::warning('Borrower not found for uuid, redirecting', ['uuid' => $uuid]);
-        return redirect()->route('admin.borrower-verification');
-    }
-
-    // Internal integer ID pa rin ang ginagamit sa lahat ng ibang
-    // queries/relations sa ibaba (detailsapproval, comments, atbp.) —
-    // ang UUID ay para lang sa URL, hindi pumapalit sa internal PK.
-    $detailId = $d->detail_id;
-
-    if ($request->isMethod('post')) {
-        if ($request->filled('comment')) {
-            $this->saveComment($detailId, $adminId, $request->input('comment'));
-            return redirect()->route('admin.verification-detail', $uuid);
-        }
-
-        if ($request->filled('action')) {
-            $this->saveDecision($request->merge(['detail_id' => $detailId]), $adminId);
-
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'redirect' => route('admin.borrower-verification'),
-                ]);
-            }
-
-            return redirect()->route('admin.borrower-verification')->with('success', true);
-        }
-    }
-
-    try {
-        $idFrontUrl = !empty($d->id_file_path)
-            ? Storage::disk('valid_ids')->temporaryUrl($d->id_file_path, now()->addMinutes(30))
-            : null;
-        $idBackUrl = !empty($d->id_file_path_back)
-            ? Storage::disk('valid_ids')->temporaryUrl($d->id_file_path_back, now()->addMinutes(30))
-            : null;
-    } catch (\Throwable $e) {
-        \Illuminate\Support\Facades\Log::warning('Valid ID temporaryUrl failed: ' . $e->getMessage());
-        $idFrontUrl = null;
-        $idBackUrl = null;
-    }
-
-    return view('admin.verification-detail', array_merge(
-        $this->getHeaderData($adminId),
-        [
-            'd' => $d,
-            'detailId' => $detailId,              // internal PK — dito lang para sa display text
-            'detailUuid' => $uuid,                // UUID — ito ang gamitin sa lahat ng routes/forms
-            'displayId' => $this->displayId($uuid),
-            'adminId' => $adminId,
-            'borrowerProfilePicture' => $this->getProfilePictureUrl($d),
-            'idFrontUrl' => $idFrontUrl,
-            'idBackUrl' => $idBackUrl,
-            'myReview' => $this->getMyReview($detailId, $adminId),
-            'allReviews' => $this->getAllReviews($detailId),
-            'comments' => $this->getComments($detailId),
-            'loanStats' => $this->getBorrowerLoanStats($d->user_id),
-            'pendingCount' => $this->getPendingVerificationCount($adminId),
-            'pendingLoanCount' => $this->getPendingLoanCount($adminId),
-            'viewStatus' => $d->status,
-        ]
-    ));
-}
-
-private function displayId(?string $uuid): string
-{
-    if (!$uuid) {
-        return '—';
-    }
-    return strtoupper(substr(str_replace('-', '', $uuid), 0, 8));
-}
-
-    private function getBorrowerLoanStats($userId)
-    {
-        if (!$userId) {
-            return ['total' => 0, 'active' => 0, 'completed' => 0, 'overdue' => 0, 'active_application_id' => null];
-        }
-
-        $loans = DB::table('loan_applications')
-            ->where('user_id', $userId)
-            ->select('application_id', 'status')
-            ->get();
-
-        $total = $loans->count();
-        $activeLoans = $loans->whereIn('status', ['approved', 'active']);
-        $active = $activeLoans->count();
-        $completed = $loans->where('status', 'completed')->count();
-
-        $activeAppIds = $activeLoans->pluck('application_id');
-
-        $overdue = 0;
-        if ($activeAppIds->isNotEmpty()) {
-            $overdue = DB::table('loan_payment_schedules')
-                ->whereIn('application_id', $activeAppIds)
-                ->whereNull('paid_at')
-                ->where('due_date', '<', now())
-                ->distinct()
-                ->count('application_id');
-        }
-
-        return [
-            'total' => $total,
-            'active' => $active,
-            'completed' => $completed,
-            'overdue' => $overdue,
-            'active_application_id' => $activeAppIds->first(),
-        ];
-    }
-
    private function getPendingVerificationCount($adminId)
 {
     return DB::table('borrowerpersonaldetails as bpd')
@@ -960,89 +763,6 @@ private function displayId(?string $uuid): string
             ->count();
     }
 
-   private function saveDecision(Request $request, $adminId)
-{
-  
-
-    $request->validate([
-        'action'  => 'required|in:approved,rejected',
-        'remarks' => 'required_if:action,rejected',
-    ], [
-        'remarks.required_if' => 'Please provide remarks explaining what needs to be fixed.',
-    ]);
-
-    $detailId = $request->input('detail_id');
-    $action = $request->input('action');
-    $remarks = trim($request->input('remarks', ''));
-
-    $existing = DB::table('detailsapproval')
-        ->where('detail_id', $detailId)
-        ->where('admin_id', $adminId)
-        ->first();
-
-    if ($existing) {
-        DB::table('detailsapproval')
-            ->where('detail_id', $detailId)
-            ->where('admin_id', $adminId)
-            ->update([
-                'decision' => $action,
-                'remarks' => $remarks,
-                'reviewed_at' => now(),
-            ]);
-    } else {
-        DB::table('detailsapproval')->insert([
-            'detail_id' => $detailId,
-            'admin_id' => $adminId,
-            'admin_role' => 'admin',
-            'decision' => $action,
-            'remarks' => $remarks,
-            'reviewed_at' => now(),
-        ]);
-    }
-
-   
-
-    $this->refreshDetailStatus($detailId);
-}
- private function refreshDetailStatus($detailId)
-{
-    $previousStatus = DB::table('borrowerpersonaldetails')
-        ->where('detail_id', $detailId)
-        ->value('status');
-
-    $counts = DB::table('detailsapproval')
-        ->where('detail_id', $detailId)
-        ->selectRaw("
-            COUNT(*) as total,
-            SUM(CASE WHEN decision = 'approved' THEN 1 ELSE 0 END) as a,
-            SUM(CASE WHEN decision = 'rejected' THEN 1 ELSE 0 END) as r
-        ")
-        ->first();
-
-   
-
-    $requiredReviewers = 3;
-
-    if ($counts->total < $requiredReviewers) {
-        $status = 'pending';
-    } elseif ($counts->a >= 3) {
-        $status = 'approved';
-    } elseif ($counts->r >= 3) {
-        $status = 'rejected';
-    } elseif ($counts->r > 0) {
-        $status = 'on_hold';
-    } else {
-        $status = 'pending';
-    }
-
-    
-
-    DB::table('borrowerpersonaldetails')->where('detail_id', $detailId)->update(['status' => $status]);
-
-    if ($status !== $previousStatus) {
-        $this->sendBorrowerVerificationEmail($detailId, $status);
-    }
-}
 private function sendLoanStatusEmail(int $applicationId, string $status): void
 {
     if (!in_array($status, ['approved', 'rejected', 'on_hold'], true)) {
@@ -1076,52 +796,6 @@ private function sendLoanStatusEmail(int $applicationId, string $status): void
     } catch (\Throwable $e) {
         // Hindi dapat pumalya ang approval dahil lang sa email.
         Log::warning("Loan status email failed (application {$applicationId}): " . $e->getMessage());
-    }
-}
-
-private function sendBorrowerVerificationEmail(int $detailId, string $status): void
-{
-    if (!in_array($status, ['approved', 'rejected', 'on_hold'], true)) {
-        return;
-    }
- 
-    try {
-        $borrower = DB::table('borrowerpersonaldetails as bpd')
-            ->join('users as u', 'bpd.user_id', '=', 'u.user_id')
-            ->where('bpd.detail_id', $detailId)
-            ->select('u.email', 'u.name', 'bpd.first_name')
-            ->first();
- 
-        if (!$borrower || empty($borrower->email)) {
-            return;
-        }
- 
-        $displayName = $borrower->first_name ?: ($borrower->name ?: 'Borrower');
- 
-        // Remarks ng mga admin na nag-reject — para sa on_hold at rejected lang.
-        // Parehong query ito ng commonData() sa BorrowerController, kaya pareho
-        // ang makikita ng borrower sa email at sa dashboard.
-        // Safe ito dito: tinatawag ang method na ito ng refreshDetailStatus()
-        // PAGKATAPOS ma-save ng saveDecision() ang boto, kaya kasama na ang
-        // remark ng huling admin.
-        $remarks = [];
-        if (in_array($status, ['on_hold', 'rejected'], true)) {
-            $remarks = DB::table('detailsapproval')
-                ->where('detail_id', $detailId)
-                ->where('decision', 'rejected')
-                ->whereNotNull('remarks')
-                ->where('remarks', '!=', '')
-                ->orderByDesc('reviewed_at')
-                ->pluck('remarks')
-                ->all();
-        }
- 
-        Mail::to($borrower->email)->send(
-            new BorrowerVerificationUpdated($borrower, $displayName, $status, $remarks)
-        );
-    } catch (\Throwable $e) {
-        // Hindi dapat pumalya ang verification dahil lang sa email.
-        Log::warning("Borrower verification email failed (detail {$detailId}): " . $e->getMessage());
     }
 }
 
@@ -1172,110 +846,6 @@ private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $i
     }
 }
 
-
-
-    private function saveComment($detailId, $adminId, $comment)
-    {
-        DB::table('detailscomments')->insert([
-            'detail_id' => $detailId,
-            'admin_id' => $adminId,
-            'comment' => trim($comment),
-            'created_at' => now(),
-        ]);
-    }
-
-    /**
-     * Hinahanap na ngayon gamit ang uuid (para sa mga URL sa admin
-     * panel), hindi na ang plain integer detail_id. Ang detail_id
-     * mismo (internal PK) ay wala nang lumalabas kahit saan sa labas
-     * ng backend.
-     */
-    private function getBorrowerDetail($uuid)
-    {
-        return DB::table('borrowerpersonaldetails as bpd')
-            ->join('users as u', 'bpd.user_id', '=', 'u.user_id')
-            ->leftJoin('borroweraddress as ba', 'ba.detail_id', '=', 'bpd.detail_id')
-            ->leftJoin('borrowerworkinfo as bwi', 'bwi.detail_id', '=', 'bpd.detail_id')
-            ->leftJoin('comakerinfo as ci', 'ci.detail_id', '=', 'bpd.detail_id')
-            ->where('bpd.uuid', $uuid)
-            ->select(
-                'bpd.*',
-                'u.email as reg_email',
-                'u.created_at as registered_at',
-                'u.profile_picture', // NEW — needed for the avatar image
-                'ba.region', 'ba.province', 'ba.city', 'ba.barangay', 'ba.zipcode', 'ba.home_address',
-                'bwi.employment_status', 'bwi.company_name', 'bwi.position', 'bwi.years_in_company',
-                'ci.last_name as co_last', 'ci.first_name as co_first', 'ci.middle_name as co_middle',
-                'ci.relationship', 'ci.contact_number as co_contact'
-            )
-            ->first();
-    }
-
-    private function getMyReview($detailId, $adminId)
-    {
-        return DB::table('detailsapproval')
-            ->where('detail_id', $detailId)
-            ->where('admin_id', $adminId)
-            ->first();
-    }
-
-    private function getAllReviews($detailId)
-    {
-        return DB::table('detailsapproval as da')
-            ->join('users as u', 'da.admin_id', '=', 'u.user_id')
-            ->where('da.detail_id', $detailId)
-            ->select('da.*', 'u.name as admin_name')
-            ->orderBy('da.reviewed_at')
-            ->get();
-    }
-
-    private function getComments($detailId)
-    {
-        return DB::table('detailscomments as dc')
-            ->join('users as u', 'dc.admin_id', '=', 'u.user_id')
-            ->where('dc.detail_id', $detailId)
-            ->select('dc.*', 'u.name as admin_name')
-            ->orderBy('dc.created_at')
-            ->get();
-    }
-
-    private function buildVerificationListData($adminId, $viewStatus = 'pending')
-{
-    $row = DB::selectOne('SELECT admin_verification_list_data(?, ?) as data', [$adminId, $viewStatus]);
-    $data = json_decode($row->data);
-
-    $pendingDetails = collect($data->pending_details ?? [])->map(function ($d) {
-        return [
-            'detail_id' => $d->detail_id,
-            'uuid' => $d->uuid,
-            'display_id' => $this->displayId($d->uuid),
-            'last_name' => $d->last_name,
-            'first_name' => $d->first_name,
-            'middle_name' => $d->middle_name,
-            'cellphone_num' => $d->cellphone_num,
-            'email' => $d->email,
-            'status' => $d->status,
-            'created_at' => $d->created_at,
-            'waiting_days' => (int) $d->waiting_days,
-            'approved_count' => (int) $d->approved_count,
-            'rejected_count' => (int) $d->rejected_count,
-            'already_reviewed' => false,
-        ];
-    })->all();
-
-    $reviewedDetails = collect($data->reviewed_details ?? []);
-    $filteredDetails = collect($data->filtered_details ?? []);
-
-    $pendingCount = count($pendingDetails);
-    $newApplicationsCount = $data->new_applications_count ?? 0;
-    $needsAttentionCount = $data->needs_attention_count ?? 0;
-    $totalApprovedCount = $data->total_approved_count ?? 0;
-
-    return compact(
-        'pendingDetails', 'reviewedDetails', 'filteredDetails', 'pendingCount',
-        'newApplicationsCount', 'needsAttentionCount', 'totalApprovedCount'
-    );
-}
    public function loanApplications(Request $request)
 {
     $adminId = Session::get('user_id');

@@ -61,21 +61,7 @@
                 </div>
             </div>
 
-            <div class="col-xxl-3 col-md-6">
-                <div class="card stretch stretch-full adm-stat-card">
-                    <div class="card-body adm-stat-body">
-                        <div class="adm-stat-top">
-                            <span class="adm-stat-label">Pending Verification</span>
-                            <i class="feather-user-check adm-stat-icon"></i>
-                        </div>
-                        <div class="adm-stat-value">{{ $pendingVerificationCount }}</div>
-                        <a href="{{ route('admin.borrower-verification') }}" class="adm-stat-sub adm-stat-link">
-                            Review now
-                        </a>
-                    </div>
-                </div>
-            </div>
-
+           
             {{-- ============ RECENT LOAN APPLICATIONS ============ --}}
             <div class="col-lg-8">
                 <div class="card stretch stretch-full adm-panel">

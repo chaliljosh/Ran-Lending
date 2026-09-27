@@ -75,7 +75,9 @@ Route::post('/api/forgot-password/reset',    [ForgotPasswordController::class, '
 // Borrower pages — Blade, protected by 'borrower' middleware
 Route::middleware(['borrower', 'no-cache'])->group(function () {
     Route::get('/borrower/dashboard', [BorrowerController::class, 'dashboard'])->name('borrower.dashboard');
-    Route::get('/borrower/dashboard/calendar', [BorrowerController::class, 'dashboardCalendar'])->name('borrower.dashboard.calendar'); // BAGO
+    Route::get('/borrower/dashboard/calendar', [BorrowerController::class, 'dashboardCalendar'])->name('borrower.dashboard.calendar'); 
+    Route::get('/dashboard-calendar-data', [BorrowerController::class, 'dashboardCalendarData'])
+    ->name('borrower.dashboard-calendar-data');
     Route::get('/borrower/personal-details', [BorrowerController::class, 'personalDetails'])->name('borrower.personal-details');
     Route::get('/borrower/apply-loan', [BorrowerController::class, 'applyLoan'])->name('borrower.apply-loan');
     Route::get('/borrower/loan-details', [BorrowerController::class, 'loanDetails'])->name('borrower.loan-details');
@@ -125,8 +127,7 @@ Route::middleware(['admin', 'no-cache', 'throttle:60,1'])->prefix('admin')->name
     Route::post('/account-settings/profile-picture', [AdminController::class, 'updateProfilePicture'])->name('account-settings.profile-picture');
 Route::post('/account-settings/profile-picture/remove', [AdminController::class, 'removeProfilePicture'])->name('account-settings.profile-picture.remove');
 
-    Route::match(['get', 'post'], '/borrower-verification', [AdminController::class, 'borrowerVerification'])->name('borrower-verification');
-    Route::match(['get', 'post'], '/verification-detail/{id}', [AdminController::class, 'verificationDetail'])->name('verification-detail');
+    
     Route::match(['get', 'post'], '/loan-applications', [AdminController::class, 'loanApplications'])->name('loan-applications');
     Route::match(['get', 'post'], '/loan-application-detail/{id}', [AdminController::class, 'loanApplicationDetail'])->name('loan-application-detail');
 

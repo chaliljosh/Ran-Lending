@@ -130,11 +130,11 @@
 
                     <div class="section-actions d-none" id="sectionActions-personal">
                         <button class="btn btn-cancel-pill btn-sm" onclick="cancelSectionEdit('personal')">
-                            <i class="feather-x me-1"></i>Cancel
-                        </button>
-                        <button class="btn btn-save-pill btn-sm" id="saveBtn-personal" onclick="saveSection('personal')">
-                            <i class="feather-save me-1"></i>Save Changes
-                        </button>
+    <i class="bi bi-x-lg"></i>Cancel
+</button>
+<button class="btn btn-save-pill btn-sm" id="saveBtn-personal" onclick="saveSection('personal')">
+    <i class="bi bi-check2"></i>Save Changes
+</button>
                     </div>
                 </div>
             </div>

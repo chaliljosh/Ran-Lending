@@ -26,6 +26,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/admin-toast.css') }}" />
      <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/admin-darkmode-global.css') }}" />
+     
     {{-- Page-specific stylesheets (e.g. admin-dashboard.css) go here --}}
     @yield('page-styles')
 </head>
@@ -35,13 +36,13 @@
     @php
         $currentRouteName = request()->route()?->getName();
 
-        $bvRoutes = ['admin.borrower-verification', 'admin.verification-detail'];
+      
         $laRoutes = ['admin.loan-applications', 'admin.loan-application-detail'];
 
-        $isBorrowerVerificationSection = in_array($currentRouteName, $bvRoutes, true);
+      
         $isLoanApplicationsSection = in_array($currentRouteName, $laRoutes, true);
 
-        $bvStatusTab = $isBorrowerVerificationSection ? $viewStatus ?? 'pending' : null;
+     
 
         $rawLoanStatus = $isLoanApplicationsSection ? $viewStatus ?? 'pending' : null;
         $loanStatusTab = in_array($rawLoanStatus, ['approved', 'active'], true) ? 'approved' : $rawLoanStatus;
@@ -63,46 +64,6 @@
                             <span class="nxl-micon"><i class="feather-airplay"></i></span>
                             <span class="nxl-mtext">Dashboard</span>
                         </a>
-                    </li>
-
-                    <!-- Borrower Verification -->
-                    <li class="nxl-item nxl-hasmenu {{ $isBorrowerVerificationSection ? 'active' : '' }}">
-                        <a href="javascript:void(0);"
-                            class="nxl-link {{ $isBorrowerVerificationSection ? 'active' : '' }}">
-                            <span class="nxl-micon"><i class="feather-user-check"></i></span>
-                            <span class="nxl-mtext">Borrower Verification</span>
-                            @if ($pendingCount > 0)
-                                <span class="badge bg-danger ms-auto">{{ $pendingCount }}</span>
-                            @endif
-                            <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
-                        </a>
-                        <ul class="nxl-submenu">
-                            <li class="nxl-item" data-current="{{ $bvStatusTab === 'pending' ? 'true' : 'false' }}">
-                                <a class="nxl-link nxl-submenu-link-badge" href="{{ route('admin.borrower-verification') }}">
-                                    Pending
-                                    @if ($pendingCount > 0)
-                                        <span class="badge bg-danger nxl-submenu-badge">{{ $pendingCount }}</span>
-                                    @endif
-                                </a>
-                            </li>
-                            <li class="nxl-item" data-current="{{ $bvStatusTab === 'reviewed' ? 'true' : 'false' }}">
-                                <a class="nxl-link"
-                                    href="{{ route('admin.borrower-verification', ['status' => 'reviewed']) }}">Reviewed</a>
-                            </li>
-                            <li class="nxl-item" data-current="{{ $bvStatusTab === 'approved' ? 'true' : 'false' }}">
-                                <a class="nxl-link"
-                                    href="{{ route('admin.borrower-verification', ['status' => 'approved']) }}">Approved</a>
-                            </li>
-                            <li class="nxl-item" data-current="{{ $bvStatusTab === 'rejected' ? 'true' : 'false' }}">
-                                <a class="nxl-link"
-                                    href="{{ route('admin.borrower-verification', ['status' => 'rejected']) }}">Rejected</a>
-                            </li>
-                            <li class="nxl-item" data-current="{{ $bvStatusTab === 'on_hold' ? 'true' : 'false' }}">
-                                <a class="nxl-link"
-                                    href="{{ route('admin.borrower-verification', ['status' => 'on_hold']) }}">On
-                                    Hold</a>
-                            </li>
-                        </ul>
                     </li>
                     <li class="nxl-item nxl-hasmenu {{ $isLoanApplicationsSection ? 'active' : '' }}">
                         <a href="javascript:void(0);"
@@ -245,7 +206,7 @@
                                             <span class="nxl-notif-title">{{ $n['title'] }}</span>
                                             <span class="nxl-notif-sub">{{ $n['subtitle'] }}</span>
                                             <span
-                                                class="nxl-notif-time">{{ \Carbon\Carbon::parse($n['ts'])->diffForHumans() }}</span>
+                                                class="nxl-notif-time">{{ \Carbon\Carbon::parse($n['ts'])->format('F j, g:i A') }}</span>
                                         </span>
                                         @if (!$n['read'])
                                             <span class="nxl-notif-dot"></span>

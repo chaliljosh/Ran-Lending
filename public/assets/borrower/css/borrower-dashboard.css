@@ -305,7 +305,8 @@
     align-items: stretch;
 }
 .bwl-dash-row.bwl-dash-row-cal {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr 440px;
+    justify-content: initial;
 }
 .bwl-dash-card {
     background: #ffffff !important;
@@ -331,7 +332,7 @@
     display: flex;
     gap: 24px;
     padding: 20px 22px;
-    align-items: stretch;
+    align-items: center;
 }
 .bwl-dash-overview-list {
     display: flex;
@@ -374,7 +375,7 @@
 
 /* ---------- Payment Calendar ---------- */
 .bwl-dash-calendar {
-    width: 520px;
+    width: 100%;
 }
 
 .bwl-dash-cal-month {
@@ -878,7 +879,22 @@ html.app-skin-dark .bwl-tracker-onhold--rejected {
 @media (max-width: 1199.98px) {
     .bwl-dash-widgets { grid-template-columns: repeat(2, 1fr); }
     .bwl-dash-row,
-    .bwl-dash-row.bwl-dash-row-cal { grid-template-columns: 1fr; }
+      .bwl-dash-row.bwl-dash-row-cal {
+       display: flex;
+       gap: 16px;
+       align-items: stretch;
+       justify-content: flex-start;
+   }
+
+   .bwl-dash-row.bwl-dash-row-cal .bwl-dash-overview {
+       flex: 0 0 560px;
+       max-width: 560px;
+   }
+
+   .bwl-dash-row.bwl-dash-row-cal #bwl-dash-calendar-card {
+       flex: 0 0 380px;
+       max-width: 380px;
+   }
     .bwl-dash-overview-body { flex-direction: column; }
     .bwl-dash-overview-list { width: 100%; }
     .bwl-dash-calendar { width: 100%; }
@@ -886,8 +902,8 @@ html.app-skin-dark .bwl-tracker-onhold--rejected {
 @media (min-width: 1200px) and (max-width: 1500px) {
     .bwl-dash-calendar { width: 300px; }
     .bwl-dash-overview-list { width: 260px; }
-    .bwl-dash-cal-grid { grid-template-columns: repeat(7, 32px); gap: 4px; }
-    .bwl-dash-cal-day { width: 32px; height: 32px; font-size: 0.72rem; }
+   .bwl-dash-cal-grid { grid-template-columns: repeat(7, 32px); gap: 4px; }
+.bwl-dash-cal-day { width: 32px; height: 32px; font-size: 0.72rem; }
 }
 @media (max-width: 575.98px) {
     .bwl-dash-widgets { grid-template-columns: 1fr; }
@@ -1042,9 +1058,6 @@ html.app-skin-dark .bwl-onboard-check-icon {
 
 /* ══════════════════════════════════════════
    VERIFICATION ON HOLD CARD
-   Palitan ang buong lumang "VERIFICATION ON HOLD CARD" block
-   sa dulo ng borrower-dashboard.css ng file na ito
-   (kasama na ang dark mode).
    ══════════════════════════════════════════ */
 
 .bwl-hold {
@@ -1073,6 +1086,10 @@ html.app-skin-dark .bwl-onboard-check-icon {
     height: 7px;
     border-radius: 50%;
     background: #d97706;
+}
+.bwl-hold-chip--rejected {
+    background: #fee2e2;
+    color: #dc2626;
 }
 
 /* ── Heading + lede ── */
@@ -1194,23 +1211,63 @@ html.app-skin-dark .bwl-onboard-check-icon {
     gap: 12px 18px;
     margin-top: 24px;
 }
-.bwl-hold-btn {
+
+/* Update my details button — white pill with mouse-tracked
+   ripple/spotlight hover effect. --mx / --my are set via JS
+   (borrower-dashboard.js) on mousemove. */
+.bwl-hold-btn,
+.bwl-hold-btn--rejected {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
     display: inline-flex;
     align-items: center;
     padding: 10px 24px;
     border-radius: 999px;
-    background: #334155;
-    color: #FFFFFF;
+    background: #FFFFFF;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
     font-size: 0.9rem;
     font-weight: 600;
     text-decoration: none;
-    transition: background 0.18s ease;
+    transition: background 0.18s ease, border-color 0.18s ease;
 }
-.bwl-hold-btn:hover { background: #475569; color: #FFFFFF; }
-.bwl-hold-btn:focus-visible {
+.bwl-hold-btn:hover,
+.bwl-hold-btn--rejected:hover {
+    background: #FFFFFF;
+    border-color: #cbd5e1;
+    color: #0f172a;
+}
+.bwl-hold-btn:focus-visible,
+.bwl-hold-btn--rejected:focus-visible {
     outline: 2px solid #2563eb;
     outline-offset: 2px;
 }
+.bwl-hold-btn::before,
+.bwl-hold-btn--rejected::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+        circle 120px at var(--mx, 50%) var(--my, 50%),
+        rgba(15, 23, 42, 0.08),
+        transparent 70%
+    );
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+    z-index: 0;
+}
+.bwl-hold-btn:hover::before,
+.bwl-hold-btn--rejected:hover::before {
+    opacity: 1;
+}
+.bwl-hold-btn > *,
+.bwl-hold-btn--rejected > * {
+    position: relative;
+    z-index: 1;
+}
+
 .bwl-hold-note {
     margin: 0;
     font-size: 0.82rem;
@@ -1223,7 +1280,8 @@ html.app-skin-dark .bwl-onboard-check-icon {
     .bwl-hold-title { font-size: 1.15rem; }
     .bwl-hold-item-text { font-size: 1.05rem; }
     .bwl-hold-actions { flex-direction: column; align-items: stretch; }
-    .bwl-hold-btn { justify-content: center; }
+    .bwl-hold-btn,
+    .bwl-hold-btn--rejected { justify-content: center; }
     .bwl-hold-note { text-align: center; }
 }
 
@@ -1235,6 +1293,7 @@ html.app-skin-dark .bwl-hold {
 }
 html.app-skin-dark .bwl-hold-chip { background: rgba(217, 119, 6, 0.14); color: #fbbf24; }
 html.app-skin-dark .bwl-hold-chip-dot { background: #fbbf24; }
+html.app-skin-dark .bwl-hold-chip--rejected { background: rgba(220, 38, 38, 0.18); color: #f87171; }
 html.app-skin-dark .bwl-hold-title { color: #F5F5F5; }
 html.app-skin-dark .bwl-hold-lede,
 html.app-skin-dark .bwl-hold-tally-label,
@@ -1252,16 +1311,26 @@ html.app-skin-dark .bwl-hold-item-num { color: #737373; }
 html.app-skin-dark .bwl-hold-item,
 html.app-skin-dark .bwl-hold-item:last-child,
 html.app-skin-dark .bwl-hold-empty { border-color: #262626; }
-.bwl-hold-chip--rejected {
-    background: #fee2e2;
-    color: #dc2626;
-}
 
-.bwl-hold-btn--rejected {
-    background: #334155;
-    color: #FFFFFF;
+/* White pill still works on true-black cards — just tune the
+   border/spotlight tint so it stays visible on dark. */
+html.app-skin-dark .bwl-hold-btn,
+html.app-skin-dark .bwl-hold-btn--rejected {
+    background: #F5F5F5;
+    color: #0A0A0A;
+    border-color: #262626;
 }
-.bwl-hold-btn--rejected:hover {
-    background: #475569;
-    color: #FFFFFF;
+html.app-skin-dark .bwl-hold-btn:hover,
+html.app-skin-dark .bwl-hold-btn--rejected:hover {
+    background: #FFFFFF;
+    border-color: #333333;
+    color: #0A0A0A;
+}
+html.app-skin-dark .bwl-hold-btn::before,
+html.app-skin-dark .bwl-hold-btn--rejected::before {
+    background: radial-gradient(
+        circle 120px at var(--mx, 50%) var(--my, 50%),
+        rgba(15, 23, 42, 0.12),
+        transparent 70%
+    );
 }

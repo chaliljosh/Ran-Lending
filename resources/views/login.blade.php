@@ -32,7 +32,7 @@
                 <a href="{{ url('/') }}" class="text-nowrap logo-img text-center d-block py-2 w-100">
                   <img src="{{ asset('assets/login/images/logos/ranlogo.png') }}" class="img-fluid" style="max-width: 130px;" alt="RAN Logo">
                 </a>
-                <p class="text-center tagline">Your Best Lending Website</p>
+                <p class="text-center tagline">Your Best Lending System</p>
 
                 <div id="registeredAlert" class="alert alert-success d-none align-items-center gap-2" role="alert">
                   <i class="bi bi-check-circle-fill"></i>

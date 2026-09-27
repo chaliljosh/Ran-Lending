@@ -11,14 +11,12 @@
     <div class="col-lg-8">
         <section class="bwl-ob" aria-labelledby="bwlObTitle">
 
-           
-
             <h5 class="bwl-ob-title" id="bwlObTitle">
                 {{ $firstName ? 'Welcome, ' . $firstName : 'Welcome' }}
             </h5>
             <p class="bwl-ob-lede">
                 One last step before you can apply for a loan. Fill in your personal details
-                and our admins will review them.
+                to get started.
             </p>
 
             {{-- Ano ang kailangan ihanda --}}
@@ -49,9 +47,9 @@
                 </li>
             </ol>
 
-            {{-- Ipakita ang mabubuksan pagkatapos ma-approve --}}
+            {{-- Ipakita ang mabubuksan pagkatapos mag-submit --}}
             <div class="bwl-ob-unlock">
-                <p class="bwl-ob-unlock-title">Unlocked after approval</p>
+                <p class="bwl-ob-unlock-title">Unlocked after you submit</p>
                 <ul class="bwl-ob-unlock-list">
                     <li class="bwl-ob-unlock-item">
                         <span class="bwl-ob-unlock-icon"><i class="feather-lock"></i></span>
@@ -73,9 +71,7 @@
             <div class="bwl-ob-actions">
                 <a href="{{ route('borrower.personal-details') }}" class="bwl-ob-btn">
                     Fill up personal details
-                 
                 </a>
-            
             </div>
 
         </section>

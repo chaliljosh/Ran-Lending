@@ -789,3 +789,60 @@ html.app-skin-dark #loanErrorToast {
     box-shadow: 0 20px 50px -14px rgba(0, 0, 0, 0.6) !important;
 }
 html.app-skin-dark #loanErrorToast .loan-toast-close { color: #F87171 !important; }
+
+/* ══════════════════════════════════════════
+   Spotlight Button — glow follows the cursor
+   ══════════════════════════════════════════ */
+
+.aln-spotlight-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 46px;
+    padding: 0 28px;
+    border-radius: 999px;
+    border: 1px solid var(--aln-border);
+    background: #fff;
+    color: var(--aln-navy);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    overflow: hidden;
+    isolation: isolate;
+    transition: border-color 0.2s ease, color 0.2s ease;
+}
+.aln-spotlight-btn:hover {
+    border-color: var(--aln-blue);
+    color: var(--aln-blue);
+    text-decoration: none;
+}
+.aln-spotlight-btn__glow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(120px circle at var(--x, 50%) var(--y, 50%), rgba(37, 99, 235, 0.16), transparent 70%);
+    transition: opacity 0.25s ease;
+}
+.aln-spotlight-btn:hover .aln-spotlight-btn__glow {
+    opacity: 1;
+}
+.aln-spotlight-btn__label {
+    position: relative;
+    z-index: 1;
+}
+
+/* Dark mode */
+html.app-skin-dark .aln-spotlight-btn {
+    background: #141414;
+    border-color: #262626;
+    color: #F5F5F5;
+}
+html.app-skin-dark .aln-spotlight-btn:hover {
+    border-color: var(--aln-blue);
+    color: #60A5FA;
+}
+html.app-skin-dark .aln-spotlight-btn__glow {
+    background: radial-gradient(120px circle at var(--x, 50%) var(--y, 50%), rgba(96, 165, 250, 0.18), transparent 70%);
+}

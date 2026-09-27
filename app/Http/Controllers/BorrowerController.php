@@ -27,23 +27,12 @@ class BorrowerController extends Controller
         $details = $data['details'] ? (object) $data['details'] : null;
         $detailsStatus = $details->status ?? 'incomplete';
 
-        $approvedCount = $data['approved_count'];
-        $rejectedCount = $data['rejected_count'];
-
-        $isFullyApproved = $detailsStatus === 'approved' && $approvedCount >= 3;
-
-        // "On hold" — all 3 admins have already voted (e.g. 2 approve +
-        // 1 reject) but it wasn't a clean unanimous approval, so
-        // $isFullyApproved is false. Excludes an explicit terminal
-        // 'rejected' status, which gets its own dedicated card.
-        $totalVerificationVotes = $approvedCount + $rejectedCount;
-        $isOnHold = $details
-            && $detailsStatus !== 'incomplete'
-            && $detailsStatus !== 'rejected'
-            && $totalVerificationVotes >= 3
-            && !$isFullyApproved;
-
-        $rejectionRemarks = collect($data['rejection_remarks']);
+        // Wala nang admin approval queue — direkta nang 'approved' ang
+        // status pagka-submit (tingnan ang savePersonalDetails()), kaya
+        // ang detailsStatus na lang ang batayan. Tinanggal na ang mga
+        // dating $approvedCount / $rejectedCount / $isOnHold / $rejectionRemarks
+        // dahil wala nang 3-admin voting flow.
+        $isFullyApproved = $detailsStatus === 'approved';
 
         if ($details && $details->first_name) {
             $middleInitial = $details->middle_name ? substr($details->middle_name, 0, 1) . '.' : '';
@@ -75,8 +64,7 @@ class BorrowerController extends Controller
         $unreadNotifCount = $headerNotifications->where('read', false)->count();
 
         return compact(
-            'details', 'detailsStatus', 'approvedCount', 'rejectedCount', 'isFullyApproved', 'isOnHold',
-            'rejectionRemarks',
+            'details', 'detailsStatus', 'isFullyApproved',
             'userName', 'initials', 'profilePicture',
             'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
             'headerNotifications', 'unreadNotifCount'
@@ -171,7 +159,9 @@ class BorrowerController extends Controller
 
         $details = $data['details'] ? (object) $data['details'] : null;
 
-        if ($details && $details->status === 'approved' && $data['approved_count'] >= 3) {
+        // Wala nang 3-admin approval count — direktang trinu-trigger na
+        // lang base sa status === 'approved'.
+        if ($details && $details->status === 'approved') {
             $key = 'eligible:' . $details->detail_id;
 
             $items->push([
@@ -180,7 +170,7 @@ class BorrowerController extends Controller
                 'icon'     => 'feather-unlock',
                 'color'    => 'success',
                 'title'    => "You're Now Eligible to Apply",
-                'subtitle' => 'Your verification is complete — you can now apply for a loan.',
+                'subtitle' => 'Your details are complete — you can now apply for a loan.',
                 'read'     => $readKeys->has($key),
                 'ts'       => $data['eligible_decided_at'] ? Carbon::parse($data['eligible_decided_at']) : now(),
             ]);
@@ -360,8 +350,8 @@ class BorrowerController extends Controller
         }
 
         return view('borrower.dashboard', compact(
-            'userName', 'initials', 'profilePicture', 'detailsStatus', 'approvedCount', 'rejectedCount',
-            'isFullyApproved', 'isOnHold', 'rejectionRemarks', 'latestLoan', 'loanStatus', 'app', 'notifications', 'recentPayments',
+            'userName', 'initials', 'profilePicture', 'detailsStatus',
+            'isFullyApproved', 'latestLoan', 'loanStatus', 'app', 'notifications', 'recentPayments',
             'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
             'outstandingAmount', 'amountPaid', 'progressPct', 'totalCount', 'paidCount', 'nextUnpaid',
             'isOverdue', 'daysOverdue', 'approvedAt', 'activatedAt',
@@ -386,7 +376,7 @@ class BorrowerController extends Controller
         ];
 
         // Saved address / work / co-maker — para ma-prefill ang form
-        // kapag nag-eedit o nagre-resubmit ang borrower (on hold / rejected).
+        // kapag nag-eedit ang borrower.
         $address = $details
             ? DB::table('borroweraddress')->where('detail_id', $details->detail_id)->first()
             : null;
@@ -398,7 +388,7 @@ class BorrowerController extends Controller
             : null;
 
         return view('borrower.personal-details', compact(
-            'userName', 'initials', 'profilePicture', 'detailsStatus', 'approvedCount', 'isFullyApproved', 'isOnHold', 'rejectionRemarks', 'regData', 'details',
+            'userName', 'initials', 'profilePicture', 'detailsStatus', 'isFullyApproved', 'regData', 'details',
             'address', 'work', 'comaker',
             'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
             'headerNotifications', 'unreadNotifCount'
@@ -473,7 +463,7 @@ class BorrowerController extends Controller
             'id_file_path_back' => $idFilePathBack,
             'monthly_income'    => $request->input('monthlyIncome'),
             'email'             => $request->input('email'),
-            'status'            => 'pending',
+            'status'            => 'approved',
         ];
 
         $addressData = [
@@ -493,14 +483,6 @@ class BorrowerController extends Controller
             'years_in_company'  => $request->input('yearsInCompany'),
         ];
 
-        $comakerData = [
-            'last_name'      => $request->input('coMakerLastName'),
-            'first_name'     => $request->input('coMakerFirstName'),
-            'middle_name'    => $request->input('coMakerMiddleName'),
-            'relationship'   => $request->input('coMakerRelationship'),
-            'contact_number' => $request->input('coMakerContact'),
-        ];
-
         try {
             if ($existing) {
                 $detailId = $existing->detail_id;
@@ -518,15 +500,6 @@ class BorrowerController extends Controller
                     ['detail_id' => $detailId],
                     $workData
                 );
-
-                DB::table('comakerinfo')->updateOrInsert(
-                    ['detail_id' => $detailId],
-                    $comakerData
-                );
-
-                // Burahin ang lumang votes para makaboto ulit ang 3 admins
-                // sa bagong submission.
-                DB::table('detailsapproval')->where('detail_id', $detailId)->delete();
             } else {
                 $personalData['user_id'] = $userId;
                 $personalData['uuid'] = (string) Str::uuid();
@@ -538,9 +511,6 @@ class BorrowerController extends Controller
 
                 $workData['detail_id'] = $detailId;
                 DB::table('borrowerworkinfo')->insert($workData);
-
-                $comakerData['detail_id'] = $detailId;
-                DB::table('comakerinfo')->insert($comakerData);
             }
 
             return response()->json([
@@ -564,7 +534,7 @@ class BorrowerController extends Controller
         }
     }
 
-    // ── Bagong unlocked features (pag fully approved na ng 3 admins) ──
+    // ── Bagong unlocked features (pagkatapos mag-submit ng personal details) ──
 
     public function applyLoan(Request $request)
     {
@@ -874,49 +844,97 @@ class BorrowerController extends Controller
     }
 
     public function dashboardCalendar(Request $request)
-    {
-        $userId = Session::get('user_id');
+{
+    $t0 = microtime(true);
+    $requestStart = $_SERVER['REQUEST_TIME_FLOAT'] ?? $t0;
 
-        $calMonthParam = $request->query('cal_month');
-        try {
-            $calMonth = $calMonthParam
-                ? Carbon::createFromFormat('Y-m', $calMonthParam)->startOfMonth()
-                : Carbon::now()->startOfMonth();
-        } catch (\Exception $e) {
-            $calMonth = Carbon::now()->startOfMonth();
-        }
-        $calPrevMonth = $calMonth->copy()->subMonth()->format('Y-m');
-        $calNextMonth = $calMonth->copy()->addMonth()->format('Y-m');
+    $userId = Session::get('user_id');
 
-        $candidateApp = DB::table('loan_applications')
-            ->where('user_id', $userId)
-            ->whereIn('status', ['active', 'approved'])
-            ->orderByDesc('applied_at')
-            ->first();
+    $calMonthParam = $request->query('cal_month');
+    try {
+        $calMonth = $calMonthParam
+            ? Carbon::createFromFormat('Y-m', $calMonthParam)->startOfMonth()
+            : Carbon::now()->startOfMonth();
+    } catch (\Exception $e) {
+        $calMonth = Carbon::now()->startOfMonth();
+    }
+    $calPrevMonth = $calMonth->copy()->subMonth()->format('Y-m');
+    $calNextMonth = $calMonth->copy()->addMonth()->format('Y-m');
 
-        $calDaysWithPayments = collect();
-        $nextUnpaid = null;
+    $t1 = microtime(true);
 
-        if ($candidateApp) {
-            $schedule = DB::table('loan_payment_schedules')
-                ->where('application_id', $candidateApp->application_id)
-                ->orderBy('installment_no')
-                ->get();
+    $schedule = DB::table('loan_payment_schedules as lps')
+        ->join('loan_applications as la', 'la.application_id', '=', 'lps.application_id')
+        ->where('la.user_id', $userId)
+        ->whereIn('la.status', ['active', 'approved'])
+        ->orderByDesc('la.applied_at')
+        ->orderBy('lps.installment_no')
+        ->select('lps.*', 'la.application_id as la_application_id')
+        ->get();
 
-            if ($schedule->isNotEmpty()) {
-                $nextUnpaid = $schedule->first(fn($s) => is_null($s->paid_at));
+    $t2 = microtime(true);
 
-                $calDaysWithPayments = $schedule
-                    ->filter(fn($s) => Carbon::parse($s->due_date)->isSameMonth($calMonth))
-                    ->mapWithKeys(fn($s) => [Carbon::parse($s->due_date)->day => true]);
-            }
-        }
+    $calDaysWithPayments = collect();
+    $nextUnpaid = null;
 
-        return view('borrower.partials.payment-calendar', compact(
-            'calMonth', 'calPrevMonth', 'calNextMonth', 'calDaysWithPayments', 'nextUnpaid'
-        ));
+    if ($schedule->isNotEmpty()) {
+        $latestApplicationId = $schedule->first()->la_application_id;
+        $schedule = $schedule->where('la_application_id', $latestApplicationId)->values();
+
+        $nextUnpaid = $schedule->first(fn($s) => is_null($s->paid_at));
+
+        $calDaysWithPayments = $schedule
+            ->filter(fn($s) => Carbon::parse($s->due_date)->isSameMonth($calMonth))
+            ->mapWithKeys(fn($s) => [Carbon::parse($s->due_date)->day => true]);
     }
 
+    $t3 = microtime(true);
+
+    $view = view('borrower.partials.payment-calendar', compact(
+        'calMonth', 'calPrevMonth', 'calNextMonth', 'calDaysWithPayments', 'nextUnpaid'
+    ))->render();
+
+    $t4 = microtime(true);
+
+    \Log::info('dashboardCalendar timing', [
+        'bootstrap_to_method_ms' => round(($t0 - $requestStart) * 1000),
+        'setup_ms'   => round(($t1 - $t0) * 1000),
+        'query_ms'   => round(($t2 - $t1) * 1000),
+        'process_ms' => round(($t3 - $t2) * 1000),
+        'view_ms'    => round(($t4 - $t3) * 1000),
+        'method_total_ms' => round(($t4 - $t0) * 1000),
+        'php_start_to_view_done_ms' => round(($t4 - $requestStart) * 1000),
+    ]);
+
+    return response($view);
+}
+
+public function dashboardCalendarData(Request $request)
+{
+    $userId = Session::get('user_id');
+
+    $schedule = DB::table('loan_payment_schedules as lps')
+        ->join('loan_applications as la', 'la.application_id', '=', 'lps.application_id')
+        ->where('la.user_id', $userId)
+        ->whereIn('la.status', ['active', 'approved'])
+        ->orderByDesc('la.applied_at')
+        ->orderBy('lps.installment_no')
+        ->select('lps.due_date', 'lps.amount_due', 'lps.paid_at', 'la.application_id as la_application_id')
+        ->get();
+
+    if ($schedule->isNotEmpty()) {
+        $latestApplicationId = $schedule->first()->la_application_id;
+        $schedule = $schedule->where('la_application_id', $latestApplicationId)->values();
+    }
+
+    return response()->json([
+        'schedule' => $schedule->map(fn($s) => [
+            'due_date'   => Carbon::parse($s->due_date)->format('Y-m-d'),
+            'amount_due' => (float) $s->amount_due,
+            'paid_at'    => $s->paid_at,
+        ]),
+    ]);
+}
     public function profile(Request $request)
     {
         $userId = Session::get('user_id');

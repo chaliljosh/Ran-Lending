@@ -72,9 +72,25 @@
 
                         <p class="aln-note">{{ $cardNote }}</p>
 
-                        <a href="{{ route('borrower.loan-details') }}" class="aln-link">
-                            View Application Status
+                        <a href="{{ route('borrower.loan-details') }}" class="aln-spotlight-btn" id="viewStatusBtn">
+                            <span class="aln-spotlight-btn__glow"></span>
+                            <span class="aln-spotlight-btn__label">View Application Status</span>
                         </a>
+
+                        <script>
+                            (function () {
+                                const btn = document.getElementById('viewStatusBtn');
+                                if (!btn) return;
+
+                                btn.addEventListener('mousemove', function (e) {
+                                    const rect = btn.getBoundingClientRect();
+                                    const x = e.clientX - rect.left;
+                                    const y = e.clientY - rect.top;
+                                    btn.style.setProperty('--x', x + 'px');
+                                    btn.style.setProperty('--y', y + 'px');
+                                });
+                            })();
+                        </script>
                     </section>
                 @else
                     {{-- INFO NOTICE --}}

@@ -20,6 +20,14 @@ function validatePassword(pw) {
     .map(([key]) => RULE_LABELS[key]);
 }
 
+/* ── Email format check ──
+   Simple regex — hindi perfect (walang regex na perfect for email),
+   pero sapat na para hulihin yung mga obvious na mali gaya ng
+   walang "@" o walang domain (hal. "crystallake241"). */
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 /* ── CSRF token (kailangan sa bawat POST request papunta sa Laravel) ── */
 function getCsrfToken() {
   const meta = document.querySelector('meta[name="csrf-token"]');
@@ -41,14 +49,16 @@ function togglePw(id, btn) {
 
 /* ── Form error alert ── */
 function showError(msg) {
-  const alert = document.getElementById('registerAlert');
-  alert.textContent = msg;
-  alert.style.display = 'block';
-  setTimeout(() => alert.style.display = 'none', 5000);
+   const alert = document.getElementById('registerAlert');
+  const text  = document.getElementById('registerAlertText');
+  text.textContent = msg;
+  alert.classList.add('is-visible');
+  clearTimeout(alert._hideTimer);
+  alert._hideTimer = setTimeout(() => alert.classList.remove('is-visible'), 5000);
 }
 
 function hideError() {
-  document.getElementById('registerAlert').style.display = 'none';
+  document.getElementById('registerAlert').classList.remove('is-visible');
 }
 
 function showSuccessModal() {
@@ -199,6 +209,13 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
 
+      // ✅ Specific na email format check, bago pa man mag-fetch
+      if (!isValidEmail(email)) {
+        showError('Please enter a valid email address (e.g. name@example.com).');
+        document.getElementById('email').focus();
+        return;
+      }
+
       if (!birthMonth || !birthDay || !birthYear) {
         showError('Please select your complete birthday.');
         return;
@@ -238,20 +255,30 @@ document.addEventListener('DOMContentLoaded', function () {
         headers: { 'X-CSRF-TOKEN': getCsrfToken() },
         body: formData
       })
-      .then(res => res.json())
-      .then(data => {
+      .then(res => res.json().then(data => ({ status: res.status, ok: res.ok, data })))
+      .then(({ ok, data }) => {
         signupBtn.disabled = false;
         signupBtn.innerHTML = 'Create Account';
 
         if (data.success) {
           pendingRegisterEmail = data.email;
           openRegisterOtpModal(data.email);
+          return;
+        }
+
+        // ✅ Kung Laravel validation error format ang sumagot
+        // (hal. { message: "...", errors: { email: [...] } }),
+        // kunin yung unang specific message imbes na generic text.
+        if (data.errors) {
+          const firstField = Object.keys(data.errors)[0];
+          const firstMessage = data.errors[firstField][0];
+          showError(firstMessage);
         } else {
-          showError(data.message);
+          showError(data.message || 'Registration failed. Please try again.');
         }
       })
       .catch(() => {
-        showError('Something went wrong. Please try again.');
+        showError('Unable to reach the server. Please check your connection and try again.');
         signupBtn.disabled = false;
         signupBtn.innerHTML = 'Create Account';
       });

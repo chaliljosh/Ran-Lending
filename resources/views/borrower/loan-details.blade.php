@@ -20,25 +20,43 @@
 
     <div class="main-content">
 
-        @if(!$app)
+      @if(!$app)
 
-            {{-- No loan application yet --}}
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <div class="bwl-ld-empty">
-                        <div class="bwl-ld-empty-icon">
-                            <i class="feather-file-text"></i>
-                        </div>
-                        <h5 class="fw-bold mb-2">No Loan Application Yet</h5>
-                        <p class="text-muted mb-4">You haven't submitted a loan application. Apply now to get started.</p>
-                        <a href="{{ route('borrower.apply-loan') }}" class="btn btn-primary px-4">
-                            <i class="feather-file-plus me-2"></i>Apply for a Loan
-                        </a>
+    {{-- No loan application yet --}}
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="bwl-ld-empty">
+                <div class="bwl-ld-empty-badge">
+                    <span class="bwl-ld-empty-badge-ring"></span>
+                    <i class="feather-file-text"></i>
+                </div>
+
+                <h5 class="bwl-ld-empty-title">No loan application yet</h5>
+                <p class="bwl-ld-empty-text">You haven't submitted a loan application. Apply now to get started.</p>
+
+                <a href="{{ route('borrower.apply-loan') }}" class="bwl-ld-btn bwl-ld-empty-cta">
+                    <i class="feather-file-plus"></i>Apply for a Loan
+                </a>
+
+                <div class="bwl-ld-empty-steps">
+                    <div class="bwl-ld-empty-step">
+                        <span class="bwl-ld-empty-step-num">1</span>
+                        <span class="bwl-ld-empty-step-label">Fill out your details</span>
+                    </div>
+                    <div class="bwl-ld-empty-step">
+                        <span class="bwl-ld-empty-step-num">2</span>
+                        <span class="bwl-ld-empty-step-label">We review your application</span>
+                    </div>
+                    <div class="bwl-ld-empty-step">
+                        <span class="bwl-ld-empty-step-num">3</span>
+                        <span class="bwl-ld-empty-step-label">Get notified of the decision</span>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-        @else
+@else
 
             @php
                 $isCompleted = $app->status === 'completed';

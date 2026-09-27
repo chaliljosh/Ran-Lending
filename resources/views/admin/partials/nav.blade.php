@@ -12,16 +12,6 @@
                     </a>
                 </li>
 
-                <li class="nxl-item">
-                    <a href="{{ route('admin.borrower-verification') }}" class="nxl-link {{ request()->routeIs('admin.borrower-verification') || request()->routeIs('admin.verification-detail') ? 'active' : '' }}">
-                        <span class="nxl-micon"><i class="feather-user-check"></i></span>
-                        <span class="nxl-mtext">Borrower Verification</span>
-                        @if(($pendingCount ?? 0) > 0)
-                            <span class="badge bg-danger ms-auto">{{ $pendingCount }}</span>
-                        @endif
-                    </a>
-                </li>
-
                 <li class="nxl-item nxl-hasmenu {{ request()->routeIs('admin.loan-applications') || request()->routeIs('admin.loan-application-detail') ? 'nxl-trigger active' : '' }}">
                     <a href="javascript:void(0);" class="nxl-link">
                         <span class="nxl-micon"><i class="feather-file-text"></i></span>

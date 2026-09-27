@@ -38,41 +38,49 @@
         </div>
 
         <!-- Error Alert -->
-        <div id="registerAlert" style="display:none; background:#fee2e2; border:1px solid #fca5a5; color:#991b1b; padding:10px 14px; border-radius:8px; margin-bottom:16px; font-size:0.875rem;"></div>
+        <!-- Error Alert -->
+<div id="registerAlert" class="alert-banner">
+  <i class="bi bi-exclamation-circle-fill alert-icon"></i>
+  <span id="registerAlertText"></span>
+</div>
 
         <div class="form-grid">
 
-                    <div class="field">
-            <label for="firstName">First Name</label>
-            <div class="input-wrap">
-              <i class="bi bi-person field-icon"></i>
-              <!-- ✅ Auto capitalize first letter of each word -->
-              <input type="text" id="firstName" placeholder="Enter first name"
-                oninput="this.value = this.value.replace(/\b\w/g, c => c.toUpperCase())">
+          <!-- Name row — First / Middle / Last sa isang linya -->
+          <div class="field col-span-2">
+            <div class="name-row">
+              <div>
+                <label for="firstName">First Name<span class="required-asterisk">*</span></label>
+                <div class="input-wrap">
+                  <i class="bi bi-person field-icon"></i>
+                  <!-- ✅ Auto capitalize first letter of each word -->
+                  <input type="text" id="firstName" placeholder="Enter first name"
+                    oninput="this.value = this.value.replace(/\b\w/g, c => c.toUpperCase())">
+                </div>
+              </div>
+              <div>
+                <label for="middleName">Middle Name</label>
+                <div class="input-wrap">
+                  <i class="bi bi-person-badge field-icon"></i>
+                  <!-- ✅ Auto capitalize first letter of each word -->
+                  <input type="text" id="middleName" placeholder="Enter middle name"
+                    oninput="this.value = this.value.replace(/\b\w/g, c => c.toUpperCase())">
+                </div>
+              </div>
+              <div>
+                <label for="lastName">Last Name<span class="required-asterisk">*</span></label>
+                <div class="input-wrap">
+                  <i class="bi bi-person field-icon"></i>
+                  <!-- ✅ Auto capitalize first letter of each word -->
+                  <input type="text" id="lastName" placeholder="Enter last name"
+                    oninput="this.value = this.value.replace(/\b\w/g, c => c.toUpperCase())">
+                </div>
+              </div>
             </div>
           </div>
 
-          <div class="field">
-            <label for="middleName">Middle Initial</label>
-            <div class="input-wrap">
-              <i class="bi bi-person-badge field-icon"></i>
-              <!-- ✅ Isang letra lang, auto-uppercase -->
-              <input type="text" id="middleName" placeholder="M" maxlength="1"
-                oninput="this.value = this.value.replace(/[^a-zA-Z]/g, '').toUpperCase()">
-            </div>
-          </div>
-
-          <div class="field">
-            <label for="lastName">Last Name</label>
-            <div class="input-wrap">
-              <i class="bi bi-person field-icon"></i>
-              <!-- ✅ Auto capitalize first letter of each word -->
-              <input type="text" id="lastName" placeholder="Enter last name"
-                oninput="this.value = this.value.replace(/\b\w/g, c => c.toUpperCase())">
-            </div>
-          </div>
-          <div class="field">
-            <label for="email">Email Address</label>
+          <div class="field col-span-2">
+            <label for="email">Email Address<span class="required-asterisk">*</span></label>
             <div class="input-wrap">
               <i class="bi bi-envelope field-icon"></i>
               <input type="email" id="email" placeholder="Enter email address">
@@ -92,7 +100,7 @@
                    scrolling na kailangan.
           ============================================================ -->
           <div class="field col-span-2">
-            <label>Birthday</label>
+            <label>Birthday<span class="required-asterisk">*</span></label>
             <div class="birthday-row">
               <div class="input-wrap no-icon">
                 <select id="birthMonth">
@@ -130,7 +138,7 @@
           </div>
 
           <div class="field col-span-2">
-            <label for="password">Password</label>
+            <label for="password">Password<span class="required-asterisk">*</span></label>
             <div class="input-wrap pw-wrap">
               <i class="bi bi-lock field-icon"></i>
               <input type="password" id="password" placeholder="Create a password">
@@ -141,7 +149,7 @@
           </div>
 
           <div class="field col-span-2">
-            <label for="confirmPassword">Confirm Password</label>
+            <label for="confirmPassword">Confirm Password<span class="required-asterisk">*</span></label>
             <div class="input-wrap pw-wrap">
               <i class="bi bi-lock-fill field-icon"></i>
               <input type="password" id="confirmPassword" placeholder="Re-enter password">

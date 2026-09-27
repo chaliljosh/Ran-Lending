@@ -293,9 +293,9 @@
                             <div class="ld-field compact"><span class="info-label">Email</span><span
                                     class="info-value">{{ $app->email }}</span></div>
                         </div>
-                        <div class="col-md-6">
+                                                <div class="col-md-6">
                             <div class="ld-field compact"><span class="info-label">Monthly Income</span><span
-                                    class="info-value text-success">{{ $app->monthly_income ?? null ? '₱' . number_format($app->monthly_income, 2) : '—' }}</span>
+                                    class="info-value text-success">{{ $app->monthly_income ?? null ? (is_numeric($app->monthly_income) ? '₱' . number_format($app->monthly_income, 2) : $app->monthly_income) : '—' }}</span>
                             </div>
                         </div>
                     </div>
