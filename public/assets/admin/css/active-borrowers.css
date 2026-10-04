@@ -131,6 +131,9 @@
         .rs-table tbody tr:last-child td { border-bottom: none; }
         .rs-table tbody tr:hover { background: #fafbfd; }
 
+        /* Clickable rows */
+        .rs-clickable-row { cursor: pointer; }
+
         .borrower-cell-v2 { display: flex; align-items: center; gap: 12px; }
         .borrower-avatar-v2 {
             width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;

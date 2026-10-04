@@ -166,6 +166,17 @@
         return pages;
     }
 
+    // ── Clickable rows ──
+    // Pag kinlick ang kahit anong part ng row, pupunta sa View Details page.
+    // Hindi gagana kung link/button mismo ang na-click, o may hinihighlight na text.
+    document.addEventListener('click', function (e) {
+        const row = e.target.closest('tr[data-href]');
+        if (!row) return;
+        if (e.target.closest('a, button, input, select')) return;
+        if (window.getSelection && window.getSelection().toString()) return;
+        window.location.href = row.dataset.href;
+    });
+
     // init: markahan lahat ng rows na "match" bago mag-render
     document.addEventListener('DOMContentLoaded', function () {
         getAllRows().forEach(function (row) { row.dataset.match = 'true'; });

@@ -317,24 +317,48 @@
                                     <td class="text-end" data-field="action">
                                         <div class="ols-actions-cell">
                                             @if (!$isPaid)
+                                                {{-- NOTE: class + data-* attributes below are a guess.
+                                                     Match them to what functions/ongoing-loan-detail.js expects. --}}
                                                 <button type="button" class="btn-record-payment"
                                                     data-schedule-id="{{ $s->id }}"
                                                     data-installment-no="{{ $s->installment_no }}"
-                                                    data-amount-due="{{ number_format($s->amount_due, 2) }}">
-                                                    <i class="feather-calendar"></i> Record Payment
+                                                    data-amount-due="{{ $s->amount_due }}">
+                                                    Record Payment
                                                 </button>
                                             @else
                                                 <span class="sched-paid-note">Recorded</span>
                                             @endif
+
                                             <div class="ols-kebab-wrap">
                                                 <button type="button" class="ols-kebab-btn" data-bs-toggle="dropdown"
                                                     aria-expanded="false">
                                                     <i class="feather-chevron-down"></i>
                                                 </button>
                                                 <ul class="dropdown-menu dropdown-menu-end ols-kebab-menu">
-                                                    <li><a class="dropdown-item" href="#">View Installment
-                                                            Details</a></li>
-                                                    <li><a class="dropdown-item" href="#">Add Note</a></li>
+                                                    <li>
+                                                        <button type="button"
+                                                            class="dropdown-item js-view-payment-details"
+                                                            data-installment-no="{{ $s->installment_no }}"
+                                                            data-due="{{ $dueCarbon->format('F j, Y') }}"
+                                                            data-amount="{{ number_format($isPaid ? $s->amount_paid : $s->amount_due, 2) }}"
+                                                            data-status="{{ $rowStatus }}"
+                                                            data-paid="{{ $isPaid ? \Carbon\Carbon::parse($s->paid_at)->format('F j, Y') : '' }}"
+                                                            data-recorded="{{ $isPaid && !empty($s->updated_at) ? \Carbon\Carbon::parse($s->updated_at)->format('F j, Y') : '' }}"
+                                                            data-receipt-url="{{ !empty($s->receipt_path) ? route('admin.installment-receipt', $s->id) : '' }}">
+                                                            View Payment Details
+                                                        </button>
+                                                    </li>
+                                              
+                                                    <li class="js-void-item {{ $isPaid ? '' : 'd-none' }}">
+                                                        <hr class="dropdown-divider">
+                                                        <button type="button"
+                                                            class="dropdown-item ols-item-danger js-void-payment"
+                                                            data-schedule-id="{{ $s->id }}"
+                                                            data-installment-no="{{ $s->installment_no }}"
+                                                            data-amount="{{ number_format($s->amount_paid, 2) }}">
+                                                            Void Payment
+                                                        </button>
+                                                    </li>
                                                 </ul>
                                             </div>
                                         </div>
@@ -369,22 +393,126 @@
      RECORD PAYMENT CONFIRMATION MODAL
 ============================================================ --}}
 @push('modals')
+    {{-- RECORD PAYMENT CONFIRMATION MODAL --}}
     <div class="modal fade nxl-account-modal" id="olsMarkPaidConfirmModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content ols-confirm-modal">
-                <div class="modal-body text-center py-4">
-                    <div class="ols-confirm-title">Mark this payment as paid?</div>
-                    <div class="ols-confirm-desc">
-                        Installment <strong id="olsConfirmInstallmentNo">#1</strong> of
-                        <strong>&#8369;<span id="olsConfirmAmount">0.00</span></strong>
-                        will be recorded as paid today.
+                <div class="modal-body py-4">
+                    <div class="text-center">
+                        <div class="ols-confirm-title">Mark this payment as paid?</div>
+                        <div class="ols-confirm-desc">
+                            Installment <strong id="olsConfirmInstallmentNo">#1</strong> of
+                            <strong>&#8369;<span id="olsConfirmAmount">0.00</span></strong>
+                            will be recorded as paid on the date below.
+                        </div>
                     </div>
+
+                    <div class="ols-field">
+                        <label for="olsPaidDate" class="ols-field-label">Date Paid <span class="ols-req">*</span></label>
+                        <input type="date" id="olsPaidDate" class="ols-input">
+                    </div>
+
+                    <div class="ols-field">
+                        <label class="ols-field-label">Receipt <span class="ols-req">*</span></label>
+                        <label for="olsReceiptInput" class="ols-dropzone" id="olsDropzone">
+                            <i class="feather-upload-cloud"></i>
+                            <span class="ols-dropzone-text">Click to upload receipt</span>
+                            <span class="ols-dropzone-hint">JPG or PNG, up to 5MB</span>
+                        </label>
+                        <input type="file" id="olsReceiptInput" accept="image/jpeg,image/png" hidden>
+
+                        <div class="ols-preview" id="olsReceiptPreview" style="display:none;">
+                            <img id="olsReceiptPreviewImg" alt="Receipt preview">
+                            <div class="ols-preview-meta">
+                                <span id="olsReceiptFileName"></span>
+                                <span id="olsReceiptFileSize"></span>
+                            </div>
+                            <button type="button" class="ols-preview-remove" id="olsReceiptRemove" aria-label="Remove receipt">
+                                <i class="feather-x"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="ols-form-error" id="olsMarkPaidError" style="display:none;"></div>
                 </div>
                 <div class="modal-footer nxl-pw-modal-footer">
                     <button type="button" class="nxl-pw-btn-discard" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="nxl-pw-btn-apply" id="olsConfirmMarkPaidBtn">
                         <span class="ols-confirm-btn-label">Mark as Paid</span>
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- VOID PAYMENT MODAL --}}
+    <div class="modal fade nxl-account-modal" id="olsVoidModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content ols-confirm-modal">
+                <div class="modal-body py-4">
+                    <div class="text-center">
+                        <div class="ols-confirm-title">Void this payment?</div>
+                        <div class="ols-confirm-desc">
+                            Installment <strong id="olsVoidInstallmentNo">#1</strong> of
+                            <strong>&#8369;<span id="olsVoidAmount">0.00</span></strong>
+                            will be set back to unpaid. The original record and receipt are kept in the audit log.
+                        </div>
+                    </div>
+
+                    <div class="ols-field">
+                        <label for="olsVoidReason" class="ols-field-label">Reason <span class="ols-req">*</span></label>
+                        <textarea id="olsVoidReason" class="ols-input" rows="3" maxlength="500"
+                            placeholder="e.g. Recorded to the wrong borrower"></textarea>
+                    </div>
+
+                    <div class="ols-form-error" id="olsVoidError" style="display:none;"></div>
+                </div>
+                <div class="modal-footer nxl-pw-modal-footer">
+                    <button type="button" class="nxl-pw-btn-discard" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="nxl-pw-btn-apply ols-btn-danger" id="olsConfirmVoidBtn">
+                        <span class="ols-confirm-btn-label">Void Payment</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- PAYMENT DETAILS MODAL --}}
+    <div class="modal fade" id="olsPaymentDetailsModal" tabindex="-1" aria-labelledby="olsPdTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content ols-details-modal">
+                <div class="modal-header">
+                    <div>
+                        <h6 class="modal-title" id="olsPdTitle">Payment Details</h6>
+                        <div class="ols-details-sub">Installment <span id="olsPdInstallment"></span></div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <dl class="ols-details-grid">
+                        <div><dt>Due Date</dt><dd id="olsPdDue"></dd></div>
+                        <div><dt>Date Paid</dt><dd id="olsPdPaid"></dd></div>
+                        <div><dt>Payment Amount</dt><dd id="olsPdAmount"></dd></div>
+                        <div><dt>Payment Status</dt><dd><span id="olsPdStatus" class="ols-status-pill"></span></dd></div>
+                        <div><dt>Recorded</dt><dd id="olsPdRecorded"></dd></div>
+                    </dl>
+                </div>
+
+                <div class="ols-details-section">
+                    <div class="ols-details-section-head">
+                        <span class="ols-details-section-title">Payment Receipt</span>
+                        <a href="#" target="_blank" rel="noopener" class="ols-details-fulllink" id="olsPdFullLink"
+                            style="display:none;">View Full Receipt</a>
+                    </div>
+                    <div class="ols-details-receipt">
+                        <img id="olsPdReceiptImg" alt="Payment receipt" style="display:none;">
+                        <span class="ols-details-empty" id="olsPdReceiptEmpty">No receipt uploaded.</span>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="ols-details-close" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>

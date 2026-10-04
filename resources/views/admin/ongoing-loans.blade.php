@@ -102,7 +102,9 @@
                         <tbody>
                             @foreach ($ongoingLoans as $loan)
                                 <tr data-search="{{ strtolower($loan['name'] . ' ' . $loan['email'] . ' ' . $loan['borrower_id']) }}"
-                                    data-applied="{{ \Carbon\Carbon::parse($loan['applied_at'])->timestamp }}">
+                                    data-applied="{{ \Carbon\Carbon::parse($loan['applied_at'])->timestamp }}"
+                                    data-href="{{ route('admin.ongoing-loan-detail', $loan['application_id']) }}?from=ongoing-loans"
+                                    class="rs-clickable-row">
                                     <td>
                                         <div class="borrower-cell-v2">
 

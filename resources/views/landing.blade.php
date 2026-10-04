@@ -183,9 +183,15 @@
     <option value="2">2 Months</option>
     <option value="3" selected>3 Months</option>
     <option value="4">4 Months</option>
+    <option value="5">5 Months</option>
     <option value="6">6 Months</option>
+    <option value="7">7 Months</option>
+    <option value="8">8 Months</option>
+    <option value="9">9 Months</option>
+    <option value="10">10 Months</option>
+    <option value="11">11 Months</option>
     <option value="12">12 Months</option>
-  </select>
+</select>
 </div>
 
           <!-- Result -->
@@ -423,7 +429,7 @@
               data-aos="fade-up" data-aos-delay="200">
               <i class="bi bi-geo-alt"></i>
               <h3>Address</h3>
-              <p>Olongapo City</p>
+              <p>Olongapo, PH</p>
             </div>
           </div>
 
@@ -432,7 +438,7 @@
               data-aos="fade-up" data-aos-delay="300">
               <i class="bi bi-telephone"></i>
               <h3>Call Us</h3>
-              <p>+1 5589 55488 55</p>
+              <p>+639691898835</p>
             </div>
           </div>
 
@@ -441,7 +447,7 @@
               data-aos="fade-up" data-aos-delay="400">
               <i class="bi bi-envelope"></i>
               <h3>Email Us</h3>
-              <p>RANSERENITY@gmail.com</p>
+              <p>ranserenity77@gmail.com</p>
             </div>
           </div>
 
@@ -465,9 +471,9 @@
             <span class="sitename">Ran Serenity</span>
           </a>
           <div class="footer-contact pt-3">
-            <p>Olongapo City</p>
-            <p class="mt-3"><strong>Phone:</strong> <span>+1 5589 55488 55</span></p>
-            <p><strong>Email:</strong> <span>RanSerenity@gmail.com</span></p>
+            <p>Olongapo, PH</p>
+            <p class="mt-3"><strong>Phone:</strong> <span>+639691898835</span></p>
+            <p><strong>Email:</strong> <span>ranserenity77@gmail.com/span></p>
           </div>
           <div class="social-links d-flex mt-4">
             <a href=""><i class="bi bi-twitter-x"></i></a>

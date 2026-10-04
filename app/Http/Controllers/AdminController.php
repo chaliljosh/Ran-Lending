@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Log;
 use App\Mail\LoanStatusUpdated;
 use App\Mail\PaymentRecorded;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class AdminController extends Controller
 {
@@ -77,9 +79,51 @@ class AdminController extends Controller
 
    
    $headerData = $this->getHeaderData($adminId, $data->admin, $data->notifications_data);
-  
 
-  
+    // ---- Payment Overview (Collected / Expected / Outstanding / Overdue) ----
+    $overviewMonth = now();
+    $currentOverview = $this->computePaymentOverview($overviewMonth);
+    $previousOverview = $this->computePaymentOverview($overviewMonth->copy()->subMonth());
+
+    $collectedThisMonth = $currentOverview['collected'];
+    $expectedThisMonth = $currentOverview['expected'];
+    $outstandingThisMonth = $currentOverview['outstanding'];
+    $overdueThisMonth = $currentOverview['overdue'];
+
+    $collectedPctChange = $this->pctChange($collectedThisMonth, $previousOverview['collected']);
+    $expectedPctChange = $this->pctChange($expectedThisMonth, $previousOverview['expected']);
+    $outstandingPctChange = $this->pctChange($outstandingThisMonth, $previousOverview['outstanding']);
+    $overduePctChange = $this->pctChange($overdueThisMonth, $previousOverview['overdue']);
+
+    // ---- NEW: Collected trend (last 6 months) — para sa bar chart sa Payment Overview ----
+    $paymentTrend = collect(range(5, 0))->map(function ($i) use ($overviewMonth) {
+        $month = $overviewMonth->copy()->subMonths($i);
+        $collected = $this->computePaymentOverview($month)['collected'];
+        return ['label' => $month->format('M'), 'collected' => $collected];
+    });
+
+    $trendMax = max($paymentTrend->max('collected'), 1); // iwas div-by-zero kapag lahat 0
+
+    $paymentTrend = $paymentTrend->map(function ($point) use ($trendMax) {
+        $point['pct'] = (int) round(($point['collected'] / $trendMax) * 100);
+        return $point;
+    })->all();
+
+    // ---- Recent Payments (para sa table sa ilalim ng Payment Overview) ----
+    $recentPayments = DB::table('loan_payment_schedules as sch')
+        ->join('loan_applications as la', 'sch.application_id', '=', 'la.application_id')
+        ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
+        ->leftJoin('users as u', 'la.user_id', '=', 'u.user_id')
+        ->whereNotNull('sch.paid_at')
+        ->select('sch.amount_paid', 'sch.paid_at', 'bpd.first_name', 'bpd.last_name', 'u.name as fallback_name')
+        ->orderByDesc('sch.paid_at')
+        ->limit(5)
+        ->get()
+        ->map(function ($row) {
+            $name = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? ''));
+            $row->borrower_name = $name !== '' ? $name : $row->fallback_name;
+            return $row;
+        });
 
     return view('admin.dashboard', array_merge(
         $headerData,
@@ -87,11 +131,92 @@ class AdminController extends Controller
             'totalApplications', 'pendingApplications',
             'activeLoans', 'totalActiveAmount', 'totalBorrowers', 'activeBorrowers',
             'recentApplications', 'pendingCount', 'pendingLoanCount',
-            'attentionItems', 'upcomingPayments', 'recentActivity'
+            'attentionItems', 'upcomingPayments', 'recentActivity',
+            'overviewMonth', 'collectedThisMonth', 'expectedThisMonth',
+            'outstandingThisMonth', 'overdueThisMonth',
+            'collectedPctChange', 'expectedPctChange', 'outstandingPctChange', 'overduePctChange',
+            'paymentTrend', 'recentPayments'
         )
     ));
 }
 
+public function verificationDetail(Request $request, $id)
+{
+    $adminId = Session::get('user_id');
+    $isUuid = Str::isUuid($id);
+
+    $query = DB::table('borrowerpersonaldetails as bpd')
+        ->join('users as u', 'bpd.user_id', '=', 'u.user_id')
+        ->leftJoin('borroweraddress as ba', 'ba.detail_id', '=', 'bpd.detail_id')
+        ->leftJoin('borrowerworkinfo as bwi', 'bwi.detail_id', '=', 'bpd.detail_id')
+        ->leftJoin('comakerinfo as ci', 'ci.detail_id', '=', 'bpd.detail_id')
+        ->select(
+            'bpd.*',
+            'u.email as reg_email', 'u.profile_picture', 'u.user_id as borrower_user_id',
+            'ba.region', 'ba.province', 'ba.city', 'ba.barangay', 'ba.zipcode', 'ba.home_address',
+            'bwi.employment_status', 'bwi.company_name', 'bwi.position', 'bwi.years_in_company',
+            'ci.last_name as co_last', 'ci.first_name as co_first', 'ci.middle_name as co_middle',
+            'ci.relationship', 'ci.contact_number as co_contact'
+        );
+
+    $d = $isUuid
+        ? $query->where('bpd.uuid', $id)->first()
+        : $query->where('bpd.detail_id', $id)->first();
+
+    if (!$d) {
+        return redirect()->route('admin.borrowers');
+    }
+
+    $detailId = $d->detail_id;
+    $detailUuid = $d->uuid;
+
+    $idFrontUrl = !empty($d->id_file_path)
+        ? Storage::disk('valid_ids')->temporaryUrl($d->id_file_path, now()->addMinutes(30))
+        : null;
+    $idBackUrl = !empty($d->id_file_path_back)
+        ? Storage::disk('valid_ids')->temporaryUrl($d->id_file_path_back, now()->addMinutes(30))
+        : null;
+
+    $allReviews = DB::table('detailsapproval as da')
+        ->join('users as u', 'da.admin_id', '=', 'u.user_id')
+        ->where('da.detail_id', $detailId)
+        ->select('da.*', 'u.name as admin_name')
+        ->orderBy('da.reviewed_at')
+        ->get();
+
+    // ---- Loan stats (para sa header card) ----
+    $loanStats = [
+        'total' => DB::table('loan_applications')->where('user_id', $d->borrower_user_id)->count(),
+        'active' => 0,
+        'completed' => DB::table('loan_applications')->where('user_id', $d->borrower_user_id)->where('status', 'completed')->count(),
+        'overdue' => 0,
+        'active_application_id' => null,
+    ];
+    $activeLoan = DB::table('loan_applications')
+        ->where('user_id', $d->borrower_user_id)
+        ->whereIn('status', ['active', 'approved'])
+        ->first();
+    if ($activeLoan) {
+        $loanStats['active'] = 1;
+        $loanStats['active_application_id'] = $activeLoan->application_id;
+    }
+
+    return view('admin.verification-detail', [
+        'd' => $d,
+        'detailId' => $detailId,
+        'detailUuid' => $detailUuid,
+        'borrowerProfilePicture' => $this->getProfilePictureUrl((object) ['profile_picture' => $d->profile_picture]),
+        'idFrontUrl' => $idFrontUrl,
+        'idBackUrl' => $idBackUrl,
+        'allReviews' => $allReviews,
+        'comments' => collect(),
+        'adminId' => $adminId,
+        'loanStats' => $loanStats,
+        'viewOnly' => true,
+        'pendingCount' => $this->getPendingVerificationCount($adminId),
+        'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+    ]);
+}
     
  public function getHeaderData($adminId, $preloadedAdmin = null, $preloadedNotifData = null)
 {
@@ -593,6 +718,42 @@ if ($redirect && str_starts_with($redirect, '/') && !str_starts_with($redirect, 
     ]);
 }
 
+
+private function computePaymentOverview(\Carbon\Carbon $month)
+{
+    $start = $month->copy()->startOfMonth();
+    $end = $month->copy()->endOfMonth();
+
+    $collected = (float) DB::table('loan_payment_schedules')
+        ->whereBetween('paid_at', [$start, $end])
+        ->sum('amount_paid');
+
+    $expected = (float) DB::table('loan_payment_schedules')
+        ->whereBetween('due_date', [$start, $end])
+        ->sum('amount_due');
+
+    $outstanding = (float) DB::table('loan_payment_schedules')
+        ->whereNull('paid_at')
+        ->where('due_date', '<=', $end)
+        ->selectRaw('COALESCE(SUM(amount_due - amount_paid), 0) as total')
+        ->value('total');
+
+    $overdue = (float) DB::table('loan_payment_schedules')
+        ->whereNull('paid_at')
+        ->where('due_date', '<', $end->copy()->min(now()))
+        ->selectRaw('COALESCE(SUM(amount_due - amount_paid), 0) as total')
+        ->value('total');
+
+    return compact('collected', 'expected', 'outstanding', 'overdue');
+}
+
+private function pctChange($current, $previous)
+{
+    if ((float) $previous == 0.0) {
+        return (float) $current == 0.0 ? 0 : 100;
+    }
+    return (int) round((($current - $previous) / $previous) * 100);
+}
     public function ongoingLoans(Request $request)
     {
         $adminId = Session::get('user_id');
@@ -1050,32 +1211,96 @@ private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $i
         ]);
     }
 
-    public function markInstallmentPaid(Request $request, $id)
+   public function markInstallmentPaid(Request $request, $id)
 {
+    $wantsJson = $request->ajax() || $request->wantsJson();
+
     $schedule = DB::table('loan_payment_schedules')->where('id', $id)->first();
 
     if (!$schedule) {
-        if ($request->ajax() || $request->wantsJson()) {
+        if ($wantsJson) {
             return response()->json(['success' => false, 'message' => 'Installment not found.'], 404);
         }
         return back()->with('error', 'Installment not found.');
     }
 
-    DB::table('loan_payment_schedules')->where('id', $id)->update([
-        'paid_at' => now(),
-        'amount_paid' => $schedule->amount_due,
+    // Iwas double-record (hal. dalawang admin na sabay nag-click)
+    if (!is_null($schedule->paid_at)) {
+        if ($wantsJson) {
+            return response()->json(['success' => false, 'message' => 'This installment is already marked as paid.'], 422);
+        }
+        return back()->with('error', 'This installment is already marked as paid.');
+    }
+
+    // Ang Ongoing Loan Detail page ay nagpapadala ng require_proof=1.
+    // Ang ibang pages na tumatawag pa rin sa endpoint na ito (walang date/receipt)
+    // ay gagana pa rin gaya ng dati hanggang mailipat sila sa bagong modal.
+    $requireProof = $request->boolean('require_proof');
+
+    $request->validate([
+        'paid_date' => [Rule::requiredIf($requireProof), 'nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
+        'receipt'   => [Rule::requiredIf($requireProof), 'nullable', 'file', 'mimes:jpg,jpeg,png', 'max:5120'],
+    ], [
+        'paid_date.required'        => 'Please select the date the payment was made.',
+        'paid_date.before_or_equal' => 'The payment date cannot be in the future.',
+        'receipt.required'          => 'Please attach the receipt.',
+        'receipt.mimes'             => 'The receipt must be a JPG or PNG image.',
+        'receipt.max'               => 'The receipt may not be larger than 5MB.',
     ]);
 
-    DB::table('loan_penalties')
-        ->where('schedule_id', $id)
-        ->where('status', 'unpaid')
-        ->update([
-            'status' => 'paid',
-            'updated_at' => now(),
-        ]);
+    // startOfDay para hindi mabilang na "late" ang bayad na on-time sa due date
+    // (ang computeBorrowerPerformance ay nagko-compare ng paid_at > due_date).
+    $paidAt = $request->filled('paid_date')
+        ? \Carbon\Carbon::createFromFormat('Y-m-d', $request->input('paid_date'))->startOfDay()
+        : now();
 
+    // ---- I-upload muna ang receipt (kung meron) ----
+    $receiptPath = null;
+    if ($request->hasFile('receipt')) {
+        $file = $request->file('receipt');
+        $receiptPath = 'payment-receipts/' . $schedule->application_id . '/'
+            . $id . '-' . Str::random(12) . '.' . $file->guessExtension();
+
+        try {
+            Storage::disk(self::RECEIPT_DISK)->put($receiptPath, file_get_contents($file->getRealPath()));
+        } catch (\Throwable $e) {
+            Log::error("Receipt upload failed (schedule {$id}): " . $e->getMessage());
+            if ($wantsJson) {
+                return response()->json(['success' => false, 'message' => 'Failed to upload the receipt. Please try again.'], 500);
+            }
+            return back()->with('error', 'Failed to upload the receipt. Please try again.');
+        }
+    }
 
     $applicationId = $schedule->application_id;
+
+    try {
+        DB::transaction(function () use ($id, $schedule, $paidAt, $receiptPath) {
+            $update = [
+                'paid_at' => $paidAt,
+                'amount_paid' => $schedule->amount_due,
+            ];
+            if ($receiptPath) {
+                $update['receipt_path'] = $receiptPath;
+            }
+
+            DB::table('loan_payment_schedules')->where('id', $id)->update($update);
+
+            DB::table('loan_penalties')
+                ->where('schedule_id', $id)
+                ->where('status', 'unpaid')
+                ->update([
+                    'status' => 'paid',
+                    'updated_at' => now(),
+                ]);
+        });
+    } catch (\Throwable $e) {
+        // Huwag mag-iwan ng "orphan" file kapag pumalya ang DB
+        if ($receiptPath) {
+            try { Storage::disk(self::RECEIPT_DISK)->delete($receiptPath); } catch (\Throwable $ignored) {}
+        }
+        throw $e;
+    }
 
     $hasUnpaid = DB::table('loan_payment_schedules')
         ->where('application_id', $applicationId)
@@ -1087,10 +1312,10 @@ private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $i
             ->where('application_id', $applicationId)
             ->update(['status' => 'completed']);
     }
-   
+
     $this->sendPaymentRecordedEmail($schedule, (int) $applicationId, !$hasUnpaid);
 
-    if ($request->ajax() || $request->wantsJson()) {
+    if ($wantsJson) {
         $app = DB::table('loan_applications')->where('application_id', $applicationId)->first();
         $allSchedules = DB::table('loan_payment_schedules')
             ->where('application_id', $applicationId)
@@ -1135,7 +1360,8 @@ private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $i
             'message' => 'Payment marked as paid.',
             'schedule_id' => (int) $id,
             'amount_paid_display' => number_format((float) $schedule->amount_due, 2),
-            'paid_on_display' => now()->format('M d, Y'),
+            'paid_on_display' => $paidAt->format('M d, Y'),
+            'receipt_url' => $receiptPath ? route('admin.installment-receipt', $id) : null,
             'paid_count' => $paidCount,
             'total_count' => $totalCount,
             'amount_collected_display' => number_format($amountCollected, 2),
@@ -1153,6 +1379,86 @@ private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $i
 
     return back()->with('success', 'Payment marked as paid.');
 }
+
+
+public function installmentReceipt($id)
+{
+    $path = DB::table('loan_payment_schedules')->where('id', $id)->value('receipt_path');
+
+    if (!$path) {
+        abort(404);
+    }
+
+    return redirect(
+        Storage::disk(self::RECEIPT_DISK)->temporaryUrl($path, now()->addMinutes(10))
+    );
+}
+
+public function voidPayment(Request $request, $id)
+    {
+        $request->validate([
+            'reason' => 'required|string|min:5|max:500',
+        ], [
+            'reason.required' => 'Please enter a reason.',
+            'reason.min'      => 'Please enter a reason (at least 5 characters).',
+        ]);
+
+        $adminId = Session::get('user_id');
+
+        try {
+            DB::transaction(function () use ($request, $id, $adminId) {
+                $schedule = DB::table('loan_payment_schedules')
+                    ->where('id', $id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$schedule) {
+                    throw new \RuntimeException('Installment not found.');
+                }
+                if (is_null($schedule->paid_at)) {
+                    throw new \RuntimeException('This installment is not recorded as paid.');
+                }
+
+                DB::table('installment_payment_logs')->insert([
+                    'installment_id' => $schedule->id,
+                    'action'         => 'voided',
+                    'amount'         => $schedule->amount_paid,
+                    'paid_at'        => \Carbon\Carbon::parse($schedule->paid_at)->toDateString(),
+                    'receipt_path'   => $schedule->receipt_path,
+                    'reason'         => trim($request->input('reason')),
+                    'admin_id'       => $adminId,
+                    'created_at'     => now(),
+                ]);
+
+                DB::table('loan_payment_schedules')
+                    ->where('id', $id)
+                    ->update([
+                        'paid_at'      => null,
+                        'amount_paid'  => 0,
+                        'receipt_path' => null,
+                    ]);
+
+                DB::table('loan_applications')
+                    ->where('application_id', $schedule->application_id)
+                    ->where('status', 'completed')
+                    ->update(['status' => 'active']);
+            });
+              } catch (\Illuminate\Database\QueryException $e) {
+            Log::error("Void payment failed (schedule {$id}): " . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Failed to void the payment.'], 500);
+        } catch (\RuntimeException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        } catch (\Throwable $e) {
+            Log::error("Void payment failed (schedule {$id}): " . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Failed to void the payment.'], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Payment voided successfully.',
+        ]);
+    }
+
     private function getPaymentSchedule($applicationId)
     {
         return DB::table('loan_payment_schedules')
@@ -1528,6 +1834,8 @@ private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $i
      * the constant below if the business wants a different cutoff.
      */
     private const DEFAULT_DAYS_LATE = 90;
+
+    private const RECEIPT_DISK = 'valid_ids'; 
 
     public function defaultedLoans(Request $request)
     {

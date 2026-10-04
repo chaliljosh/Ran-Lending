@@ -217,10 +217,7 @@
                                     <span class="aln-summary-label">Interest Rate</span>
                                     <span class="aln-summary-value">5% / month</span>
                                 </div>
-                                <div class="aln-summary-item">
-                                    <span class="aln-summary-label">Total Interest</span>
-                                    <span class="aln-summary-value" id="displayTotalInterest">₱0.00</span>
-                                </div>
+                                
                                 <div class="aln-summary-item">
                                     <span class="aln-summary-label">Total to Pay</span>
                                     <span class="aln-summary-value aln-summary-value--strong"
@@ -240,10 +237,7 @@
                                     <span class="aln-summary-value aln-summary-value--strong"
                                         id="displayMonthlyPayment">₱0.00</span>
                                 </div>
-                                <div class="aln-summary-item">
-                                    <span class="aln-summary-label">Due Date</span>
-                                    <span class="aln-summary-value">Every month</span>
-                                </div>
+                           
                             </div>
                         </section>
 

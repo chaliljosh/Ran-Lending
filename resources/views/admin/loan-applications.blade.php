@@ -128,15 +128,16 @@
                                         $waitingDays = $app['waiting_days'] ?? 0;
                                         $isNewApplication = \Carbon\Carbon::parse($app['applied_at'])->gt(now()->subDay());
                                     @endphp
-                                    <tr
-                                        data-search="{{ strtolower($app['last_name'] . ' ' . $app['first_name'] . ' ' . $app['email']) }}"
-                                        data-status="{{ $app['status'] }}"
-                                        data-waiting="{{ $waitingDays }}"
-                                        data-amount="{{ $app['loan_amount'] }}"
-                                        data-applied="{{ \Carbon\Carbon::parse($app['applied_at'])->toIso8601String() }}"
-                                        data-new="{{ $isNewApplication ? '1' : '0' }}"
-                                        data-attention="{{ $waitingDays >= 3 ? '1' : '0' }}"
-                                        class="{{ $waitingDays >= 3 ? 'is-attention-row' : '' }}">
+                              <tr
+    data-search="{{ strtolower($app['last_name'] . ' ' . $app['first_name'] . ' ' . $app['email']) }}"
+    data-status="{{ $app['status'] }}"
+    data-waiting="{{ $waitingDays }}"
+    data-amount="{{ $app['loan_amount'] }}"
+    data-applied="{{ \Carbon\Carbon::parse($app['applied_at'])->toIso8601String() }}"
+    data-new="{{ $isNewApplication ? '1' : '0' }}"
+    data-attention="{{ $waitingDays >= 3 ? '1' : '0' }}"
+    data-href="{{ route('admin.loan-application-detail', $app['application_id']) }}"
+    class="la-clickable-row {{ $waitingDays >= 3 ? 'is-attention-row' : '' }}">
                                         <td>
                                             <div class="rt-name">{{ $app['last_name'] }}, {{ $app['first_name'] }}</div>
                                             <div class="rt-email">{{ $app['email'] }}</div>
@@ -253,8 +254,10 @@
                                     @php
                                         $decisionLower = strtolower($r->decision ?? '');
                                     @endphp
-                                    <tr data-search="{{ strtolower($r->last_name . ' ' . $r->first_name . ' ' . $r->email) }}"
-                                        data-decision="{{ $decisionLower }}">
+                                 <tr data-search="{{ strtolower($r->last_name . ' ' . $r->first_name . ' ' . $r->email) }}"
+    data-decision="{{ $decisionLower }}"
+    data-href="{{ route('admin.loan-application-detail', $r->application_id) }}"
+    class="la-clickable-row">
                                         <td>
                                             <div class="rt-name">{{ $r->last_name }}, {{ $r->first_name }}</div>
                                             <div class="rt-email">{{ $r->email }}</div>
@@ -373,8 +376,10 @@
                             </thead>
                             <tbody id="filteredLoanList">
                                 @foreach ($filteredApplications as $app)
-                                    <tr
-                                        data-search="{{ strtolower($app->last_name . ' ' . $app->first_name . ' ' . $app->email) }}">
+                         <tr
+    data-search="{{ strtolower($app->last_name . ' ' . $app->first_name . ' ' . $app->email) }}"
+    data-href="{{ route('admin.loan-application-detail', $app->application_id) }}"
+    class="la-clickable-row">
                                         <td>
                                             <div class="rt-name">{{ $app->last_name }}, {{ $app->first_name }}</div>
                                             <div class="rt-email">{{ $app->email }}</div>

@@ -172,22 +172,27 @@
         el.addEventListener('change', function () { currentPage = 1; render(); });
     });
     rowsPerPageSelect.addEventListener('change', function () { currentPage = 1; render(); });
-   
-    // Pag na-click ang buong row (hindi yung Actions column), buksan
-    // ang View Details modal ng row na yun.
+
+    // ── Clickable rows ──
+    // Pag na-click ang row, pupunta sa Penalty Detail page (data-href).
+    // Hindi gagana kung ang na-click ay ang Actions column (may sarili
+    // silang buttons/link), o kung may hinihighlight na text.
+    function openRowDetail(row) {
+        const href = row.getAttribute('data-href');
+        if (href) window.location.href = href;
+    }
+
     allRows.forEach(function (row) {
         row.addEventListener('click', function (e) {
             if (e.target.closest('.pt-cell-actions')) return;
-            const targetSel = row.getAttribute('data-view-target');
-            const modalEl = document.querySelector(targetSel);
-            if (modalEl && window.bootstrap) {
-                bootstrap.Modal.getOrCreateInstance(modalEl).show();
-            }
+            if (window.getSelection && window.getSelection().toString()) return;
+            openRowDetail(row);
         });
         row.addEventListener('keydown', function (e) {
+            if (e.target !== row) return;
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                row.click();
+                openRowDetail(row);
             }
         });
         row.setAttribute('tabindex', '0');

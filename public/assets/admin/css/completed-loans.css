@@ -412,3 +412,8 @@ html.app-skin-dark .rs-table tbody tr td {
 }
 .nxl-content .main-content { flex: 1 !important; }
 .footer { flex-shrink: 0 !important; margin-top: auto !important; }
+
+/* ---------- Clickable rows ---------- */
+.rs-clickable-row {
+    cursor: pointer;
+}

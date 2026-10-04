@@ -109,7 +109,9 @@
                     </thead>
                     <tbody id="loanTableBody">
                         @foreach($completedLoans as $loan)
-                        <tr data-search="{{ strtolower($loan['name'] . ' ' . $loan['email'] . ' ' . $loan['borrower_id']) }}">
+                        <tr data-search="{{ strtolower($loan['name'] . ' ' . $loan['email'] . ' ' . $loan['borrower_id']) }}"
+                            data-href="{{ route('admin.completed-loan-detail', $loan['application_id']) }}"
+                            class="rs-clickable-row">
                             <td>
                                 <div class="borrower-cell-v2">
                               

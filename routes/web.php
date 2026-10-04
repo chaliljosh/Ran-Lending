@@ -75,7 +75,7 @@ Route::post('/api/forgot-password/reset',    [ForgotPasswordController::class, '
 // Borrower pages — Blade, protected by 'borrower' middleware
 Route::middleware(['borrower', 'no-cache'])->group(function () {
     Route::get('/borrower/dashboard', [BorrowerController::class, 'dashboard'])->name('borrower.dashboard');
-    Route::get('/borrower/dashboard/calendar', [BorrowerController::class, 'dashboardCalendar'])->name('borrower.dashboard.calendar'); 
+    Route::get('/borrower/dashboard/calendar', [BorrowerController::class, 'dashboardCalendar'])->name('borrower.dashboard.calendar');
     Route::get('/dashboard-calendar-data', [BorrowerController::class, 'dashboardCalendarData'])
     ->name('borrower.dashboard-calendar-data');
     Route::get('/borrower/personal-details', [BorrowerController::class, 'personalDetails'])->name('borrower.personal-details');
@@ -127,9 +127,11 @@ Route::middleware(['admin', 'no-cache', 'throttle:60,1'])->prefix('admin')->name
     Route::post('/account-settings/profile-picture', [AdminController::class, 'updateProfilePicture'])->name('account-settings.profile-picture');
 Route::post('/account-settings/profile-picture/remove', [AdminController::class, 'removeProfilePicture'])->name('account-settings.profile-picture.remove');
 
-    
     Route::match(['get', 'post'], '/loan-applications', [AdminController::class, 'loanApplications'])->name('loan-applications');
     Route::match(['get', 'post'], '/loan-application-detail/{id}', [AdminController::class, 'loanApplicationDetail'])->name('loan-application-detail');
+
+    // Borrower Verification detail (used from All Borrowers > View Details)
+    Route::match(['get', 'post'], '/verification-detail/{id}', [AdminController::class, 'verificationDetail'])->name('verification-detail');
 
     // Bagong route para sa All Borrowers page — list lang, walang approve/reject
     Route::get('/borrowers', [AdminController::class, 'allBorrowers'])->name('borrowers');
@@ -144,7 +146,7 @@ Route::post('/account-settings/profile-picture/remove', [AdminController::class,
     // Active Loans > Ongoing Loans
     Route::get('/active-loans/ongoing', [AdminController::class, 'ongoingLoans'])->name('ongoing-loans');
 
-    // Active Loans 
+    // Active Loans
     Route::get('/ongoing-loan-detail/{id}', [AdminController::class, 'ongoingLoanDetail'])
         ->name('ongoing-loan-detail');
 
@@ -164,6 +166,10 @@ Route::post('/account-settings/profile-picture/remove', [AdminController::class,
 
     Route::post('/installments/{id}/mark-paid', [AdminController::class, 'markInstallmentPaid'])
         ->name('installment-mark-paid');
+        Route::get('/installments/{id}/receipt', [AdminController::class, 'installmentReceipt'])
+    ->name('installment-receipt');
+    Route::post('/installments/{id}/void', [AdminController::class, 'voidPayment'])
+    ->name('admin.installments.void');
 
     // Active Loans > Completed Loans
     Route::get('/active-loans/completed', [AdminController::class, 'completedLoans'])->name('completed-loans');

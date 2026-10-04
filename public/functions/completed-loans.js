@@ -1,10 +1,12 @@
 /* ============================================================
    COMPLETED LOANS PAGE - JavaScript
    ------------------------------------------------------------
-   This file handles 3 things:
+   This file handles 4 things:
    1. Searching the table (filter by name/email/borrower id)
    2. Choosing how many rows to show per page
    3. Pagination (Prev / Page X of Y / Next)
+   4. Clickable rows — clicking anywhere on a row (except a
+      link/button inside it) navigates to that loan's detail page
 
    Note: Sorting (Newest, Oldest, etc.) is NOT here.
    Sorting reloads the page using ?sort=... because the
@@ -201,4 +203,21 @@ document.addEventListener('DOMContentLoaded', function () {
     if (document.getElementById('loanTableWrap')) {
         showCurrentPage();
     }
+});
+
+
+/* ------------------------------------------------------------
+   STEP 8: CLICKABLE ROWS — buong <tr> na may data-href ang
+   mag-a-navigate papunta sa detail page, maliban kung ang
+   na-click ay isang link/button (para hindi mag-double-navigate
+   sa "View Details" button). Event delegation dahil pinapalitan
+   ng search/pagination ang visibility ng rows nang dynamic.
+   ------------------------------------------------------------ */
+document.addEventListener('click', function (e) {
+    var row = e.target.closest('tr[data-href]');
+    if (!row) return;
+
+    if (e.target.closest('a, button, input, select, textarea')) return;
+
+    window.location.href = row.dataset.href;
 });

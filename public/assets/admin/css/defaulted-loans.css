@@ -418,3 +418,8 @@ html.app-skin-dark .rs-table tbody tr td {
     background-color: transparent !important;
     box-shadow: none !important;
 }
+
+/* ---------- Clickable rows ---------- */
+.rs-clickable-row {
+    cursor: pointer;
+}

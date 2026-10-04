@@ -370,34 +370,44 @@
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 6px;
+    gap: 8px;
     flex-wrap: nowrap;
 }
+/* Pill buttons — View Details, Paid, Waive (pare-parehong sukat) */
 .pt-action-btn {
-    height: 32px;
-    padding: 0 10px;
-    border-radius: 8px;
+    height: 34px;
+    padding: 0 16px;
+    border-radius: 999px;
     border: 1px solid var(--pt-border);
     background: var(--pt-white);
-    color: var(--pt-text-muted);
-    font-size: 0.76rem;
-    font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    white-space: nowrap;
-    transition: background .15s ease, border-color .15s ease, color .15s ease;
-}
-.pt-action-btn:hover { background: var(--pt-bg); }
-.pt-action-btn.is-view {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 6px 14px;
-    font-size: 0.8rem;
+    color: var(--pt-text);
+    font-size: 0.78rem;
     font-weight: 600;
+    line-height: 1;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
     white-space: nowrap;
+    cursor: pointer;
+    transition: border-color .15s ease, color .15s ease, background .15s ease, box-shadow .15s ease;
 }
+.pt-action-btn i { font-size: 14px; line-height: 1; flex-shrink: 0; }
+.pt-action-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+.pt-action-btn:active { transform: translateY(1px); }
+
+/* View Details — puting pill, blue pag hover */
+.pt-action-btn.is-view:hover {
+    border-color: var(--pt-blue);
+    color: var(--pt-blue);
+    background: var(--pt-white);
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.15);
+}
+
 .pt-action-btn.is-paid {
     color: var(--pt-green);
     border-color: #BBF7D0;
@@ -509,6 +519,18 @@ html.app-skin-dark .pt-table tbody tr.pt-tr {
 }
 html.app-skin-dark .pt-table tbody tr.pt-tr:hover {
     background: rgba(155, 190, 74, 0.10) !important;
+}
+
+/* View Details button — dark mode */
+html.app-skin-dark .pt-action-btn.is-view {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .pt-action-btn.is-view:hover {
+    border-color: #9BBE4A !important;
+    color: #9BBE4A !important;
+    box-shadow: none !important;
 }
 
 html.app-skin-dark .pt-warning-line {

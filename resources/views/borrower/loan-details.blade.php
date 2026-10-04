@@ -23,35 +23,43 @@
       @if(!$app)
 
     {{-- No loan application yet --}}
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="bwl-ld-empty">
-                <div class="bwl-ld-empty-badge">
-                    <span class="bwl-ld-empty-badge-ring"></span>
-                    <i class="feather-file-text"></i>
-                </div>
+    <div class="bwl-ld-empty">
+        <div class="bwl-ld-empty-top">
+            <div class="bwl-ld-empty-text-wrap">
+            
 
                 <h5 class="bwl-ld-empty-title">No loan application yet</h5>
-                <p class="bwl-ld-empty-text">You haven't submitted a loan application. Apply now to get started.</p>
+                <p class="bwl-ld-empty-text">You haven't submitted a loan application. Apply now to get started — it only takes a few minutes.</p>
 
                 <a href="{{ route('borrower.apply-loan') }}" class="bwl-ld-btn bwl-ld-empty-cta">
                     <i class="feather-file-plus"></i>Apply for a Loan
                 </a>
+            </div>
 
-                <div class="bwl-ld-empty-steps">
-                    <div class="bwl-ld-empty-step">
-                        <span class="bwl-ld-empty-step-num">1</span>
-                        <span class="bwl-ld-empty-step-label">Fill out your details</span>
-                    </div>
-                    <div class="bwl-ld-empty-step">
-                        <span class="bwl-ld-empty-step-num">2</span>
-                        <span class="bwl-ld-empty-step-label">We review your application</span>
-                    </div>
-                    <div class="bwl-ld-empty-step">
-                        <span class="bwl-ld-empty-step-num">3</span>
-                        <span class="bwl-ld-empty-step-label">Get notified of the decision</span>
-                    </div>
-                </div>
+            <div class="bwl-ld-empty-art">
+                <img
+                    class="bwl-ld-empty-illustration"
+                    src="{{ asset('assets/borrower/images/dashboard-welcome-illustration.png') }}"
+                    alt=""
+                    loading="lazy"
+                >
+            </div>
+        </div>
+
+        <div class="bwl-ld-empty-steps">
+            <div class="bwl-ld-empty-step">
+                <span class="bwl-ld-empty-step-num">1</span>
+                <span class="bwl-ld-empty-step-label">Fill out your details</span>
+            </div>
+            <span class="bwl-ld-empty-step-line"></span>
+            <div class="bwl-ld-empty-step">
+                <span class="bwl-ld-empty-step-num">2</span>
+                <span class="bwl-ld-empty-step-label">We review your application</span>
+            </div>
+            <span class="bwl-ld-empty-step-line"></span>
+            <div class="bwl-ld-empty-step">
+                <span class="bwl-ld-empty-step-num">3</span>
+                <span class="bwl-ld-empty-step-label">Get notified of the decision</span>
             </div>
         </div>
     </div>

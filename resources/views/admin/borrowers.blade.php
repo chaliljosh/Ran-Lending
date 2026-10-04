@@ -33,7 +33,7 @@
                     <i class="feather-users stat-icon"></i>
                 </div>
                 <div class="stat-value">{{ $stats['total'] }}</div>
-      
+
             </div>
 
             <div class="stat-card">
@@ -42,7 +42,7 @@
                     <i class="feather-check-circle stat-icon"></i>
                 </div>
                 <div class="stat-value">{{ $stats['active_loan'] }}</div>
-            
+
             </div>
 
             <div class="stat-card">
@@ -51,7 +51,7 @@
                     <i class="feather-inbox stat-icon"></i>
                 </div>
                 <div class="stat-value">{{ $stats['no_loan'] }}</div>
-            
+
             </div>
 
             <div class="stat-card">
@@ -60,7 +60,7 @@
                     <i class="feather-slash stat-icon"></i>
                 </div>
                 <div class="stat-value">{{ $stats['suspended'] }}</div>
-           
+
             </div>
         </div>
 
@@ -113,6 +113,7 @@
                                     <th>Total Loans</th>
                                     <th>Last Activity</th>
                                     <th>Joined</th>
+                                    <th class="text-end">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -127,7 +128,8 @@
                                         ];
                                         $statusInfo = $statusMap[$b['loan_status']];
                                     @endphp
-                                    <tr data-search="{{ strtolower($b['name'] . ' ' . $b['email'] . ' ' . $b['borrower_id']) }}"
+                                    <tr @if ($b['detail_id']) class="rs-clickable-row" data-href="{{ route('admin.verification-detail', $b['detail_id']) }}" @endif
+                                        data-search="{{ strtolower($b['name'] . ' ' . $b['email'] . ' ' . $b['borrower_id']) }}"
                                         data-status="{{ $b['loan_status'] }}"
                                         data-joined="{{ \Carbon\Carbon::parse($b['joined_at'])->timestamp }}">
                                         <td>
@@ -142,7 +144,7 @@
                                         </td>
                                         <td>
                                             <span
-                                                class="badge {{ $statusInfo['class'] }} px-3 py-2">{{ $statusInfo['label'] }}</span>
+                                                class="badge status-badge {{ $statusInfo['class'] }}">{{ $statusInfo['label'] }}</span>
                                         </td>
                                         <td class="text-muted">{{ $b['total_loans'] }}</td>
                                         <td class="text-muted">
@@ -153,6 +155,16 @@
                                         </td>
                                         <td class="text-muted">
                                             {{ \Carbon\Carbon::parse($b['joined_at'])->format('M d, Y') }}</td>
+                                        <td class="text-end">
+                                            @if ($b['detail_id'])
+                                                <a href="{{ route('admin.verification-detail', $b['detail_id']) }}" class="btn-view-details">
+                                                    <i class="feather-eye"></i>
+                                                    <span>View Details</span>
+                                                </a>
+                                            @else
+                                                <span class="text-muted" style="font-size:0.8rem;">No details submitted</span>
+                                            @endif
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>

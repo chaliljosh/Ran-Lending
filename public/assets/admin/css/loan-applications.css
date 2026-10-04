@@ -9,6 +9,10 @@ html body .nxl-content {
     background: #FFFFFF;
 }
 
+
+.la-clickable-row {
+    cursor: pointer;
+}
 html body .main-content,
 html body .main-content * {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;

@@ -99,7 +99,9 @@
                         </thead>
                         <tbody>
                             @foreach ($activeBorrowers as $b)
-                                <tr data-search="{{ strtolower($b['name'] . ' ' . $b['email'] . ' ' . $b['borrower_id']) }}"
+                                <tr class="rs-clickable-row"
+                                    data-href="{{ route('admin.active-borrower-detail', $b['application_id']) }}"
+                                    data-search="{{ strtolower($b['name'] . ' ' . $b['email'] . ' ' . $b['borrower_id']) }}"
                                     data-applied="{{ \Carbon\Carbon::parse($b['applied_at'])->timestamp }}"
                                     data-match="true">
                                     <td>

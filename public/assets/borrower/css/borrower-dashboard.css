@@ -1334,3 +1334,472 @@ html.app-skin-dark .bwl-hold-btn--rejected::before {
         transparent 70%
     );
 }
+
+/* ============================================================
+   "VERIFIED, NO ACTIVE LOAN" DASHBOARD — v2, de-slopped
+   Replace the whole previous addon block with this one.
+   Single accent color (blue), consistent 12px radius, no
+   decorative icon soup, no gradients, no emoji.
+============================================================ */
+
+/* ---------- Welcome banner (illustrated) ---------- */
+.bwl-dash-welcome {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    background: linear-gradient(135deg, #EFF6FF 0%, #F8FAFC 100%);
+    border: 1px solid var(--bwl-dash-border);
+    border-radius: 16px;
+    padding: 28px 36px;
+    margin-bottom: 24px;
+    overflow: hidden;
+    position: relative;
+}
+.bwl-dash-welcome-text { max-width: 440px; }
+.bwl-dash-welcome-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--bwl-dash-gray-light);
+    margin: 0 0 6px;
+}
+.bwl-dash-welcome-name {
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--bwl-dash-ink);
+    margin: 0 0 8px;
+}
+.bwl-dash-welcome-sub {
+    font-size: 0.88rem;
+    color: var(--bwl-dash-gray);
+    margin: 0;
+}
+.bwl-dash-welcome-art {
+    flex-shrink: 0;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+.bwl-dash-welcome-illustration {
+    width: 320px;
+    max-width: 40vw;
+    height: auto;
+    flex-shrink: 0;
+    display: block;
+    border-radius: 10px;
+}
+.bwl-dash-welcome-tagline {
+    font-family: 'Segoe Script', 'Bradley Hand', cursive;
+    font-size: 0.95rem;
+    font-style: italic;
+    color: var(--bwl-dash-blue);
+    line-height: 1.35;
+    max-width: 100px;
+    text-align: left;
+    flex-shrink: 0;
+}
+
+@media (max-width: 991.98px) {
+    .bwl-dash-welcome-art { display: none; }
+}
+@media (max-width: 575.98px) {
+    .bwl-dash-welcome { padding: 22px 20px; }
+    .bwl-dash-welcome-name { font-size: 1.35rem; }
+}
+
+/* ---------- Top row: eligibility / status / quick actions ---------- */
+.bwl-dash-top-row {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1.25fr;
+    gap: 16px;
+    margin-bottom: 16px;
+    align-items: stretch;
+}
+
+/* -- Loan eligibility -- */
+.bwl-dash-elig {
+    background: #ffffff !important;
+    border: 1px solid var(--bwl-dash-border) !important;
+    border-left: 3px solid var(--bwl-dash-green) !important;
+    border-radius: 12px !important;
+    box-shadow: var(--bwl-dash-shadow) !important;
+    padding: 22px 24px;
+}
+.bwl-dash-elig-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+.bwl-dash-elig-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--bwl-dash-gray-light);
+}
+.bwl-dash-elig-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--bwl-dash-green);
+}
+.bwl-dash-elig-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--bwl-dash-ink);
+    margin: 0 0 4px;
+}
+.bwl-dash-elig-sub {
+    font-size: 0.84rem;
+    color: var(--bwl-dash-gray);
+    margin: 0 0 20px;
+}
+.bwl-dash-elig-stats {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--bwl-dash-border);
+}
+.bwl-dash-elig-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.bwl-dash-elig-stat-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--bwl-dash-gray-light);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.bwl-dash-elig-stat-value {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--bwl-dash-ink);
+    font-variant-numeric: tabular-nums;
+}
+.bwl-dash-elig-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 42px;
+    border-radius: 10px;
+    background: var(--bwl-dash-ink);
+    color: #fff;
+    font-size: 0.86rem;
+    font-weight: 600;
+    text-decoration: none;
+    margin-bottom: 12px;
+    transition: background 0.15s ease;
+}
+.bwl-dash-elig-btn:hover {
+    background: #1e293b;
+    color: #fff;
+}
+.bwl-dash-elig-note {
+    font-size: 0.74rem;
+    color: var(--bwl-dash-gray-light);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* -- Your Loan Status -- */
+.bwl-dash-loanstatus {
+    background: #ffffff !important;
+    border: 1px solid var(--bwl-dash-border) !important;
+    border-radius: 12px !important;
+    box-shadow: var(--bwl-dash-shadow) !important;
+    padding: 22px 24px;
+    display: flex;
+    flex-direction: column;
+}
+.bwl-dash-loanstatus-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--bwl-dash-gray-light);
+}
+.bwl-dash-loanstatus-sub {
+    font-size: 0.78rem;
+    color: var(--bwl-dash-gray);
+    margin: 4px 0 24px;
+}
+.bwl-dash-loanstatus-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--bwl-dash-bg-soft);
+    color: var(--bwl-dash-gray-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin-bottom: 14px;
+}
+.bwl-dash-loanstatus-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--bwl-dash-ink);
+    margin: 0 0 4px;
+}
+.bwl-dash-loanstatus-desc {
+    font-size: 0.8rem;
+    color: var(--bwl-dash-gray);
+    margin: 0 0 18px;
+}
+.bwl-dash-loanstatus-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 38px;
+    padding: 0 18px;
+    border-radius: 10px;
+    background: transparent;
+    border: 1px solid var(--bwl-dash-border);
+    color: var(--bwl-dash-ink);
+    font-size: 0.83rem;
+    font-weight: 600;
+    text-decoration: none;
+    margin-top: auto;
+    align-self: flex-start;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+.bwl-dash-loanstatus-btn:hover {
+    background: var(--bwl-dash-bg-soft);
+    border-color: var(--bwl-dash-gray-light);
+    color: var(--bwl-dash-ink);
+}
+
+/* -- Quick Actions: single accent, no rainbow icons -- */
+.bwl-dash-quick {
+    background: #ffffff !important;
+    border: 1px solid var(--bwl-dash-border) !important;
+    border-radius: 12px !important;
+    box-shadow: var(--bwl-dash-shadow) !important;
+    padding: 20px 18px;
+}
+.bwl-dash-quick-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--bwl-dash-gray-light);
+}
+.bwl-dash-quick-sub {
+    font-size: 0.78rem;
+    color: var(--bwl-dash-gray);
+    margin: 4px 0 14px;
+}
+.bwl-dash-quick-list {
+    display: flex;
+    flex-direction: column;
+}
+.bwl-dash-quick-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 4px;
+    border-top: 1px solid var(--bwl-dash-border);
+    text-decoration: none;
+    transition: opacity 0.15s ease;
+}
+.bwl-dash-quick-list a:first-child { border-top: none; }
+.bwl-dash-quick-item:hover { opacity: 0.7; }
+.bwl-dash-quick-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+.bwl-dash-quick-title {
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: var(--bwl-dash-ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.bwl-dash-quick-desc {
+    font-size: 0.72rem;
+    color: var(--bwl-dash-gray-light);
+}
+.bwl-dash-quick-arrow {
+    flex-shrink: 0;
+    color: var(--bwl-dash-gray-light);
+    font-size: 14px;
+}
+.bwl-dash-quick-item.is-primary .bwl-dash-quick-title { color: var(--bwl-dash-blue); }
+.bwl-dash-quick-item.is-primary .bwl-dash-quick-arrow { color: var(--bwl-dash-blue); }
+
+/* ---------- Bottom row: loan journey + recent activity ---------- */
+.bwl-dash-bottom-row {
+    display: grid;
+    grid-template-columns: 1.7fr 1fr;
+    gap: 16px;
+    align-items: stretch;
+}
+.bwl-dash-journey,
+.bwl-dash-activity {
+    background: #ffffff !important;
+    border: 1px solid var(--bwl-dash-border) !important;
+    border-radius: 12px !important;
+    box-shadow: var(--bwl-dash-shadow) !important;
+    padding: 22px 26px;
+}
+.bwl-dash-journey-eyebrow,
+.bwl-dash-activity-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--bwl-dash-gray-light);
+}
+.bwl-dash-journey-sub,
+.bwl-dash-activity-sub {
+    font-size: 0.78rem;
+    color: var(--bwl-dash-gray);
+    margin: 4px 0 0;
+}
+
+/* -- Journey stepper -- */
+.bwl-dash-journey-steps {
+    display: flex;
+    align-items: flex-start;
+    margin-top: 26px;
+}
+.bwl-dash-journey-step {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    flex: none;
+    width: 150px;
+}
+.bwl-dash-journey-dot {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--bwl-dash-bg-soft);
+    color: var(--bwl-dash-gray-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+.bwl-dash-journey-step.is-done .bwl-dash-journey-dot,
+.bwl-dash-journey-step.is-current .bwl-dash-journey-dot {
+    background: var(--bwl-dash-ink);
+    color: #fff;
+}
+.bwl-dash-journey-title {
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: var(--bwl-dash-gray-light);
+}
+.bwl-dash-journey-step.is-done .bwl-dash-journey-title,
+.bwl-dash-journey-step.is-current .bwl-dash-journey-title {
+    color: var(--bwl-dash-ink);
+}
+.bwl-dash-journey-desc {
+    font-size: 0.73rem;
+    color: var(--bwl-dash-gray-light);
+    margin-top: 2px;
+}
+.bwl-dash-journey-line {
+    flex: 1;
+    height: 1px;
+    background: var(--bwl-dash-border);
+    margin-top: 11px;
+}
+.bwl-dash-journey-line.is-done { background: var(--bwl-dash-ink); }
+
+/* -- Recent activity -- */
+.bwl-dash-activity-list {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+}
+.bwl-dash-activity-item {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 10px 0;
+    border-top: 1px solid var(--bwl-dash-border);
+}
+.bwl-dash-activity-list > .bwl-dash-activity-item:first-child { border-top: none; }
+.bwl-dash-activity-dot { display: none; }
+.bwl-dash-activity-body { flex: 1; min-width: 0; }
+.bwl-dash-activity-title {
+    display: block;
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: var(--bwl-dash-ink);
+}
+.bwl-dash-activity-date {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--bwl-dash-gray-light);
+    margin-top: 1px;
+}
+.bwl-dash-activity-badge {
+    flex-shrink: 0;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--bwl-dash-gray-light);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1199.98px) {
+    .bwl-dash-top-row { grid-template-columns: 1fr; }
+    .bwl-dash-bottom-row { grid-template-columns: 1fr; }
+    .bwl-dash-journey-steps { flex-wrap: wrap; row-gap: 20px; }
+    .bwl-dash-journey-step { width: auto; flex: 1 1 45%; }
+    .bwl-dash-journey-line { display: none; }
+}
+@media (max-width: 575.98px) {
+    .bwl-dash-elig-stats { flex-direction: column; gap: 14px; }
+}
+
+/* ---------- Dark mode ---------- */
+html.app-skin-dark .bwl-dash-welcome {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.14) 0%, #141414 100%);
+    border-color: #262626;
+}
+html.app-skin-dark .bwl-dash-welcome-tagline { color: #60A5FA; }
+html.app-skin-dark .bwl-dash-elig {
+    background: #141414 !important;
+    border-color: #262626 !important;
+    border-left-color: #4ADE80 !important;
+}
+html.app-skin-dark .bwl-dash-elig-badge { color: #4ADE80; }
+html.app-skin-dark .bwl-dash-elig-btn { background: #F5F5F5; color: #0A0A0A; }
+html.app-skin-dark .bwl-dash-elig-btn:hover { background: #FFFFFF; }
+html.app-skin-dark .bwl-dash-loanstatus,
+html.app-skin-dark .bwl-dash-quick,
+html.app-skin-dark .bwl-dash-journey,
+html.app-skin-dark .bwl-dash-activity {
+    background: #141414 !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .bwl-dash-loanstatus-icon { background: #0d0d0d; }
+html.app-skin-dark .bwl-dash-loanstatus-btn:hover { background: #1C1C1C; }
+html.app-skin-dark .bwl-dash-quick-item { border-top-color: #262626; }
+html.app-skin-dark .bwl-dash-quick-item.is-primary .bwl-dash-quick-title,
+html.app-skin-dark .bwl-dash-quick-item.is-primary .bwl-dash-quick-arrow { color: #60A5FA; }
+html.app-skin-dark .bwl-dash-journey-dot { background: #0d0d0d; }
+html.app-skin-dark .bwl-dash-journey-step.is-done .bwl-dash-journey-dot,
+html.app-skin-dark .bwl-dash-journey-step.is-current .bwl-dash-journey-dot { background: #F5F5F5; color: #0A0A0A; }
+html.app-skin-dark .bwl-dash-journey-line.is-done { background: #F5F5F5; }
+html.app-skin-dark .bwl-dash-activity-item { border-top-color: #262626; }

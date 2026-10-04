@@ -398,3 +398,15 @@
             filterLoanFiltered();
         }
     });
+
+    document.addEventListener('click', function (e) {
+    var row = e.target.closest('tr[data-href]');
+    if (!row) return;
+
+    // Kung ang click ay galing sa <a>, <button>, o ibang
+    // interactive element sa loob ng row, hayaan silang
+    // mag-navigate/mag-function nang normal — huwag i-duplicate.
+    if (e.target.closest('a, button, input, select, textarea')) return;
+
+    window.location.href = row.dataset.href;
+});

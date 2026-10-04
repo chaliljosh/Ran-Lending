@@ -103,7 +103,9 @@
                     <tbody>
                         @foreach($defaultedLoans as $loan)
                         <tr data-search="{{ strtolower($loan['name'] . ' ' . ($loan['loan_id_display'] ?? '')) }}"
-                            data-days-late="{{ $loan['days_late'] }}">
+                            data-days-late="{{ $loan['days_late'] }}"
+                            data-href="{{ route('admin.defaulted-loan-detail', $loan['application_id']) }}"
+                            class="rs-clickable-row">
                             <td>
                                 <div class="borrower-cell-v2">
                                     <div>

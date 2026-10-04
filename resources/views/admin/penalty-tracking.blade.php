@@ -150,6 +150,7 @@
                                 }
                             @endphp
                             <tr class="pt-tr" data-penalty-id="{{ $p->id }}"
+                                data-href="{{ route('admin.penalty-tracking-detail', $p->id) }}"
                                 data-view-target="#viewModal{{ $p->id }}"
                                 data-borrower="{{ strtolower($fullName) }}" data-month="{{ $due->month }}"
                                 data-status="{{ $status }}" data-days="{{ $days }}"
@@ -201,7 +202,8 @@
                                     <div class="pt-actions-group">
                                         <a href="{{ route('admin.penalty-tracking-detail', $p->id) }}"
                                             class="pt-action-btn is-view" title="View Details">
-                                            <i class="bi bi-eye me-1"></i> View Details
+                                            <i class="bi bi-eye"></i>
+                                            <span>View Details</span>
                                         </a>
 
                                         @if ($status === 'unpaid')
@@ -557,5 +559,5 @@
 @endpush
 
 @section('page-scripts')
-    <script src="{{ asset('functions/penalty-tracking.js') }}?v=5"></script>
+    <script src="{{ asset('functions/penalty-tracking.js') }}?v=6"></script>
 @endsection

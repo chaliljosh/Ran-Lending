@@ -105,7 +105,9 @@
                             @foreach ($overdueLoans as $loan)
                                 <tr data-search="{{ strtolower($loan['name'] . ' ' . $loan['email'] . ' ' . $loan['borrower_id']) }}"
                                     data-applied="{{ \Carbon\Carbon::parse($loan['applied_at'])->timestamp }}"
-                                    data-days-late="{{ $loan['days_late'] }}">
+                                    data-days-late="{{ $loan['days_late'] }}"
+                                    data-href="{{ route('admin.overdue-payment-detail', $loan['application_id']) }}"
+                                    class="rs-clickable-row">
                                     <td>
                                         <div class="borrower-cell-v2">
 

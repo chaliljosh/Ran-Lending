@@ -1,7 +1,7 @@
 /* ============================================================
    admin-dashboard.css
    DASHBOARD-ONLY — Recent Loan Applications, Attention Required,
-   Upcoming Payments, Recent Activity cards.
+   Payment Overview, Recent Activity cards.
 
    UPDATE 12 (layout pass): Attention Required no longer stretches
    to match the taller Recent Loan Applications card; table rows
@@ -14,6 +14,26 @@
    cover the sidebar (.nxl-navigation), header (.nxl-header), and
    header dropdowns — previously only theme.min.css controlled
    those, causing a navy sidebar/header vs. black dashboard clash.
+
+   UPDATE 14: added a 4th top stat card (Pending Applications) —
+   .adm-stat-icon.is-orange gives it an accent color to stand out
+   from the other 3 (which use the default gray icon).
+
+   UPDATE 15: replaced "Upcoming Payments" with "Payment Overview" —
+   4 colored summary cells (Collected / Expected / Outstanding /
+   Overdue) plus a "Recent Payments" table underneath.
+
+   UPDATE 16: Payment Overview and Recent Activity cards now use
+   flex (.d-flex + h-100) on their columns so they match height
+   regardless of content length. Added a pure-CSS 6-month
+   "Collected" trend bar chart, and made Recent Loan Applications
+   rows fully clickable (.adm-table tbody tr[data-href]) instead
+   of just the chevron icon.
+
+   UPDATE 17: removed "Attention Required" entirely — replaced by
+   a "Recent Payments" card in that same col-lg-4 slot next to
+   Recent Loan Applications. The 6-month trend chart moved back
+   inside the Payment Overview card (under the 4 stat cells).
 ============================================================ */
 
 :root {
@@ -87,6 +107,40 @@ html body .main-content .card.adm-stat-card {
     font-size: 1rem;
     color: var(--adm-dash-gray);
     flex-shrink: 0;
+}
+.adm-stat-icon.is-orange {
+    color: var(--adm-dash-orange);
+}
+
+/* ---------- Clickable stat cards (now <a> tags) ---------- */
+a.adm-stat-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+a.adm-stat-card:hover {
+    text-decoration: none;
+    color: inherit;
+    border-color: var(--adm-dash-blue) !important;
+}
+.adm-stat-body {
+    position: relative;
+}
+.adm-stat-chevron {
+    position: absolute;
+    right: 18px;
+    bottom: 16px;
+    font-size: 0.9rem;
+    color: var(--adm-dash-gray-light);
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+a.adm-stat-card:hover .adm-stat-chevron {
+    opacity: 1;
+    transform: translateX(0);
+    color: var(--adm-dash-blue);
 }
 .adm-stat-value {
     font-size: 1.7rem;
@@ -218,76 +272,134 @@ html body .main-content table.adm-table thead th {
 .adm-table-chevron-col { width: 32px; text-align: right; padding-right: 20px !important; }
 .adm-table-chevron { color: var(--adm-dash-gray-light); font-size: 0.9rem; }
 
-/* ---------- Attention Required ---------- */
-.adm-attn-card {
-    background: linear-gradient(180deg, var(--adm-dash-red-soft), #ffffff 140px) !important;
-}
-.adm-attn-card.stretch-full {
-    height: auto !important;
-    align-self: start;
-}
-.adm-attn-count-badge {
-    width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
-    background: var(--adm-dash-red); color: #fff;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.78rem; font-weight: 700;
-}
-.adm-attn-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 14px 22px;
-    border-left: 4px solid var(--adm-dash-border);
-    border-bottom: 1px solid var(--adm-dash-border);
-}
-.adm-attn-item:last-child { border-bottom: none; }
-.adm-attn-item-body { min-width: 0; }
-.adm-attn-item-title { font-size: 0.86rem; font-weight: 600; color: var(--adm-dash-ink); }
-.adm-attn-item-desc { font-size: 0.78rem; color: var(--adm-dash-gray); margin-top: 2px; }
-.adm-attn-item-side { text-align: right; flex-shrink: 0; }
-.adm-attn-item-action {
-    font-size: 0.8rem; font-weight: 600; text-decoration: none;
-    display: inline-flex; align-items: center; gap: 2px; white-space: nowrap;
-}
-.adm-attn-item-action:hover { text-decoration: underline; }
-.adm-attn-item-count { font-size: 0.74rem; color: var(--adm-dash-gray); margin-top: 2px; }
+/* ---------- Recent Loan Applications — buong row clickable ---------- */
+.adm-table tbody tr[data-href] { cursor: pointer; }
+.adm-table.table-hover tbody tr[data-href]:hover { background-color: var(--adm-dash-bg-soft); }
 
-/* ---------- Upcoming Payments ---------- */
-.adm-upcoming-row {
+/* ---------- Payment Overview ---------- */
+.adm-overview-month {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--adm-dash-ink);
+    background: var(--adm-dash-bg-soft);
+    padding: 8px 14px;
+    border-radius: 8px;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 14px 22px;
-    border-bottom: 1px solid var(--adm-dash-border);
+    gap: 6px;
 }
-.adm-upcoming-row:last-child { border-bottom: none; }
-.adm-upcoming-date {
-    width: 46px; flex-shrink: 0; text-align: center;
-    background: var(--adm-dash-blue-soft);
-    border-radius: 10px;
-    padding: 6px 0;
-    display: flex; flex-direction: column;
+.adm-overview-month i { font-size: 0.8rem; color: var(--adm-dash-gray); }
+
+.adm-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    padding: 20px 22px;
 }
-.adm-upcoming-date-month {
-    font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
-    color: var(--adm-dash-blue); letter-spacing: 0.4px;
+.adm-overview-cell {
+    border-radius: 12px;
+    padding: 16px 16px;
 }
-.adm-upcoming-date-day {
-    font-size: 1.05rem; font-weight: 800; color: var(--adm-dash-ink);
+.adm-overview-cell.is-green { background: var(--adm-dash-green-soft); }
+.adm-overview-cell.is-blue  { background: var(--adm-dash-blue-soft); }
+.adm-overview-cell.is-gray  { background: var(--adm-dash-bg-soft); }
+.adm-overview-cell.is-red   { background: var(--adm-dash-red-soft); }
+
+.adm-overview-label {
+    font-size: 0.76rem;
+    color: var(--adm-dash-gray);
+    margin-bottom: 8px;
 }
-.adm-upcoming-body { flex: 1; min-width: 0; }
-.adm-upcoming-name { font-size: 0.86rem; font-weight: 600; color: var(--adm-dash-ink); }
-.adm-upcoming-sub { font-size: 0.76rem; color: var(--adm-dash-gray); margin-top: 1px; }
-.adm-upcoming-side { text-align: right; flex-shrink: 0; }
-.adm-upcoming-amount { font-size: 0.9rem; font-weight: 700; color: var(--adm-dash-ink); white-space: nowrap; }
-.adm-upcoming-pill {
-    display: inline-block; margin-top: 4px;
-    font-size: 0.7rem; font-weight: 600;
-    padding: 2px 9px; border-radius: 20px;
-    background: var(--adm-dash-blue-soft); color: var(--adm-dash-blue);
+.adm-overview-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--adm-dash-ink);
+    margin-bottom: 8px;
 }
-.adm-upcoming-pill.is-danger { background: var(--adm-dash-red-soft); color: var(--adm-dash-red); }
+.adm-overview-trend {
+    font-size: 0.76rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.adm-overview-trend.is-up { color: var(--adm-dash-green); }
+.adm-overview-trend.is-down { color: var(--adm-dash-red); }
+.adm-overview-trend.is-flat { color: var(--adm-dash-gray-light); }
+.adm-overview-trend i { font-size: 0.72rem; }
+
+/* ---------- Collected trend — 6-month bar chart (pure CSS, no JS lib) ---------- */
+.adm-trend {
+    border-top: 1px solid var(--adm-dash-border);
+    padding: 18px 22px 22px;
+}
+.adm-trend-head h6 {
+    margin: 0 0 14px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--adm-dash-ink);
+}
+.adm-trend-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    height: 90px;
+}
+.adm-trend-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+}
+.adm-trend-track {
+    width: 100%;
+    max-width: 28px;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    background: var(--adm-dash-bg-soft);
+    border-radius: 6px;
+    overflow: hidden;
+}
+.adm-trend-fill {
+    width: 100%;
+    background: var(--adm-dash-blue);
+    border-radius: 6px 6px 0 0;
+    min-height: 3px;
+    transition: opacity 0.15s ease;
+}
+.adm-trend-fill:hover { opacity: 0.8; }
+.adm-trend-label {
+    margin-top: 8px;
+    font-size: 0.7rem;
+    color: var(--adm-dash-gray);
+}
+
+/* ---------- Recent Payments table ---------- */
+.adm-overview-table thead th {
+    font-weight: 600;
+    color: var(--adm-dash-gray);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 8px 22px;
+    border: none !important;
+}
+.adm-overview-table tbody td {
+    padding: 12px 22px;
+    vertical-align: middle;
+    border-color: var(--adm-dash-border) !important;
+    font-size: 0.84rem;
+}
+.adm-overview-table-name { font-weight: 600; color: var(--adm-dash-ink); }
+.adm-overview-table-amount { font-weight: 600; color: var(--adm-dash-ink); }
+.adm-overview-table-date { color: var(--adm-dash-gray); }
+
+@media (max-width: 767.98px) {
+    .adm-overview-grid { grid-template-columns: repeat(2, 1fr); }
+}
 
 /* ---------- Recent Activity ---------- */
 .adm-activity-row {
@@ -333,9 +445,6 @@ html.app-skin-dark .main-content .card.adm-stat-card {
 html.app-skin-dark .main-content .card.adm-stat-card:hover {
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7) !important;
 }
-html.app-skin-dark .adm-attn-card {
-    background: linear-gradient(180deg, rgba(220,38,38,0.12), #141414 140px) !important;
-}
 html.app-skin-dark .adm-stat-label,
 html.app-skin-dark .adm-stat-value {
     color: #F5F5F5;
@@ -343,6 +452,15 @@ html.app-skin-dark .adm-stat-value {
 html.app-skin-dark .adm-stat-icon,
 html.app-skin-dark .adm-stat-sub {
     color: #9A9A9A;
+}
+html.app-skin-dark .adm-stat-icon.is-orange {
+    color: #FB923C;
+}
+html.app-skin-dark a.adm-stat-card:hover {
+    border-color: #60A5FA !important;
+}
+html.app-skin-dark a.adm-stat-card:hover .adm-stat-chevron {
+    color: #60A5FA;
 }
 html.app-skin-dark .main-content .card-title,
 html.app-skin-dark .adm-panel-title {
@@ -359,36 +477,48 @@ html.app-skin-dark .adm-table thead tr {
     background: transparent;
 }
 html.app-skin-dark .adm-table tbody td,
-html.app-skin-dark .adm-attn-item,
-html.app-skin-dark .adm-upcoming-row,
 html.app-skin-dark .adm-activity-row {
     border-color: #262626 !important;
 }
 html.app-skin-dark .adm-table-name,
 html.app-skin-dark .adm-table-amount,
-html.app-skin-dark .adm-attn-item-title,
-html.app-skin-dark .adm-upcoming-name,
-html.app-skin-dark .adm-upcoming-amount,
 html.app-skin-dark .adm-activity-text {
     color: #F5F5F5;
 }
 html.app-skin-dark .adm-table-date,
-html.app-skin-dark .adm-attn-item-desc,
-html.app-skin-dark .adm-attn-item-count,
-html.app-skin-dark .adm-upcoming-sub,
 html.app-skin-dark .adm-activity-meta {
     color: #9A9A9A;
-}
-html.app-skin-dark .adm-upcoming-date {
-    background: rgba(37, 99, 235, 0.18);
-}
-html.app-skin-dark .adm-upcoming-date-day {
-    color: #F5F5F5;
 }
 html.app-skin-dark .adm-panel-link,
 html.app-skin-dark .adm-stat-link {
     color: #60A5FA;
 }
+html.app-skin-dark .adm-table.table-hover tbody tr[data-href]:hover {
+    background-color: #1C1C1C;
+}
+
+/* ---------- Payment Overview — dark mode ---------- */
+html.app-skin-dark .adm-overview-month {
+    background: #0d0d0d;
+    color: #F5F5F5;
+}
+html.app-skin-dark .adm-overview-month i { color: #9A9A9A; }
+html.app-skin-dark .adm-overview-cell.is-green { background: rgba(22, 163, 74, 0.14); }
+html.app-skin-dark .adm-overview-cell.is-blue  { background: rgba(37, 99, 235, 0.14); }
+html.app-skin-dark .adm-overview-cell.is-gray  { background: #0d0d0d; }
+html.app-skin-dark .adm-overview-cell.is-red   { background: rgba(220, 38, 38, 0.14); }
+html.app-skin-dark .adm-overview-label { color: #9A9A9A; }
+html.app-skin-dark .adm-overview-value { color: #F5F5F5; }
+html.app-skin-dark .adm-trend { border-color: #262626; }
+html.app-skin-dark .adm-trend-head h6 { color: #F5F5F5; }
+html.app-skin-dark .adm-trend-track { background: #0d0d0d; }
+html.app-skin-dark .adm-trend-fill { background: #60A5FA; }
+html.app-skin-dark .adm-trend-label { color: #9A9A9A; }
+html.app-skin-dark .adm-overview-table thead th { color: #9A9A9A; }
+html.app-skin-dark .adm-overview-table tbody td { border-color: #262626 !important; }
+html.app-skin-dark .adm-overview-table-name,
+html.app-skin-dark .adm-overview-table-amount { color: #F5F5F5; }
+html.app-skin-dark .adm-overview-table-date { color: #9A9A9A; }
 
 /* ============================================================
    DARK MODE — SIDEBAR + HEADER — true black override

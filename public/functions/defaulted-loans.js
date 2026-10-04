@@ -112,3 +112,20 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+// ========================================
+// CLICKABLE ROWS — buong <tr> na may data-href ang
+// mag-a-navigate papunta sa detail page, maliban kung
+// ang na-click ay isang link/button (para hindi
+// mag-double-navigate sa "View Details" button).
+// Event delegation dahil pinapalitan ng search/filter/
+// pagination ang visibility ng rows nang dynamic.
+// ========================================
+document.addEventListener('click', function (e) {
+    var row = e.target.closest('tr[data-href]');
+    if (!row) return;
+
+    if (e.target.closest('a, button, input, select, textarea')) return;
+
+    window.location.href = row.dataset.href;
+});
