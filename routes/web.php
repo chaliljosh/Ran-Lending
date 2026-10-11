@@ -7,24 +7,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\BorrowerController;
-
-// TEMPORARY DIAGNOSTIC ROUTE — para sa pag-test ng DB connection/query timing.
-// Alisin na ito pagkatapos ng debugging (hindi ito dapat ma-deploy sa production).
-Route::get('/db-test', function () {
-    $start = microtime(true);
-    DB::connection()->getPdo();
-    $connectTime = microtime(true) - $start;
-
-    $start2 = microtime(true);
-    DB::select('SELECT 1');
-    $queryTime = microtime(true) - $start2;
-
-    return response()->json([
-        'connect_ms' => round($connectTime * 1000),
-        'query_ms' => round($queryTime * 1000),
-        'timestamp' => now()->toDateTimeString(),
-    ]);
-});
+use App\Http\Controllers\PaymentReceiptController;
 
 Route::get('/', function () {
     $userProfilePictureUrl = null;
@@ -81,6 +64,17 @@ Route::middleware(['borrower', 'no-cache'])->group(function () {
     Route::get('/borrower/personal-details', [BorrowerController::class, 'personalDetails'])->name('borrower.personal-details');
     Route::get('/borrower/apply-loan', [BorrowerController::class, 'applyLoan'])->name('borrower.apply-loan');
     Route::get('/borrower/loan-details', [BorrowerController::class, 'loanDetails'])->name('borrower.loan-details');
+
+    // Opens the borrower's own uploaded receipt (redirects to a short-lived signed URL)
+    Route::get('/borrower/payment-receipt/{receipt}/view', [PaymentReceiptController::class, 'view'])
+        ->whereNumber('receipt')
+        ->name('borrower.payment-receipt.view');
+
+    // Opens the official receipt the admin recorded for a PAID installment
+    Route::get('/borrower/installments/{id}/receipt', [BorrowerController::class, 'installmentReceipt'])
+        ->whereNumber('id')
+        ->name('borrower.installment-receipt');
+
     Route::get('/borrower/notifications', [BorrowerController::class, 'notifications'])->name('borrower.notifications');
     Route::get('/borrower/profile', [BorrowerController::class, 'profile'])->name('borrower.profile');
     Route::get('/borrower/faq', [BorrowerController::class, 'faq'])->name('borrower.faq');
@@ -101,6 +95,7 @@ Route::post('/notifications/mark-all-read', [BorrowerController::class, 'markAll
 Route::middleware(['borrower', 'no-cache', 'throttle:20,1'])->prefix('api/borrower')->group(function () {
     Route::post('/personal-details', [BorrowerController::class, 'savePersonalDetails']);
     Route::post('/apply-loan', [BorrowerController::class, 'submitLoanApplication']);
+    Route::post('/payment-receipt', [PaymentReceiptController::class, 'submit']);
     Route::post('/profile/update-section', [BorrowerController::class, 'updateProfileSection']);
     Route::post('/profile/change-password', [BorrowerController::class, 'changePassword']);
     Route::post('/profile/upload-picture', [BorrowerController::class, 'updateProfilePicture'])->name('borrower.profile.upload-picture');
@@ -168,8 +163,16 @@ Route::post('/account-settings/profile-picture/remove', [AdminController::class,
         ->name('installment-mark-paid');
         Route::get('/installments/{id}/receipt', [AdminController::class, 'installmentReceipt'])
     ->name('installment-receipt');
+        Route::get('/payment-receipts/{id}/file', [AdminController::class, 'borrowerReceiptFile'])
+        ->name('borrower-receipt-file');
     Route::post('/installments/{id}/void', [AdminController::class, 'voidPayment'])
     ->name('admin.installments.void');
+
+    // Send proof (na naibigay na ang pinautang) sa borrower via email.
+    // Ang buong URL ay /admin/loans/{applicationId}/send-proof — ito ang tinatawag ng JS.
+    Route::post('/loans/{applicationId}/send-proof', [AdminController::class, 'sendProofToBorrower'])
+        ->whereNumber('applicationId')
+        ->name('send-proof');
 
     // Active Loans > Completed Loans
     Route::get('/active-loans/completed', [AdminController::class, 'completedLoans'])->name('completed-loans');

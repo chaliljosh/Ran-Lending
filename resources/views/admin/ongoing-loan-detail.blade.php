@@ -282,6 +282,10 @@
                                         $s->amount_due > 0
                                             ? min(100, round(($s->amount_paid / $s->amount_due) * 100))
                                             : 0;
+
+                                    // Receipt na in-upload ng borrower para sa installment na ito
+                                    // (lalabas lang kung unpaid pa ang installment)
+                                    $borrowerReceipt = $isPaid ? null : $borrowerReceipts->get($s->id);
                                 @endphp
                                 <tr data-schedule-row="{{ $s->id }}" data-page-row>
                                     <td><span class="ols-row-num">{{ $s->installment_no }}</span></td>
@@ -311,30 +315,56 @@
                                                 Overdue</span>
                                         @else
                                             <span class="ols-status-pill is-upcoming">
-                                                Upcoming</span>
+                                                Pending</span>
                                         @endif
                                     </td>
                                     <td class="text-end" data-field="action">
                                         <div class="ols-actions-cell">
                                             @if (!$isPaid)
+                                                @if ($borrowerReceipt)
+                                                    <button type="button" class="btn-view-receipt js-view-borrower-receipt"
+                                                        data-schedule-id="{{ $s->id }}"
+                                                        data-installment-no="{{ $s->installment_no }}"
+                                                        data-amount-due="{{ number_format($s->amount_due, 2) }}"
+                                                        data-due="{{ $dueCarbon->format('F j, Y') }}"
+                                                        data-submitted="{{ !empty($borrowerReceipt->submitted_at) ? \Carbon\Carbon::parse($borrowerReceipt->submitted_at)->format('F j, Y \a\t g:i A') : '' }}"
+                                                        data-file-url="{{ route('admin.borrower-receipt-file', $borrowerReceipt->receipt_id) }}"
+                                                        data-download-url="{{ route('admin.borrower-receipt-file', ['id' => $borrowerReceipt->receipt_id, 'download' => 1]) }}">
+                                                        <i class="feather-file-text"></i> View Receipt
+                                                    </button>
+                                                @endif
+
                                                 {{-- NOTE: class + data-* attributes below are a guess.
                                                      Match them to what functions/ongoing-loan-detail.js expects. --}}
                                                 <button type="button" class="btn-record-payment"
                                                     data-schedule-id="{{ $s->id }}"
                                                     data-installment-no="{{ $s->installment_no }}"
                                                     data-amount-due="{{ $s->amount_due }}">
-                                                    Record Payment
+                                                    <i class="feather-credit-card"></i> Record Payment
                                                 </button>
                                             @else
                                                 <span class="sched-paid-note">Recorded</span>
                                             @endif
 
-                                            <div class="ols-kebab-wrap">
+                                            {{-- Kebab (Send Proof / View Payment Details / Void) ay lalabas lang kapag recorded na ang payment --}}
+                                            <div class="ols-kebab-wrap {{ $isPaid ? '' : 'd-none' }}">
                                                 <button type="button" class="ols-kebab-btn" data-bs-toggle="dropdown"
                                                     aria-expanded="false">
                                                     <i class="feather-chevron-down"></i>
                                                 </button>
                                                 <ul class="dropdown-menu dropdown-menu-end ols-kebab-menu">
+                                                    {{-- Send Proof of Payment: proof ng bayad ng installment na ito (ie-email sa borrower) --}}
+                                                    <li>
+                                                        <button type="button" class="dropdown-item js-send-proof"
+                                                            data-application-id="{{ $applicationId }}"
+                                                            data-schedule-id="{{ $s->id }}"
+                                                            data-installment-no="{{ $s->installment_no }}"
+                                                            data-amount="{{ number_format($isPaid ? $s->amount_paid : $s->amount_due, 2) }}"
+                                                            data-borrower-name="{{ $app->first_name }} {{ $app->last_name }}"
+                                                            data-borrower-email="{{ $app->email }}">
+                                                            Send Proof of Payment
+                                                        </button>
+                                                    </li>
                                                     <li>
                                                         <button type="button"
                                                             class="dropdown-item js-view-payment-details"
@@ -408,11 +438,17 @@
                     </div>
 
                     <div class="ols-field">
-                        <label for="olsPaidDate" class="ols-field-label">Date Paid <span class="ols-req">*</span></label>
-                        <input type="date" id="olsPaidDate" class="ols-input">
+                        <label for="olsPaidDateDisplay" class="ols-field-label">Date Paid <span class="ols-req">*</span></label>
+                        <div class="ols-date-wrap">
+                            <input type="text" id="olsPaidDateDisplay" class="ols-input ols-date-input"
+                                placeholder="MM/DD/YYYY" readonly autocomplete="off">
+                            <i class="feather-calendar ols-date-icon"></i>
+                        </div>
+                        {{-- Ito ang tunay na value (Y-m-d) na binabasa ng JS --}}
+                        <input type="hidden" id="olsPaidDate">
                     </div>
 
-                    <div class="ols-field">
+                    <div class="ols-field" id="olsReceiptField">
                         <label class="ols-field-label">Receipt <span class="ols-req">*</span></label>
                         <label for="olsReceiptInput" class="ols-dropzone" id="olsDropzone">
                             <i class="feather-upload-cloud"></i>
@@ -433,12 +469,78 @@
                         </div>
                     </div>
 
+                    {{-- Kapag galing sa "View Receipt" -> gagamitin na ang receipt ng borrower, hindi na mag-a-upload --}}
+                    <div class="ols-field" id="olsUsingBorrowerReceipt" style="display:none;">
+                        <label class="ols-field-label">Receipt</label>
+                        <div class="ols-preview">
+                            <img id="olsUsingBorrowerThumb" alt="Borrower receipt">
+                            <div class="ols-preview-meta">
+                                <span>Receipt from the borrower</span>
+                                <span>Will be saved as the payment receipt</span>
+                            </div>
+                            {{-- X button: aalisin ang receipt ng borrower at babalik sa normal na upload --}}
+                            <button type="button" class="ols-preview-remove" id="olsUseOwnReceiptBtn"
+                                aria-label="Remove borrower receipt" title="Remove">
+                                <i class="feather-x"></i>
+                            </button>
+                        </div>
+                    </div>
+
                     <div class="ols-form-error" id="olsMarkPaidError" style="display:none;"></div>
                 </div>
                 <div class="modal-footer nxl-pw-modal-footer">
                     <button type="button" class="nxl-pw-btn-discard" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="nxl-pw-btn-apply" id="olsConfirmMarkPaidBtn">
                         <span class="ols-confirm-btn-label">Mark as Paid</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- SEND PROOF OF PAYMENT MODAL --}}
+    <div class="modal fade nxl-account-modal" id="olsSendProofModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content ols-confirm-modal">
+                <div class="modal-body py-4">
+                    <div class="text-center">
+                        <div class="ols-confirm-title">Send proof of payment?</div>
+                        <div class="ols-confirm-desc">
+                            Attach the proof of payment for installment
+                            <strong id="olsProofInstallmentNo">#1</strong> of
+                            <strong>&#8369;<span id="olsProofAmount">0.00</span></strong>
+                            from <strong id="olsProofBorrowerName"></strong>.
+                            It will be emailed to <strong id="olsProofBorrowerEmail"></strong>.
+                        </div>
+                    </div>
+
+                    <div class="ols-field">
+                        <label class="ols-field-label">Proof of Payment <span class="ols-req">*</span></label>
+                        <label for="olsProofInput" class="ols-dropzone" id="olsProofDropzone">
+                            <i class="feather-upload-cloud"></i>
+                            <span class="ols-dropzone-text">Click to upload proof</span>
+                            <span class="ols-dropzone-hint">JPG or PNG, up to 5MB</span>
+                        </label>
+                        <input type="file" id="olsProofInput" accept="image/jpeg,image/png" hidden>
+
+                        <div class="ols-preview" id="olsProofPreview" style="display:none;">
+                            <img id="olsProofPreviewImg" alt="Proof preview">
+                            <div class="ols-preview-meta">
+                                <span id="olsProofFileName"></span>
+                                <span id="olsProofFileSize"></span>
+                            </div>
+                            <button type="button" class="ols-preview-remove" id="olsProofRemove" aria-label="Remove proof">
+                                <i class="feather-x"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="ols-form-error" id="olsProofError" style="display:none;"></div>
+                </div>
+                <div class="modal-footer nxl-pw-modal-footer">
+                    <button type="button" class="nxl-pw-btn-discard" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="nxl-pw-btn-apply" id="olsProofSendBtn">
+                        <span class="ols-confirm-btn-label">Send Proof</span>
                     </button>
                 </div>
             </div>
@@ -513,6 +615,53 @@
 
                 <div class="modal-footer">
                     <button type="button" class="ols-details-close" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- BORROWER RECEIPT MODAL (View Receipt) --}}
+    <div class="modal fade" id="olsBorrowerReceiptModal" tabindex="-1" aria-labelledby="olsBrTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content ols-br-modal">
+                <div class="modal-header">
+                    <div>
+                        <h6 class="modal-title" id="olsBrTitle">Borrower Receipt</h6>
+                        <div class="ols-br-sub">Installment <span id="olsBrInstallment"></span></div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="ols-br-body">
+                    {{-- Left: receipt image --}}
+                    <div class="ols-br-preview">
+                        <div class="ols-br-state" id="olsBrLoading">Loading receipt...</div>
+                        <div class="ols-br-state" id="olsBrError" style="display:none;">Unable to load the receipt.</div>
+                        <a href="#" target="_blank" rel="noopener" id="olsBrImgLink" title="Open full size"
+                            style="display:none;">
+                            <img id="olsBrImg" alt="Receipt uploaded by the borrower">
+                        </a>
+                        <div class="ols-br-hint" id="olsBrHint" style="display:none;">Click the image to open it full size</div>
+                    </div>
+
+                    {{-- Right: installment + what the borrower entered --}}
+                    <div class="ols-br-details">
+                        <div class="ols-br-amount-label">Amount Due</div>
+                        <div class="ols-br-amount">&#8369;<span id="olsBrAmount"></span></div>
+
+                        <dl class="ols-br-list">
+                            <div><dt>Due Date</dt><dd id="olsBrDue"></dd></div>
+                            <div><dt>Submitted</dt><dd id="olsBrSubmitted"></dd></div>
+                        </dl>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="ols-details-close" data-bs-dismiss="modal">Close</button>
+                    <a href="#" class="ols-br-btn-download" id="olsBrDownload">
+                        <i class="feather-download"></i> Download
+                    </a>
+                    <button type="button" class="ols-br-btn-record" id="olsBrRecordBtn">Record Payment</button>
                 </div>
             </div>
         </div>

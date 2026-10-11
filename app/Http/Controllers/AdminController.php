@@ -16,6 +16,7 @@ use App\Mail\PaymentRecorded;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use App\Mail\LoanProofSent;
 
 class AdminController extends Controller
 {
@@ -806,47 +807,54 @@ private function pctChange($current, $previous)
     }
 
     public function ongoingLoanDetail(Request $request, $id)
-    {
-        $adminId = Session::get('user_id');
-        $applicationId = (int) $id;
+{
+    $adminId = Session::get('user_id');
+    $applicationId = (int) $id;
 
-        $app = $this->getLoanApplication($applicationId);
+    $app = $this->getLoanApplication($applicationId);
 
-        if (!$app) {
-            return redirect()->route('admin.ongoing-loans');
-        }
-
-        $schedule = $this->getPaymentSchedule($applicationId);
-
-        $totalCount = $schedule->count();
-        $paidCount = $schedule->filter(fn($s) => !is_null($s->paid_at))->count();
-        $amountCollected = $schedule->sum('amount_paid');
-
-        $monthlyPayment = $totalCount > 0 ? ($app->total_amount / $totalCount) : 0;
-        $totalInterest = max(0, $app->total_amount - $app->loan_amount);
-        $interestRate = $app->loan_amount > 0
-            ? round(($totalInterest / $app->loan_amount) * 100, 2)
-            : 0;
-
-        return view('admin.ongoing-loan-detail', [
-            'app' => $app,
-            'applicationId' => $applicationId,
-            'adminId' => $adminId,
-            'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
-            'allReviews' => $this->getAllLoanReviews($applicationId),
-            'comments' => $this->getLoanComments($applicationId),
-            'paymentSchedule' => $schedule,
-            'totalCount' => $totalCount,
-            'paidCount' => $paidCount,
-            'amountCollected' => $amountCollected,
-            'monthlyPayment' => $monthlyPayment,
-            'totalInterest' => $totalInterest,
-            'interestRate' => $interestRate,
-            'pendingCount' => $this->getPendingVerificationCount($adminId),
-            'pendingLoanCount' => $this->getPendingLoanCount($adminId),
-        ]);
+    if (!$app) {
+        return redirect()->route('admin.ongoing-loans');
     }
 
+    $schedule = $this->getPaymentSchedule($applicationId);
+
+    $totalCount = $schedule->count();
+    $paidCount = $schedule->filter(fn($s) => !is_null($s->paid_at))->count();
+    $amountCollected = $schedule->sum('amount_paid');
+
+    $monthlyPayment = $totalCount > 0 ? ($app->total_amount / $totalCount) : 0;
+    $totalInterest = max(0, $app->total_amount - $app->loan_amount);
+    $interestRate = $app->loan_amount > 0
+        ? round(($totalInterest / $app->loan_amount) * 100, 2)
+        : 0;
+
+    // Mga receipt na in-upload ng borrower na hinihintay pa ang admin
+    $borrowerReceipts = DB::table('payment_receipts')
+        ->where('application_id', $applicationId)
+        ->where('status', 'submitted')
+        ->get()
+        ->keyBy('schedule_id');
+
+    return view('admin.ongoing-loan-detail', [
+        'app' => $app,
+        'applicationId' => $applicationId,
+        'adminId' => $adminId,
+        'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
+        'allReviews' => $this->getAllLoanReviews($applicationId),
+        'comments' => $this->getLoanComments($applicationId),
+        'paymentSchedule' => $schedule,
+        'borrowerReceipts' => $borrowerReceipts,
+        'totalCount' => $totalCount,
+        'paidCount' => $paidCount,
+        'amountCollected' => $amountCollected,
+        'monthlyPayment' => $monthlyPayment,
+        'totalInterest' => $totalInterest,
+        'interestRate' => $interestRate,
+        'pendingCount' => $this->getPendingVerificationCount($adminId),
+        'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+    ]);
+}
     public function overduePayments(Request $request)
     {
         $adminId = Session::get('user_id');
@@ -1237,9 +1245,12 @@ private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $i
     // ay gagana pa rin gaya ng dati hanggang mailipat sila sa bagong modal.
     $requireProof = $request->boolean('require_proof');
 
+    // Galing sa "View Receipt" modal: gagamitin ang receipt na in-upload ng borrower
+    $useBorrowerReceipt = $request->boolean('use_borrower_receipt');
+
     $request->validate([
         'paid_date' => [Rule::requiredIf($requireProof), 'nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
-        'receipt'   => [Rule::requiredIf($requireProof), 'nullable', 'file', 'mimes:jpg,jpeg,png', 'max:5120'],
+        'receipt'   => [Rule::requiredIf($requireProof && !$useBorrowerReceipt), 'nullable', 'file', 'mimes:jpg,jpeg,png', 'max:5120'],
     ], [
         'paid_date.required'        => 'Please select the date the payment was made.',
         'paid_date.before_or_equal' => 'The payment date cannot be in the future.',
@@ -1272,10 +1283,44 @@ private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $i
         }
     }
 
+    // Walang bagong file pero gagamitin ang receipt ng borrower -> kopyahin sa valid_ids disk
+    // para pareho ang ayos ng lahat ng recorded payments (View Payment Details, Void, atbp.)
+    if (!$request->hasFile('receipt') && $useBorrowerReceipt) {
+        $borrowerReceipt = DB::table('payment_receipts')
+            ->where('schedule_id', $id)
+            ->where('status', 'submitted')
+            ->first();
+
+        if (!$borrowerReceipt || empty($borrowerReceipt->user_file_path)) {
+            $msg = 'The borrower receipt was not found. Please upload a receipt.';
+            if ($wantsJson) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return back()->with('error', $msg);
+        }
+
+        $ext = pathinfo($borrowerReceipt->user_file_path, PATHINFO_EXTENSION) ?: 'jpg';
+        $receiptPath = 'payment-receipts/' . $schedule->application_id . '/'
+            . $id . '-' . Str::random(12) . '.' . $ext;
+
+        try {
+            $contents = Storage::disk(self::BORROWER_RECEIPT_DISK)->get($borrowerReceipt->user_file_path);
+            Storage::disk(self::RECEIPT_DISK)->put($receiptPath, $contents);
+        } catch (\Throwable $e) {
+            Log::error("Borrower receipt copy failed (schedule {$id}): " . $e->getMessage());
+            $msg = 'Failed to attach the borrower receipt. Please try again.';
+            if ($wantsJson) {
+                return response()->json(['success' => false, 'message' => $msg], 500);
+            }
+            return back()->with('error', $msg);
+        }
+    }
+
     $applicationId = $schedule->application_id;
+    $adminId = Session::get('user_id');
 
     try {
-        DB::transaction(function () use ($id, $schedule, $paidAt, $receiptPath) {
+        DB::transaction(function () use ($id, $schedule, $paidAt, $receiptPath, $adminId) {
             $update = [
                 'paid_at' => $paidAt,
                 'amount_paid' => $schedule->amount_due,
@@ -1291,6 +1336,19 @@ private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $i
                 ->where('status', 'unpaid')
                 ->update([
                     'status' => 'paid',
+                    'updated_at' => now(),
+                ]);
+
+            // I-mark na verified ang receipt na in-upload ng borrower (kung meron)
+            DB::table('payment_receipts')
+                ->where('schedule_id', $id)
+                ->where('status', 'submitted')
+                ->update([
+                    'status' => 'verified',
+                    'amount_recorded' => $schedule->amount_due,
+                    'recorded_paid_date' => $paidAt->toDateString(),
+                    'reviewed_by' => $adminId,
+                    'reviewed_at' => now(),
                     'updated_at' => now(),
                 ]);
         });
@@ -1380,7 +1438,6 @@ private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $i
     return back()->with('success', 'Payment marked as paid.');
 }
 
-
 public function installmentReceipt($id)
 {
     $path = DB::table('loan_payment_schedules')->where('id', $id)->value('receipt_path');
@@ -1392,6 +1449,25 @@ public function installmentReceipt($id)
     return redirect(
         Storage::disk(self::RECEIPT_DISK)->temporaryUrl($path, now()->addMinutes(10))
     );
+}
+
+public function borrowerReceiptFile(Request $request, $id)
+{
+    $receipt = DB::table('payment_receipts')->where('receipt_id', $id)->first();
+
+    if (!$receipt || empty($receipt->user_file_path)) {
+        abort(404);
+    }
+
+    $disk = Storage::disk(self::BORROWER_RECEIPT_DISK);
+
+    // ?download=1 -> dadaan sa Laravel para talagang ma-download
+    if ($request->boolean('download')) {
+        $ext = pathinfo($receipt->user_file_path, PATHINFO_EXTENSION) ?: 'jpg';
+        return $disk->download($receipt->user_file_path, "receipt-installment-{$receipt->installment_no}.{$ext}");
+    }
+
+    return redirect($disk->temporaryUrl($receipt->user_file_path, now()->addMinutes(10)));
 }
 
 public function voidPayment(Request $request, $id)
@@ -1466,6 +1542,84 @@ public function voidPayment(Request $request, $id)
             ->orderBy('installment_no')
             ->get();
     }
+
+    /**
+     * POST /admin/loans/{applicationId}/send-proof
+     * Emails the borrower a proof of payment for ONE recorded installment.
+     * Expects: proof (JPG/PNG, max 5MB) and schedule_id (the installment row).
+     */
+    public function sendProofToBorrower(Request $request, $applicationId)
+{
+    $request->validate([
+        'proof'       => 'required|file|mimes:jpg,jpeg,png|max:5120',
+        'schedule_id' => 'required|integer',
+    ], [
+        'proof.required'       => 'Please attach the proof.',
+        'proof.mimes'          => 'The proof must be a JPG or PNG image.',
+        'proof.max'            => 'The proof may not be larger than 5MB.',
+        'schedule_id.required' => 'Please choose the installment this proof is for.',
+    ]);
+
+    $loan = DB::table('loan_applications')
+        ->where('application_id', (int) $applicationId)
+        ->first();
+
+    if (!$loan) {
+        return response()->json(['success' => false, 'message' => 'Loan not found.'], 404);
+    }
+
+    // The installment must belong to this loan and already be recorded as paid.
+    $schedule = DB::table('loan_payment_schedules')
+        ->where('id', (int) $request->input('schedule_id'))
+        ->where('application_id', $loan->application_id)
+        ->first();
+
+    if (!$schedule) {
+        return response()->json(['success' => false, 'message' => 'Installment not found.'], 404);
+    }
+
+    if (is_null($schedule->paid_at)) {
+        return response()->json(['success' => false, 'message' => 'Proof can only be sent for a payment that is already recorded.'], 422);
+    }
+
+    $borrower = DB::table('users as u')
+        ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'u.user_id')
+        ->where('u.user_id', $loan->user_id)
+        ->select('u.email', 'u.name', 'bpd.first_name')
+        ->first();
+
+    if (!$borrower || empty($borrower->email)) {
+        return response()->json(['success' => false, 'message' => 'The borrower has no email address on file.'], 422);
+    }
+
+    $displayName = $borrower->first_name ?: ($borrower->name ?: 'Borrower');
+    $file = $request->file('proof');
+    $ext = $file->guessExtension() ?: 'jpg';
+    $loanCode = 'LN-' . str_pad($loan->application_id, 6, '0', STR_PAD_LEFT);
+
+    // Hindi tulad ng ibang emails, dito hindi natin nilulunok ang error:
+    // ang email mismo ang trabaho, kaya dapat malaman ng admin kung pumalya.
+    try {
+        Mail::to($borrower->email)->send(new LoanProofSent(
+            $loan,
+            $displayName,
+            $schedule,
+            $file->getRealPath(),
+            $file->getMimeType(),
+            "payment-proof-{$loanCode}-installment-{$schedule->installment_no}.{$ext}"
+        ));
+    } catch (\Throwable $e) {
+        Log::error("Send proof failed (loan {$applicationId}, installment {$schedule->installment_no}): " . $e->getMessage());
+        return response()->json(['success' => false, 'message' => 'Failed to send the email. Please try again.'], 500);
+    }
+
+    Log::info("Payment proof emailed (loan {$applicationId}, installment {$schedule->installment_no}) by admin " . Session::get('user_id'));
+
+    return response()->json([
+        'success' => true,
+        'message' => "Proof sent to {$borrower->email}.",
+    ]);
+}
 
     private function saveLoanComment($applicationId, $adminId, $comment)
     {
@@ -1836,6 +1990,8 @@ public function voidPayment(Request $request, $id)
     private const DEFAULT_DAYS_LATE = 90;
 
     private const RECEIPT_DISK = 'valid_ids'; 
+
+    private const BORROWER_RECEIPT_DISK = 'payment_receipts';
 
     public function defaultedLoans(Request $request)
     {

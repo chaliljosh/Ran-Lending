@@ -177,6 +177,10 @@
     grid-template-columns: repeat(4, 1fr);
     gap: 20px;
 }
+/* First row has only 3 cards, so it uses 3 columns */
+.bwl-ld-stat-grid--three {
+    grid-template-columns: repeat(3, 1fr);
+}
 .bwl-ld-stat-card {
     background: #ffffff !important;
     border: 1px solid #e5e7eb !important;

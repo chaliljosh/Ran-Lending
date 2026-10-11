@@ -135,30 +135,6 @@ function handleEmploymentStatus() {
     checkFormCompletion();
 }
 
-/* ============================================================
-   TYPE OF ID — "Others" na option, may kasamang text field na
-   lalabas lang kapag pinili ito, para ma-specify ng borrower
-   kung anong klaseng ID meron sila.
-   ============================================================ */
-function handleIdType() {
-    const idType = document.getElementById('idType').value;
-    const wrapper = document.getElementById('idTypeOthersWrapper');
-    const input = document.getElementById('idTypeOthers');
-
-    if (!wrapper || !input) return;
-
-    if (idType === 'others') {
-        wrapper.style.display = '';
-        input.setAttribute('required', 'required');
-    } else {
-        wrapper.style.display = 'none';
-        input.removeAttribute('required');
-        input.value = '';
-    }
-
-    checkFormCompletion();
-}
-
 async function loadRegions() {
     try {
         const regions = await fetchWithFallback(`${PSGC_API_BASE}/regions/`);
@@ -325,46 +301,6 @@ function setupPhoneInput(id) {
     });
 }
 
-function setupFilePreview(fileInputId, previewId) {
-    const fileInput = document.getElementById(fileInputId);
-    const preview = document.getElementById(previewId);
-    fileInput.addEventListener('change', function (e) {
-        const file = e.target.files[0];
-        if (!file) { preview.innerHTML = ''; return; }
-        if (file.size > 5 * 1024 * 1024) {
-            showErrorToast('File size must be less than 5MB');
-            clearFileInput(fileInputId, previewId);
-            return;
-        }
-        if (file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                preview.innerHTML = `<div class="border rounded p-2 d-inline-block">
-                    <img src="${e.target.result}" alt="ID Preview" style="max-width:200px;max-height:200px;display:block;">
-                    <p class="mb-0 mt-2 text-success"><i class="feather-check-circle me-1"></i>${file.name}</p>
-                    <button type="button" class="btn btn-sm btn-danger mt-2" onclick="clearFileInput('${fileInputId}','${previewId}')">
-                        <i class="feather-x me-1"></i>Remove
-                    </button></div>`;
-            };
-            reader.readAsDataURL(file);
-        } else if (file.type === 'application/pdf') {
-            preview.innerHTML = `<div class="border rounded p-2 d-inline-block">
-                <i class="feather-file text-danger" style="font-size:48px;display:block;"></i>
-                <p class="mb-0 mt-2 text-success"><i class="feather-check-circle me-1"></i>${file.name}</p>
-                <button type="button" class="btn btn-sm btn-danger mt-2" onclick="clearFileInput('${fileInputId}','${previewId}')">
-                    <i class="feather-x me-1"></i>Remove
-                </button></div>`;
-        }
-        checkFormCompletion();
-    });
-}
-
-function clearFileInput(fileInputId, previewId) {
-    document.getElementById(fileInputId).value = '';
-    document.getElementById(previewId).innerHTML = '';
-    checkFormCompletion();
-}
-
 function checkFormCompletion() {
     const form = document.getElementById('personalDetailsForm');
     const submitBtn = document.getElementById('submitBtn');
@@ -383,7 +319,7 @@ function checkFormCompletion() {
 }
 
 /* ============================================================
-   PREFILL — para sa edit / resubmit (on hold o rejected).
+   PREFILL — para sa edit / resubmit.
    ------------------------------------------------------------
    Ang region/province/city/barangay ay naka-save bilang PANGALAN
    (text ng option), hindi code. Kaya pangalan ang ima-match natin
@@ -635,10 +571,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // mag-load ng lahat ng regions.
     const regionsReady = loadRegions();
     setMaxBirthday();
-    setupFilePreview('validIdFront', 'idFrontPreview');
-    setupFilePreview('validIdBack', 'idBackPreview');
     setupPhoneInput('cellphone');
-   
 
     // Kung may prefilled birthday (from Blade), kalkulahin agad ang edad
     if (document.getElementById('birthday').value) calculateAge();
@@ -651,14 +584,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.getElementById('birthday').addEventListener('change', calculateAge);
     document.getElementById('employmentStatus').addEventListener('change', handleEmploymentStatus);
-
-    const idTypeSelect = document.getElementById('idType');
-    if (idTypeSelect) {
-        idTypeSelect.addEventListener('change', handleIdType);
-        // Kung may prefilled value na (edit/resubmit case), ipakita
-        // agad ang "Specify ID Type" field kung "others" ang laman.
-        if (idTypeSelect.value === 'others') handleIdType();
-    }
 
     document.getElementById('region').addEventListener('change', function () {
         if (this.value) loadProvinces(this.value);
@@ -706,9 +631,6 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('birthProvince', document.getElementById('birthProvince').value);
         formData.append('birthCity',     document.getElementById('birthCity').value);
         formData.append('cellphone',     document.getElementById('cellphone').value);
-        formData.append('idType',        document.getElementById('idType').value);
-        formData.append('idTypeOthers',  document.getElementById('idTypeOthers') ? document.getElementById('idTypeOthers').value : '');
-        formData.append('idNumber',      document.getElementById('idNumber').value);
         formData.append('monthlyIncome', document.getElementById('monthlyIncome').value);
         formData.append('email',         document.getElementById('email').value);
 
@@ -743,13 +665,6 @@ document.addEventListener('DOMContentLoaded', function () {
         formData.append('position',         positionValue);
         formData.append('employmentStatus', status);
         formData.append('yearsInCompany',   yearsInCompany);
-
-
-        // ID Front / Back — dalawang hiwalay na files
-        const validIdFront = document.getElementById('validIdFront').files[0];
-        const validIdBack  = document.getElementById('validIdBack').files[0];
-        if (validIdFront) formData.append('validIdFront', validIdFront);
-        if (validIdBack)  formData.append('validIdBack', validIdBack);
 
         // CSRF token — gamit ang shared getCsrfToken() helper mula sa
         // csrf.js (dapat naka-load na ito bago ang script na ito).

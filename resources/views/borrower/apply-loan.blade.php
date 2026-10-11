@@ -135,20 +135,17 @@
                                         ₱{{ number_format($maxLoanAmount) }}</small>
                                 </div>
 
-                                {{-- Loan Term (chips) --}}
+                                {{-- Loan Term (dropdown 1–12 months) --}}
                                 <div class="col-md-6">
-                                    <span class="aln-label" id="loanTermLabel">
+                                    <label class="aln-label" for="loanTerm">
                                         Term <span class="aln-required">*</span>
-                                    </span>
-                                    <div class="aln-chip-group" role="radiogroup" aria-labelledby="loanTermLabel">
-                                        @foreach ([3, 6, 12] as $months)
-                                            <label class="aln-choice">
-                                                <input type="radio" class="aln-choice__input" name="loanTerm"
-                                                    value="{{ $months }}">
-                                                <span class="aln-choice__chip">{{ $months }} Months</span>
-                                            </label>
-                                        @endforeach
-                                    </div>
+                                    </label>
+                                    <select class="form-select aln-input" id="loanTerm" required>
+                                        <option value="">Select term</option>
+                                        @for ($m = 1; $m <= 12; $m++)
+                                            <option value="{{ $m }}">{{ $m }} {{ $m === 1 ? 'Month' : 'Months' }}</option>
+                                        @endfor
+                                    </select>
                                 </div>
 
                                 {{-- Loan Purpose --}}
@@ -203,6 +200,81 @@
                             </div>
                         </section>
 
+                        {{-- Valid ID --}}
+                        @php
+                            $hasSavedFront = !empty($idDetails->id_file_path ?? null);
+                            $hasSavedBack = !empty($idDetails->id_file_path_back ?? null);
+                            $savedIdType = $idDetails->id_type ?? '';
+                            $idTypeOptions = [
+                                'national_id' => 'National ID (PhilSys)',
+                                'passport' => 'Passport',
+                                'drivers_license' => "Driver's License",
+                                'umid' => 'UMID',
+                                'sss' => 'SSS ID',
+                                'tin' => 'TIN ID',
+                                'postal' => 'Postal ID',
+                                'voters' => "Voter's ID",
+                                'prc' => 'PRC ID',
+                                'others' => 'Others',
+                            ];
+                        @endphp
+                        <section class="aln-section">
+                            <h6 class="aln-section-title">Valid ID</h6>
+                            <div class="aln-hr aln-hr--tight"></div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="aln-label" for="idType">
+                                        Type of ID <span class="aln-required">*</span>
+                                    </label>
+                                    <select class="form-select aln-input" id="idType" required>
+                                        <option value="">Select ID type</option>
+                                        @foreach ($idTypeOptions as $val => $label)
+                                            <option value="{{ $val }}" {{ $savedIdType === $val ? 'selected' : '' }}>
+                                                {{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="col-12" id="idTypeOthersWrapper" style="display:none;">
+                                    <label class="aln-label" for="idTypeOthers">
+                                        Specify ID Type <span class="aln-required">*</span>
+                                    </label>
+                                    <input type="text" class="form-control aln-input" id="idTypeOthers"
+                                        value="{{ $idDetails->id_type_others ?? '' }}" placeholder="Enter ID type">
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="aln-label" for="idNumber">
+                                        ID / Passport Number <span class="aln-required">*</span>
+                                    </label>
+                                    <input type="text" class="form-control aln-input" id="idNumber"
+                                        value="{{ $idDetails->id_number ?? '' }}"
+                                        placeholder="Enter ID or passport number" required>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="aln-label" for="validIdFront">
+                                        Front of ID <span class="aln-required">*</span>
+                                    </label>
+                                    <input type="file" class="form-control aln-input" id="validIdFront"
+                                        accept=".jpg,.jpeg,.png,image/jpeg,image/png" data-saved="{{ $hasSavedFront ? '1' : '0' }}">
+                                  
+                                    <div id="idFrontPreview" class="aln-file-preview"></div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="aln-label" for="validIdBack">
+                                        Back of ID <span class="aln-required">*</span>
+                                    </label>
+                                    <input type="file" class="form-control aln-input" id="validIdBack"
+                                        accept=".jpg,.jpeg,.png,image/jpeg,image/png" data-saved="{{ $hasSavedBack ? '1' : '0' }}">
+                                   
+                                    <div id="idBackPreview" class="aln-file-preview"></div>
+                                </div>
+                            </div>
+                        </section>
+
                         {{-- LOAN SUMMARY --}}
                         <section class="aln-section">
                             <h6 class="aln-section-title">Loan Summary</h6>
@@ -217,7 +289,7 @@
                                     <span class="aln-summary-label">Interest Rate</span>
                                     <span class="aln-summary-value">5% / month</span>
                                 </div>
-                                
+
                                 <div class="aln-summary-item">
                                     <span class="aln-summary-label">Total to Pay</span>
                                     <span class="aln-summary-value aln-summary-value--strong"
@@ -237,7 +309,7 @@
                                     <span class="aln-summary-value aln-summary-value--strong"
                                         id="displayMonthlyPayment">₱0.00</span>
                                 </div>
-                           
+
                             </div>
                         </section>
 

@@ -92,67 +92,6 @@
 }
 
 /* ══════════════════════════════════════════
-   Choice chips — radio group styled as pills
-   (used for the loan Term: 3 / 6 / 12 months).
-   The real <input type="radio"> stays in the DOM
-   (visually hidden) so keyboard + screen readers
-   still work.
-   ══════════════════════════════════════════ */
-
-.aln-chip-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-.aln-choice {
-    position: relative;
-    flex: 1 1 88px;
-    margin: 0;
-    cursor: pointer;
-}
-.aln-choice__input {
-    position: absolute;
-    opacity: 0;
-    width: 1px;
-    height: 1px;
-    pointer-events: none;
-}
-.aln-choice__chip {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 41px;
-    padding: 0 12px;
-    border: 1px solid var(--aln-border);
-    border-radius: 999px;
-    background: #fff;
-    color: var(--aln-navy);
-    font-size: 0.88rem;
-    font-weight: 600;
-    line-height: 1;
-    white-space: nowrap;
-    user-select: none;
-    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
-}
-.aln-choice:hover .aln-choice__chip {
-    background: #F8FAFC;
-    border-color: var(--aln-gray-light);
-}
-.aln-choice__input:checked + .aln-choice__chip {
-    background: var(--aln-blue);
-    border-color: var(--aln-blue);
-    color: #fff;
-}
-.aln-choice:hover .aln-choice__input:checked + .aln-choice__chip {
-    background: #1d4ed8;
-    border-color: #1d4ed8;
-}
-.aln-choice__input:focus-visible + .aln-choice__chip {
-    border-color: var(--aln-blue);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
-}
-
-/* ══════════════════════════════════════════
    Section — bordered box (matches bwl-ld-section
    from loan-details.css) instead of plain text.
    ══════════════════════════════════════════ */
@@ -243,6 +182,128 @@
     color: var(--aln-gray);
     font-weight: 600;
     font-size: 0.88rem;
+}
+
+/* ══════════════════════════════════════════
+   Valid ID upload preview
+   ══════════════════════════════════════════ */
+
+.aln-file-preview {
+    margin-top: 10px;
+}
+.aln-file-preview__item {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px;
+    border: 1px solid var(--aln-border);
+    border-radius: var(--aln-radius);
+    max-width: 100%;
+}
+.aln-file-preview__thumb {
+    position: relative;
+    display: block;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: zoom-in;
+    border-radius: var(--aln-radius-sm);
+    overflow: hidden;
+    line-height: 0;
+}
+.aln-file-preview__thumb img {
+    display: block;
+    max-width: 200px;
+    max-height: 140px;
+    object-fit: contain;
+    border-radius: var(--aln-radius-sm);
+}
+.aln-file-preview__zoom {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.55);
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+.aln-file-preview__thumb:hover .aln-file-preview__zoom,
+.aln-file-preview__thumb:focus-visible .aln-file-preview__zoom {
+    opacity: 1;
+}
+
+/* ══════════ Lightbox (enlarged ID preview) ══════════ */
+.aln-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.82);
+}
+.aln-lightbox.show {
+    display: flex;
+}
+.aln-lightbox__figure {
+    margin: 0;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+.aln-lightbox__img {
+    max-width: 92vw;
+    max-height: 82vh;
+    object-fit: contain;
+    border-radius: var(--aln-radius);
+    background: #fff;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+.aln-lightbox__caption {
+    color: #E2E8F0;
+    font-size: 0.82rem;
+    word-break: break-all;
+    text-align: center;
+}
+.aln-lightbox__close {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+}
+.aln-lightbox__close:hover {
+    background: rgba(255, 255, 255, 0.28);
+}
+.aln-file-preview__name {
+    font-size: 0.78rem;
+    color: var(--aln-gray);
+    word-break: break-all;
+}
+.aln-file-preview__remove {
+    align-self: flex-start;
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--aln-red);
+    cursor: pointer;
 }
 
 /* ══════════════════════════════════════════
@@ -673,30 +734,12 @@ html.app-skin-dark .aln-section {
 }
 html.app-skin-dark .aln-modal-notice { color: #93C5FD; }
 
-/* ---------- Info notice + choice chips ---------- */
+/* ---------- Info notice ---------- */
 html.app-skin-dark .aln-notice {
     background: rgba(37, 99, 235, 0.12);
     border-color: rgba(96, 165, 250, 0.25);
 }
 html.app-skin-dark .aln-notice__text { color: #CBD5E1; }
-html.app-skin-dark .aln-choice__chip {
-    background: #0d0d0d;
-    border-color: #262626;
-    color: #F5F5F5;
-}
-html.app-skin-dark .aln-choice:hover .aln-choice__chip {
-    background: #1C1C1C;
-    border-color: #404040;
-}
-html.app-skin-dark .aln-choice__input:checked + .aln-choice__chip {
-    background: var(--aln-blue);
-    border-color: var(--aln-blue);
-    color: #fff;
-}
-html.app-skin-dark .aln-choice:hover .aln-choice__input:checked + .aln-choice__chip {
-    background: #1d4ed8;
-    border-color: #1d4ed8;
-}
 
 /* ---------- Form fields ---------- */
 html.app-skin-dark .aln-input,
@@ -718,6 +761,12 @@ html.app-skin-dark .aln-input-prefix {
     background: #141414;
     border-color: #262626;
     color: #9A9A9A;
+}
+
+/* ---------- Valid ID preview ---------- */
+html.app-skin-dark .aln-file-preview__item {
+    background: #0d0d0d;
+    border-color: #262626;
 }
 
 /* ---------- Buttons ---------- */

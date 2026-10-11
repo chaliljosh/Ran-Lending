@@ -49,7 +49,8 @@
                         WIZARD CARD — iisang malaking white card na naglalaman
                         ng progress bar + buong form.
                         Ang bilang ng .progress-step dito ay dapat KAPAREHO ng
-                        bilang ng .pd-step sa loob ng form sa baba.
+                        bilang ng .pd-step sa loob ng form sa baba (3 na lang
+                        ngayon — nailipat na ang Valid ID sa Apply for a Loan).
                     ============================================================ --}}
                     <div class="pd-wizard-card">
 
@@ -61,16 +62,11 @@
                         <div class="progress-connector"></div>
                         <div class="progress-step">
                             <div class="progress-step-circle">2</div>
-                            <div class="progress-step-label">Valid ID</div>
-                        </div>
-                        <div class="progress-connector"></div>
-                        <div class="progress-step">
-                            <div class="progress-step-circle">3</div>
                             <div class="progress-step-label">Address</div>
                         </div>
                         <div class="progress-connector"></div>
                         <div class="progress-step">
-                            <div class="progress-step-circle">4</div>
+                            <div class="progress-step-circle">3</div>
                             <div class="progress-step-label">Work Info</div>
                         </div>
                     </div>
@@ -180,53 +176,7 @@
                             </div>
                         </div>
 
-                        {{-- ============ STEP 2 — VALID ID ============ --}}
-                        <div class="pd-step">
-                            <div class="pd-step-alert"></div>
-
-                            <div class="form-section">
-                                <div class="form-section-header">
-                                    <div>
-                                        <p class="form-section-title">Valid ID</p>
-                                    </div>
-                                </div>
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Type of ID</label>
-                                        <select class="form-select" id="idType" required>
-                                            <option value="">Select ID type</option>
-                                            @foreach(['national_id'=>'National ID (PhilSys)','passport'=>'Passport','drivers_license'=>"Driver's License",'umid'=>'UMID','sss'=>'SSS ID','tin'=>'TIN ID','postal'=>'Postal ID','voters'=>"Voter's ID",'prc'=>'PRC ID','others'=>'Others'] as $val => $label)
-                                            <option value="{{ $val }}" {{ ($details->id_type ?? '') === $val ? 'selected' : '' }}>{{ $label }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="col-md-6" id="idTypeOthersWrapper" style="display:none;">
-                                        <label class="form-label">Specify ID Type</label>
-                                        <input type="text" class="form-control" id="idTypeOthers" value="{{ $details->id_type_others ?? '' }}" placeholder="Enter ID type">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">ID/Passport Number</label>
-                                        <input type="text" class="form-control" id="idNumber" value="{{ $details->id_number ?? '' }}" placeholder="Enter ID or passport number" required>
-                                    </div>
-
-                                    {{-- ID FRONT / BACK — dalawang hiwalay na upload dahil
-                                        karamihan ng IDs ay may importanteng info sa likod. --}}
-                                    <div class="col-md-6">
-                                        <label class="form-label">Front ID</label>
-                                        <input type="file" class="form-control" id="validIdFront" accept="image/*,.pdf" {{ ($details->id_file_path ?? null) ? '' : 'required' }}>
-                                        <small class="text-muted mt-1 d-block"><i class="feather-info me-1"></i>Accepted: JPG, PNG, PDF (Max 5MB)</small>
-                                        <div id="idFrontPreview" class="mt-2"></div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Back ID</label>
-                                        <input type="file" class="form-control" id="validIdBack" accept="image/*,.pdf" {{ ($details->id_file_path_back ?? null) ? '' : 'required' }}>
-                                        <div id="idBackPreview" class="mt-2"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- ============ STEP 3 — PRESENT ADDRESS ============ --}}
+                        {{-- ============ STEP 2 — PRESENT ADDRESS ============ --}}
                         <div class="pd-step">
                             <div class="pd-step-alert"></div>
 
@@ -269,7 +219,7 @@
                             </div>
                         </div>
 
-                        {{-- ============ STEP 4 — WORK INFORMATION ============ --}}
+                        {{-- ============ STEP 3 — WORK INFORMATION ============ --}}
                         {{-- Ang employment status, company, position, at years/months
                             ay pine-prefill ng personal-details.js (window.pdSaved),
                             dahil nire-reset ng handleEmploymentStatus() ang mga field. --}}

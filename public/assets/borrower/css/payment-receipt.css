@@ -1,0 +1,512 @@
+/* ══════════════════════════════════════════
+   Payment receipt upload — View Loan Details
+   Loaded after loan-details.css. Same bwl-ld-
+   prefix, same palette, light + true-black dark.
+   ══════════════════════════════════════════ */
+
+/* ---------- Action column ---------- */
+.bwl-ld-action-cell {
+    min-width: 190px;
+}
+.bwl-ld-action-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+}
+
+.bwl-ld-upload-btn {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid #2563eb;
+    background: #fff;
+    color: #2563eb;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.bwl-ld-upload-btn:hover {
+    background: #2563eb;
+    color: #fff;
+}
+.bwl-ld-upload-btn:focus-visible,
+.bwl-ld-link-btn:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+    border-radius: 6px;
+}
+
+/* A button that looks like the "View" link */
+.bwl-ld-link-btn {
+    appearance: none;
+    background: none;
+    border: 0;
+    padding: 0;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #2563eb;
+    cursor: pointer;
+}
+.bwl-ld-link-btn:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
+/* ---------- Receipt badges ---------- */
+.bwl-ld-receipt-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+}
+.bwl-ld-receipt-badge.is-submitted {
+    background: #dbeafe;
+    color: #2563eb;
+}
+.bwl-ld-receipt-badge.is-rejected {
+    background: #fee2e2;
+    color: #dc2626;
+}
+.bwl-ld-receipt-badge.is-received {
+    background: #dcfce7;
+    color: #16a34a;
+}
+.bwl-ld-receipt-remarks {
+    margin-top: 6px;
+    max-width: 260px;
+    font-size: 0.78rem;
+    line-height: 1.4;
+    color: #dc2626;
+}
+
+/* ---------- Upload modal ---------- */
+.bwl-ld-modal .modal-content {
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
+}
+.bwl-ld-modal .modal-header {
+    padding: 18px 22px;
+    border-bottom: 1px solid #e5e7eb;
+}
+.bwl-ld-modal .modal-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+.bwl-ld-modal .modal-body {
+    padding: 20px 22px;
+}
+.bwl-ld-modal .modal-footer {
+    padding: 14px 22px;
+    border-top: 1px solid #e5e7eb;
+    gap: 8px;
+}
+
+.bwl-ld-modal-summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 18px;
+    padding: 14px 16px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+}
+.bwl-ld-modal-summary-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.bwl-ld-field {
+    margin-bottom: 16px;
+}
+.bwl-ld-field label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #475569;
+}
+.bwl-ld-optional {
+    font-weight: 500;
+    color: #8a9bb0;
+}
+/* Image dropzone */
+.bwl-ld-dropzone {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 150px;
+    padding: 20px;
+    text-align: center;
+    background: #f8fafc;
+    border: 1.5px dashed #cbd5e1;
+    border-radius: 12px;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+.bwl-ld-dropzone:hover,
+.bwl-ld-dropzone.is-dragover {
+    border-color: #2563eb;
+    background: #eff6ff;
+}
+.bwl-ld-dropzone:focus-within {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+.bwl-ld-dropzone.has-file {
+    border-style: solid;
+    padding: 12px;
+}
+.bwl-ld-dropzone [hidden] {
+    display: none !important;
+}
+/* The real file input sits invisibly on top of the whole box */
+.bwl-ld-dropzone__input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+.bwl-ld-dropzone__empty,
+.bwl-ld-dropzone__filled {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    max-width: 100%;
+    pointer-events: none;
+}
+.bwl-ld-dropzone__empty i {
+    font-size: 28px;
+    line-height: 1;
+    color: #2563eb;
+    margin-bottom: 2px;
+}
+.bwl-ld-dropzone__title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #0f172a;
+}
+.bwl-ld-dropzone__hint {
+    font-size: 0.75rem;
+    color: #8a9bb0;
+}
+.bwl-ld-dropzone__filled img {
+    display: block;
+    max-width: 100%;
+    max-height: 180px;
+    border-radius: 8px;
+    object-fit: contain;
+}
+.bwl-ld-dropzone__name {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #475569;
+}
+.bwl-ld-dropzone__change {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #2563eb;
+}
+
+.bwl-ld-modal-error {
+    margin-top: 16px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #fee2e2;
+    color: #b91c1c;
+    font-size: 0.82rem;
+}
+
+/* Footer buttons (.bwl-ld-btn itself comes from loan-details.css) */
+.bwl-ld-modal .bwl-ld-btn {
+    border: 0;
+    cursor: pointer;
+    min-width: 150px; /* para hindi lumiit ang button kapag spinner lang ang laman */
+}
+.bwl-ld-modal .bwl-ld-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+/* Habang nagpapadala: buo ang kulay, spinner lang ang makikita */
+.bwl-ld-modal .bwl-ld-btn.is-sending:disabled {
+    opacity: 1;
+    cursor: progress;
+}
+.bwl-ld-btn-ghost {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 42px;
+    padding: 0 22px;
+    border-radius: 999px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    color: #475569;
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+.bwl-ld-btn-ghost:hover {
+    background: #f1f5f9;
+}
+/* Walang margin, para nasa gitna ang spinner */
+.bwl-ld-modal .spinner-border {
+    margin: 0;
+}
+
+/* ---------- View Receipt button ---------- */
+.bwl-ld-view-btn {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid #2563eb;
+    background: #fff;
+    color: #2563eb;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+.bwl-ld-view-btn:hover {
+    background: #eff6ff;
+}
+.bwl-ld-view-btn:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+
+/* "Pending verification" ay mahaba, kaya huwag hayaang mag-wrap */
+.bwl-ld-table .bwl-ld-status {
+    white-space: nowrap;
+}
+
+/* ---------- View Receipt modal ---------- */
+/* "Received by [admin] · amount · date" — above the admin's receipt */
+.bwl-ld-view-summary {
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #dcfce7;
+    color: #15803d;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+.bwl-ld-view-summary[hidden] {
+    display: none !important;
+}
+
+.bwl-ld-view-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 220px;
+    padding: 12px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+}
+.bwl-ld-view-stage [hidden] {
+    display: none !important;
+}
+.bwl-ld-view-stage img {
+    display: block;
+    max-width: 100%;
+    max-height: 65vh;
+    border-radius: 8px;
+    object-fit: contain;
+}
+.bwl-ld-view-error {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #b91c1c;
+    text-align: center;
+}
+
+/* ---------- Toast ---------- */
+.bwl-ld-toast {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 2000;
+    max-width: 340px;
+    padding: 12px 18px;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25);
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.bwl-ld-toast.is-visible {
+    opacity: 1;
+    transform: none;
+}
+.bwl-ld-toast.is-success { background: #16a34a; }
+.bwl-ld-toast.is-error   { background: #dc2626; }
+
+@media (max-width: 640px) {
+    .bwl-ld-toast {
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+        max-width: none;
+    }
+    .bwl-ld-modal-summary { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .bwl-ld-toast { transition: none; }
+}
+
+/* ══════════════════════════════════════════
+   DARK MODE — TRUE BLACK
+   page #0A0A0A  card #141414  inner #0d0d0d
+   border #262626  hover #1C1C1C
+   text #F5F5F5  muted #9A9A9A
+══════════════════════════════════════════ */
+
+html.app-skin-dark .bwl-ld-upload-btn {
+    background: transparent;
+    border-color: #60A5FA;
+    color: #60A5FA;
+}
+html.app-skin-dark .bwl-ld-upload-btn:hover {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #fff;
+}
+html.app-skin-dark .bwl-ld-link-btn { color: #60A5FA; }
+html.app-skin-dark .bwl-ld-link-btn:hover { color: #93C5FD; }
+
+html.app-skin-dark .bwl-ld-receipt-badge.is-submitted {
+    background: rgba(37, 99, 235, 0.18);
+    color: #60A5FA;
+}
+html.app-skin-dark .bwl-ld-receipt-badge.is-rejected {
+    background: rgba(220, 38, 38, 0.15);
+    color: #F87171;
+}
+html.app-skin-dark .bwl-ld-receipt-badge.is-received {
+    background: rgba(22, 163, 74, 0.18);
+    color: #4ade80;
+}
+html.app-skin-dark .bwl-ld-receipt-remarks { color: #F87171; }
+
+/* Modal */
+html.app-skin-dark .bwl-ld-modal .modal-content {
+    background: #141414;
+    border-color: #262626;
+    color: #F5F5F5;
+    box-shadow: none;
+}
+html.app-skin-dark .bwl-ld-modal .modal-header,
+html.app-skin-dark .bwl-ld-modal .modal-footer {
+    border-color: #262626;
+}
+html.app-skin-dark .bwl-ld-modal .modal-title,
+html.app-skin-dark .bwl-ld-modal-summary-value { color: #F5F5F5; }
+html.app-skin-dark .bwl-ld-modal .btn-close { filter: invert(1) grayscale(1); }
+
+html.app-skin-dark .bwl-ld-modal-summary {
+    background: #0d0d0d;
+    border-color: #262626;
+}
+html.app-skin-dark .bwl-ld-field label { color: #CBD5E1; }
+html.app-skin-dark .bwl-ld-optional,
+html.app-skin-dark .bwl-ld-dropzone__hint { color: #9A9A9A; }
+
+html.app-skin-dark .bwl-ld-dropzone {
+    background: #0d0d0d;
+    border-color: #3a3a3a;
+}
+html.app-skin-dark .bwl-ld-dropzone:hover,
+html.app-skin-dark .bwl-ld-dropzone.is-dragover {
+    border-color: #60A5FA;
+    background: rgba(37, 99, 235, 0.12);
+}
+html.app-skin-dark .bwl-ld-dropzone:focus-within {
+    border-color: #60A5FA;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+}
+html.app-skin-dark .bwl-ld-dropzone.has-file { border-color: #262626; }
+html.app-skin-dark .bwl-ld-dropzone__empty i,
+html.app-skin-dark .bwl-ld-dropzone__change { color: #60A5FA; }
+html.app-skin-dark .bwl-ld-dropzone__title { color: #F5F5F5; }
+html.app-skin-dark .bwl-ld-dropzone__name { color: #CBD5E1; }
+
+html.app-skin-dark .bwl-ld-modal .form-control {
+    background: #0d0d0d;
+    border-color: #262626;
+    color: #F5F5F5;
+    color-scheme: dark;
+}
+html.app-skin-dark .bwl-ld-modal .form-control::placeholder { color: #6b6b6b; }
+html.app-skin-dark .bwl-ld-modal .form-control:focus {
+    border-color: #60A5FA;
+    box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
+}
+
+html.app-skin-dark .bwl-ld-modal-error {
+    background: rgba(220, 38, 38, 0.15);
+    color: #F87171;
+}
+
+html.app-skin-dark .bwl-ld-btn-ghost {
+    background: transparent;
+    border-color: #262626;
+    color: #CBD5E1;
+}
+html.app-skin-dark .bwl-ld-btn-ghost:hover { background: #1C1C1C; }
+
+/* View Receipt button + modal */
+html.app-skin-dark .bwl-ld-view-btn {
+    background: transparent;
+    border-color: #60A5FA;
+    color: #60A5FA;
+}
+html.app-skin-dark .bwl-ld-view-btn:hover {
+    background: rgba(37, 99, 235, 0.15);
+}
+html.app-skin-dark .bwl-ld-view-summary {
+    background: rgba(22, 163, 74, 0.18);
+    color: #4ade80;
+}
+html.app-skin-dark .bwl-ld-view-stage {
+    background: #0d0d0d;
+    border-color: #262626;
+}
+html.app-skin-dark .bwl-ld-view-error { color: #F87171; }

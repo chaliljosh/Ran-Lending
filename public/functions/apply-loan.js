@@ -114,15 +114,23 @@
 
     const loanAmountInput = document.getElementById("loanAmount");
 
-    // Term is now a group of radio "chips" (name="loanTerm")
-    // instead of a <select>.
-    const loanTermInputs = document.querySelectorAll('input[name="loanTerm"]');
+    // Term is a <select> (1–12 months).
+    const loanTermSelect = document.getElementById("loanTerm");
 
     const loanPurposeSelect = document.getElementById("loanPurpose");
     const referralSelect = document.getElementById("referralSource");
 
     const referralNameField = document.getElementById("referralNameField");
     const referralNameInput = document.getElementById("referralName");
+
+    // Valid ID
+    const idTypeSelect = document.getElementById("idType");
+    const idTypeOthersWrapper = document.getElementById("idTypeOthersWrapper");
+    const idTypeOthersInput = document.getElementById("idTypeOthers");
+    const idNumberInput = document.getElementById("idNumber");
+    const idFrontInput = document.getElementById("validIdFront");
+    const idBackInput = document.getElementById("validIdBack");
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
     const submitBtn = document.getElementById("submitBtn");
     const agreeCheckbox = document.getElementById("agreeTerms");
@@ -172,14 +180,11 @@
     }
 
     // =========================================================
-    // SELECTED TERM (from the radio chips)
+    // SELECTED TERM
     // =========================================================
 
     function getSelectedTerm() {
-        const checked = document.querySelector(
-            'input[name="loanTerm"]:checked',
-        );
-        return checked ? checked.value : "";
+        return loanTermSelect ? loanTermSelect.value : "";
     }
 
     // =========================================================
@@ -219,6 +224,158 @@
     }
 
     // =========================================================
+    // VALID ID HELPERS
+    // =========================================================
+
+    // May file na pinili, O may naka-save na sa account.
+    function hasFile(input) {
+        return (
+            !!input &&
+            ((input.files && input.files.length > 0) ||
+                input.dataset.saved === "1")
+        );
+    }
+
+    function toggleIdTypeOthers() {
+        const isOthers = idTypeSelect && idTypeSelect.value === "others";
+
+        if (idTypeOthersWrapper) {
+            idTypeOthersWrapper.style.display = isOthers ? "" : "none";
+        }
+        if (!isOthers && idTypeOthersInput) {
+            idTypeOthersInput.value = "";
+        }
+    }
+
+    // ---------------------------------------------------------
+    // LIGHTBOX — i-click ang preview para makita nang malaki
+    // ---------------------------------------------------------
+    let lightboxEl = null;
+
+    function closeLightbox() {
+        if (lightboxEl) {
+            lightboxEl.classList.remove("show");
+        }
+        document.body.style.overflow = "";
+    }
+
+    function openLightbox(src, caption) {
+        if (!lightboxEl) {
+            lightboxEl = document.createElement("div");
+            lightboxEl.className = "aln-lightbox";
+            lightboxEl.innerHTML =
+                '<button type="button" class="aln-lightbox__close" aria-label="Close">&times;</button>' +
+                '<figure class="aln-lightbox__figure">' +
+                '<img class="aln-lightbox__img" alt="ID preview">' +
+                '<figcaption class="aln-lightbox__caption"></figcaption>' +
+                "</figure>";
+            document.body.appendChild(lightboxEl);
+
+            // Click sa labas ng larawan o sa X = isara
+            lightboxEl.addEventListener("click", function (e) {
+                if (!e.target.classList.contains("aln-lightbox__img")) {
+                    closeLightbox();
+                }
+            });
+
+            document.addEventListener("keydown", function (e) {
+                if (e.key === "Escape") closeLightbox();
+            });
+        }
+
+        lightboxEl.querySelector(".aln-lightbox__img").src = src;
+        lightboxEl.querySelector(".aln-lightbox__caption").textContent =
+            caption || "";
+        lightboxEl.classList.add("show");
+        document.body.style.overflow = "hidden";
+    }
+
+    function clearPreview(input, preview) {
+        // Bitawan ang object URL ngayon lang, hindi na agad-agad,
+        // para gumana pa rin ang pag-click para palakihin.
+        if (input._objectUrl) {
+            URL.revokeObjectURL(input._objectUrl);
+            input._objectUrl = null;
+        }
+        preview.innerHTML = "";
+    }
+
+    function setupFilePreview(input, previewId) {
+        const preview = document.getElementById(previewId);
+        if (!input || !preview) return;
+
+        input.addEventListener("change", function () {
+            clearPreview(input, preview);
+            const file = input.files[0];
+
+            if (!file) {
+                validateForm();
+                return;
+            }
+
+            if (file.size > MAX_FILE_SIZE) {
+                showErrorToast("File size must be less than 5MB.");
+                input.value = "";
+                validateForm();
+                return;
+            }
+
+            const ALLOWED_TYPES = ["image/jpeg", "image/png"];
+            const okExt = /\.(jpe?g|png)$/i.test(file.name);
+            if (!ALLOWED_TYPES.includes(file.type) || !okExt) {
+                showErrorToast("Only JPG or PNG pictures are allowed.");
+                input.value = "";
+                validateForm();
+                return;
+            }
+
+            input._objectUrl = URL.createObjectURL(file);
+
+            const wrap = document.createElement("div");
+            wrap.className = "aln-file-preview__item";
+
+            const imgBtn = document.createElement("button");
+            imgBtn.type = "button";
+            imgBtn.className = "aln-file-preview__thumb";
+            imgBtn.title = "Click to enlarge";
+            imgBtn.setAttribute("aria-label", "View " + file.name);
+
+            const img = document.createElement("img");
+            img.alt = "ID preview";
+            img.src = input._objectUrl;
+            imgBtn.appendChild(img);
+
+            const zoom = document.createElement("span");
+            zoom.className = "aln-file-preview__zoom";
+            zoom.textContent = "Click to enlarge";
+            imgBtn.appendChild(zoom);
+
+            imgBtn.addEventListener("click", function () {
+                openLightbox(input._objectUrl, file.name);
+            });
+
+            const name = document.createElement("span");
+            name.className = "aln-file-preview__name";
+            name.textContent = file.name;
+
+            const remove = document.createElement("button");
+            remove.type = "button";
+            remove.className = "aln-file-preview__remove";
+            remove.textContent = "Remove";
+            remove.addEventListener("click", function () {
+                input.value = "";
+                clearPreview(input, preview);
+                validateForm();
+            });
+
+            wrap.append(imgBtn, name, remove);
+            preview.appendChild(wrap);
+
+            validateForm();
+        });
+    }
+
+    // =========================================================
     // FORM VALIDATION
     // =========================================================
 
@@ -238,12 +395,26 @@
             referralSelect.value !== "friend_family" ||
             (referralNameInput && referralNameInput.value.trim().length > 0);
 
+        // Valid ID
+        const validIdType = idTypeSelect && !!idTypeSelect.value;
+        const validIdOthers =
+            !idTypeSelect ||
+            idTypeSelect.value !== "others" ||
+            (idTypeOthersInput && idTypeOthersInput.value.trim().length > 0);
+        const validIdNumber =
+            idNumberInput && idNumberInput.value.trim().length > 0;
+        const validIdFiles = hasFile(idFrontInput) && hasFile(idBackInput);
+
         const isValid =
             validAmount &&
             validTerm &&
             validPurpose &&
             validReferral &&
-            validReferralName;
+            validReferralName &&
+            validIdType &&
+            validIdOthers &&
+            validIdNumber &&
+            validIdFiles;
 
         if (submitBtn) {
             submitBtn.disabled = !isValid;
@@ -282,7 +453,8 @@
         }
 
         if (displayTerm) {
-            displayTerm.textContent = term > 0 ? term + " months" : "— months";
+            displayTerm.textContent =
+                term > 0 ? term + (term === 1 ? " month" : " months") : "— months";
         }
 
         if (displayMonthlyPayment) {
@@ -322,10 +494,10 @@
         passive: true,
     });
 
-    // Loan term (radio chips)
-    loanTermInputs.forEach(function (input) {
-        input.addEventListener("change", updateSummary);
-    });
+    // Loan term (dropdown)
+    if (loanTermSelect) {
+        loanTermSelect.addEventListener("change", updateSummary);
+    }
 
     // Loan purpose
     if (loanPurposeSelect) {
@@ -357,6 +529,28 @@
             validateForm();
         });
     }
+
+    // Valid ID
+    if (idTypeSelect) {
+        idTypeSelect.addEventListener("change", function () {
+            toggleIdTypeOthers();
+            validateForm();
+        });
+        toggleIdTypeOthers(); // para sa prefilled "others"
+    }
+    if (idTypeOthersInput) {
+        idTypeOthersInput.addEventListener("input", validateForm, {
+            passive: true,
+        });
+    }
+    if (idNumberInput) {
+        idNumberInput.addEventListener("input", validateForm, {
+            passive: true,
+        });
+    }
+
+    setupFilePreview(idFrontInput, "idFrontPreview");
+    setupFilePreview(idBackInput, "idBackPreview");
 
     // Terms checkbox
     if (agreeCheckbox && finalSubmitBtn) {
@@ -404,6 +598,21 @@
             "referralName",
             referralNameInput ? referralNameInput.value : "",
         );
+
+        // Valid ID
+        formData.append("idType", idTypeSelect ? idTypeSelect.value : "");
+        formData.append(
+            "idTypeOthers",
+            idTypeOthersInput ? idTypeOthersInput.value : "",
+        );
+        formData.append("idNumber", idNumberInput ? idNumberInput.value : "");
+
+        if (idFrontInput && idFrontInput.files[0]) {
+            formData.append("validIdFront", idFrontInput.files[0]);
+        }
+        if (idBackInput && idBackInput.files[0]) {
+            formData.append("validIdBack", idBackInput.files[0]);
+        }
 
         formData.append("_token", CSRF_TOKEN || "");
 

@@ -49,27 +49,40 @@ return [
         ],
 
         'supabase' => [
-    'driver' => 's3',
-    'key' => env('SUPABASE_STORAGE_KEY'),
-    'secret' => env('SUPABASE_STORAGE_SECRET'),
-    'region' => env('SUPABASE_STORAGE_REGION', 'us-east-1'),
-    'bucket' => env('SUPABASE_STORAGE_BUCKET'),
-    'url' => env('SUPABASE_STORAGE_URL'),
-    'endpoint' => env('SUPABASE_STORAGE_ENDPOINT'),
-    'use_path_style_endpoint' => true,
-    'throw' => false,   
-],
+            'driver' => 's3',
+            'key' => env('SUPABASE_STORAGE_KEY'),
+            'secret' => env('SUPABASE_STORAGE_SECRET'),
+            'region' => env('SUPABASE_STORAGE_REGION', 'us-east-1'),
+            'bucket' => env('SUPABASE_STORAGE_BUCKET'),
+            'url' => env('SUPABASE_STORAGE_URL'),
+            'endpoint' => env('SUPABASE_STORAGE_ENDPOINT'),
+            'use_path_style_endpoint' => true,
+            'throw' => false,
+        ],
 
-'valid_ids' => [
-    'driver' => 's3',
-    'key' => env('VALID_IDS_STORAGE_KEY'),
-    'secret' => env('VALID_IDS_STORAGE_SECRET'),
-    'region' => env('VALID_IDS_STORAGE_REGION', 'ap-northeast-1'),
-    'bucket' => env('VALID_IDS_STORAGE_BUCKET'),
-    'endpoint' => env('VALID_IDS_STORAGE_ENDPOINT'),
-    'use_path_style_endpoint' => true,
-    'throw' => false,
-],
+        'valid_ids' => [
+            'driver' => 's3',
+            'key' => env('VALID_IDS_STORAGE_KEY'),
+            'secret' => env('VALID_IDS_STORAGE_SECRET'),
+            'region' => env('VALID_IDS_STORAGE_REGION', 'ap-northeast-1'),
+            'bucket' => env('VALID_IDS_STORAGE_BUCKET'),
+            'endpoint' => env('VALID_IDS_STORAGE_ENDPOINT'),
+            'use_path_style_endpoint' => true,
+            'throw' => false,
+        ],
+
+        // Payment receipts (borrower uploads + admin official receipts).
+        // Kopya ng valid_ids, pareho ang Supabase project; iba lang ang bucket.
+        'payment_receipts' => [
+            'driver' => 's3',
+            'key' => env('VALID_IDS_STORAGE_KEY'),
+            'secret' => env('VALID_IDS_STORAGE_SECRET'),
+            'region' => env('VALID_IDS_STORAGE_REGION', 'ap-northeast-1'),
+            'bucket' => 'payment_receipts',
+            'endpoint' => env('VALID_IDS_STORAGE_ENDPOINT'),
+            'use_path_style_endpoint' => true,
+            'throw' => true,
+        ],
 
     ],
 

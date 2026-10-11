@@ -27,11 +27,267 @@ document.addEventListener('DOMContentLoaded', function () {
     let selectedFile = null;
     let previewUrl = null;
 
+    // ---- "Use borrower's receipt" mode (galing sa View Receipt modal) ----
+    const receiptField = document.getElementById('olsReceiptField');
+    const borrowerReceiptField = document.getElementById('olsUsingBorrowerReceipt');
+    const borrowerReceiptThumb = document.getElementById('olsUsingBorrowerThumb');
+    const useOwnReceiptBtn = document.getElementById('olsUseOwnReceiptBtn');
+    let useBorrowerReceipt = false;
+
+    function setBorrowerReceiptMode(url) {
+        useBorrowerReceipt = !!url;
+        receiptField.style.display = useBorrowerReceipt ? 'none' : '';
+        borrowerReceiptField.style.display = useBorrowerReceipt ? '' : 'none';
+        if (useBorrowerReceipt) {
+            borrowerReceiptThumb.src = url;
+        } else {
+            borrowerReceiptThumb.removeAttribute('src');
+        }
+    }
+
+    // X -> alisin ang receipt ng borrower at bumalik sa normal na upload ng sariling receipt
+    useOwnReceiptBtn.addEventListener('click', function () {
+        setBorrowerReceiptMode(null);
+        showError('');
+    });
+
     function todayLocal() {
         const d = new Date();
         d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
         return d.toISOString().slice(0, 10);
     }
+
+    // ============================================================
+    // Custom date picker (calendar + year grid)
+    // displayEl = nakikitang text field (MM/DD/YYYY)
+    // hiddenEl  = tunay na value (YYYY-MM-DD)
+    // hostEl    = modal element kung saan ilalagay ang popup
+    // ============================================================
+    function createDatePicker(displayEl, hiddenEl, hostEl) {
+        const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'];
+        const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
+        const pad = n => String(n).padStart(2, '0');
+        const toYmd = (y, m, d) => y + '-' + pad(m + 1) + '-' + pad(d); // m = 0-based
+        const parseYmd = str => {
+            const parts = str.split('-').map(Number);
+            return { y: parts[0], m: parts[1] - 1, d: parts[2] };
+        };
+
+        let minYmd = '';
+        let maxYmd = '';
+        let view = 'days'; // 'days' o 'years'
+        let viewYear = 0;
+        let viewMonth = 0;
+        let isOpen = false;
+
+        const pop = document.createElement('div');
+        pop.className = 'ols-dp';
+        pop.style.display = 'none';
+        pop.setAttribute('role', 'dialog');
+        hostEl.appendChild(pop);
+
+        function setValue(ymd) {
+            hiddenEl.value = ymd || '';
+            if (ymd) {
+                const p = parseYmd(ymd);
+                displayEl.value = pad(p.m + 1) + '/' + pad(p.d) + '/' + p.y;
+            } else {
+                displayEl.value = '';
+            }
+        }
+
+        function setRange(min, max) {
+            minYmd = min || '';
+            maxYmd = max || '';
+        }
+
+        function isDisabled(ymd) {
+            return (minYmd && ymd < minYmd) || (maxYmd && ymd > maxYmd);
+        }
+
+        function monthIndex(ymd) {
+            const p = parseYmd(ymd);
+            return p.y * 12 + p.m;
+        }
+
+        function headerHtml(showNav) {
+            const prevOff = minYmd && (viewYear * 12 + viewMonth) <= monthIndex(minYmd);
+            const nextOff = maxYmd && (viewYear * 12 + viewMonth) >= monthIndex(maxYmd);
+            const caret = view === 'years' ? 'feather-chevron-up' : 'feather-chevron-down';
+            let html = '<div class="ols-dp-head">' +
+                '<button type="button" class="ols-dp-title" data-act="toggle-view">' +
+                MONTHS[viewMonth] + ' ' + viewYear + ' <i class="' + caret + '"></i></button>';
+            if (showNav) {
+                html += '<div class="ols-dp-nav">' +
+                    '<button type="button" class="ols-dp-navbtn" data-act="prev" aria-label="Previous month"' + (prevOff ? ' disabled' : '') + '><i class="feather-chevron-left"></i></button>' +
+                    '<button type="button" class="ols-dp-navbtn" data-act="next" aria-label="Next month"' + (nextOff ? ' disabled' : '') + '><i class="feather-chevron-right"></i></button>' +
+                    '</div>';
+            }
+            return html + '</div>';
+        }
+
+        function render() {
+            if (view === 'years') {
+                renderYears();
+            } else {
+                renderDays();
+            }
+            if (isOpen) position();
+        }
+
+        function renderDays() {
+            const firstWeekday = new Date(viewYear, viewMonth, 1).getDay();
+            const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+            const selected = hiddenEl.value;
+            const today = todayLocal();
+
+            let html = headerHtml(true);
+            html += '<div class="ols-dp-weekdays">' + WEEKDAYS.map(w => '<span>' + w + '</span>').join('') + '</div>';
+            html += '<div class="ols-dp-grid">';
+            for (let i = 0; i < firstWeekday; i++) html += '<span></span>';
+            for (let d = 1; d <= daysInMonth; d++) {
+                const ymd = toYmd(viewYear, viewMonth, d);
+                let cls = 'ols-dp-day';
+                if (ymd === today) cls += ' is-today';
+                if (ymd === selected) cls += ' is-selected';
+                html += '<button type="button" class="' + cls + '" data-ymd="' + ymd + '"' +
+                    (isDisabled(ymd) ? ' disabled' : '') + '>' + d + '</button>';
+            }
+            html += '</div>';
+            pop.innerHTML = html;
+        }
+
+        function renderYears() {
+            const thisYear = new Date().getFullYear();
+            const minY = minYmd ? parseYmd(minYmd).y : thisYear - 10;
+            const maxY = maxYmd ? parseYmd(maxYmd).y : thisYear + 20;
+
+            let html = headerHtml(false) + '<div class="ols-dp-years">';
+            for (let y = minY; y <= maxY; y++) {
+                html += '<button type="button" class="ols-dp-year' + (y === viewYear ? ' is-selected' : '') +
+                    '" data-year="' + y + '">' + y + '</button>';
+            }
+            html += '</div>';
+            pop.innerHTML = html;
+
+            // I-scroll ang listahan para nasa gitna ang napiling taon
+            const grid = pop.querySelector('.ols-dp-years');
+            const current = pop.querySelector('.ols-dp-year.is-selected');
+            if (grid && current) {
+                grid.scrollTop = current.offsetTop - (grid.clientHeight / 2) + (current.clientHeight / 2);
+            }
+        }
+
+        function position() {
+            const r = displayEl.getBoundingClientRect();
+            const w = pop.offsetWidth;
+            const h = pop.offsetHeight;
+
+            let top = r.bottom + 6;
+            if (top + h > window.innerHeight - 8) {
+                top = Math.max(8, r.top - h - 6); // kapag kulang ang espasyo sa baba, sa taas ilalabas
+            }
+            const left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8));
+
+            pop.style.top = top + 'px';
+            pop.style.left = left + 'px';
+        }
+
+        function open() {
+            if (isOpen) return;
+            const base = hiddenEl.value || todayLocal();
+            let p = parseYmd(base);
+            if (isDisabled(base)) {
+                p = parseYmd(maxYmd && base > maxYmd ? maxYmd : minYmd);
+            }
+            viewYear = p.y;
+            viewMonth = p.m;
+            view = 'days';
+            isOpen = true;
+            pop.style.display = 'block';
+            render();
+        }
+
+        function close() {
+            if (!isOpen) return;
+            isOpen = false;
+            pop.style.display = 'none';
+        }
+
+        function shiftMonth(delta) {
+            const idx = viewYear * 12 + viewMonth + delta;
+            viewYear = Math.floor(idx / 12);
+            viewMonth = idx % 12;
+            render();
+        }
+
+        function pickYear(year) {
+            viewYear = year;
+            // Siguraduhing nasa loob ng pinapayagang buwan
+            if (minYmd && (viewYear * 12 + viewMonth) < monthIndex(minYmd)) viewMonth = parseYmd(minYmd).m;
+            if (maxYmd && (viewYear * 12 + viewMonth) > monthIndex(maxYmd)) viewMonth = parseYmd(maxYmd).m;
+            view = 'days';
+            render();
+        }
+
+        pop.addEventListener('click', function (e) {
+            const actBtn = e.target.closest('[data-act]');
+            if (actBtn) {
+                const act = actBtn.dataset.act;
+                if (act === 'toggle-view') { view = view === 'days' ? 'years' : 'days'; render(); }
+                if (act === 'prev') shiftMonth(-1);
+                if (act === 'next') shiftMonth(1);
+                return;
+            }
+            const dayBtn = e.target.closest('.ols-dp-day');
+            if (dayBtn && !dayBtn.disabled) {
+                setValue(dayBtn.dataset.ymd);
+                close();
+                displayEl.focus();
+                return;
+            }
+            const yearBtn = e.target.closest('.ols-dp-year');
+            if (yearBtn) pickYear(Number(yearBtn.dataset.year));
+        });
+
+        displayEl.addEventListener('click', function () { isOpen ? close() : open(); });
+        displayEl.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                open();
+            }
+        });
+
+        // Click sa labas -> isara
+        document.addEventListener('mousedown', function (e) {
+            if (!isOpen) return;
+            if (pop.contains(e.target) || displayEl.parentElement.contains(e.target)) return;
+            close();
+        });
+
+        // Escape -> isara lang ang calendar (hindi ang buong modal)
+        hostEl.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && isOpen) {
+                e.stopImmediatePropagation();
+                e.preventDefault();
+                close();
+            }
+        }, true);
+
+        hostEl.addEventListener('hide.bs.modal', close);
+        hostEl.addEventListener('scroll', close);
+        window.addEventListener('resize', close);
+
+        return { setValue: setValue, setRange: setRange, close: close };
+    }
+
+    const datePicker = createDatePicker(
+        document.getElementById('olsPaidDateDisplay'),
+        paidDateInput,
+        confirmModalEl
+    );
 
     function showError(msg) {
         errorEl.textContent = msg || '';
@@ -56,9 +312,12 @@ document.addEventListener('DOMContentLoaded', function () {
     function resetForm() {
         clearReceipt();
         showError('');
+        setBorrowerReceiptMode(null);
         const today = todayLocal();
-        paidDateInput.max = today;
-        paidDateInput.value = today;
+        // Hindi puwede sa hinaharap (walang minimum na petsa)
+        datePicker.close();
+        datePicker.setRange('', today);
+        datePicker.setValue(today);
     }
 
     receiptInput.addEventListener('change', function () {
@@ -116,7 +375,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const STATUS = {
             paid:     ['is-paid', 'Paid'],
             overdue:  ['is-overdue', 'Overdue'],
-            upcoming: ['is-upcoming', 'Upcoming'],
+            upcoming: ['is-upcoming', 'Pending'],
         };
 
         // Show "View Full Receipt" only when the image is scaled down to fit
@@ -170,6 +429,78 @@ document.addEventListener('DOMContentLoaded', function () {
             dImg.onerror = null;
             dImg.removeAttribute('src');
         });
+    }
+
+    // ---- View Borrower Receipt (receipt na in-upload ng borrower) ----
+    const brModalEl = document.getElementById('olsBorrowerReceiptModal');
+    if (brModalEl) {
+        const br = id => document.getElementById(id);
+        const brImg = br('olsBrImg');
+        const brImgLink = br('olsBrImgLink');
+        const brHint = br('olsBrHint');
+        const brLoading = br('olsBrLoading');
+        const brError = br('olsBrError');
+        const brDownload = br('olsBrDownload');
+        const brRecordBtn = br('olsBrRecordBtn');
+        let brScheduleId = null;
+        let brFileUrl = null;
+
+        function resetBorrowerReceipt() {
+            brImg.onload = null;
+            brImg.onerror = null;
+            brImg.removeAttribute('src');
+            brImgLink.style.display = 'none';
+            brHint.style.display = 'none';
+            brError.style.display = 'none';
+            brLoading.style.display = '';
+        }
+
+        table.addEventListener('click', function (e) {
+            const btn = e.target.closest('.js-view-borrower-receipt');
+            if (!btn) return;
+            const d = btn.dataset;
+
+            brScheduleId = d.scheduleId;
+            brFileUrl = d.fileUrl;
+            br('olsBrInstallment').textContent = '#' + d.installmentNo;
+            br('olsBrAmount').textContent = d.amountDue || '0.00';
+            br('olsBrDue').textContent = d.due || '—';
+            br('olsBrSubmitted').textContent = d.submitted || '—';
+            brDownload.href = d.downloadUrl || '#';
+            brImgLink.href = d.fileUrl || '#';
+
+            resetBorrowerReceipt();
+
+            // Set handlers BEFORE src para hindi ma-miss ang event
+            brImg.onload = function () {
+                brLoading.style.display = 'none';
+                brImgLink.style.display = '';
+                brHint.style.display = '';
+            };
+            brImg.onerror = function () {
+                brLoading.style.display = 'none';
+                brError.style.display = '';
+            };
+            brImg.src = d.fileUrl;
+
+            bootstrap.Modal.getOrCreateInstance(brModalEl).show();
+        });
+
+        // "Record Payment" sa loob ng receipt modal -> isara muna, tapos buksan ang existing Record Payment modal
+        brRecordBtn.addEventListener('click', function () {
+            const rowBtn = table.querySelector(`.btn-record-payment[data-schedule-id="${brScheduleId}"]`);
+            if (!rowBtn) return;
+
+            const fileUrl = brFileUrl;
+            brModalEl.addEventListener('hidden.bs.modal', function () {
+                rowBtn.click();                    // bubuksan ang Mark as Paid modal (nire-reset nito ang form)
+                setBorrowerReceiptMode(fileUrl);   // tapos gagamitin na ang receipt ng borrower
+            }, { once: true });
+
+            bootstrap.Modal.getOrCreateInstance(brModalEl).hide();
+        });
+
+        brModalEl.addEventListener('hidden.bs.modal', resetBorrowerReceipt);
     }
 
     // ---- Toast shown after a page reload (used by Void Payment) ----
@@ -255,6 +586,144 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // ---- Send Proof of Payment ----
+    // Proof ng bayad ng isang installment -> ie-email sa borrower.
+    const proofModalEl = document.getElementById('olsSendProofModal');
+    if (proofModalEl) {
+        const proofInput = document.getElementById('olsProofInput');
+        const proofDropzone = document.getElementById('olsProofDropzone');
+        const proofPreview = document.getElementById('olsProofPreview');
+        const proofPreviewImg = document.getElementById('olsProofPreviewImg');
+        const proofFileName = document.getElementById('olsProofFileName');
+        const proofFileSize = document.getElementById('olsProofFileSize');
+        const proofRemoveBtn = document.getElementById('olsProofRemove');
+        const proofErrorEl = document.getElementById('olsProofError');
+        const proofSendBtn = document.getElementById('olsProofSendBtn');
+
+        let proofApplicationId = null;
+        let proofScheduleId = null;
+        let proofFile = null;
+        let proofPreviewUrl = null;
+
+        function showProofError(msg) {
+            proofErrorEl.textContent = msg || '';
+            proofErrorEl.style.display = msg ? '' : 'none';
+        }
+
+        function clearProof() {
+            if (proofPreviewUrl) { URL.revokeObjectURL(proofPreviewUrl); proofPreviewUrl = null; }
+            proofFile = null;
+            proofInput.value = '';
+            proofPreviewImg.removeAttribute('src');
+            proofPreview.style.display = 'none';
+            proofDropzone.style.display = '';
+        }
+
+        proofInput.addEventListener('change', function () {
+            const file = proofInput.files[0];
+            clearProof();
+            showProofError('');
+            if (!file) return;
+
+            if (!ALLOWED_TYPES.includes(file.type)) {
+                showProofError('Only JPG or PNG images are allowed.');
+                return;
+            }
+            if (file.size > MAX_RECEIPT_BYTES) {
+                showProofError('File is too large. Maximum size is 5MB.');
+                return;
+            }
+
+            proofFile = file;
+            proofPreviewUrl = URL.createObjectURL(file);
+            proofPreviewImg.src = proofPreviewUrl;
+            proofFileName.textContent = file.name;
+            proofFileSize.textContent = formatSize(file.size);
+            proofDropzone.style.display = 'none';
+            proofPreview.style.display = '';
+        });
+
+        proofRemoveBtn.addEventListener('click', function () {
+            clearProof();
+            showProofError('');
+        });
+
+        // Buksan ang modal mula sa kebab menu ng row (installment) na pinili
+        table.addEventListener('click', function (e) {
+            const btn = e.target.closest('.js-send-proof');
+            if (!btn) return;
+
+            proofApplicationId = btn.dataset.applicationId;
+            proofScheduleId = btn.dataset.scheduleId;
+            document.getElementById('olsProofInstallmentNo').textContent = '#' + btn.dataset.installmentNo;
+            document.getElementById('olsProofAmount').textContent = btn.dataset.amount;
+            document.getElementById('olsProofBorrowerName').textContent = btn.dataset.borrowerName;
+            document.getElementById('olsProofBorrowerEmail').textContent = btn.dataset.borrowerEmail;
+            clearProof();
+            showProofError('');
+            bootstrap.Modal.getOrCreateInstance(proofModalEl).show();
+        });
+
+        proofModalEl.addEventListener('hidden.bs.modal', function () {
+            clearProof();
+            showProofError('');
+        });
+
+        proofSendBtn.addEventListener('click', function () {
+            if (!proofApplicationId || !proofScheduleId) return;
+            showProofError('');
+            if (!proofFile) { showProofError('Please attach the proof.'); return; }
+
+            const formData = new FormData();
+            formData.append('proof', proofFile);
+            formData.append('schedule_id', proofScheduleId);
+
+            proofSendBtn.disabled = true;
+            proofSendBtn.classList.add('is-loading');
+            if (!proofSendBtn.querySelector('.spin-icon')) {
+                const spinner = document.createElement('i');
+                spinner.className = 'feather-loader spin-icon';
+                proofSendBtn.insertBefore(spinner, proofSendBtn.firstChild);
+            }
+
+            fetch(`/admin/loans/${proofApplicationId}/send-proof`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    // Huwag mag-set ng Content-Type — ang browser ang bahala (multipart boundary)
+                },
+                body: formData,
+            })
+            .then(res => res.json().then(data => ({ ok: res.ok, data })))
+            .then(({ ok, data }) => {
+                if (!ok || !data.success) {
+                    const firstError = data.errors ? Object.values(data.errors)[0]?.[0] : null;
+                    showProofError(firstError || data.message || 'Failed to send the proof.');
+                    return;
+                }
+
+                const modal = bootstrap.Modal.getInstance(proofModalEl);
+                if (modal) modal.hide();
+
+                if (typeof window.showAdminToast === 'function') {
+                    window.showAdminToast('success', 'Proof Sent', data.message || 'Proof sent to the borrower.');
+                }
+            })
+            .catch(err => {
+                console.error('[ongoing-loan-detail.js] send-proof error:', err);
+                showProofError('Something went wrong. Please try again.');
+            })
+            .finally(() => {
+                proofSendBtn.disabled = false;
+                proofSendBtn.classList.remove('is-loading');
+                const spinner = proofSendBtn.querySelector('.spin-icon');
+                if (spinner) spinner.remove();
+            });
+        });
+    }
+
     // ---- Step 2: confirm -> fire the actual request ----
     confirmBtn.addEventListener('click', function () {
         if (!pendingScheduleId || !pendingBtn) return;
@@ -264,7 +733,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const paidDate = paidDateInput.value;
         if (!paidDate) { showError('Please select the date the payment was made.'); return; }
         if (paidDate > todayLocal()) { showError('The payment date cannot be in the future.'); return; }
-        if (!selectedFile) { showError('Please attach the receipt.'); return; }
+        if (!selectedFile && !useBorrowerReceipt) { showError('Please attach the receipt.'); return; }
 
         const scheduleId = pendingScheduleId;
         const btn = pendingBtn;
@@ -272,7 +741,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const formData = new FormData();
         formData.append('paid_date', paidDate);
-        formData.append('receipt', selectedFile);
+        if (useBorrowerReceipt) {
+            formData.append('use_borrower_receipt', '1');
+        } else {
+            formData.append('receipt', selectedFile);
+        }
         formData.append('require_proof', '1');
 
         confirmBtn.disabled = true;
@@ -307,14 +780,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 row.querySelector('[data-field="progress_pct"]').textContent = '100%';
                 row.querySelector('[data-field="paid_on"]').textContent = data.paid_on_display;
                 row.querySelector('[data-field="due_sub"]').textContent = 'Paid';
+                // Pinapalitan din nito ang "Receipt submitted" flag sa status cell
                 row.querySelector('[data-field="status"]').innerHTML =
                     '<span class="ols-status-pill is-paid"><i class="feather-check-circle"></i> Paid</span>';
 
-                // Replace "Record Payment" with the "Recorded" note, keep the kebab dropdown
+                // Replace "Record Payment" (at "View Receipt") with the "Recorded" note, keep the kebab dropdown
                 const actionsCell = row.querySelector('[data-field="action"] .ols-actions-cell');
                 const kebab = actionsCell.querySelector('.ols-kebab-wrap');
                 actionsCell.innerHTML = '<span class="sched-paid-note">Recorded</span>';
                 actionsCell.appendChild(kebab);
+                kebab.classList.remove('d-none'); // lalabas na ang Send Proof / View Payment Details / Void
 
                 // Keep the "View Payment Details" modal data in sync with the newly recorded payment
                 const detailsBtn = row.querySelector('.js-view-payment-details');
@@ -327,6 +802,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     detailsBtn.dataset.recorded = longDate(new Date());
                     detailsBtn.dataset.receiptUrl = data.receipt_url || '';
                 }
+
+                // Keep the "Send Proof of Payment" amount in sync too
+                const sendProofBtn = row.querySelector('.js-send-proof');
+                if (sendProofBtn) sendProofBtn.dataset.amount = data.amount_paid_display;
 
                 // Reveal "Void Payment" for the newly recorded payment
                 const voidItem = row.querySelector('.js-void-item');

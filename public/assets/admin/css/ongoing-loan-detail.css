@@ -1281,3 +1281,465 @@ html.app-skin-dark #olsVoidModal .ols-btn-danger:hover {
     background: #991b1b !important;
     border-color: #991b1b !important;
 }
+
+/* ============================================================
+   BORROWER RECEIPT — "Receipt submitted" flag + View Receipt modal
+   (idagdag sa dulo ng ongoing-loan-detail.css)
+============================================================ */
+.ols-receipt-flag {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    width: fit-content;
+    margin-top: 6px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #4a7cf7;
+}
+.ols-receipt-flag i { font-size: 0.8rem; }
+
+/* .btn-view-receipt is already defined above — just keep the icon aligned */
+.btn-view-receipt i { font-size: 0.9rem; }
+
+#olsBorrowerReceiptModal .modal-dialog { max-width: 780px; }
+
+.ols-br-modal.modal-content {
+    background: #fff;
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.18);
+    overflow: hidden;
+}
+.ols-br-modal .modal-header {
+    align-items: flex-start;
+    padding: 18px 24px 14px;
+    border-bottom: 1px solid #eef1f6;
+}
+.ols-br-modal .modal-title { font-size: 1rem; font-weight: 700; color: #1a2a3a; }
+.ols-br-sub { font-size: 0.8rem; color: #94a3b8; margin-top: 2px; }
+
+.ols-br-body {
+    display: grid;
+    grid-template-columns: 1.25fr 1fr;
+}
+
+/* ---- Left: receipt image ---- */
+.ols-br-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 340px;
+    padding: 20px;
+    background: #f8fafc;
+    border-right: 1px solid #eef1f6;
+}
+.ols-br-preview a { display: block; cursor: zoom-in; }
+.ols-br-preview img {
+    display: block;
+    max-width: 100%;
+    max-height: 420px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.12);
+}
+.ols-br-state { font-size: 0.82rem; color: #94a3b8; text-align: center; }
+.ols-br-hint { font-size: 0.72rem; color: #94a3b8; }
+
+/* ---- Right: details ---- */
+.ols-br-details { padding: 22px 24px; }
+.ols-br-amount-label { font-size: 0.72rem; font-weight: 600; color: #94a3b8; }
+.ols-br-amount {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #1a2a3a;
+    line-height: 1.2;
+    margin: 2px 0 20px;
+}
+.ols-br-list { margin: 0; display: flex; flex-direction: column; gap: 14px; }
+.ols-br-list dt { font-size: 0.72rem; font-weight: 600; color: #94a3b8; margin-bottom: 3px; }
+.ols-br-list dd { margin: 0; font-size: 0.88rem; font-weight: 600; color: #1a2a3a; overflow-wrap: anywhere; }
+.ols-br-notice {
+    margin-top: 20px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #fff8e1;
+    color: #b45309;
+    font-size: 0.76rem;
+    line-height: 1.5;
+}
+
+/* ---- Footer ---- */
+.ols-br-modal .modal-footer {
+    padding: 12px 24px;
+    border-top: 1px solid #eef1f6;
+    gap: 8px;
+}
+.ols-br-btn-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 18px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    color: #1a2a3a;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all .15s ease;
+}
+.ols-br-btn-download:hover { border-color: #4a7cf7; color: #4a7cf7; background: #eef3ff; }
+.ols-br-btn-record {
+    padding: 9px 20px;
+    border-radius: 10px;
+    border: 1px solid #1e3a8a;
+    background: #1e3a8a;
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s ease;
+}
+.ols-br-btn-record:hover { background: #172d6b; border-color: #172d6b; }
+
+@media (max-width: 767px) {
+    .ols-br-body { grid-template-columns: 1fr; }
+    .ols-br-preview {
+        min-height: 220px;
+        border-right: none;
+        border-bottom: 1px solid #eef1f6;
+    }
+}
+
+/* ---------- Dark mode ---------- */
+html.app-skin-dark .ols-receipt-flag { color: #9db8ff !important; }
+html.app-skin-dark .ols-br-modal.modal-content { background: #141414 !important; }
+html.app-skin-dark .ols-br-modal .modal-header,
+html.app-skin-dark .ols-br-modal .modal-footer { border-color: #262626 !important; }
+html.app-skin-dark .ols-br-modal .modal-title,
+html.app-skin-dark .ols-br-amount,
+html.app-skin-dark .ols-br-list dd { color: #F5F5F5 !important; }
+html.app-skin-dark .ols-br-sub,
+html.app-skin-dark .ols-br-amount-label,
+html.app-skin-dark .ols-br-list dt,
+html.app-skin-dark .ols-br-state,
+html.app-skin-dark .ols-br-hint { color: #9A9A9A !important; }
+html.app-skin-dark .ols-br-preview { background: #0d0d0d !important; border-color: #262626 !important; }
+html.app-skin-dark .ols-br-preview img { box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); }
+html.app-skin-dark .ols-br-notice { background: rgba(245,158,11,.18) !important; color: #fbbf24 !important; }
+html.app-skin-dark .ols-br-modal .btn-close { filter: invert(1) grayscale(1); }
+html.app-skin-dark .ols-br-btn-download {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .ols-br-btn-download:hover {
+    background: #262626 !important;
+    border-color: #4a4a4a !important;
+}
+html.app-skin-dark .ols-br-btn-record {
+    background: #262626 !important;
+    border-color: #3a3a3a !important;
+    color: #fff !important;
+}
+html.app-skin-dark .ols-br-btn-record:hover { background: #3a3a3a !important; }
+
+/* ============================================================
+   ACTION BUTTONS — bagong design (idagdag sa DULO ng ongoing-loan-detail.css,
+   pagkatapos ng naunang block, para ito ang mag-override)
+============================================================ */
+
+/* ---------- View Receipt (light gray) ---------- */
+.btn-view-receipt {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    background: #f3f4f6;
+    color: #1f2937;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+.btn-view-receipt i { font-size: 1rem; color: #475569; }
+.btn-view-receipt:hover {
+    background: #e5e7eb;
+    border-color: #d1d5db;
+    color: #111827;
+}
+.btn-view-receipt:hover i { color: #111827; }
+
+/* ---------- Record Payment (dark filled) ---------- */
+.btn-record-payment {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    border-radius: 10px;
+    border: 1px solid #1f2937;
+    background: #1f2937;
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+.btn-record-payment i { font-size: 1rem; }
+.btn-record-payment:hover:not(:disabled) {
+    background: #111827;
+    border-color: #111827;
+    color: #fff;
+}
+
+/* ---------- Dropdown arrow (light gray square) ---------- */
+.ols-kebab-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    background: #f3f4f6;
+    color: #475569;
+}
+.ols-kebab-btn:hover {
+    background: #e5e7eb;
+    border-color: #d1d5db;
+    color: #111827;
+}
+
+/* ---------- Dark mode ---------- */
+html.app-skin-dark .btn-view-receipt i { color: #9A9A9A !important; }
+html.app-skin-dark .btn-record-payment {
+    background: #F5F5F5 !important;
+    border-color: #F5F5F5 !important;
+    color: #0A0A0A !important;
+}
+html.app-skin-dark .btn-record-payment:hover:not(:disabled) {
+    background: #D4D4D4 !important;
+    border-color: #D4D4D4 !important;
+    color: #0A0A0A !important;
+}
+
+/* ============================================================
+   CUSTOM DATE PICKER (Date Paid)
+   Idagdag sa DULO ng ongoing-loan-detail.css
+============================================================ */
+.ols-date-wrap { position: relative; }
+.ols-date-input { cursor: pointer; padding-right: 40px; }
+.ols-date-icon {
+    position: absolute;
+    right: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1rem;
+    color: #64748b;
+    pointer-events: none;
+}
+
+.ols-dp {
+    position: fixed;
+    z-index: 5;
+    width: 320px;
+    max-width: calc(100vw - 16px);
+    padding: 16px 16px 18px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
+    font-size: 0.85rem;
+    color: #1a2a3a;
+    text-align: left;
+}
+.ols-dp button { font-family: inherit; }
+
+.ols-dp-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+.ols-dp-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: -6px;
+    padding: 4px 8px;
+    border: none;
+    border-radius: 8px;
+    background: none;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1a2a3a;
+    cursor: pointer;
+}
+.ols-dp-title:hover { background: #f1f3f8; }
+.ols-dp-title i { font-size: 1rem; color: #64748b; }
+
+.ols-dp-nav { display: flex; gap: 4px; }
+.ols-dp-navbtn {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background: none;
+    color: #475569;
+    cursor: pointer;
+}
+.ols-dp-navbtn:hover:not(:disabled) { background: #f1f3f8; }
+.ols-dp-navbtn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.ols-dp-weekdays,
+.ols-dp-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+.ols-dp-weekdays span {
+    padding: 6px 0;
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #94a3b8;
+}
+.ols-dp-grid { row-gap: 2px; }
+
+.ols-dp-day {
+    width: 36px;
+    height: 36px;
+    margin: 0 auto;
+    border: 1px solid transparent;
+    border-radius: 50%;
+    background: none;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #1a2a3a;
+    cursor: pointer;
+}
+.ols-dp-day:hover:not(:disabled):not(.is-selected) { background: #f1f3f8; }
+.ols-dp-day.is-today { border-color: #94a3b8; }
+.ols-dp-day.is-selected {
+    background: #1e3a8a;
+    border-color: #1e3a8a;
+    color: #fff;
+    font-weight: 700;
+}
+.ols-dp-day:disabled { color: #cbd5e1; cursor: not-allowed; }
+
+/* Year grid (lalabas kapag na-click ang "October 2026") */
+.ols-dp-years {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px 4px;
+    max-height: 252px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+.ols-dp-year {
+    height: 36px;
+    border: none;
+    border-radius: 18px;
+    background: none;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: #1a2a3a;
+    cursor: pointer;
+}
+.ols-dp-year:hover:not(.is-selected) { background: #f1f3f8; }
+.ols-dp-year.is-selected { background: #1e3a8a; color: #fff; font-weight: 700; }
+
+/* ---------- Dark mode ---------- */
+html.app-skin-dark .ols-date-icon { color: #9A9A9A !important; }
+html.app-skin-dark .ols-dp {
+    background: #1c1c1c !important;
+    border-color: #3a3a3a !important;
+    color: #F5F5F5 !important;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+}
+html.app-skin-dark .ols-dp-title,
+html.app-skin-dark .ols-dp-day,
+html.app-skin-dark .ols-dp-year { color: #F5F5F5 !important; }
+html.app-skin-dark .ols-dp-title i { color: #9A9A9A !important; }
+html.app-skin-dark .ols-dp-title:hover,
+html.app-skin-dark .ols-dp-navbtn:hover:not(:disabled),
+html.app-skin-dark .ols-dp-day:hover:not(:disabled):not(.is-selected),
+html.app-skin-dark .ols-dp-year:hover:not(.is-selected) { background: #2a2a2a !important; }
+html.app-skin-dark .ols-dp-navbtn { color: #C4C4C4 !important; }
+html.app-skin-dark .ols-dp-weekdays span { color: #9A9A9A !important; }
+html.app-skin-dark .ols-dp-day.is-today { border-color: #6b6b6b !important; }
+html.app-skin-dark .ols-dp-day.is-selected,
+html.app-skin-dark .ols-dp-year.is-selected {
+    background: #F5F5F5 !important;
+    border-color: #F5F5F5 !important;
+    color: #0A0A0A !important;
+}
+html.app-skin-dark .ols-dp-day:disabled { color: #4a4a4a !important; }
+
+/* ============================================================
+   "CHANGE" BUTTON — borrower receipt card (#olsUseOwnReceiptBtn)
+   Quiet secondary action: matches View Receipt / dropdown arrow tone.
+============================================================ */
+.ols-link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    padding: 7px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #f3f4f6;
+    color: #1f2937;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background .15s ease, border-color .15s ease, color .15s ease, transform .1s ease;
+}
+.ols-link-btn i {
+    font-size: 0.85rem;
+    color: #475569;
+    transition: transform .25s ease, color .15s ease;
+}
+.ols-link-btn:hover {
+    background: #e5e7eb;
+    border-color: #d1d5db;
+    color: #111827;
+}
+.ols-link-btn:hover i {
+    color: #111827;
+    transform: rotate(180deg);
+}
+.ols-link-btn:active { transform: scale(0.97); }
+.ols-link-btn:focus-visible {
+    outline: none;
+    border-color: #1e3a8a;
+    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.18);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ols-link-btn,
+    .ols-link-btn i { transition: none; }
+    .ols-link-btn:hover i { transform: none; }
+    .ols-link-btn:active { transform: none; }
+}
+
+/* ---------- Dark mode ---------- */
+html.app-skin-dark .ols-link-btn {
+    background: #262626 !important;
+    border-color: #3a3a3a !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .ols-link-btn i { color: #9A9A9A !important; }
+html.app-skin-dark .ols-link-btn:hover {
+    background: #3a3a3a !important;
+    border-color: #4a4a4a !important;
+    color: #fff !important;
+}
+html.app-skin-dark .ols-link-btn:hover i { color: #fff !important; }
+html.app-skin-dark .ols-link-btn:focus-visible {
+    border-color: #6b6b6b !important;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08) !important;
+}

@@ -4,6 +4,7 @@
 
 @section('page-head-links')
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/loan-details.css') }}?v={{ time() }}">
+    <link rel="stylesheet" href="{{ asset('assets/borrower/css/payment-receipt.css') }}?v={{ time() }}">
 @endsection
 
 @section('content')
@@ -132,7 +133,7 @@
                     </div>
 
                     {{-- Row 1 — the loan's terms --}}
-                    <div class="bwl-ld-stat-grid">
+                    <div class="bwl-ld-stat-grid bwl-ld-stat-grid--three">
                         <div class="bwl-ld-stat-card">
                             <span class="bwl-ld-stat-label">Loan Amount</span>
                             <div class="bwl-ld-stat-value">₱{{ number_format($app->loan_amount, 2) }}</div>
@@ -140,10 +141,6 @@
                         <div class="bwl-ld-stat-card">
                             <span class="bwl-ld-stat-label">Loan Term</span>
                             <div class="bwl-ld-stat-value">{{ (int) $app->loan_term }} Months</div>
-                        </div>
-                        <div class="bwl-ld-stat-card">
-                            <span class="bwl-ld-stat-label">Interest Rate</span>
-                            <div class="bwl-ld-stat-value">{{ number_format($app->interest_rate, 2) }}% Monthly</div>
                         </div>
                         <div class="bwl-ld-stat-card">
                             <span class="bwl-ld-stat-label">Application Date</span>
@@ -254,11 +251,19 @@
                                         <th>Amount Due</th>
                                         <th>Status</th>
                                         <th>Date Paid</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach($paymentSchedule as $row)
-                                        <tr>
+                                        @php
+                                            $receipt   = $row['receipt'] ?? null;
+                                            $canUpload = !empty($row['can_upload']);
+                                        @endphp
+                                        {{-- data-* on the row: the upload modal reads them --}}
+                                        <tr data-installment="{{ $row['month'] }}"
+                                            data-amount="₱{{ number_format($row['amount'], 2) }}"
+                                            data-due="{{ $row['due']->format('F j, Y') }}">
                                             <td>Month {{ $row['month'] }}</td>
                                             <td>{{ $row['due']->format('F j, Y') }}</td>
                                             <td>₱{{ number_format($row['amount'], 2) }}</td>
@@ -273,6 +278,61 @@
                                             </td>
                                             <td class="bwl-ld-cell-muted">
                                                 {{ !empty($row['paid_at']) ? $row['paid_at']->format('F j, Y') : '—' }}
+                                            </td>
+                                            <td class="bwl-ld-action-cell">
+                                                @if(!empty($row['paid_at']))
+                                                    {{-- Paid: the admin's official receipt = proof the payment was received.
+                                                         data-summary is shown at the top of the modal ("Received by ..."). --}}
+                                                    @if(!empty($row['official_receipt_url']))
+                                                        @php
+                                                            $c = $row['confirmation'] ?? null;
+                                                            $summary = 'Received by ' . ($c['admin_name'] ?? 'admin')
+                                                                . ' · ₱' . number_format($c['amount'] ?? $row['amount'], 2)
+                                                                . (!empty($c['confirmed_on']) ? ' · ' . $c['confirmed_on']->format('F j, Y') : '');
+                                                        @endphp
+                                                        <button type="button" class="bwl-ld-view-btn" data-ld-view
+                                                            data-title="Payment Receipt"
+                                                            data-file-prefix="payment-receipt-month-"
+                                                            data-src="{{ $row['official_receipt_url'] }}"
+                                                            data-summary="{{ $summary }}">
+                                                            <i class="feather-file-text"></i>View Receipt
+                                                        </button>
+                                                    @else
+                                                        <span class="bwl-ld-cell-muted">—</span>
+                                                    @endif
+
+                                                @elseif($receipt && $receipt['status'] === 'submitted')
+                                                    {{-- Waiting for the admin --}}
+                                                    <div class="bwl-ld-action-group">
+                                                        <button type="button" class="bwl-ld-view-btn" data-ld-view
+                                                            data-src="{{ route('borrower.payment-receipt.view', $receipt['id']) }}">
+                                                            <i class="feather-file-text"></i>View Receipt
+                                                        </button>
+                                                        @if($canUpload)
+                                                            <button type="button" class="bwl-ld-link-btn" data-ld-upload data-mode="replace">Replace</button>
+                                                        @endif
+                                                    </div>
+
+                                                @elseif($receipt && $receipt['status'] === 'rejected')
+                                                    {{-- Admin rejected it — show why, let the borrower try again --}}
+                                                    <div class="bwl-ld-action-group">
+                                                        <span class="bwl-ld-receipt-badge is-rejected">Rejected</span>
+                                                        @if($canUpload)
+                                                            <button type="button" class="bwl-ld-link-btn" data-ld-upload data-mode="again">Upload again</button>
+                                                        @endif
+                                                    </div>
+                                                    @if(!empty($receipt['remarks']))
+                                                        <div class="bwl-ld-receipt-remarks">{{ $receipt['remarks'] }}</div>
+                                                    @endif
+
+                                                @elseif($canUpload)
+                                                    <button type="button" class="bwl-ld-upload-btn" data-ld-upload data-mode="upload">
+                                                        <i class="feather-upload"></i>Upload Receipt
+                                                    </button>
+
+                                                @else
+                                                    <span class="bwl-ld-cell-muted">—</span>
+                                                @endif
                                             </td>
                                         </tr>
                                     @endforeach
@@ -377,6 +437,105 @@
                 </div>
             @endif
 
+            {{-- ============ VIEW RECEIPT MODAL ============ --}}
+            <div class="modal fade bwl-ld-modal" id="ldViewModal" tabindex="-1"
+                aria-labelledby="ldViewTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="ldViewTitle">Receipt</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+
+                        <div class="modal-body">
+                            {{-- "Received by [admin] · amount · date" (filled by JS from data-summary) --}}
+                            <div class="bwl-ld-view-summary" id="ldViewSummary" hidden></div>
+
+                            <div class="bwl-ld-view-stage">
+                                <span class="spinner-border" id="ldViewLoading" role="status" aria-label="Loading receipt"></span>
+                                <img id="ldViewImg" alt="Receipt" hidden>
+                                <p class="bwl-ld-view-error" id="ldViewError" hidden>
+                                    We couldn't load this receipt. Please try again.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="bwl-ld-btn-ghost" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="bwl-ld-btn" id="ldViewDownload">
+                                <i class="feather-download"></i>Download
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- ============ UPLOAD RECEIPT MODAL ============ --}}
+            @if(!empty($canUploadReceipts))
+                <div class="modal fade bwl-ld-modal" id="ldReceiptModal" tabindex="-1"
+                    aria-labelledby="ldReceiptTitle" aria-hidden="true"
+                    data-submit-url="{{ url('/api/borrower/payment-receipt') }}">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <form id="ldReceiptForm" novalidate>
+                                @csrf
+                                <input type="hidden" name="application_id" value="{{ $app->application_id }}">
+                                <input type="hidden" name="installment_no" id="ldReceiptInstallment" value="">
+
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="ldReceiptTitle">Upload Receipt</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+
+                                <div class="modal-body">
+                                    <div class="bwl-ld-modal-summary">
+                                        <div>
+                                            <span class="bwl-ld-info-label">Amount Due</span>
+                                            <div class="bwl-ld-modal-summary-value" id="ldReceiptAmount">—</div>
+                                        </div>
+                                        <div>
+                                            <span class="bwl-ld-info-label">Due Date</span>
+                                            <div class="bwl-ld-modal-summary-value" id="ldReceiptDue">—</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="bwl-ld-field mb-0">
+                                        <label for="ldReceiptFile">Receipt image</label>
+                                        <div class="bwl-ld-dropzone" id="ldReceiptDrop">
+                                            {{-- The real input covers the whole box, so click and drag-and-drop both work --}}
+                                            <input type="file" class="bwl-ld-dropzone__input" id="ldReceiptFile" name="receipt"
+                                                accept="image/jpeg,image/png" title="Choose a receipt image">
+
+                                            <span class="bwl-ld-dropzone__empty" id="ldReceiptDropEmpty">
+                                                <i class="feather-image"></i>
+                                                <span class="bwl-ld-dropzone__title">Choose a receipt photo</span>
+                                                <span class="bwl-ld-dropzone__hint">or drag and drop it here · JPG or PNG, up to 5MB</span>
+                                            </span>
+
+                                            <span class="bwl-ld-dropzone__filled" id="ldReceiptDropFilled" hidden>
+                                                <img id="ldReceiptPreviewImg" alt="Receipt preview">
+                                                <span class="bwl-ld-dropzone__name" id="ldReceiptFileName"></span>
+                                                <span class="bwl-ld-dropzone__change">Click to change</span>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="bwl-ld-modal-error" id="ldReceiptError" role="alert" hidden></div>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button" class="bwl-ld-btn-ghost" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="bwl-ld-btn" id="ldReceiptSubmit" disabled>
+                                        <span class="spinner-border spinner-border-sm" id="ldReceiptSpinner" hidden aria-hidden="true"></span>
+                                        <span id="ldReceiptSubmitText">Submit Receipt</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
         @endif
 
     </div>
@@ -385,4 +544,5 @@
 
 @section('page-scripts')
     <script src="{{ asset('functions/loan-details.js') }}"></script>
+    <script src="{{ asset('functions/payment-receipt.js') }}"></script>
 @endsection
