@@ -1,3 +1,9 @@
+/* ---------- Brand colors (palitan lang dito kung gusto i-adjust) ---------- */
+:root {
+  --ran-purple: #9B7FD9;
+  --ran-purple-hover: #8566CC;
+}
+
 /* Back to Home button */
 .back-home-btn {
   position: fixed;
@@ -24,17 +30,33 @@
   font-size: 14px;
 }
 
+/* ---------- White background, walang gradient ---------- */
+#main-wrapper {
+  background: #fff !important;
+  background-image: none !important;
+}
+
 /* Push content down para hindi macover ng fixed button */
 .radial-gradient {
   padding-top: 50px;
-  background: #f3f4f6;
+  background: #fff !important;
+  background-image: none !important;
+}
+/* Alisin ang kulay-kulay na gradient overlay ng template */
+.radial-gradient::before,
+.radial-gradient::after {
+  display: none !important;
+  background: none !important;
+  background-image: none !important;
 }
 
 /* Card polish */
 .login-card {
-  border: 1px solid #e5e7eb;
-  border-radius: 8px !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+  background: #fff !important;
+  background-image: none !important;
+  border: 1px solid #d5dae1 !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
 }
 
 .tagline {
@@ -63,29 +85,28 @@
   margin-bottom: 4px;
 }
 
-/* ---------- Sign In button: solid navy, plain ---------- */
+/* ---------- Sign In button: solid purple, plain ---------- */
 #loginBtn.btn-primary {
-    background-color: #0F172A !important;
-    border-color: #0F172A !important;
+    background-color: var(--ran-purple) !important;
+    background-image: none !important;
+    border-color: var(--ran-purple) !important;
     color: #FFFFFF !important;
     border-radius: 30px !important;
 }
 #loginBtn.btn-primary:hover,
 #loginBtn.btn-primary:focus {
-    background-color: #000000 !important;
-    border-color: #000000 !important;
+    background-color: var(--ran-purple-hover) !important;
+    border-color: var(--ran-purple-hover) !important;
     box-shadow: none !important;
 }
 #loginBtn.btn-primary:active {
-    background-color: #000000 !important;
-    border-color: #000000 !important;
+    background-color: var(--ran-purple-hover) !important;
+    border-color: var(--ran-purple-hover) !important;
 }
 
 /* ---------- Sign In button: loading state ----------
-   Flex-center the content so the spinner sits dead-center
-   once the text is hidden, instead of drifting right from
-   its leftover margin. login.js toggles the `is-loading`
-   class on the button and `d-none` on the text span. */
+   Pag naka-disable o may `is-loading`, hindi na clickable,
+   at spinner lang ang makikita (text hidden via d-none sa login.js). */
 #loginBtn.btn-primary {
     display: inline-flex;
     align-items: center;
@@ -95,14 +116,22 @@
 #loginBtn.btn-primary #loginSpinner {
     margin-left: 0 !important;
 }
+#loginBtn.btn-primary:disabled,
+#loginBtn.btn-primary.is-loading {
+    background-color: var(--ran-purple) !important;
+    border-color: var(--ran-purple) !important;
+    opacity: 0.85;
+    cursor: not-allowed;
+    pointer-events: none;
+}
 
-/* ---------- Checkbox: solid navy fill ---------- */
+/* ---------- Checkbox: purple fill ---------- */
 #rememberMe.form-check-input:checked {
-    background-color: #0F172A !important;
-    border-color: #0F172A !important;
+    background-color: var(--ran-purple) !important;
+    border-color: var(--ran-purple) !important;
 }
 #rememberMe.form-check-input:focus {
-    border-color: #0F172A !important;
+    border-color: var(--ran-purple) !important;
     box-shadow: none !important;
 }
 

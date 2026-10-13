@@ -38,7 +38,15 @@ class AdminController extends Controller
     $activeBorrowers = $data->user_stats->active_borrowers;
     $pendingCount = $data->pending_count_for_admin;
     $pendingLoanCount = $data->pending_loan_count_for_admin;
-    $recentApplications = collect($data->recent_applications);
+  $recentApplications = collect($data->recent_applications);
+
+$recentUuids = DB::table('loan_applications')
+    ->whereIn('application_id', $recentApplications->pluck('application_id')->all())
+    ->pluck('uuid', 'application_id');
+
+foreach ($recentApplications as $a) {
+    $a->uuid = $recentUuids[$a->application_id] ?? null;
+}
     $overdueApplicationsCount = $data->overdue_applications_count;
     $upcomingPaymentsRaw = collect($data->upcoming_payments);
 
@@ -375,7 +383,7 @@ public function verificationDetail(Request $request, $id)
     /**
 
      */
-    private function buildAdminNotifications($adminId, $preloaded = null)
+       private function buildAdminNotifications($adminId, $preloaded = null)
 {
     $items = collect();
 
@@ -387,7 +395,6 @@ public function verificationDetail(Request $request, $id)
     } else {
         // Fallback — ginagamit ito ng notificationsIndex(), notificationOpen(),
         // notificationsMarkAllRead() na wala namang RPC data.
-       
 
         $pendingLoans = DB::table('loan_applications as la')
             ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
@@ -428,7 +435,14 @@ public function verificationDetail(Request $request, $id)
             ->flip();
     }
 
-   
+    // Kunin ang uuid ng lahat ng application na lalabas sa notifications (isang query lang).
+    // Ginagamit ito sa mga link papunta sa loan-application-detail.
+    $loanUuids = DB::table('loan_applications')
+        ->whereIn('application_id', $pendingLoans->pluck('application_id')
+            ->merge($onHoldLoans->pluck('application_id'))
+            ->unique()
+            ->all())
+        ->pluck('uuid', 'application_id');
 
     foreach ($pendingLoans as $row) {
         $name = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? ''));
@@ -438,7 +452,7 @@ public function verificationDetail(Request $request, $id)
             'subtitle' => $name !== '' ? $name : ('Application #' . $row->application_id),
             'icon'     => 'feather-file-text',
             'color'    => 'primary',
-            'url'      => route('admin.loan-application-detail', $row->application_id),
+            'url'      => route('admin.loan-application-detail', $loanUuids[$row->application_id]),
             'ts'       => $row->applied_at ?? now(),
         ]);
     }
@@ -451,7 +465,7 @@ public function verificationDetail(Request $request, $id)
             'subtitle' => $name !== '' ? $name : ('Application #' . $row->application_id),
             'icon'     => 'feather-pause-circle',
             'color'    => 'secondary',
-            'url'      => route('admin.loan-application-detail', $row->application_id),
+            'url'      => route('admin.loan-application-detail', $loanUuids[$row->application_id]),
             'ts'       => $row->applied_at ?? now(),
         ]);
     }
@@ -1049,28 +1063,33 @@ private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $i
         ]
     ));
 }
-   public function loanApplicationDetail(Request $request, $id)
+   public function loanApplicationDetail(Request $request, $uuid)
 {
     $adminId = Session::get('user_id');
-    $applicationId = (int) $id;
 
-    $app = $this->getLoanApplication($applicationId);
+    // UUID lang ang nasa URL. Ang integer na application_id ay internal na lang.
+    $internalId = DB::table('loan_applications')
+        ->where('uuid', $uuid)
+        ->value('application_id');
 
-    if (!$app) {
-        return redirect()->route('admin.loan-applications');
-    }
+    abort_if(!$internalId, 404);
+
+    $app = $this->getLoanApplication($internalId);
+
+    abort_if(!$app, 404);
 
     if ($request->isMethod('post')) {
         if ($request->filled('comment')) {
-            $this->saveLoanComment($applicationId, $adminId, $request->input('comment'));
-            return redirect()->route('admin.loan-application-detail', $applicationId);
+            $this->saveLoanComment($internalId, $adminId, $request->input('comment'));
+            return redirect()->route('admin.loan-application-detail', $uuid);
         }
 
         if ($request->filled('action')) {
-            $this->saveLoanDecision($request->merge(['application_id' => $applicationId]), $adminId);
+            // Integer ang kailangan ng saveLoanDecision, hindi ang uuid
+            $this->saveLoanDecision($request->merge(['application_id' => $internalId]), $adminId);
 
             $newStatus = DB::table('loan_applications')
-                ->where('application_id', $applicationId)
+                ->where('application_id', $internalId)
                 ->value('status');
 
             if ($request->ajax() || $request->wantsJson()) {
@@ -1087,7 +1106,7 @@ private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $i
         }
     }
 
-    // Signed URLs para sa Valid ID images (private bucket — 30 minutes validity)
+    // Signed URLs para sa Valid ID images (private bucket, 30 minutes validity)
     $idFrontUrl = !empty($app->id_file_path)
         ? Storage::disk('valid_ids')->temporaryUrl($app->id_file_path, now()->addMinutes(30))
         : null;
@@ -1099,22 +1118,21 @@ private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $i
         'app' => $app,
         'address' => $this->getBorrowerAddress($app->detail_id),
         'work' => $this->getBorrowerWork($app->detail_id),
-        'applicationId' => $applicationId,
+        'applicationId' => $uuid, // uuid na para gumana ang route() sa Blade forms
         'adminId' => $adminId,
         'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
         'idFrontUrl' => $idFrontUrl,
         'idBackUrl' => $idBackUrl,
-        'myReview' => $this->getMyLoanReview($applicationId, $adminId),
-        'allReviews' => $this->getAllLoanReviews($applicationId),
-        'approvedCount' => $this->getLoanApprovedCount($applicationId),
-        'comments' => $this->getLoanComments($applicationId),
-        'paymentSchedule' => $this->getPaymentSchedule($applicationId),
+        'myReview' => $this->getMyLoanReview($internalId, $adminId),
+        'allReviews' => $this->getAllLoanReviews($internalId),
+        'approvedCount' => $this->getLoanApprovedCount($internalId),
+        'comments' => $this->getLoanComments($internalId),
+        'paymentSchedule' => $this->getPaymentSchedule($internalId),
         'pendingCount' => $this->getPendingVerificationCount($adminId),
         'pendingLoanCount' => $this->getPendingLoanCount($adminId),
         'viewStatus' => $app->status,
     ]);
 }
-
     public function activeBorrowerDetail(Request $request, $id)
     {
         $adminId = Session::get('user_id');
@@ -1784,14 +1802,36 @@ public function voidPayment(Request $request, $id)
             ->get();
     }
 
-    private function buildLoanApplicationsListData($adminId, $viewStatus = 'pending')
+        private function buildLoanApplicationsListData($adminId, $viewStatus = 'pending')
     {
         $row = DB::selectOne('SELECT admin_loan_applications_list_data(?, ?) as data', [$adminId, $viewStatus]);
         $data = json_decode($row->data);
 
-        $pendingApplications = collect($data->pending_applications ?? [])->map(function ($a) {
+        $pendingRaw = collect($data->pending_applications ?? []);
+        $reviewedApplications = collect($data->reviewed_applications ?? []);
+        $filteredApplications = collect($data->filtered_applications ?? []);
+
+        // Isang query para kunin ang uuid ng lahat ng application sa tatlong listahan
+        $uuids = DB::table('loan_applications')
+            ->whereIn('application_id', $pendingRaw->pluck('application_id')
+                ->merge($reviewedApplications->pluck('application_id'))
+                ->merge($filteredApplications->pluck('application_id'))
+                ->unique()
+                ->values()
+                ->all())
+            ->pluck('uuid', 'application_id');
+
+        foreach ($reviewedApplications as $a) {
+            $a->uuid = $uuids[$a->application_id] ?? null;
+        }
+        foreach ($filteredApplications as $a) {
+            $a->uuid = $uuids[$a->application_id] ?? null;
+        }
+
+        $pendingApplications = $pendingRaw->map(function ($a) use ($uuids) {
             return [
                 'application_id' => $a->application_id,
+                'uuid' => $uuids[$a->application_id] ?? null,
                 'last_name' => $a->last_name,
                 'first_name' => $a->first_name,
                 'middle_name' => $a->middle_name,
@@ -1808,9 +1848,6 @@ public function voidPayment(Request $request, $id)
             ];
         })->all();
 
-        $reviewedApplications = collect($data->reviewed_applications ?? []);
-        $filteredApplications = collect($data->filtered_applications ?? []);
-
         $pendingLoanCount = count($pendingApplications);
         $newApplicationsCount = $data->new_applications_count ?? 0;
         $needsAttentionCount = $data->needs_attention_count ?? 0;
@@ -1821,7 +1858,6 @@ public function voidPayment(Request $request, $id)
             'newApplicationsCount', 'needsAttentionCount', 'totalApprovedCount'
         );
     }
-
     public function penaltyTracking(Request $request)
     {
         $adminId = Session::get('user_id');

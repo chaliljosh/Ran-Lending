@@ -18,7 +18,9 @@
   --cal-border:    #ECECE3;   /* mas manipis/mas light na border */
   --cal-danger:    #DC3545;
   --cal-danger-bg: #FDECEC;
-  --cal-font-head: 'Space Grotesk', sans-serif;
+  /* Manrope ang nauuna kasi ito ang naka-load sa page (400-800).
+     Ang Space Grotesk ay hindi naka-load, kaya Arial-bold ang lumalabas dati. */
+  --cal-font-head: 'Manrope', 'Space Grotesk', sans-serif;
   --cal-font-body: 'Inter', sans-serif;
 }
 
@@ -55,10 +57,33 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
 }
 #header .logo { margin-right: auto; }
+
+/* ---- Logo (RAN) sa kaliwa ng "RAN Serenity" ---- */
+#header .logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+#header .logo .logo-img {
+  display: block;
+  height: 54px;
+  width: auto;
+  max-height: none;
+  margin: 0;
+  flex-shrink: 0;
+  object-fit: contain;
+  border-radius: 10px;
+}
+@media (max-width: 575px) {
+  #header .logo { gap: 8px; }
+  #header .logo .logo-img { height: 42px; }
+}
+
 #header .sitename,
 #header .logo h1 {
   color: var(--cal-text) !important;
-  font-family: var(--cal-font-head) !important;
+  /* Dating font ng pangalan sa navbar (hindi Manrope) */
+  font-family: 'Space Grotesk', sans-serif !important;
   font-size: 1.4rem;
   font-weight: 700;
   letter-spacing: -0.2px;
@@ -510,6 +535,29 @@ h1, h2, h3, h4, h5, h6 {
 
 .hero-text {
   max-width: 700px;
+}
+
+/* ---- Mas magaang bold sa calculator card ---- */
+.calc-card h3,
+.calc-row .calc-value,
+.calc-summary .sum-amount {
+  font-weight: 700 !important;
+}
+
+/* ---- Calculator card: mas maliit nang kaunti + usog sa kanan (desktop lang) ----
+   --calc-scale : 1 = orihinal na laki, 0.92 = 8% na mas maliit
+   --calc-shift : gaano kalayo ang usog sa kanan */
+@media (min-width: 901px) {
+  .calc-card {
+    --calc-scale: 0.92;
+    --calc-shift: 24px;
+    zoom: var(--calc-scale);
+    position: relative;
+    left: var(--calc-shift);
+  }
+}
+@media (min-width: 1400px) {
+  .calc-card { --calc-shift: 56px; }
 }
 /* ============================================================
    DARK MODE

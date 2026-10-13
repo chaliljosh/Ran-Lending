@@ -22,7 +22,7 @@ function decisionShowConfirm(action) {
         icon.className = 'feather-check';
         text.textContent = 'Approve loan application?';
         subtext.textContent = 'Are you sure you want to approve this loan application? This action cannot be undone.';
-        confirmBtn.className = 'btn-decision btn-decision-black';
+        confirmBtn.className = 'btn-decision btn-decision-approve'; // green #477553
         confirmBtn.textContent = 'Approve';
     } else {
         headerTitle.textContent = 'Reject loan application';
@@ -42,6 +42,12 @@ function decisionBackToStep1() {
     document.getElementById('decisionFooterStep2').style.display = 'none';
     document.getElementById('decisionActionInput').value = '';
     document.getElementById('decisionModalLabel').textContent = 'Review Loan Application';
+
+    // Reset confirm button back to its default look
+    const confirmBtn = document.getElementById('decisionConfirmBtn');
+    if (confirmBtn) {
+        confirmBtn.className = 'btn-decision btn-decision-black';
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function () {

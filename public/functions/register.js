@@ -28,6 +28,18 @@ function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+/* ── Age check: 18 years old pataas lang ──
+   Kinukumpara ang birthday sa petsang eksaktong 18 taon na ang nakalipas
+   mula ngayon, para tama kahit hindi pa dumarating ang birthday ngayong taon. */
+const MIN_AGE = 18;
+
+function isAtLeastMinAge(year, month, day) {
+  const today  = new Date();
+  const cutoff = new Date(today.getFullYear() - MIN_AGE, today.getMonth(), today.getDate());
+  const birth  = new Date(year, month - 1, day);
+  return birth <= cutoff;
+}
+
 /* ── CSRF token (kailangan sa bawat POST request papunta sa Laravel) ── */
 function getCsrfToken() {
   const meta = document.querySelector('meta[name="csrf-token"]');
@@ -189,8 +201,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // ── SIGN UP
   const signupBtn = document.getElementById('signupBtn');
+
+  // Loading state: naka-disable ang button at spinner lang ang makikita.
+  // Ang `is-loading` class ang nagtatago ng label at nagpapakita ng
+  // spinner (see .btn-signup rules sa register.css).
+  function showLoading() {
+    signupBtn.disabled = true;
+    signupBtn.classList.add('is-loading');
+  }
+  function hideLoading() {
+    signupBtn.disabled = false;
+    signupBtn.classList.remove('is-loading');
+  }
+
   if (signupBtn) {
     signupBtn.addEventListener('click', function () {
+      // Iwas double-click habang naglo-load pa
+      if (signupBtn.disabled) return;
+
       hideError();
 
       const lastName        = document.getElementById('lastName').value.trim();
@@ -221,6 +249,12 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
 
+      // ✅ 18 years old pataas lang
+      if (!isAtLeastMinAge(parseInt(birthYear, 10), parseInt(birthMonth, 10), parseInt(birthDay, 10))) {
+        showError('You must be 18 years old or above to register.');
+        return;
+      }
+
       const failing = validatePassword(password);
       if (failing.length > 0) {
         showError('Password must include: ' + failing.join(', ') + '.');
@@ -234,10 +268,7 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
 
-      signupBtn.disabled = true;
-      // ---- Loading state: spinner icon na lang, walang text
-      //      (kagaya ng ibang "black button" loading states sa app) ----
-      signupBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+      showLoading();
 
       const formData = new FormData();
       formData.append('lastName',        lastName);
@@ -257,8 +288,7 @@ document.addEventListener('DOMContentLoaded', function () {
       })
       .then(res => res.json().then(data => ({ status: res.status, ok: res.ok, data })))
       .then(({ ok, data }) => {
-        signupBtn.disabled = false;
-        signupBtn.innerHTML = 'Create Account';
+        hideLoading();
 
         if (data.success) {
           pendingRegisterEmail = data.email;
@@ -279,8 +309,7 @@ document.addEventListener('DOMContentLoaded', function () {
       })
       .catch(() => {
         showError('Unable to reach the server. Please check your connection and try again.');
-        signupBtn.disabled = false;
-        signupBtn.innerHTML = 'Create Account';
+        hideLoading();
       });
     });
   }

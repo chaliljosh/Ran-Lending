@@ -19,7 +19,7 @@
   <!-- Back to Home -->
   <div class="back-btn-bar">
     <a href="{{ url('/') }}" class="back-btn">
-      Back to Home
+      <i class="bi bi-arrow-left"></i> Back to Home
     </a>
   </div>
 

@@ -227,7 +227,7 @@
                                             $initials = strtoupper(substr($nameParts[0] ?? '', 0, 1) . substr(end($nameParts), 0, 1));
                                             $avatarColor = $avatarColors[$loop->index % count($avatarColors)];
                                         @endphp
-                                        <tr data-href="{{ route('admin.loan-application-detail', $app->application_id) }}">
+                                     <tr data-href="{{ route('admin.loan-application-detail', $app->uuid) }}">
                                             <td>
                                                 <div class="adm-table-borrower">
                                                     <span class="adm-table-name">{{ $app->borrower_name }}</span>

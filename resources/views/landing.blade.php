@@ -41,6 +41,7 @@
   <link href="{{ asset('assets/landingpage/css/section.css') }}" rel="stylesheet">
   <link href="{{ asset('assets/landingpage/css/user-menu.css') }}" rel="stylesheet">
   <link href="{{ asset('assets/landingpage/css/theme-calamansi.css') }}" rel="stylesheet">
+</head>
 
 <body class="index-page">
 
@@ -50,7 +51,8 @@
   <header id="header" class="header d-flex align-items-center fixed-top">
     <div class="container-fluid container-xl position-relative d-flex align-items-center">
       <a href="/" class="logo d-flex align-items-center me-auto">
-        <h1 class="sitename">Ran Serenity</h1>
+        <img src="{{ asset('assets/landingpage/img/ranlogo.png') }}" alt="Ran Serenity logo" class="logo-img">
+        <h1 class="sitename">RAN Serenity</h1>
       </a>
       <nav id="navmenu" class="navmenu">
         <ul>
@@ -116,7 +118,6 @@
               </a>
               <a href="{{ route('admin.dashboard', ['open' => 'settings']) }}" class="landing-user-dd-item">
                 <i class="bi bi-gear"></i> Account Settings
-              </a>
               </a>
           @else
   {{-- BORROWER: Dashboard, My Profile, tapos Account Settings --}}
@@ -473,7 +474,7 @@
           <div class="footer-contact pt-3">
             <p>Olongapo, PH</p>
             <p class="mt-3"><strong>Phone:</strong> <span>+639691898835</span></p>
-            <p><strong>Email:</strong> <span>ranserenity77@gmail.com/span></p>
+            <p><strong>Email:</strong> <span>ranserenity77@gmail.com</span></p>
           </div>
           <div class="social-links d-flex mt-4">
             <a href=""><i class="bi bi-twitter-x"></i></a>

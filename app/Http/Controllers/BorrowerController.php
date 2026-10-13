@@ -649,6 +649,7 @@ class BorrowerController extends Controller
                 ]);
 
                 $applicationId = DB::table('loan_applications')->insertGetId([
+                    'uuid'            => (string) Str::uuid(),
                     'user_id'         => $userId,
                     'loan_amount'     => $loanAmount,
                     'loan_term'       => $loanTerm,

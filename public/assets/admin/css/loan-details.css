@@ -80,6 +80,28 @@ body { background: #fff; }
     color: #fff;
 }
 
+
+.btn.btn-decision-review {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #465D78 !important;
+    border: 1px solid #465D78 !important;
+    color: #FFFFFF !important;
+    border-radius: 10px !important;
+    font-weight: 600;
+    padding: 11px 24px;
+    font-size: 0.87rem;
+    text-transform: none;
+}
+.btn.btn-decision-review:hover,
+.btn.btn-decision-review:focus {
+    background: #3a4e64 !important;
+    border-color: #3a4e64 !important;
+    color: #FFFFFF !important;
+}
+
 /* ============================================================
    HEADER CARD — borrower profile (left) + loan stats (right)
    Wide card at the top of the page, replacing the old sidebar
@@ -467,10 +489,9 @@ html.app-skin-dark .ld-review-table tbody td { color: #e2e8f0; border-color: #2d
    #decisionModal only so it doesn't affect modal-modern usage
    elsewhere in the app.
 
-   Buttons are solid black (matching .btn-decision-black used
-   for the "Make a decision" trigger) instead of blue/red — the
-   icon circle color (green check / red x) is what carries the
-   approve-vs-reject visual meaning, not the button color.
+   Approve button is green (#526B5D); Reject is outlined red;
+   Cancel is outlined neutral. The Step 2 confirm button is
+   green for Approve and black for Reject (set from JS).
    ============================================================ */
 #decisionModal .modal-content {
     border: 1px solid var(--rs-border);
@@ -561,6 +582,7 @@ html.app-skin-dark .ld-review-table tbody td { color: #e2e8f0; border-color: #2d
 #decisionModal .modal-detail-label { color: var(--rs-muted); font-weight: 500; }
 #decisionModal .modal-detail-value { color: var(--rs-ink); font-weight: 600; }
 
+/* Base size for ALL modal buttons (Cancel / Reject / Approve / Confirm) */
 .btn-decision {
     font-size: 0.85rem;
     font-weight: 600;
@@ -582,6 +604,28 @@ html.app-skin-dark .ld-review-table tbody td { color: #e2e8f0; border-color: #2d
     color: var(--rs-red);
 }
 .btn-decision-reject:hover { background: var(--rs-red-soft); }
+
+/* ── Approve button (sage green #526B5D) — color only, size comes from .btn-decision ── */
+.btn-decision-approve {
+    background: #526B5D;
+    border-color: #526B5D;
+    color: #fff;
+}
+.btn-decision-approve:hover,
+.btn-decision-approve:focus {
+    background: #445a4e;
+    border-color: #445a4e;
+    color: #fff;
+}
+
+/* Make the black Step 2 confirm button (Reject) the same size as
+   the other modal buttons. Scoped to #decisionModal so
+   .btn-decision-black elsewhere is untouched. */
+#decisionModal .btn-decision.btn-decision-black {
+    padding: 9px 18px;
+    font-size: 0.85rem;
+    border-radius: 8px;
+}
 
 #decisionModal textarea#decisionRemarks {
     border-radius: 10px;
@@ -643,6 +687,19 @@ html.app-skin-dark .btn-decision-cancel { background: #141414 !important; border
 html.app-skin-dark .btn-decision-cancel:hover { border-color: #3d3d3d !important; }
 html.app-skin-dark .btn-decision-reject { background: #141414 !important; border-color: rgba(220,38,38,.35) !important; color: #f87171 !important; }
 html.app-skin-dark .btn-decision-reject:hover { background: rgba(220,38,38,.15) !important; }
+
+/* Approve button — dark mode */
+html.app-skin-dark .btn-decision-approve {
+    background: #526B5D !important;
+    border-color: #526B5D !important;
+    color: #fff !important;
+}
+html.app-skin-dark .btn-decision-approve:hover,
+html.app-skin-dark .btn-decision-approve:focus {
+    background: #61806e !important;
+    border-color: #61806e !important;
+    color: #fff !important;
+}
 
 html.app-skin-dark .id-thumb-wrap img { border-color: #262626 !important; }
 html.app-skin-dark .ld-review-table thead th { color: #9A9A9A !important; border-color: #262626 !important; }

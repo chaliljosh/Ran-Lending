@@ -682,17 +682,7 @@
             }
         });
 
-         document.addEventListener('DOMContentLoaded', function () {
-            var miniBtn = document.getElementById('menu-mini-button');
-            var expandBtn = document.getElementById('menu-expend-button');
-
-            function toggleSidebarMiniMode() {
-                document.body.classList.toggle('sidebar-mini-mode');
-            }
-
-            if (miniBtn) miniBtn.addEventListener('click', toggleSidebarMiniMode);
-            if (expandBtn) expandBtn.addEventListener('click', toggleSidebarMiniMode);
-        });
+        
     </script>
 
     {{-- Page-specific scripts go here --}}

@@ -73,23 +73,34 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     function hideError() { errorAlert.classList.add('d-none'); }
 
-    // Swaps the "Sign In" label for the spinner (instead of just
-    // clearing the text) so the button keeps a clean, centered
-    // loading state — see the #loginBtn flex rules in login.css.
+    // Disables the button and swaps the "Sign In" label for the
+    // spinner only. See the #loginBtn rules in login.css.
     function showLoading() {
         loginBtn.disabled = true;
+        loginBtn.classList.add('is-loading');
         loginBtnText.classList.add('d-none');
         loginSpinner.classList.remove('d-none');
     }
     function hideLoading() {
         loginBtn.disabled = false;
+        loginBtn.classList.remove('is-loading');
         loginBtnText.classList.remove('d-none');
         loginSpinner.classList.add('d-none');
     }
 
+    // Kapag bumalik ang user via Back button (cached page), i-reset
+    // ang button para hindi ito stuck sa loading.
+    window.addEventListener('pageshow', function (e) {
+        if (e.persisted) hideLoading();
+    });
+
     /* Form Submit */
     loginForm.addEventListener('submit', function (e) {
         e.preventDefault();
+
+        // Iwas double-submit habang naglo-load pa
+        if (loginBtn.disabled) return;
+
         hideError();
 
         const email    = emailInput.value.trim();
@@ -115,8 +126,8 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .then(res => res.json())
         .then(data => {
-            hideLoading();
             if (!data.success) {
+                hideLoading();
                 showError(data.message || 'Something went wrong. Please try again.');
                 passwordInput.value = '';
                 passwordInput.focus();
@@ -127,8 +138,9 @@ document.addEventListener('DOMContentLoaded', function () {
             } else {
                 localStorage.removeItem('rememberedEmail');
             }
-            // Walang OTP step — diretso nang mag-redirect pagkatapos
-            // ma-verify ang email/password sa /api/login.
+            // Success: sinadya na HINDI tinatawag ang hideLoading() dito,
+            // para nakadisable pa rin ang button + spinner hanggang
+            // matapos ang redirect.
             broadcastLogin(data.redirect);
             window.location.href = data.redirect;
         })

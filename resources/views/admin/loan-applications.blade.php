@@ -136,7 +136,7 @@
     data-applied="{{ \Carbon\Carbon::parse($app['applied_at'])->toIso8601String() }}"
     data-new="{{ $isNewApplication ? '1' : '0' }}"
     data-attention="{{ $waitingDays >= 3 ? '1' : '0' }}"
-    data-href="{{ route('admin.loan-application-detail', $app['application_id']) }}"
+    data-href="{{ route('admin.loan-application-detail', $app['uuid']) }}"
     class="la-clickable-row {{ $waitingDays >= 3 ? 'is-attention-row' : '' }}">
                                         <td>
                                             <div class="rt-name">{{ $app['last_name'] }}, {{ $app['first_name'] }}</div>
@@ -163,7 +163,7 @@
                                             @endif
                                         </td>
                                         <td class="text-end">
-                                            <a href="{{ route('admin.loan-application-detail', $app['application_id']) }}"
+                                            <a href="{{ route('admin.loan-application-detail', $app['uuid']) }}"
                                                 class="btn-light">Review</a>
                                         </td>
                                     </tr>
@@ -256,7 +256,7 @@
                                     @endphp
                                  <tr data-search="{{ strtolower($r->last_name . ' ' . $r->first_name . ' ' . $r->email) }}"
     data-decision="{{ $decisionLower }}"
-    data-href="{{ route('admin.loan-application-detail', $r->application_id) }}"
+    data-href="{{ route('admin.loan-application-detail', $r->uuid) }}"
     class="la-clickable-row">
                                         <td>
                                             <div class="rt-name">{{ $r->last_name }}, {{ $r->first_name }}</div>
@@ -278,7 +278,7 @@
                                             </span>
                                         </td>
                                         <td class="text-end">
-                                            <a href="{{ route('admin.loan-application-detail', $r->application_id) }}"
+                                            <a href="{{ route('admin.loan-application-detail', $r->uuid) }}"
                                                 class="btn-light">View Details</a>
                                         </td>
                                     </tr>
@@ -378,7 +378,7 @@
                                 @foreach ($filteredApplications as $app)
                          <tr
     data-search="{{ strtolower($app->last_name . ' ' . $app->first_name . ' ' . $app->email) }}"
-    data-href="{{ route('admin.loan-application-detail', $app->application_id) }}"
+    data-href="{{ route('admin.loan-application-detail', $app->uuid) }}"
     class="la-clickable-row">
                                         <td>
                                             <div class="rt-name">{{ $app->last_name }}, {{ $app->first_name }}</div>
@@ -402,7 +402,7 @@
                                             @endif
                                         </td>
                                         <td class="text-end">
-                                            <a href="{{ route('admin.loan-application-detail', $app->application_id) }}"
+                                            <a href="{{ route('admin.loan-application-detail', $app->uuid) }}"
                                                 class="btn-light">Review</a>
                                         </td>
                                     </tr>

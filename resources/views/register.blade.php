@@ -8,18 +8,12 @@
 <link href="{{ asset('assets/landingpage/img/ranlogo1.jpg') }}" rel="icon">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ asset('assets/login/css/styles.min.css') }}" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ asset('assets/login/css/register.css') }}" />
   <link rel="stylesheet" href="{{ asset('css/otp-modal.css') }}" />
 </head>
-<style>
-  body {
-    font-family: 'Inter', sans-serif;
-  }
-</style>
 <body>
 
   <!-- Back to Home -->
@@ -38,11 +32,10 @@
         </div>
 
         <!-- Error Alert -->
-        <!-- Error Alert -->
-<div id="registerAlert" class="alert-banner">
-  <i class="bi bi-exclamation-circle-fill alert-icon"></i>
-  <span id="registerAlertText"></span>
-</div>
+        <div id="registerAlert" class="alert-banner">
+          <i class="bi bi-exclamation-circle-fill alert-icon"></i>
+          <span id="registerAlertText"></span>
+        </div>
 
         <div class="form-grid">
 
@@ -135,6 +128,7 @@
                 </select>
               </div>
             </div>
+            <p class="field-hint">You must be 18 years old or above to register.</p>
           </div>
 
           <div class="field col-span-2">
@@ -160,9 +154,7 @@
           </div>
 
           <!-- ============================================================
-               PASSWORD STRENGTH — nailipat papunta dito, sa IBABA ng
-               Confirm Password field (dati nasa gitna, kaagad pagkatapos
-               ng Password field lang, bago pa man ang Confirm Password).
+               PASSWORD STRENGTH — nasa IBABA ng Confirm Password field.
           ============================================================ -->
           <div class="col-span-2">
             <div class="pw-strength" id="pwStrength">
@@ -200,7 +192,8 @@
 
           <div class="col-span-2">
             <button class="btn-signup" id="signupBtn">
-              Create Account
+              <span class="btn-label">Create Account</span>
+              <span class="btn-spinner"></span>
             </button>
           </div>
 

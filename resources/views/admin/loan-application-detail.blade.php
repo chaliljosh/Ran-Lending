@@ -39,7 +39,7 @@
                 @else
                     <li class="breadcrumb-item"><a href="{{ route('admin.loan-applications') }}">Loan Applications</a></li>
                 @endif
-                <li class="breadcrumb-item">#{{ $applicationId }}</li>
+           <li class="breadcrumb-item">#{{ strtoupper(substr($app->uuid, 0, 8)) }}</li>
             </ul>
         </div>
         <div class="page-header-right ms-auto">
@@ -98,7 +98,7 @@
                         {{ $app->first_name }} {{ $app->last_name }}
                     </h6>
                     <p class="ld-header-meta mb-2">
-                        <span>Application ID: <strong>#{{ $app->application_id }}</strong></span>
+                      <span>Application ID: <strong>#{{ strtoupper(substr($app->uuid, 0, 8)) }}</strong></span>
                         <span class="ld-header-meta-sep">&bull;</span>
                         <span>Email: <a href="mailto:{{ $app->email }}">{{ $app->email }}</a></span>
                     </p>
@@ -130,44 +130,17 @@
 
         <div class="row">
 
-            <!-- LEFT COLUMN — Loan Summary + Application Status/Decision -->
+            <!-- LEFT COLUMN — Loan Summary -->
             <div class="col-lg-4 ld-left-col">
                 <div class="ld-sticky-col">
-
-                    <!-- Application Status / Decision -->
-                    <div class="section-card mb-3">
-                        <p class="section-title">Application Status</p>
-                        <div class="text-center">
-                            @if ($app->status === 'rejected')
-                                <div class="alert alert-danger mb-0" style="font-size:0.85rem;">
-                                    <i class="feather-x-circle me-2"></i>
-                                    Fully <strong>rejected</strong> by all 3 admins. No further action.
-                                </div>
-                            @elseif($app->status === 'approved' || $app->status === 'active')
-                                <div class="alert alert-success mb-0" style="font-size:0.85rem;">
-                                    <i class="feather-check-circle me-2"></i>
-                                    Fully <strong>approved</strong>. No further action needed.
-                                </div>
-                            @elseif($myReview)
-                                <div class="alert alert-info mb-0" style="font-size:0.82rem;">
-                                    <i class="feather-check-circle me-1"></i> You have already reviewed this application.
-                                </div>
-                            @else
-                                <button type="button" class="btn btn-decision-black w-100" data-bs-toggle="modal"
-                                    data-bs-target="#decisionModal">
-                                    Make a decision
-                                </button>
-                            @endif
-                        </div>
-                    </div>
 
                     <!-- Loan Summary -->
                     <div class="section-card mb-3">
                         <p class="section-title">Loan Summary</p>
                         <div class="row g-3">
                             <div class="col-6">
-                                <div class="ld-field"><span class="info-label">Application ID</span><span
-                                        class="info-value">#{{ $app->application_id }}</span></div>
+                               <div class="ld-field"><span class="info-label">Application ID</span><span
+        class="info-value">#{{ strtoupper(substr($app->uuid, 0, 8)) }}</span></div>
                             </div>
                             <div class="col-6">
                                 <div class="ld-field"><span class="info-label">Loan Amount</span><span
@@ -487,6 +460,31 @@
                     </form>
                 </div>
 
+                <!-- Application Status / Decision — nasa pinaka-baba, right side -->
+             <div class="d-flex justify-content-end mt-4 mb-5">
+                    @if ($app->status === 'rejected')
+                        <div class="alert alert-danger mb-0" style="font-size:0.85rem;">
+                            <i class="feather-x-circle me-2"></i>
+                            Fully <strong>rejected</strong> by all 3 admins. No further action.
+                        </div>
+                    @elseif($app->status === 'approved' || $app->status === 'active')
+                        <div class="alert alert-success mb-0" style="font-size:0.85rem;">
+                            <i class="feather-check-circle me-2"></i>
+                            Fully <strong>approved</strong>. No further action needed.
+                        </div>
+                    @elseif($myReview)
+                        <div class="alert alert-info mb-0" style="font-size:0.82rem;">
+                            <i class="feather-check-circle me-1"></i> You have already reviewed this application.
+                        </div>
+                    @else
+                       <button type="button" class="btn btn-decision-review" data-bs-toggle="modal"
+    data-bs-target="#decisionModal">
+    <i class="feather-clipboard"></i>
+    Review Application
+</button>
+                    @endif
+                </div>
+
             </div>
         </div>
     </div>
@@ -575,20 +573,20 @@
 
                         </div>
 
-                        <div class="modal-footer" id="decisionFooterStep1">
-                            <button type="button" class="btn-decision btn-decision-cancel"
-                                data-bs-dismiss="modal">Cancel</button>
-                            <button type="button" class="btn-decision btn-decision-reject"
-                                onclick="decisionShowConfirm('rejected')">Reject</button>
-                            <button type="button" class="btn-decision btn-decision-black"
-                                onclick="decisionShowConfirm('approved')">Approve</button>
-                        </div>
-                        <div class="modal-footer" id="decisionFooterStep2" style="display:none;">
-                            <button type="button" class="btn-decision btn-decision-cancel"
-                                onclick="decisionBackToStep1()">Cancel</button>
-                            <button type="submit" class="btn-decision btn-decision-black"
-                                id="decisionConfirmBtn"></button>
-                        </div>
+                       <div class="modal-footer" id="decisionFooterStep1">
+    <button type="button" class="btn-decision btn-decision-cancel"
+        data-bs-dismiss="modal">Cancel</button>
+    <button type="button" class="btn-decision btn-decision-reject"
+        onclick="decisionShowConfirm('rejected')">Reject</button>
+    <button type="button" class="btn-decision btn-decision-approve"
+        onclick="decisionShowConfirm('approved')">Approve</button>
+</div>
+<div class="modal-footer" id="decisionFooterStep2" style="display:none;">
+    <button type="button" class="btn-decision btn-decision-cancel"
+        onclick="decisionBackToStep1()">Cancel</button>
+    <button type="submit" class="btn-decision btn-decision-black"
+        id="decisionConfirmBtn"></button>
+</div>
                     </form>
                 </div>
             </div>
