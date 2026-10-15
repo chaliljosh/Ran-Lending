@@ -123,7 +123,9 @@ Route::middleware(['admin', 'no-cache', 'throttle:60,1'])->prefix('admin')->name
 Route::post('/account-settings/profile-picture/remove', [AdminController::class, 'removeProfilePicture'])->name('account-settings.profile-picture.remove');
 
     Route::match(['get', 'post'], '/loan-applications', [AdminController::class, 'loanApplications'])->name('loan-applications');
-    Route::match(['get', 'post'], '/loan-application-detail/{id}', [AdminController::class, 'loanApplicationDetail'])->name('loan-application-detail');
+       Route::match(['get', 'post'], '/loan-application-detail/{id}', [AdminController::class, 'loanApplicationDetail'])
+        ->whereUuid('id')
+        ->name('loan-application-detail');
 
     // Borrower Verification detail (used from All Borrowers > View Details)
     Route::match(['get', 'post'], '/verification-detail/{id}', [AdminController::class, 'verificationDetail'])->name('verification-detail');
@@ -142,7 +144,8 @@ Route::post('/account-settings/profile-picture/remove', [AdminController::class,
     Route::get('/active-loans/ongoing', [AdminController::class, 'ongoingLoans'])->name('ongoing-loans');
 
     // Active Loans
-    Route::get('/ongoing-loan-detail/{id}', [AdminController::class, 'ongoingLoanDetail'])
+      Route::get('/ongoing-loan-detail/{id}', [AdminController::class, 'ongoingLoanDetail'])
+        ->whereUuid('id')
         ->name('ongoing-loan-detail');
 
     // Active Loans > Overdue Payments

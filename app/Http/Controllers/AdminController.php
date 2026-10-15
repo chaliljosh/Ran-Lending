@@ -769,7 +769,7 @@ private function pctChange($current, $previous)
     }
     return (int) round((($current - $previous) / $previous) * 100);
 }
-    public function ongoingLoans(Request $request)
+       public function ongoingLoans(Request $request)
     {
         $adminId = Session::get('user_id');
         $sort = $request->query('sort', 'newest');
@@ -803,6 +803,16 @@ private function pctChange($current, $previous)
             ];
         });
 
+        // Isang query para kunin ang uuid ng lahat ng ongoing loan
+        $uuids = DB::table('loan_applications')
+            ->whereIn('application_id', $ongoingLoans->pluck('application_id')->all())
+            ->pluck('uuid', 'application_id');
+
+        $ongoingLoans = $ongoingLoans->map(function ($loan) use ($uuids) {
+            $loan['uuid'] = $uuids[$loan['application_id']] ?? null;
+            return $loan;
+        });
+
         $ongoingLoans = $ongoingLoans->sortBy(
             fn ($loan) => strtotime($loan['applied_at']),
             SORT_REGULAR,
@@ -820,10 +830,18 @@ private function pctChange($current, $previous)
         ]);
     }
 
-    public function ongoingLoanDetail(Request $request, $id)
+       public function ongoingLoanDetail(Request $request, $uuid)
 {
     $adminId = Session::get('user_id');
-    $applicationId = (int) $id;
+
+    // UUID lang ang nasa URL. Ang integer na application_id ay internal na lang.
+    $applicationId = (int) DB::table('loan_applications')
+        ->where('uuid', $uuid)
+        ->value('application_id');
+
+    if (!$applicationId) {
+        return redirect()->route('admin.ongoing-loans');
+    }
 
     $app = $this->getLoanApplication($applicationId);
 

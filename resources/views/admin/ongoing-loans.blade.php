@@ -103,7 +103,7 @@
                             @foreach ($ongoingLoans as $loan)
                                 <tr data-search="{{ strtolower($loan['name'] . ' ' . $loan['email'] . ' ' . $loan['borrower_id']) }}"
                                     data-applied="{{ \Carbon\Carbon::parse($loan['applied_at'])->timestamp }}"
-                                    data-href="{{ route('admin.ongoing-loan-detail', $loan['application_id']) }}?from=ongoing-loans"
+                                    data-href="{{ route('admin.ongoing-loan-detail', $loan['uuid']) }}?from=ongoing-loans"
                                     class="rs-clickable-row">
                                     <td>
                                         <div class="borrower-cell-v2">
@@ -139,7 +139,7 @@
                                     </td>
                                     <td class="loan-amount-v2">₱{{ number_format($loan['amount_collected'], 2) }}</td>
                                     <td class="text-end">
-                                        <a href="{{ route('admin.ongoing-loan-detail', $loan['application_id']) }}?from=ongoing-loans"
+                                        <a href="{{ route('admin.ongoing-loan-detail', $loan['uuid']) }}?from=ongoing-loans"
                                             class="btn-view-v2">
                                             <i class="feather-eye"></i> View Details
                                         </a>
