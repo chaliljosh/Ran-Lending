@@ -8,12 +8,17 @@
          uses), so that stylesheet needs to load here too. --}}
     <link rel="stylesheet" href="{{ asset('assets/admin/css/loan-details.css') }}">
     {{-- Standalone stylesheet for this page only — not shared with loan-details.css --}}
-     <link rel="stylesheet" href="{{ asset('assets/admin/css/overdue-payment-detail.css') }}?v={{ time() }}">
-  <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/darkmode-global.css') }}?v={{ time() }}" />
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/overdue-payment-detail.css') }}?v={{ time() }}">
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/darkmode-global.css') }}?v={{ time() }}" />
     <link rel="stylesheet" href="{{ asset('assets/admin/css/avatar-placeholder.css') }}">
 @endsection
 
 @section('content')
+    @php
+        // Short, readable loan code galing sa uuid (hal. LN-A1B2C3D4)
+        $loanCode = 'LN-' . strtoupper(substr($loanUuid, 0, 8));
+    @endphp
+
     <div class="page-header">
         <div class="page-header-left d-flex align-items-center">
             <div class="page-header-title">
@@ -22,7 +27,7 @@
             <ul class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Home</a></li>
                 <li class="breadcrumb-item"><a href="{{ route('admin.overdue-payments') }}">Overdue Payments</a></li>
-                <li class="breadcrumb-item">#{{ $applicationId }}</li>
+                <li class="breadcrumb-item">{{ $loanCode }}</li>
             </ul>
         </div>
         <div class="page-header-right ms-auto">
@@ -62,11 +67,7 @@
                 </div>
             </div>
 
-            {{-- ============ 2 & 3. OVERDUE PAYMENT SUMMARY + ACTIONS ============
-                 Compact horizontal strip instead of a tall 2-column grid: one
-                 row of small stat fields, a hairline divider, then a single
-                 footer row with Total Outstanding (left) and the action
-                 buttons (right). --}}
+            {{-- ============ 2 & 3. OVERDUE PAYMENT SUMMARY + ACTIONS ============ --}}
             <div class="opd-card opd-overdue-card">
                 <div class="opd-card-title"> Overdue Payment</div>
 
@@ -166,7 +167,7 @@
                 <div class="opd-summary-grid">
                     <div class="opd-summary-row">
                         <span class="opd-summary-label">Application ID</span>
-                        <span class="opd-summary-value">#{{ $app->application_id }}</span>
+                        <span class="opd-summary-value">{{ $loanCode }}</span>
                     </div>
                     <div class="opd-summary-row">
                         <span class="opd-summary-label">Loan Amount</span>
@@ -216,8 +217,7 @@
         data-waive-url="{{ $penaltyId ? route('admin.penalty-waive', $penaltyId) : '' }}"
         data-csrf="{{ csrf_token() }}" style="display:none;"></div>
 
-    {{-- ============ CONFIRM: Mark as Paid ============ --}}
-                   {{-- ============ CONFIRM: Mark as Paid ============ --}}
+    {{-- ============ CONFIRM: Mark as Paid (may Date Paid + Receipt) ============ --}}
     <div class="modal fade opd-modal" id="opdConfirmPaidModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -225,19 +225,74 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-
                     <div class="opd-modal-title">Mark Payment as Paid?</div>
-                    <div class="opd-modal-desc">Are you sure you want to mark this overdue payment as paid?</div>
-                  <div class="modal-footer">
-                        <button type="button" class="opd-btn opd-btn-waive" data-bs-dismiss="modal">Cancel</button>
-                         <button type="button" class="opd-btn opd-btn-mark-paid" id="opdConfirmPaidBtn">
-                            <span id="opdConfirmPaidText"> Mark as Paid</span>
-                            <span id="opdConfirmPaidSpinner" class="spinner-border spinner-border-sm d-none"></span>
-                        </button>
-                    </div>
+                    <div class="opd-modal-desc">Please review the details before confirming.</div>
 
+                    @if ($oldestOverdue)
+                        <div class="opd-confirm-grid">
+                            <div class="opd-confirm-cell">
+                                <div class="opd-confirm-label">Borrower</div>
+                                <div class="opd-confirm-value">{{ $fullName !== '' ? $fullName : '—' }}</div>
+                            </div>
+                            <div class="opd-confirm-cell">
+                                <div class="opd-confirm-label">Loan</div>
+                                <div class="opd-confirm-value">{{ $loanCode }}</div>
+                            </div>
+                            <div class="opd-confirm-cell">
+                                <div class="opd-confirm-label">Installment</div>
+                                <div class="opd-confirm-value">#{{ $oldestOverdue->installment_no }}</div>
+                            </div>
+                            <div class="opd-confirm-cell">
+                                <div class="opd-confirm-label">Due Date</div>
+                                <div class="opd-confirm-value">
+                                    {{ \Carbon\Carbon::parse($oldestOverdue->due_date)->format('M d, Y') }}
+                                    <span class="opd-confirm-sub is-danger">{{ $daysLate }}
+                                        day{{ $daysLate == 1 ? '' : 's' }} overdue</span>
+                                </div>
+                            </div>
+                            <div class="opd-confirm-cell">
+                                <div class="opd-confirm-label">Amount Due</div>
+                                <div class="opd-confirm-value">₱{{ number_format($amountDue, 2) }}</div>
+                            </div>
+                            <div class="opd-confirm-cell">
+                                <div class="opd-confirm-label">Penalty</div>
+                                <div class="opd-confirm-value is-orange">₱{{ number_format($currentPenalty, 2) }}</div>
+                            </div>
+                        </div>
+
+                        <div class="opd-confirm-total">
+                            <span class="opd-confirm-total-label">Total Outstanding</span>
+                            <span class="opd-confirm-total-value">₱{{ number_format($totalOutstanding, 2) }}</span>
+                        </div>
+
+                        {{-- NEW: Date Paid + Receipt (kapareho ng Ongoing Loans) --}}
+                        <div class="mt-3">
+                            <label for="opdPaidDate" class="form-label fw-semibold">
+                                Date Paid <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" id="opdPaidDate" class="form-control"
+                                value="{{ now()->format('Y-m-d') }}" max="{{ now()->format('Y-m-d') }}">
+                        </div>
+
+                        <div class="mt-3">
+                            <label for="opdReceipt" class="form-label fw-semibold">
+                                Receipt <span class="text-danger">*</span>
+                            </label>
+                            <input type="file" id="opdReceipt" class="form-control"
+                                accept="image/png, image/jpeg">
+                            <div class="form-text">JPG or PNG, up to 5MB</div>
+                        </div>
+
+                        <div id="opdPaidError" class="text-danger mt-2 d-none" style="font-size:0.85rem;"></div>
+                    @endif
                 </div>
-
+                <div class="modal-footer">
+                    <button type="button" class="opd-btn opd-btn-waive" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="opd-btn opd-btn-mark-paid" id="opdConfirmPaidBtn">
+                        <span id="opdConfirmPaidText">Mark as Paid</span>
+                        <span id="opdConfirmPaidSpinner" class="spinner-border spinner-border-sm d-none"></span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -264,8 +319,6 @@
             </div>
         </div>
     </div>
-
-    
 @endpush
 
 @section('page-scripts')

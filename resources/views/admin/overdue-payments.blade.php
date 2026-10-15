@@ -26,7 +26,6 @@
     <div class="main-content">
 
         <!-- Stats -->
-        <!-- Stats -->
         <div class="stats-grid-v2">
             <div class="rs-card stat-card-v2">
                 <div class="stat-card-head-v2">
@@ -106,7 +105,7 @@
                                 <tr data-search="{{ strtolower($loan['name'] . ' ' . $loan['email'] . ' ' . $loan['borrower_id']) }}"
                                     data-applied="{{ \Carbon\Carbon::parse($loan['applied_at'])->timestamp }}"
                                     data-days-late="{{ $loan['days_late'] }}"
-                                    data-href="{{ route('admin.overdue-payment-detail', $loan['application_id']) }}"
+                                    data-href="{{ route('admin.overdue-payment-detail', $loan['uuid']) }}"
                                     class="rs-clickable-row">
                                     <td>
                                         <div class="borrower-cell-v2">
@@ -136,7 +135,7 @@
                                     </td>
                                     <td class="text-end">
 
-                                        <a href="{{ route('admin.overdue-payment-detail', $loan['application_id']) }}"
+                                        <a href="{{ route('admin.overdue-payment-detail', $loan['uuid']) }}"
                                             class="btn-view-v2">
                                             <i class="feather-eye"></i> View Details
                                         </a>

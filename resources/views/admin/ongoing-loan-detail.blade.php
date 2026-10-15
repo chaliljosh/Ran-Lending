@@ -16,6 +16,9 @@
         $nextDue = $paymentSchedule->firstWhere('paid_at', null);
         $nextIsOverdue = $nextDue && \Carbon\Carbon::parse($nextDue->due_date)->isPast();
         $dueInDays = $nextDue ? (int) now()->diffInDays(\Carbon\Carbon::parse($nextDue->due_date)) : null;
+
+        // Display lang: unang 8 characters ng UUID ng loan (hindi ginagamit sa lookup)
+        $loanCode = strtoupper(substr($app->uuid, 0, 8));
     @endphp
 
     <div class="page-header">
@@ -26,7 +29,7 @@
             <ul class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Home</a></li>
                 <li class="breadcrumb-item"><a href="{{ route('admin.ongoing-loans') }}">Ongoing Loans</a></li>
-                <li class="breadcrumb-item">Loan #{{ $applicationId }}</li>
+                <li class="breadcrumb-item">Loan #{{ $loanCode }}</li>
             </ul>
         </div>
         <div class="page-header-right ms-auto">
@@ -55,7 +58,7 @@
                         <span class="badge badge-active olh-status-badge">Active</span>
                     </div>
                     <div class="olh-meta-row">
-                        <span><strong>Loan ID:</strong> LN-{{ str_pad($applicationId, 5, '0', STR_PAD_LEFT) }}</span>
+                        <span><strong>Loan ID:</strong> LN-{{ $loanCode }}</span>
                         <span class="olh-meta-sep">&bull;</span>
                         <span><strong>Email:</strong> {{ $app->email }}</span>
                     </div>

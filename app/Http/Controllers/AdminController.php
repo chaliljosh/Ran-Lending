@@ -440,6 +440,7 @@ public function verificationDetail(Request $request, $id)
     $loanUuids = DB::table('loan_applications')
         ->whereIn('application_id', $pendingLoans->pluck('application_id')
             ->merge($onHoldLoans->pluck('application_id'))
+            ->merge($overdueRows->pluck('application_id'))
             ->unique()
             ->all())
         ->pluck('uuid', 'application_id');
@@ -478,7 +479,7 @@ public function verificationDetail(Request $request, $id)
             'subtitle' => $name !== '' ? $name : ('Application #' . $row->application_id),
             'icon'     => 'feather-alert-triangle',
             'color'    => 'danger',
-            'url'      => route('admin.overdue-payment-detail', $row->application_id),
+            'url'      => route('admin.overdue-payment-detail', $loanUuids[$row->application_id]),
             'ts'       => $row->due_date,
         ]);
     }
@@ -769,67 +770,76 @@ private function pctChange($current, $previous)
     }
     return (int) round((($current - $previous) / $previous) * 100);
 }
-       public function ongoingLoans(Request $request)
-    {
-        $adminId = Session::get('user_id');
-        $sort = $request->query('sort', 'newest');
+public function ongoingLoans(Request $request)
+{
+    $adminId = Session::get('user_id');
+    $sort = $request->query('sort', 'newest');
 
-        $rpcRow = DB::selectOne('SELECT admin_ongoing_loans_data() as data');
-        $data = json_decode($rpcRow->data);
+    $rpcRow = DB::selectOne('SELECT admin_ongoing_loans_data() as data');
+    $data = json_decode($rpcRow->data);
 
-        $ongoingLoans = collect($data->ongoing_loans ?? [])->map(function ($row) {
-            $fullName = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? ''));
-            $displayName = $fullName !== '' ? $fullName : $row->email;
-            $initials = $fullName !== ''
-                ? strtoupper(substr($row->first_name, 0, 1) . substr($row->last_name, 0, 1))
-                : strtoupper(substr($row->email, 0, 2));
+    $ongoingLoans = collect($data->ongoing_loans ?? [])->map(function ($row) {
+        $fullName = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? ''));
+        $displayName = $fullName !== '' ? $fullName : $row->email;
+        $initials = $fullName !== ''
+            ? strtoupper(substr($row->first_name, 0, 1) . substr($row->last_name, 0, 1))
+            : strtoupper(substr($row->email, 0, 2));
 
-            return [
-                'application_id'   => $row->application_id,
-                'user_id'          => $row->user_id,
-                'borrower_id'      => 'BRW-' . str_pad($row->user_id, 4, '0', STR_PAD_LEFT),
-                'name'             => $displayName,
-                'initials'         => $initials,
-                'email'            => $row->email,
-                'loan_amount'      => $row->loan_amount,
-                'total_amount'     => $row->total_amount,
-                'loan_term'        => $row->loan_term,
-                'applied_at'       => $row->applied_at,
-                'paid_count'       => $row->paid_count,
-                'total_count'      => $row->total_count,
-                'next_due_date'    => $row->next_due_date,
-                'next_due_amount'  => $row->next_due_amount,
-                'amount_collected' => $row->amount_collected,
-            ];
-        });
+        return [
+            'application_id'   => $row->application_id,
+            'user_id'          => $row->user_id,
+            'name'             => $displayName,
+            'initials'         => $initials,
+            'email'            => $row->email,
+            'loan_amount'      => $row->loan_amount,
+            'total_amount'     => $row->total_amount,
+            'loan_term'        => $row->loan_term,
+            'applied_at'       => $row->applied_at,
+            'paid_count'       => $row->paid_count,
+            'total_count'      => $row->total_count,
+            'next_due_date'    => $row->next_due_date,
+            'next_due_amount'  => $row->next_due_amount,
+            'amount_collected' => $row->amount_collected,
+        ];
+    });
 
-        // Isang query para kunin ang uuid ng lahat ng ongoing loan
-        $uuids = DB::table('loan_applications')
-            ->whereIn('application_id', $ongoingLoans->pluck('application_id')->all())
-            ->pluck('uuid', 'application_id');
+    // uuid ng bawat loan
+    $uuids = DB::table('loan_applications')
+        ->whereIn('application_id', $ongoingLoans->pluck('application_id')->all())
+        ->pluck('uuid', 'application_id');
 
-        $ongoingLoans = $ongoingLoans->map(function ($loan) use ($uuids) {
-            $loan['uuid'] = $uuids[$loan['application_id']] ?? null;
-            return $loan;
-        });
+    // uuid ng bawat borrower (galing sa borrowerpersonaldetails)
+    $borrowerUuids = DB::table('borrowerpersonaldetails')
+        ->whereIn('user_id', $ongoingLoans->pluck('user_id')->unique()->all())
+        ->pluck('uuid', 'user_id');
 
-        $ongoingLoans = $ongoingLoans->sortBy(
-            fn ($loan) => strtotime($loan['applied_at']),
-            SORT_REGULAR,
-            $sort !== 'oldest' // descending gamit 'newest' (default)
-        )->values()->all();
+    $ongoingLoans = $ongoingLoans->map(function ($loan) use ($uuids, $borrowerUuids) {
+        $loan['uuid'] = $uuids[$loan['application_id']] ?? null;
 
-        $stats = (array) $data->stats;
+        $borrowerUuid = $borrowerUuids[$loan['user_id']] ?? null;
+        $loan['borrower_id'] = $borrowerUuid
+            ? 'BRW-' . strtoupper(substr($borrowerUuid, 0, 8))
+            : '—';
 
-        return view('admin.ongoing-loans', [
-            'ongoingLoans'     => $ongoingLoans,
-            'stats'            => $stats,
-            'sort'             => $sort,
-            'pendingCount'     => $this->getPendingVerificationCount($adminId),
-            'pendingLoanCount' => $this->getPendingLoanCount($adminId),
-        ]);
-    }
+        return $loan;
+    });
 
+    $ongoingLoans = $ongoingLoans->sortBy(
+        fn ($loan) => strtotime($loan['applied_at']),
+        SORT_REGULAR,
+        $sort !== 'oldest' // descending gamit 'newest' (default)
+    )->values()->all();
+
+    $stats = (array) $data->stats;
+
+    return view('admin.ongoing-loans', [
+        'ongoingLoans'     => $ongoingLoans,
+        'stats'            => $stats,
+        'sort'             => $sort,
+        'pendingCount'     => $this->getPendingVerificationCount($adminId),
+        'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+    ]);
+}
        public function ongoingLoanDetail(Request $request, $uuid)
 {
     $adminId = Session::get('user_id');
@@ -887,7 +897,7 @@ private function pctChange($current, $previous)
         'pendingLoanCount' => $this->getPendingLoanCount($adminId),
     ]);
 }
-    public function overduePayments(Request $request)
+          public function overduePayments(Request $request)
     {
         $adminId = Session::get('user_id');
         $sort = $request->query('sort', 'most_late');
@@ -905,7 +915,6 @@ private function pctChange($current, $previous)
             return [
                 'application_id'  => $row->application_id,
                 'user_id'         => $row->user_id,
-                'borrower_id'     => 'BRW-' . str_pad($row->user_id, 4, '0', STR_PAD_LEFT),
                 'name'            => $displayName,
                 'initials'        => $initials,
                 'email'           => $row->email,
@@ -919,6 +928,27 @@ private function pctChange($current, $previous)
                 'overdue_amount'  => $row->overdue_amount,
                 'is_defaulted'    => $row->is_defaulted,
             ];
+        });
+
+        // uuid ng bawat loan (para sa links)
+        $uuids = DB::table('loan_applications')
+            ->whereIn('application_id', $overdueLoans->pluck('application_id')->all())
+            ->pluck('uuid', 'application_id');
+
+        // uuid ng bawat borrower (galing sa borrowerpersonaldetails)
+        $borrowerUuids = DB::table('borrowerpersonaldetails')
+            ->whereIn('user_id', $overdueLoans->pluck('user_id')->unique()->all())
+            ->pluck('uuid', 'user_id');
+
+        $overdueLoans = $overdueLoans->map(function ($loan) use ($uuids, $borrowerUuids) {
+            $loan['uuid'] = $uuids[$loan['application_id']] ?? null;
+
+            $borrowerUuid = $borrowerUuids[$loan['user_id']] ?? null;
+            $loan['borrower_id'] = $borrowerUuid
+                ? 'BRW-' . strtoupper(substr($borrowerUuid, 0, 8))
+                : '—';
+
+            return $loan;
         });
 
         $overdueLoans = $overdueLoans->sortBy(function ($loan) use ($sort) {
@@ -937,7 +967,6 @@ private function pctChange($current, $previous)
             'pendingLoanCount' => $this->getPendingLoanCount($adminId),
         ]);
     }
-
    private function getPendingVerificationCount($adminId)
 {
     return DB::table('borrowerpersonaldetails as bpd')
@@ -1201,10 +1230,18 @@ private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $i
         ]);
     }
 
-    public function overduePaymentDetail(Request $request, $id)
+       public function overduePaymentDetail(Request $request, $uuid)
     {
         $adminId = Session::get('user_id');
-        $applicationId = (int) $id;
+
+        // UUID lang ang nasa URL. Ang integer na application_id ay internal na lang.
+        $applicationId = (int) DB::table('loan_applications')
+            ->where('uuid', $uuid)
+            ->value('application_id');
+
+        if (!$applicationId) {
+            return redirect()->route('admin.overdue-payments');
+        }
 
         $app = $this->getLoanApplication($applicationId);
 
@@ -1240,7 +1277,8 @@ private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $i
         return view('admin.overdue-payment-detail', [
             'app' => $app,
             'applicationId' => $applicationId,
-              'borrowerProfilePicture' => $this->getProfilePictureUrl($app), 
+            'loanUuid' => $uuid,
+            'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
             'paymentSchedule' => $schedule,
             'overdueCount' => $overdueSchedules->count(),
             'daysLate' => $oldestOverdue ? \Carbon\Carbon::parse($oldestOverdue->due_date)->diffInDays(now()) : 0,
@@ -1932,108 +1970,135 @@ public function voidPayment(Request $request, $id)
     }
 
     public function completedLoans(Request $request)
-    {
-        $adminId = Session::get('user_id');
-        $sort = $request->query('sort', 'newest');
+{
+    $adminId = Session::get('user_id');
+    $sort = $request->query('sort', 'newest');
 
-        $rpcRow = DB::selectOne('SELECT admin_completed_loans_data() as data');
-        $data = json_decode($rpcRow->data);
+    $rpcRow = DB::selectOne('SELECT admin_completed_loans_data() as data');
+    $data = json_decode($rpcRow->data);
 
-        $completedLoans = collect($data->completed_loans ?? [])->map(function ($row) {
-            $fullName = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? ''));
-            $displayName = $fullName !== '' ? $fullName : $row->email;
-            $initials = $fullName !== ''
-                ? strtoupper(substr($row->first_name, 0, 1) . substr($row->last_name, 0, 1))
-                : strtoupper(substr($row->email, 0, 2));
+    $completedLoans = collect($data->completed_loans ?? [])->map(function ($row) {
+        $fullName = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? ''));
+        $displayName = $fullName !== '' ? $fullName : $row->email;
+        $initials = $fullName !== ''
+            ? strtoupper(substr($row->first_name, 0, 1) . substr($row->last_name, 0, 1))
+            : strtoupper(substr($row->email, 0, 2));
 
-            return [
-                'application_id'   => $row->application_id,
-                'user_id'          => $row->user_id,
-                'borrower_id'      => 'BRW-' . str_pad($row->user_id, 4, '0', STR_PAD_LEFT),
-                'name'             => $displayName,
-                'initials'         => $initials,
-                'email'            => $row->email,
-                'loan_amount'      => $row->loan_amount,
-                'total_amount'     => $row->total_amount,
-                'loan_term'        => $row->loan_term,
-                'applied_at'       => $row->applied_at,
-                'completed_at'     => $row->completed_at,
-                'amount_collected' => $row->amount_collected,
-            ];
-        });
+        return [
+            'application_id'   => $row->application_id,
+            'user_id'          => $row->user_id,
+            'name'             => $displayName,
+            'initials'         => $initials,
+            'email'            => $row->email,
+            'loan_amount'      => $row->loan_amount,
+            'total_amount'     => $row->total_amount,
+            'loan_term'        => $row->loan_term,
+            'applied_at'       => $row->applied_at,
+            'completed_at'     => $row->completed_at,
+            'amount_collected' => $row->amount_collected,
+        ];
+    });
 
-        if (in_array($sort, ['newest', 'oldest'], true)) {
-            $completedLoans = $completedLoans->sortBy(
-                fn ($loan) => strtotime($loan['applied_at']),
-                SORT_REGULAR,
-                $sort === 'oldest'
-            )->values();
-        } elseif (in_array($sort, ['completed_newest', 'completed_oldest'], true)) {
-            $completedLoans = $completedLoans->sortBy(function ($loan) use ($sort) {
-                $t = $loan['completed_at'] ? strtotime($loan['completed_at']) : 0;
-                return $sort === 'completed_oldest' ? $t : -$t;
-            })->values();
-        }
-        $completedLoans = $completedLoans->all();
+    // uuid ng bawat loan
+    $uuids = DB::table('loan_applications')
+        ->whereIn('application_id', $completedLoans->pluck('application_id')->all())
+        ->pluck('uuid', 'application_id');
 
-        $stats = (array) $data->stats;
+    // uuid ng bawat borrower (galing sa borrowerpersonaldetails)
+    $borrowerUuids = DB::table('borrowerpersonaldetails')
+        ->whereIn('user_id', $completedLoans->pluck('user_id')->unique()->all())
+        ->pluck('uuid', 'user_id');
 
-        return view('admin.completed-loans', [
-            'completedLoans'   => $completedLoans,
-            'stats'            => $stats,
-            'sort'             => $sort,
-            'pendingCount'     => $this->getPendingVerificationCount($adminId),
-            'pendingLoanCount' => $this->getPendingLoanCount($adminId),
-        ]);
+    $completedLoans = $completedLoans->map(function ($loan) use ($uuids, $borrowerUuids) {
+        $loan['uuid'] = $uuids[$loan['application_id']] ?? null;
+
+        $borrowerUuid = $borrowerUuids[$loan['user_id']] ?? null;
+        $loan['borrower_id'] = $borrowerUuid
+            ? 'BRW-' . strtoupper(substr($borrowerUuid, 0, 8))
+            : '—';
+
+        return $loan;
+    });
+
+    if (in_array($sort, ['newest', 'oldest'], true)) {
+        $completedLoans = $completedLoans->sortBy(
+            fn ($loan) => strtotime($loan['applied_at']),
+            SORT_REGULAR,
+            $sort === 'oldest'
+        )->values();
+    } elseif (in_array($sort, ['completed_newest', 'completed_oldest'], true)) {
+        $completedLoans = $completedLoans->sortBy(function ($loan) use ($sort) {
+            $t = $loan['completed_at'] ? strtotime($loan['completed_at']) : 0;
+            return $sort === 'completed_oldest' ? $t : -$t;
+        })->values();
+    }
+    $completedLoans = $completedLoans->all();
+
+    $stats = (array) $data->stats;
+
+    return view('admin.completed-loans', [
+        'completedLoans'   => $completedLoans,
+        'stats'            => $stats,
+        'sort'             => $sort,
+        'pendingCount'     => $this->getPendingVerificationCount($adminId),
+        'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+    ]);
+}
+
+    public function completedLoanDetail(Request $request, $uuid)
+{
+    $adminId = Session::get('user_id');
+
+    // UUID lang ang nasa URL. Ang integer na application_id ay internal na lang.
+    $applicationId = (int) DB::table('loan_applications')
+        ->where('uuid', $uuid)
+        ->value('application_id');
+
+    if (!$applicationId) {
+        return redirect()->route('admin.completed-loans');
     }
 
-    public function completedLoanDetail(Request $request, $id)
-    {
-        $adminId = Session::get('user_id');
-        $applicationId = (int) $id;
+    $app = $this->getLoanApplication($applicationId);
 
-        $app = $this->getLoanApplication($applicationId);
-
-        if (!$app) {
-            return redirect()->route('admin.completed-loans');
-        }
-
-        $schedule = $this->getPaymentSchedule($applicationId);
-
-        // Same computations used in ongoingLoanDetail() — the view
-        // (completed-loan-detail.blade.php) was built from that same
-        // template and needs all of these, but they were never being
-        // passed here. This is what caused the "Undefined variable"
-        // errors for $interestRate, then $monthlyPayment.
-        $totalCount = $schedule->count();
-        $paidCount = $schedule->filter(fn($s) => !is_null($s->paid_at))->count();
-        $monthlyPayment = $totalCount > 0 ? ($app->total_amount / $totalCount) : 0;
-        $totalInterest = max(0, $app->total_amount - $app->loan_amount);
-        $interestRate = $app->loan_amount > 0
-            ? round(($totalInterest / $app->loan_amount) * 100, 2)
-            : 0;
-
-        return view('admin.completed-loan-detail', [
-            'app' => $app,
-            'applicationId' => $applicationId,
-             'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
-            'adminId' => $adminId,
-            'allReviews' => $this->getAllLoanReviews($applicationId),
-            'comments' => $this->getLoanComments($applicationId),
-            'paymentSchedule' => $schedule,
-            'completedAt' => $schedule->max('paid_at'),
-            'amountCollected' => $schedule->sum('amount_paid'),
-            'totalCount' => $totalCount,
-            'paidCount' => $paidCount,
-            'monthlyPayment' => $monthlyPayment,
-            'totalInterest' => $totalInterest,
-            'interestRate' => $interestRate,
-            'borrowerPerformance' => $this->computeBorrowerPerformance($applicationId, $schedule),
-            'pendingCount' => $this->getPendingVerificationCount($adminId),
-            'pendingLoanCount' => $this->getPendingLoanCount($adminId),
-        ]);
+    if (!$app) {
+        return redirect()->route('admin.completed-loans');
     }
 
+    $schedule = $this->getPaymentSchedule($applicationId);
+
+    // Same computations used in ongoingLoanDetail() — the view
+    // (completed-loan-detail.blade.php) was built from that same
+    // template and needs all of these, but they were never being
+    // passed here. This is what caused the "Undefined variable"
+    // errors for $interestRate, then $monthlyPayment.
+    $totalCount = $schedule->count();
+    $paidCount = $schedule->filter(fn($s) => !is_null($s->paid_at))->count();
+    $monthlyPayment = $totalCount > 0 ? ($app->total_amount / $totalCount) : 0;
+    $totalInterest = max(0, $app->total_amount - $app->loan_amount);
+    $interestRate = $app->loan_amount > 0
+        ? round(($totalInterest / $app->loan_amount) * 100, 2)
+        : 0;
+
+    return view('admin.completed-loan-detail', [
+        'app' => $app,
+        'applicationId' => $applicationId,
+        'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
+        'adminId' => $adminId,
+        'allReviews' => $this->getAllLoanReviews($applicationId),
+        'comments' => $this->getLoanComments($applicationId),
+        'paymentSchedule' => $schedule,
+        'completedAt' => $schedule->max('paid_at'),
+        'amountCollected' => $schedule->sum('amount_paid'),
+        'totalCount' => $totalCount,
+        'paidCount' => $paidCount,
+        'monthlyPayment' => $monthlyPayment,
+        'totalInterest' => $totalInterest,
+        'interestRate' => $interestRate,
+        'borrowerPerformance' => $this->computeBorrowerPerformance($applicationId, $schedule),
+        'pendingCount' => $this->getPendingVerificationCount($adminId),
+        'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+    ]);
+}
         /**
      * Active Loans > Defaulted — a loan is considered "defaulted" here
      * when its OLDEST unpaid installment has crossed DEFAULT_DAYS_LATE

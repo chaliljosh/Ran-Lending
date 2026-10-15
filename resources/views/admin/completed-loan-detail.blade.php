@@ -25,6 +25,9 @@
             'poor'      => 'is-rejected',
         ];
         $ratingBadgeClass = $ratingColors[$borrowerPerformance['rating']] ?? 'is-approved';
+
+        // Display lang: unang 8 characters ng UUID ng loan (hindi ginagamit sa lookup)
+        $loanCode = strtoupper(substr($app->uuid, 0, 8));
     @endphp
 
     <div class="page-header">
@@ -33,7 +36,7 @@
             <ul class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Home</a></li>
                 <li class="breadcrumb-item"><a href="{{ route('admin.completed-loans') }}">Completed Loans</a></li>
-                <li class="breadcrumb-item">Loan #{{ $applicationId }}</li>
+                <li class="breadcrumb-item">Loan #{{ $loanCode }}</li>
             </ul>
         </div>
         <div class="page-header-right ms-auto">
@@ -56,7 +59,7 @@
                     <div class="cld-borrower-meta">
                         <span>{{ $app->email }}</span>
                         <span class="cld-dot">&middot;</span>
-                        <span>Loan ID: <strong>LN-{{ str_pad($applicationId, 5, '0', STR_PAD_LEFT) }}</strong></span>
+                        <span>Loan ID: <strong>LN-{{ $loanCode }}</strong></span>
                         @if($completedAt)
                             <span class="cld-dot">&middot;</span>
                             <span>Completed on <strong>{{ \Carbon\Carbon::parse($completedAt)->format('M d, Y') }}</strong></span>

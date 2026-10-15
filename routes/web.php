@@ -157,8 +157,8 @@ Route::post('/account-settings/profile-picture/remove', [AdminController::class,
         ->name('active-borrower-detail');
 
     // Overdue Payments > View Details (focused view — borrower card + overview
-
-    Route::get('/overdue-payment-detail/{id}', [AdminController::class, 'overduePaymentDetail'])
+    Route::get('/overdue-payment-detail/{uuid}', [AdminController::class, 'overduePaymentDetail'])
+        ->whereUuid('uuid')
         ->name('overdue-payment-detail');
 
 
@@ -179,8 +179,9 @@ Route::post('/account-settings/profile-picture/remove', [AdminController::class,
 
     // Active Loans > Completed Loans
     Route::get('/active-loans/completed', [AdminController::class, 'completedLoans'])->name('completed-loans');
-    Route::get('/completed-loan-detail/{id}', [AdminController::class, 'completedLoanDetail'])
-        ->name('completed-loan-detail');
+  Route::get('/completed-loan-detail/{uuid}', [AdminController::class, 'completedLoanDetail'])
+    ->whereUuid('uuid')
+    ->name('completed-loan-detail');
 
     // Active Loans > Defaulted
     // A loan is "defaulted" once its oldest unpaid installment has been

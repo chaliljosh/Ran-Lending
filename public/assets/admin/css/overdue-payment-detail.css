@@ -1,10 +1,9 @@
 /* ============================================================
    overdue-payment-detail.css
-   
+   Flat redesign: walang gradient / tint / shadow, mas manipis na font weights
 ============================================================ */
 
-/* ---------- Inter font — applied to the whole page content area,
-     matched sa ongoing-loan-detail.css / admin-dashboard.css ---------- */
+/* ---------- Inter font ---------- */
 html body .main-content,
 html body .main-content * {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
@@ -21,45 +20,40 @@ html body .main-content i[class*="feather-"]::before {
 
 .opd-page { width: 100%; }
 
-/* ---------- Shared card shell (Overdue Payment / Payment Schedule / Loan Summary) ---------- */
+/* ---------- Shared card shell ---------- */
 .opd-card {
     background: #FFFFFF;
     border: 1px solid #e5e7eb;
-    border-radius: 14px;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
+    border-radius: 12px;
+    box-shadow: none;
     padding: 22px 24px;
     margin-bottom: 20px;
 }
 .opd-card-title {
-    font-size: 0.78rem;
-    font-weight: 700;
+    font-size: 0.85rem;
+    font-weight: 600;
     color: #1a2a3a;
     margin-bottom: 16px;
     display: flex;
     align-items: center;
     gap: 8px;
 }
-.opd-card-title i { color: #4a7cf7; font-size: 0.95rem; }
+.opd-card-title i { color: #64748B; font-size: 0.95rem; }
 
 /* ============================================================
-   2. OVERDUE PAYMENT SUMMARY — compact horizontal strip.
-   Was a tall 2-column grid with a separate outstanding row and
-   action row below it; now a single dense card: a horizontal row
-   of small stat fields, a hairline divider, then one footer row
-   that holds Total Outstanding on the left and the two action
-   buttons on the right — same information, much shorter card.
+   OVERDUE PAYMENT SUMMARY
 ============================================================ */
 .opd-overdue-card {
     background: #FFFFFF;
-    border: 1px solid #FCA5A5;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
+    border: 1px solid #e5e7eb;
+    box-shadow: none;
     padding: 16px 22px;
 }
 .opd-overdue-card .opd-card-title {
     margin-bottom: 12px;
     font-size: 0.85rem;
+    color: #B91C1C;
 }
-.opd-overdue-card .opd-card-title { color: #B91C1C; }
 .opd-overdue-card .opd-card-title i { color: #DC2626; }
 
 .opd-overdue-strip {
@@ -69,19 +63,17 @@ html body .main-content i[class*="feather-"]::before {
     row-gap: 10px;
     padding-bottom: 12px;
     margin-bottom: 12px;
-    border-bottom: 1px dashed #FCA5A5;
+    border-bottom: 1px solid #eef1f6;
 }
 .opd-overdue-strip .opd-field { min-width: 96px; }
 
 .opd-field-label {
     font-size: 0.72rem;
-    font-weight: 600;
-    text-transform: none;
-    letter-spacing: normal;
+    font-weight: 400;
     color: #94a3b8;
     margin-bottom: 3px;
 }
-.opd-field-value { font-size: 0.92rem; font-weight: 600; color: #0f172a; }
+.opd-field-value { font-size: 0.92rem; font-weight: 500; color: #0f172a; }
 .opd-field-value.is-danger { color: #DC2626; }
 .opd-field-value.is-orange { color: #EA580C; }
 
@@ -100,33 +92,38 @@ html body .main-content i[class*="feather-"]::before {
 }
 .opd-outstanding-inline .opd-outstanding-label {
     font-size: 0.72rem;
-    font-weight: 600;
-    text-transform: none;
-    letter-spacing: normal;
+    font-weight: 400;
     color: #94a3b8;
 }
 .opd-outstanding-inline .opd-outstanding-value {
-    font-size: 1.15rem; font-weight: 700; color: #DC2626;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #DC2626;
 }
 
 .opd-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .opd-btn {
-    height: 36px; padding: 0 18px; border-radius: 10px; font-size: 0.85rem; font-weight: 600;
-    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-    border: 1px solid transparent; cursor: pointer;
-    transition: all 0.15s ease;
+    height: 36px;
+    padding: 0 18px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 .opd-btn-mark-paid { background: #1E293B; color: #fff; }
 .opd-btn-mark-paid:hover { background: #0F172A; color: #fff; }
 .opd-btn-waive { background: #FFFFFF; border-color: #e5e7eb; color: #0f172a; }
-.opd-btn-waive:hover { border-color: #4a7cf7; color: #4a7cf7; background: #eef3ff; }
+.opd-btn-waive:hover { border-color: #94a3b8; color: #0f172a; background: #f8fafc; }
 .opd-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ============================================================
-   4. PAYMENT SCHEDULE TABLE — compact, existing-table style.
-   overflow-x lives on the wrapper unconditionally (not just inside
-   a mobile media query) so the table scrolls horizontally instead
-   of squeezing/overflowing at tablet/medium widths too.
+   PAYMENT SCHEDULE TABLE
 ============================================================ */
 .opd-table-scroll {
     overflow-x: auto;
@@ -146,69 +143,144 @@ html body .main-content i[class*="feather-"]::before {
 .opd-table th:nth-child(5), .opd-table td:nth-child(5) { width: 26%; }
 .opd-table thead th {
     text-align: left;
-    font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: none;
-    letter-spacing: normal;
+    font-size: 0.72rem;
+    font-weight: 500;
     color: #94a3b8;
     padding: 10px 14px;
-    border-bottom: 2px solid #eef1f6;
+    border-bottom: 1px solid #e5e7eb;
     white-space: nowrap;
 }
-.opd-table tbody td { padding: 13px 14px; border-bottom: 1px solid #f1f3f8; color: #1a2a3a; white-space: nowrap; }
+.opd-table tbody td {
+    padding: 13px 14px;
+    border-bottom: 1px solid #f1f3f8;
+    color: #1a2a3a;
+    font-weight: 400;
+    white-space: nowrap;
+}
 .opd-table tbody tr:last-child td { border-bottom: none; }
-.opd-table tbody tr:hover { background: #f8faff; }
-.opd-table tbody tr.is-current-overdue { background: #FFF7F7; box-shadow: inset 3px 0 0 #DC2626; }
+.opd-table tbody tr:hover { background: #f8fafc; }
+/* current overdue row: red line lang sa gilid, walang pink background */
+.opd-table tbody tr.is-current-overdue { background: transparent; box-shadow: inset 3px 0 0 #DC2626; }
 
-.opd-badge { display: inline-block; font-size: 0.72rem; font-weight: 700; padding: 4px 12px; border-radius: 16px; text-transform: none; letter-spacing: normal; }
-.opd-badge-paid { background: #dcfce7; color: #16a34a; }
-.opd-badge-overdue { background: #fee2e2; color: #dc2626; }
-.opd-badge-upcoming { background: #fff8e1; color: #b45309; }
+/* ---------- Badges (outline style, walang kulay na background) ---------- */
+.opd-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 6px;
+    background: #FFFFFF;
+    border: 1px solid transparent;
+}
+.opd-badge-paid { border-color: #86efac; color: #16a34a; }
+.opd-badge-overdue { border-color: #fca5a5; color: #dc2626; }
+.opd-badge-upcoming { border-color: #e5e7eb; color: #64748B; }
 
 /* ============================================================
-   5. LOAN SUMMARY — now white bg + lively typography, matched
-   to Active Borrower Detail's Loan Summary look instead of the
-   old muted/secondary "gray card" treatment.
+   LOAN SUMMARY
 ============================================================ */
 .opd-summary-card { background: #FFFFFF; }
-.opd-summary-card .opd-card-title {
-    color: #1a2a3a;
-    font-size: 0.85rem;
-    font-weight: 700;
-    text-transform: none;
-    letter-spacing: normal;
-}
-.opd-summary-card .opd-card-title i { color: #4a7cf7; }
+.opd-summary-card .opd-card-title { color: #1a2a3a; font-size: 0.85rem; font-weight: 600; }
+.opd-summary-card .opd-card-title i { color: #64748B; }
 .opd-summary-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px 24px;
 }
-.opd-summary-row { display: flex; align-items: center; justify-content: space-between; padding: 5px 0; border-bottom: 1px dashed #eef1f6; }
-.opd-summary-label { font-size: 0.8rem; font-weight: 500; color: #64748B; }
-.opd-summary-value { font-size: 0.95rem; font-weight: 700; color: #0f172a; text-align: right; }
+.opd-summary-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid #eef1f6;
+}
+.opd-summary-label { font-size: 0.8rem; font-weight: 400; color: #64748B; }
+.opd-summary-value { font-size: 0.9rem; font-weight: 500; color: #0f172a; text-align: right; }
 
 /* ============================================================
-   MODALS (confirm / success) — same restrained modal look used
-   elsewhere in the admin (white, rounded, no heavy decoration)
+   MODALS
 ============================================================ */
-.opd-modal .modal-content { border: none; border-radius: 16px; box-shadow: 0 24px 60px rgba(15,23,42,0.18); }
+.opd-modal .modal-content { border: none; border-radius: 12px; box-shadow: 0 10px 30px rgba(15,23,42,0.12); }
 .opd-modal .modal-header { border-bottom: none; padding: 22px 24px 0; }
 .opd-modal .modal-body { padding: 8px 24px 4px; text-align: center; }
-.opd-modal .modal-footer {  padding: 16px 24px; gap: 10px; justify-content: center; }
+.opd-modal .modal-footer { padding: 16px 24px; gap: 10px; justify-content: center; }
 .opd-modal-icon {
     width: 52px; height: 52px; border-radius: 50%; margin: 0 auto 14px;
     display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
 }
-.opd-modal-icon.is-confirm { background: #FFF7ED; color: #EA580C; }
-.opd-modal-icon.is-success { background: #F0FDF4; color: #16A34A; }
-.opd-modal-title { font-size: 1rem; font-weight: 700; color: #1a2a3a; margin-bottom: 6px; }
-.opd-modal-desc { font-size: 0.84rem; color: #64748B; line-height: 1.5; margin-bottom: 4px; }
+.opd-modal-icon.is-confirm { background: #f1f5f9; color: #EA580C; }
+.opd-modal-icon.is-success { background: #f1f5f9; color: #16A34A; }
+.opd-modal-title { font-size: 1rem; font-weight: 600; color: #1a2a3a; margin-bottom: 6px; }
+.opd-modal-desc { font-size: 0.84rem; font-weight: 400; color: #64748B; line-height: 1.5; margin-bottom: 4px; }
 .opd-modal-textarea {
-    width: 100%; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 12px;
-    font-size: 0.85rem; color: #0f172a; resize: none; text-align: left; margin-top: 14px;
+    width: 100%; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 12px;
+    font-size: 0.85rem; font-weight: 400; color: #0f172a; resize: none; text-align: left; margin-top: 14px;
 }
-.opd-modal-textarea:focus { outline: none; border-color: #4a7cf7; box-shadow: 0 0 0 3px rgba(74,124,247,0.12); }
+.opd-modal-textarea:focus { outline: none; border-color: #94a3b8; box-shadow: none; }
+
+/* ============================================================
+   PAGE CONTAINER + BORROWER HEADER
+============================================================ */
+.opd-content { max-width: 100%; margin: 0; width: 100%; }
+
+.opd-borrower-header {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    text-align: left;
+    padding: 22px 28px;
+    flex-wrap: wrap;
+    box-shadow: none;
+}
+.opd-borrower-header .borrower-avatar { margin: 0; flex-shrink: 0; }
+.opd-borrower-right { flex: 1; min-width: 220px; }
+.opd-borrower-right h6 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.opd-borrower-email { font-size: 0.83rem; font-weight: 400; color: #475569; }
+.opd-borrower-email strong { color: #0f172a; font-weight: 500; }
+
+.opd-borrower-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+.opd-days-overdue-text { font-size: 0.78rem; color: #DC2626; font-weight: 500; }
+
+/* "Overdue" badge sa header — outline din, para match sa table badges */
+.opd-borrower-meta .badge {
+    background: #FFFFFF !important;
+    border: 1px solid #fca5a5 !important;
+    color: #DC2626 !important;
+    font-weight: 500 !important;
+    border-radius: 6px !important;
+}
+
+/* ---------- Payment Schedule — extra variants ---------- */
+.ld-schedule-badge.ld-schedule-overdue {
+    background: #FFFFFF;
+    color: #DC2626;
+    border: 1px solid #fca5a5;
+}
+tr.ld-schedule-row-current {
+    box-shadow: inset 3px 0 0 #DC2626;
+}
+
+/* ---------- Borrower avatar ---------- */
+.borrower-avatar {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+.borrower-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
 
 /* ============================================================
    RESPONSIVE
@@ -218,15 +290,15 @@ html body .main-content i[class*="feather-"]::before {
     .opd-overdue-footer { flex-direction: column; align-items: flex-start; }
     .opd-actions { width: 100%; }
     .opd-actions .opd-btn { flex: 1; }
+
+    .opd-borrower-header { flex-direction: column; text-align: center; gap: 14px; }
+    .opd-borrower-right { text-align: center; }
+    .opd-borrower-meta { justify-content: center; }
 }
 @media (max-width: 767.98px) {
     .opd-summary-grid { grid-template-columns: 1fr; }
 
-    /* Payment Schedule — real mobile stacking instead of just a
-       horizontal-scroll table. Each row becomes its own bordered
-       card; each cell gets a small uppercase label (from its
-       data-label attribute in the Blade) above the value, same
-       pattern already used by the Penalty Tracking table. */
+    /* Payment Schedule — stacked cards sa mobile */
     .opd-table-scroll { overflow-x: visible; }
     .opd-table { min-width: 0; table-layout: auto; }
     .opd-table th, .opd-table td { width: auto; }
@@ -237,7 +309,7 @@ html body .main-content i[class*="feather-"]::before {
     }
     .opd-table tbody tr {
         border: 1px solid #f1f3f8;
-        border-radius: 10px;
+        border-radius: 8px;
         padding: 10px 14px;
         margin-bottom: 10px;
     }
@@ -256,78 +328,17 @@ html body .main-content i[class*="feather-"]::before {
     .opd-table tbody td::before {
         content: attr(data-label);
         font-size: 0.7rem;
-        font-weight: 600;
+        font-weight: 500;
         color: #94a3b8;
-        text-transform: none;
-        letter-spacing: normal;
         text-align: left;
     }
 }
 
-/* ============================================================
-   PAGE CONTAINER + BORROWER HEADER
-============================================================ */
-
-.opd-content { max-width: 100%; margin: 0; width: 100%; }
-
-/* ---------- Borrower header — same shell as olh-card ---------- */
-.opd-borrower-header {
-    display: flex;
-    align-items: center;
-    gap: 22px;
-    text-align: left;
-    padding: 22px 28px;
-    flex-wrap: wrap;
-}
-.opd-borrower-header .borrower-avatar { margin: 0; flex-shrink: 0; }
-.opd-borrower-right { flex: 1; min-width: 220px; }
-.opd-borrower-right h6 {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #0f172a;
-}
-
-/* ---------- Email line — bold "Email:" label prefix, matched to
-   Active Borrower Detail's meta line format ---------- */
-.opd-borrower-email {
-    font-size: 0.83rem;
-    color: #475569;
-}
-.opd-borrower-email strong {
-    color: #0f172a;
-    font-weight: 600;
-}
-
-.opd-borrower-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
-.opd-days-overdue-text { font-size: 0.78rem; color: #DC2626; font-weight: 600; }
-
-@media (max-width: 575.98px) {
-    .opd-borrower-header { flex-direction: column; text-align: center; gap: 14px; }
-    .opd-borrower-right { text-align: center; }
-    .opd-borrower-meta { justify-content: center; }
-}
-
-/* ---------- Payment Schedule — "Overdue" badge variant + current-row highlight ---------- */
-.ld-schedule-badge.ld-schedule-overdue {
-    background: #FEF2F2;
-    color: #DC2626;
-}
-tr.ld-schedule-row-current {
-    box-shadow: inset 3px 0 0 #DC2626;
-}
-
 /* ══════════════════════════════════════════
    DARK MODE — TRUE BLACK PALETTE
-   Kinopya ang eksaktong color scheme ng penalty-tracking-detail.css /
-   ongoing-loan-detail.css (#0A0A0A background, #141414 cards, #262626
-   borders, #F5F5F5 text, #9A9A9A muted text). Nasa dulo ito ng file
-   para mag-override sa lahat ng naunang navy-blue dark mode rules.
-
-   Status colors (red = overdue, orange = penalty, green = paid)
-   ay sinadyang hindi ginawang black — meaning-carrying sila, hindi
-   theme accent, kaya dapat manatiling malinaw ang kulay. Ang "Upcoming"
-   badge lang na blue ang pinalitan ng neutral gray/black dahil hindi
-   naman ito kailangang maging blue talaga — status label lang ito.
+   #0A0A0A bg, #141414 cards, #262626 borders,
+   #F5F5F5 text, #9A9A9A muted text.
+   Flat din: walang tint, walang shadow.
    ══════════════════════════════════════════ */
 
 html.app-skin-dark .nxl-content { background: #0A0A0A !important; }
@@ -335,8 +346,8 @@ html.app-skin-dark .nxl-content { background: #0A0A0A !important; }
 /* ---------- Overdue summary card ---------- */
 html.app-skin-dark .opd-overdue-card {
     background: #141414 !important;
-    border-color: #7F1D1D !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.4) !important;
+    border-color: #262626 !important;
+    box-shadow: none !important;
 }
 html.app-skin-dark .opd-overdue-card .opd-card-title { color: #f87171 !important; }
 html.app-skin-dark .opd-overdue-card .opd-card-title i { color: #f87171 !important; }
@@ -346,11 +357,11 @@ html.app-skin-dark .opd-field-value { color: #F5F5F5 !important; }
 html.app-skin-dark .opd-field-value.is-danger { color: #f87171 !important; }
 html.app-skin-dark .opd-field-value.is-orange { color: #fb923c !important; }
 
-html.app-skin-dark .opd-overdue-strip { border-bottom-color: #7F1D1D !important; }
-html.app-skin-dark .opd-outstanding-inline .opd-outstanding-label { color: #F5F5F5 !important; }
+html.app-skin-dark .opd-overdue-strip { border-bottom-color: #262626 !important; }
+html.app-skin-dark .opd-outstanding-inline .opd-outstanding-label { color: #9A9A9A !important; }
 html.app-skin-dark .opd-outstanding-inline .opd-outstanding-value { color: #f87171 !important; }
 
-/* ---------- Action buttons — black instead of navy/blue ---------- */
+/* ---------- Buttons ---------- */
 html.app-skin-dark .opd-btn-mark-paid {
     background: #262626 !important;
     color: #fff !important;
@@ -375,12 +386,17 @@ html.app-skin-dark .opd-borrower-header h6 { color: #F5F5F5 !important; }
 html.app-skin-dark .opd-borrower-email { color: #9A9A9A !important; }
 html.app-skin-dark .opd-borrower-email strong { color: #F5F5F5 !important; }
 html.app-skin-dark .opd-days-overdue-text { color: #f87171 !important; }
+html.app-skin-dark .opd-borrower-meta .badge {
+    background: transparent !important;
+    border-color: #7F1D1D !important;
+    color: #f87171 !important;
+}
 
-/* ---------- Payment Schedule + Loan Summary card shells ---------- */
+/* ---------- Card shells ---------- */
 html.app-skin-dark .opd-card {
     background: #141414 !important;
     border-color: #262626 !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.4) !important;
+    box-shadow: none !important;
 }
 html.app-skin-dark .opd-card-title { color: #F5F5F5 !important; }
 html.app-skin-dark .opd-card-title i { color: #C4C4C4 !important; }
@@ -392,7 +408,7 @@ html.app-skin-dark .opd-summary-row { border-color: #262626 !important; }
 html.app-skin-dark .opd-summary-label { color: #9A9A9A !important; }
 html.app-skin-dark .opd-summary-value { color: #F5F5F5 !important; }
 
-/* ---------- Payment Schedule table ---------- */
+/* ---------- Table ---------- */
 html.app-skin-dark .opd-table thead th {
     color: #9A9A9A !important;
     border-bottom-color: #262626 !important;
@@ -401,17 +417,14 @@ html.app-skin-dark .opd-table tbody td {
     color: #F5F5F5 !important;
     border-bottom-color: #262626 !important;
 }
-html.app-skin-dark .opd-table tbody tr:hover { background: #16181c !important; }
-html.app-skin-dark .opd-table tbody tr.is-current-overdue {
-    background: rgba(220, 38, 38, 0.10) !important;
-}
+html.app-skin-dark .opd-table tbody tr:hover { background: #1a1a1a !important; }
+html.app-skin-dark .opd-table tbody tr.is-current-overdue { background: transparent !important; }
 
-/* ---------- Status badges ---------- */
-html.app-skin-dark .opd-badge-paid { background: rgba(22,163,74,.18) !important; color: #4ade80 !important; }
-html.app-skin-dark .opd-badge-overdue { background: rgba(220,38,38,.18) !important; color: #f87171 !important; }
-/* "Upcoming" — neutral black/gray sa halip na blue, dahil hindi ito
-   critical status color (di tulad ng paid/overdue) */
-html.app-skin-dark .opd-badge-upcoming { background: #262626 !important; color: #C4C4C4 !important; }
+/* ---------- Badges ---------- */
+html.app-skin-dark .opd-badge { background: transparent !important; }
+html.app-skin-dark .opd-badge-paid { border-color: #166534 !important; color: #4ade80 !important; }
+html.app-skin-dark .opd-badge-overdue { border-color: #7F1D1D !important; color: #f87171 !important; }
+html.app-skin-dark .opd-badge-upcoming { border-color: #262626 !important; color: #C4C4C4 !important; }
 
 /* ---------- Back button ---------- */
 html.app-skin-dark .btn-light {
@@ -425,17 +438,17 @@ html.app-skin-dark .btn-light:hover {
     background: #262626 !important;
 }
 
-/* ---------- Modals (confirm / waive) ---------- */
+/* ---------- Modals ---------- */
 html.app-skin-dark .opd-modal .modal-content { background: #141414 !important; }
 html.app-skin-dark .opd-modal-title { color: #F5F5F5 !important; }
 html.app-skin-dark .opd-modal-desc { color: #9A9A9A !important; }
 
 html.app-skin-dark .opd-modal-icon.is-confirm {
-    background: rgba(234, 88, 12, 0.18) !important;
+    background: #262626 !important;
     color: #fb923c !important;
 }
 html.app-skin-dark .opd-modal-icon.is-success {
-    background: rgba(22, 163, 74, 0.18) !important;
+    background: #262626 !important;
     color: #4ade80 !important;
 }
 
@@ -447,29 +460,65 @@ html.app-skin-dark .opd-modal-textarea {
 html.app-skin-dark .opd-modal-textarea::placeholder { color: #6b6b6b !important; }
 html.app-skin-dark .opd-modal-textarea:focus {
     border-color: #4a4a4a !important;
-    box-shadow: 0 0 0 3px rgba(255,255,255,0.06) !important;
+    box-shadow: none !important;
 }
 
 @media (max-width: 767.98px) {
     html.app-skin-dark .opd-table tbody tr { border-color: #262626 !important; }
     html.app-skin-dark .opd-table tbody td::before { color: #6b6b6b !important; }
 }
-/* ---------- Borrower avatar sizing/shape — the js-borrower-avatar
-   class (below) supplies the actual placeholder look (gray bg +
-   silhouette background); this block only controls circle size,
-   shape, and the uploaded-photo <img> sizing. ---------- */
-.borrower-avatar {
-    width: 84px;
-    height: 84px;
-    border-radius: 50%;
-    flex-shrink: 0;
+
+/* ============================================================
+   MARK AS PAID MODAL — 2-column stat grid + total bar
+============================================================ */
+.opd-confirm-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 20px;
+    margin-top: 18px;
+    padding-bottom: 16px;
+    text-align: left;
+}
+.opd-confirm-label {
+    font-size: 0.72rem;
+    font-weight: 400;
+    color: #94a3b8;
+    margin-bottom: 3px;
+}
+.opd-confirm-value {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #0f172a;
+    word-break: break-word;
+}
+.opd-confirm-value.is-orange { color: #EA580C; }
+.opd-confirm-sub {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 400;
+    margin-top: 2px;
+}
+.opd-confirm-sub.is-danger { color: #DC2626; }
+
+.opd-confirm-total {
     display: flex;
     align-items: center;
-    justify-content: center;
-    overflow: hidden;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 0 8px;
+    border-top: 1px solid #e5e7eb;
 }
-.borrower-avatar-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+.opd-confirm-total-label { font-size: 0.85rem; font-weight: 500; color: #0f172a; }
+.opd-confirm-total-value { font-size: 1.3rem; font-weight: 600; color: #DC2626; }
+
+@media (max-width: 575.98px) {
+    .opd-confirm-grid { grid-template-columns: 1fr; gap: 12px; }
 }
+
+html.app-skin-dark .opd-confirm-label { color: #9A9A9A !important; }
+html.app-skin-dark .opd-confirm-value { color: #F5F5F5 !important; }
+html.app-skin-dark .opd-confirm-value.is-orange { color: #fb923c !important; }
+html.app-skin-dark .opd-confirm-sub.is-danger { color: #f87171 !important; }
+html.app-skin-dark .opd-confirm-total { border-top-color: #262626 !important; }
+html.app-skin-dark .opd-confirm-total-label { color: #F5F5F5 !important; }
+html.app-skin-dark .opd-confirm-total-value { color: #f87171 !important; }

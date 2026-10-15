@@ -110,7 +110,7 @@
                     <tbody id="loanTableBody">
                         @foreach($completedLoans as $loan)
                         <tr data-search="{{ strtolower($loan['name'] . ' ' . $loan['email'] . ' ' . $loan['borrower_id']) }}"
-                            data-href="{{ route('admin.completed-loan-detail', $loan['application_id']) }}"
+                            data-href="{{ route('admin.completed-loan-detail', $loan['uuid']) }}"
                             class="rs-clickable-row">
                             <td>
                                 <div class="borrower-cell-v2">
@@ -133,7 +133,7 @@
                             </td>
                             <td class="repaid-amount-v2">₱{{ number_format($loan['amount_collected'], 2) }}</td>
                             <td class="text-end">
-                                <a href="{{ route('admin.completed-loan-detail', $loan['application_id']) }}" class="btn-view-v2">
+                                <a href="{{ route('admin.completed-loan-detail', $loan['uuid']) }}" class="btn-view-v2">
                                     <i class="feather-eye"></i> View Details
                                 </a>
                             </td>
