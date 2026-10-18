@@ -123,6 +123,10 @@
 
                     <div class="loan-info-grid secondary">
                         <div class="info-item2">
+                            <label>Loan Amount</label>
+                            <span>&#8369;{{ number_format($app->loan_amount ?? 0, 2) }}</span>
+                        </div>
+                        <div class="info-item2">
                             <label>Monthly Payment</label>
                             <span>&#8369;{{ number_format($monthlyPayment, 2) }}</span>
                         </div>

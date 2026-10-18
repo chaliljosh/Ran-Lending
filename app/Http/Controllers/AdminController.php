@@ -840,7 +840,7 @@ public function ongoingLoans(Request $request)
         'pendingLoanCount' => $this->getPendingLoanCount($adminId),
     ]);
 }
-       public function ongoingLoanDetail(Request $request, $uuid)
+     public function ongoingLoanDetail(Request $request, $uuid)
 {
     $adminId = Session::get('user_id');
 
@@ -867,8 +867,11 @@ public function ongoingLoans(Request $request)
 
     $monthlyPayment = $totalCount > 0 ? ($app->total_amount / $totalCount) : 0;
     $totalInterest = max(0, $app->total_amount - $app->loan_amount);
-    $interestRate = $app->loan_amount > 0
-        ? round(($totalInterest / $app->loan_amount) * 100, 2)
+
+    // Interest rate PER MONTH: total interest ÷ loan amount ÷ number of months
+    $term = (int) ($app->loan_term ?: $totalCount);
+    $interestRate = ($app->loan_amount > 0 && $term > 0)
+        ? round(($totalInterest / $app->loan_amount / $term) * 100, 2)
         : 0;
 
     // Mga receipt na in-upload ng borrower na hinihintay pa ang admin
@@ -1293,7 +1296,7 @@ private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $i
         ]);
     }
 
-   public function markInstallmentPaid(Request $request, $id)
+     public function markInstallmentPaid(Request $request, $id)
 {
     $wantsJson = $request->ajax() || $request->wantsJson();
 
@@ -1398,6 +1401,9 @@ private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $i
             $update = [
                 'paid_at' => $paidAt,
                 'amount_paid' => $schedule->amount_due,
+                // Ito ang "Recorded" date sa Payment Details. Hindi ito kusang
+                // nag-a-update kapag DB::table()->update() ang gamit.
+                'updated_at' => now(),
             ];
             if ($receiptPath) {
                 $update['receipt_path'] = $receiptPath;

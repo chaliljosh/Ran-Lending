@@ -1,0 +1,186 @@
+/* ============================================================
+   admin-reports.css — Monthly Reports page.
+   Loads AFTER admin-dashboard.css and only adds what the
+   Dashboard doesn't have: header filters, selected-month
+   highlight, and the table total row. Fonts, white background,
+   cards, tables and dark mode all come from admin-dashboard.css.
+============================================================ */
+
+/* ---------- Header filters (month / year / export) ---------- */
+.rpt-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 8px 0;
+}
+
+/* Inter on the controls only — NOT on <i>, so feather icons keep their font */
+.rpt-filters .rpt-select,
+.rpt-filters .rpt-export-btn span {
+    font-family: var(--adm-dash-font);
+}
+
+.rpt-filters .rpt-select {
+    width: auto;
+    min-width: 140px;
+    height: 40px;
+    padding: 0 2.25rem 0 0.9rem;   /* no vertical padding -> text no longer clipped */
+    line-height: 38px;
+    border-radius: 10px;
+    border: 1px solid var(--adm-dash-border);
+    background-color: #FFFFFF;
+    color: var(--adm-dash-ink);
+    font-size: 0.86rem;
+    font-weight: 400;
+    box-shadow: none;
+}
+
+.rpt-filters .rpt-export-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 18px;
+    border-radius: 10px;
+    font-size: 0.86rem;
+    font-weight: 500;
+    text-transform: none;          /* theme makes .btn ALL CAPS */
+    letter-spacing: normal;
+    white-space: nowrap;
+}
+
+.rpt-filters .rpt-export-btn i {
+    font-size: 0.95rem;
+    line-height: 1;
+}
+
+/* ---------- Approved Applications: search bar ---------- */
+.rpt-search {
+    position: relative;
+    width: 400px;
+    max-width: 100%;
+}
+
+/* Icon sits inside the field, on the left */
+.rpt-search i {
+    position: absolute;
+    top: 50%;
+    left: 14px;
+    transform: translateY(-50%);
+    font-size: 0.95rem;
+    line-height: 1;
+    color: var(--adm-dash-muted, #94A3B8);
+    pointer-events: none;          /* clicks go through to the input */
+}
+
+.rpt-search .rpt-search-input {
+    width: 100%;
+    height: 40px;
+    padding: 0 0.9rem 0 2.5rem;    /* left room for the icon */
+    line-height: 38px;
+    border-radius: 10px;
+    border: 1px solid var(--adm-dash-border);
+    background-color: #FFFFFF;
+    color: var(--adm-dash-ink);
+    font-family: var(--adm-dash-font);
+    font-size: 0.86rem;
+    font-weight: 400;
+    box-shadow: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.rpt-search .rpt-search-input:focus {
+    outline: 0;
+    border-color: var(--adm-dash-blue);
+    box-shadow: 0 0 0 3px var(--adm-dash-blue-soft);
+}
+
+.rpt-search .rpt-search-input::placeholder {
+    color: var(--adm-dash-muted, #94A3B8);
+    opacity: 1;
+}
+
+/* ---------- Lighter font weights on this page only ---------- */
+.rpt-page .adm-stat-value { font-weight: 600; }
+.rpt-page .adm-table-name,
+.rpt-page .adm-table-amount { font-weight: 500; }
+.rpt-page .adm-table tfoot td { font-weight: 600; }
+
+/* ---------- Chart: highlight the selected month ---------- */
+.rpt-trend .adm-trend { border-top: 0; padding-top: 22px; }
+.rpt-trend .adm-trend-bars { height: 110px; gap: 12px; }
+.adm-trend-col.is-dim .adm-trend-fill { opacity: 0.3; }
+.adm-trend-col.is-active .adm-trend-label {
+    color: var(--adm-dash-ink);
+    font-weight: 600;
+}
+
+/* ---------- Month-by-month: selected row + total row ---------- */
+.adm-table tbody tr.is-active td { background: var(--adm-dash-blue-soft); }
+.adm-table tbody tr.is-active td:first-child { box-shadow: inset 3px 0 0 var(--adm-dash-blue); }
+
+.adm-table tbody tr:last-child td { border-bottom: 0; }
+
+.adm-table tfoot td {
+    padding: 17px 22px;
+    font-weight: 600;
+    color: var(--adm-dash-ink);
+    background: var(--adm-dash-bg-soft);
+    border-top: 1px solid var(--adm-dash-border);
+    border-bottom: 0;
+}
+
+/* ============================================================
+   DARK MODE
+============================================================ */
+html.app-skin-dark .rpt-select {
+    background-color: #141414;
+    border-color: #262626;
+    color: #F5F5F5;
+}
+
+html.app-skin-dark .rpt-search .rpt-search-input {
+    background-color: #141414;
+    border-color: #262626;
+    color: #F5F5F5;
+}
+
+html.app-skin-dark .rpt-search .rpt-search-input:focus {
+    border-color: #60A5FA;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+html.app-skin-dark .rpt-search .rpt-search-input::placeholder,
+html.app-skin-dark .rpt-search i {
+    color: #737373;
+}
+
+html.app-skin-dark .adm-trend-col.is-active .adm-trend-label { color: #F5F5F5; }
+
+html.app-skin-dark .adm-table tbody tr.is-active td {
+    background-color: rgba(59, 130, 246, 0.14) !important;
+}
+html.app-skin-dark .adm-table tbody tr.is-active td:first-child {
+    box-shadow: inset 3px 0 0 #60A5FA !important;
+}
+
+html.app-skin-dark .adm-table tfoot td {
+    background-color: #0d0d0d !important;
+    border-top: 1px solid #262626 !important;
+    color: #F5F5F5 !important;
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 768px) {
+    .page-header-right { width: 100%; margin-left: 0 !important; }
+    .rpt-filters { justify-content: flex-start; }
+    .rpt-trend .adm-trend-bars { gap: 6px; }
+    .rpt-search { width: 100%; }   /* full width kapag nag-wrap sa ilalim ng title */
+}
+
+@media (max-width: 576px) {
+    .rpt-select { flex: 1 1 45%; }
+    .rpt-export-btn { flex: 1 1 100%; justify-content: center; }
+}

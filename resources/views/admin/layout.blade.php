@@ -65,6 +65,13 @@
             <span class="nxl-mtext">Dashboard</span>
         </a>
     </li>
+    <li class="nxl-item">
+        <a href="{{ route('admin.monthly-reports') }}"
+            class="nxl-link {{ request()->routeIs('admin.monthly-reports*') ? 'active' : '' }}">
+            <span class="nxl-micon"><i class="feather-bar-chart-2"></i></span>
+            <span class="nxl-mtext">Monthly Reports</span>
+        </a>
+    </li>
 
     {{-- ============ LOANS ============ --}}
     {{-- ============ LOANS ============ --}}

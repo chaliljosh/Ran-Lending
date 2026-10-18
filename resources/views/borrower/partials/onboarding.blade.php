@@ -38,10 +38,9 @@
                 <li class="bwl-ob-step">
                     <span class="bwl-ob-step-num" aria-hidden="true">03</span>
                     <div>
-                        <p class="bwl-ob-step-title">Valid ID &amp; co-maker</p>
+                        <p class="bwl-ob-step-title">Valid ID</p>
                         <p class="bwl-ob-step-desc">
-                            Photos of your ID (front and back), and your co-maker's name and contact number.
-                            Keep these ready.
+                            Photos of your ID (front and back). Keep these ready.
                         </p>
                     </div>
                 </li>
@@ -55,7 +54,7 @@
                         <span class="bwl-ob-unlock-icon"><i class="feather-lock"></i></span>
                         <span>
                             <strong>Apply for a loan.</strong>
-                            Your first loan can be up to ₱10,000, paid over 3, 6, or 12 months.
+                            Your first loan can be up to ₱10,000, paid over 1-12 months.
                         </span>
                     </li>
                     <li class="bwl-ob-unlock-item">

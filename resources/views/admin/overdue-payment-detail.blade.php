@@ -265,25 +265,41 @@
                             <span class="opd-confirm-total-value">₱{{ number_format($totalOutstanding, 2) }}</span>
                         </div>
 
-                        {{-- NEW: Date Paid + Receipt (kapareho ng Ongoing Loans) --}}
-                        <div class="mt-3">
-                            <label for="opdPaidDate" class="form-label fw-semibold">
-                                Date Paid <span class="text-danger">*</span>
-                            </label>
-                            <input type="date" id="opdPaidDate" class="form-control"
-                                value="{{ now()->format('Y-m-d') }}" max="{{ now()->format('Y-m-d') }}">
+                        {{-- Date Paid + Receipt (kapareho ng Ongoing Loans) --}}
+                        <div class="ols-field">
+                            <label for="opdPaidDateDisplay" class="ols-field-label">Date Paid <span class="ols-req">*</span></label>
+                            <div class="ols-date-wrap">
+                                <input type="text" id="opdPaidDateDisplay" class="ols-input ols-date-input"
+                                    placeholder="MM/DD/YYYY" readonly autocomplete="off">
+                                <i class="feather-calendar ols-date-icon"></i>
+                            </div>
+                            {{-- Tunay na value (Y-m-d) na binabasa ng JS --}}
+                            <input type="hidden" id="opdPaidDate">
                         </div>
 
-                        <div class="mt-3">
-                            <label for="opdReceipt" class="form-label fw-semibold">
-                                Receipt <span class="text-danger">*</span>
+                        <div class="ols-field">
+                            <label class="ols-field-label">Receipt <span class="ols-req">*</span></label>
+                            <label for="opdReceipt" class="ols-dropzone" id="opdDropzone">
+                                <i class="feather-upload-cloud"></i>
+                                <span class="ols-dropzone-text">Click to upload receipt</span>
+                                <span class="ols-dropzone-hint">JPG or PNG, up to 5MB</span>
                             </label>
-                            <input type="file" id="opdReceipt" class="form-control"
-                                accept="image/png, image/jpeg">
-                            <div class="form-text">JPG or PNG, up to 5MB</div>
+                            <input type="file" id="opdReceipt" accept="image/jpeg,image/png" hidden>
+
+                            <div class="ols-preview" id="opdReceiptPreview" style="display:none;">
+                                <img id="opdReceiptPreviewImg" alt="Receipt preview">
+                                <div class="ols-preview-meta">
+                                    <span id="opdReceiptFileName"></span>
+                                    <span id="opdReceiptFileSize"></span>
+                                </div>
+                                <button type="button" class="ols-preview-remove" id="opdReceiptRemove"
+                                    aria-label="Remove receipt">
+                                    <i class="feather-x"></i>
+                                </button>
+                            </div>
                         </div>
 
-                        <div id="opdPaidError" class="text-danger mt-2 d-none" style="font-size:0.85rem;"></div>
+                        <div id="opdPaidError" class="ols-form-error d-none"></div>
                     @endif
                 </div>
                 <div class="modal-footer">
@@ -322,5 +338,5 @@
 @endpush
 
 @section('page-scripts')
-    <script src="{{ asset('functions/overdue-payment-detail.js') }}"></script>
+    <script src="{{ asset('functions/overdue-payment-detail.js') }}?v={{ time() }}"></script>
 @endsection

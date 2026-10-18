@@ -8,6 +8,7 @@ use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\BorrowerController;
 use App\Http\Controllers\PaymentReceiptController;
+use App\Http\Controllers\ReportController;
 
 Route::get('/', function () {
     $userProfilePictureUrl = null;
@@ -107,6 +108,10 @@ Route::middleware(['borrower', 'no-cache', 'throttle:20,1'])->prefix('api/borrow
 // browsing (GET requests), hindi lang ang mutating actions.
 Route::middleware(['admin', 'no-cache', 'throttle:60,1'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+
+    // Monthly Reports (sidebar, below Dashboard)
+    Route::get('/reports/monthly', [ReportController::class, 'monthly'])->name('monthly-reports');
+    Route::get('/reports/monthly/pdf', [ReportController::class, 'monthlyPdf'])->name('monthly-reports.pdf');
 
     // Notifications (header bell dropdown)
        Route::get('/notifications/{key}/open', [AdminController::class, 'notificationOpen'])
