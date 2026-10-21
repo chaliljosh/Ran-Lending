@@ -50,7 +50,7 @@
             <div class="m-header">
                 <a href="{{ route('admin.dashboard') }}" class="b-brand">
                     <img src="{{ asset('assets/landingpage/img/ranlogo.png') }}" alt="Ran Serenity" class="b-brand-icon">
-                    <h3 class="fst-italic b-brand-text">Ran Serenity</h3>
+                    <h3 class="fst-italic b-brand-text">RAN Serenity</h3>
                 </a>
             </div>
             <div class="navbar-content">

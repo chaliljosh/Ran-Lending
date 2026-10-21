@@ -1,7 +1,7 @@
 <nav class="nxl-navigation">
     <div class="navbar-wrapper">
         <div class="m-header">
-            <a href="{{ route('admin.dashboard') }}" class="b-brand"><h3 class="fst-italic">Ran Serenity</h3></a>
+            <a href="{{ route('admin.dashboard') }}" class="b-brand"><h3 class="fst-italic">RAN Serenity</h3></a>
         </div>
         <div class="navbar-content">
             <ul class="nxl-navbar">

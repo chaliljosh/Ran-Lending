@@ -188,7 +188,31 @@ class BorrowerController extends Controller
                 'title'    => 'Payment Received',
                 'subtitle' => 'Your payment of ₱' . number_format($s['amount_paid'], 2) . ' was confirmed.',
                 'read'     => $readKeys->has($key),
-                'ts'       => Carbon::parse($s['paid_at']),
+                // Date lang ang paid_at (Date Paid na nilalagay ng admin), kaya laging 12:00 AM.
+                // Kapag may recorded_at (eksaktong oras ng pag-record), yun ang gamitin.
+                // Fallback sa paid_at habang wala pa ito sa RPC.
+                'ts'       => !empty($s['recorded_at'])
+                    ? Carbon::parse($s['recorded_at'])->timezone(config('app.timezone'))
+                    : Carbon::parse($s['paid_at']),
+            ]);
+        }
+
+        // Na-void ng admin ang isang recorded payment. Galing sa installment_payment_logs
+        // (action = 'voided'). Hindi ipinapakita sa borrower ang reason ng admin.
+        foreach (($data['recent_voided'] ?? []) as $v) {
+            $voidedAt = Carbon::parse($v['voided_at'])->timezone(config('app.timezone'));
+            $key = 'voided:' . $v['application_id'] . ':' . $v['installment_no'] . ':' . $voidedAt->timestamp;
+
+            $items->push([
+                'key'      => $key,
+                'url'      => route('borrower.loan-details'),
+                'icon'     => 'feather-slash',
+                'color'    => 'danger',
+                'title'    => 'Payment Voided',
+                'subtitle' => 'Your payment of ₱' . number_format($v['amount'], 2)
+                    . ' for installment #' . $v['installment_no'] . ' was voided.',
+                'read'     => $readKeys->has($key),
+                'ts'       => $voidedAt,
             ]);
         }
 
@@ -687,7 +711,7 @@ class BorrowerController extends Controller
         }
     }
 
-       public function loanDetails(Request $request)
+    public function loanDetails(Request $request)
     {
         $userId = Session::get('user_id');
         $common = $this->commonData($userId);
@@ -850,6 +874,7 @@ class BorrowerController extends Controller
             'loans', 'canUploadReceipts'
         ));
     }
+
     public function installmentReceipt($id)
     {
         $userId = Session::get('user_id');

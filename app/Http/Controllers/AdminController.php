@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use App\Mail\LoanProofSent;
+use App\Mail\PaymentVoided;
 
 class AdminController extends Controller
 {
@@ -1551,69 +1552,75 @@ public function borrowerReceiptFile(Request $request, $id)
 }
 
 public function voidPayment(Request $request, $id)
-    {
-        $request->validate([
-            'reason' => 'required|string|min:5|max:500',
-        ], [
-            'reason.required' => 'Please enter a reason.',
-            'reason.min'      => 'Please enter a reason (at least 5 characters).',
-        ]);
+{
+    $request->validate([
+        'reason' => 'required|string|min:5|max:500',
+    ], [
+        'reason.required' => 'Please enter a reason.',
+        'reason.min'      => 'Please enter a reason (at least 5 characters).',
+    ]);
 
-        $adminId = Session::get('user_id');
+    $adminId = Session::get('user_id');
 
-        try {
-            DB::transaction(function () use ($request, $id, $adminId) {
-                $schedule = DB::table('loan_payment_schedules')
-                    ->where('id', $id)
-                    ->lockForUpdate()
-                    ->first();
+    try {
+        // Ibinabalik ng transaction ang schedule row (bago ma-void) para magamit sa email
+        $voided = DB::transaction(function () use ($request, $id, $adminId) {
+            $schedule = DB::table('loan_payment_schedules')
+                ->where('id', $id)
+                ->lockForUpdate()
+                ->first();
 
-                if (!$schedule) {
-                    throw new \RuntimeException('Installment not found.');
-                }
-                if (is_null($schedule->paid_at)) {
-                    throw new \RuntimeException('This installment is not recorded as paid.');
-                }
+            if (!$schedule) {
+                throw new \RuntimeException('Installment not found.');
+            }
+            if (is_null($schedule->paid_at)) {
+                throw new \RuntimeException('This installment is not recorded as paid.');
+            }
 
-                DB::table('installment_payment_logs')->insert([
-                    'installment_id' => $schedule->id,
-                    'action'         => 'voided',
-                    'amount'         => $schedule->amount_paid,
-                    'paid_at'        => \Carbon\Carbon::parse($schedule->paid_at)->toDateString(),
-                    'receipt_path'   => $schedule->receipt_path,
-                    'reason'         => trim($request->input('reason')),
-                    'admin_id'       => $adminId,
-                    'created_at'     => now(),
+            DB::table('installment_payment_logs')->insert([
+                'installment_id' => $schedule->id,
+                'action'         => 'voided',
+                'amount'         => $schedule->amount_paid,
+                'paid_at'        => \Carbon\Carbon::parse($schedule->paid_at)->toDateString(),
+                'receipt_path'   => $schedule->receipt_path,
+                'reason'         => trim($request->input('reason')),
+                'admin_id'       => $adminId,
+                'created_at'     => now(),
+            ]);
+
+            DB::table('loan_payment_schedules')
+                ->where('id', $id)
+                ->update([
+                    'paid_at'      => null,
+                    'amount_paid'  => 0,
+                    'receipt_path' => null,
                 ]);
 
-                DB::table('loan_payment_schedules')
-                    ->where('id', $id)
-                    ->update([
-                        'paid_at'      => null,
-                        'amount_paid'  => 0,
-                        'receipt_path' => null,
-                    ]);
+            DB::table('loan_applications')
+                ->where('application_id', $schedule->application_id)
+                ->where('status', 'completed')
+                ->update(['status' => 'active']);
 
-                DB::table('loan_applications')
-                    ->where('application_id', $schedule->application_id)
-                    ->where('status', 'completed')
-                    ->update(['status' => 'active']);
-            });
-              } catch (\Illuminate\Database\QueryException $e) {
-            Log::error("Void payment failed (schedule {$id}): " . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'Failed to void the payment.'], 500);
-        } catch (\RuntimeException $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
-        } catch (\Throwable $e) {
-            Log::error("Void payment failed (schedule {$id}): " . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'Failed to void the payment.'], 500);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Payment voided successfully.',
-        ]);
+            return $schedule;
+        });
+    } catch (\Illuminate\Database\QueryException $e) {
+        Log::error("Void payment failed (schedule {$id}): " . $e->getMessage());
+        return response()->json(['success' => false, 'message' => 'Failed to void the payment.'], 500);
+    } catch (\RuntimeException $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+    } catch (\Throwable $e) {
+        Log::error("Void payment failed (schedule {$id}): " . $e->getMessage());
+        return response()->json(['success' => false, 'message' => 'Failed to void the payment.'], 500);
     }
+
+    // Email sa borrower (hindi pumapalya ang void kahit pumalya ang email)
+   $this->sendPaymentVoidedEmail($voided, trim($request->input('reason')));
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Payment voided successfully.',
+    ]);
+}
 
     private function getPaymentSchedule($applicationId)
     {
@@ -1628,79 +1635,85 @@ public function voidPayment(Request $request, $id)
      * Emails the borrower a proof of payment for ONE recorded installment.
      * Expects: proof (JPG/PNG, max 5MB) and schedule_id (the installment row).
      */
+       /**
+     * POST /admin/loans/{applicationId}/send-proof
+     * Emails the borrower a proof of payment for ONE recorded installment.
+     * Expects: proof (JPG/PNG, max 5MB) and schedule_id (the installment row).
+     */
     public function sendProofToBorrower(Request $request, $applicationId)
-{
-    $request->validate([
-        'proof'       => 'required|file|mimes:jpg,jpeg,png|max:5120',
-        'schedule_id' => 'required|integer',
-    ], [
-        'proof.required'       => 'Please attach the proof.',
-        'proof.mimes'          => 'The proof must be a JPG or PNG image.',
-        'proof.max'            => 'The proof may not be larger than 5MB.',
-        'schedule_id.required' => 'Please choose the installment this proof is for.',
-    ]);
+    {
+        $request->validate([
+            'proof'       => 'required|file|mimes:jpg,jpeg,png|max:5120',
+            'schedule_id' => 'required|integer',
+        ], [
+            'proof.required'       => 'Please attach the proof.',
+            'proof.mimes'          => 'The proof must be a JPG or PNG image.',
+            'proof.max'            => 'The proof may not be larger than 5MB.',
+            'schedule_id.required' => 'Please choose the installment this proof is for.',
+        ]);
 
-    $loan = DB::table('loan_applications')
-        ->where('application_id', (int) $applicationId)
-        ->first();
+        $loan = DB::table('loan_applications')
+            ->where('application_id', (int) $applicationId)
+            ->first();
 
-    if (!$loan) {
-        return response()->json(['success' => false, 'message' => 'Loan not found.'], 404);
+        if (!$loan) {
+            return response()->json(['success' => false, 'message' => 'Loan not found.'], 404);
+        }
+
+        // The installment must belong to this loan and already be recorded as paid.
+        $schedule = DB::table('loan_payment_schedules')
+            ->where('id', (int) $request->input('schedule_id'))
+            ->where('application_id', $loan->application_id)
+            ->first();
+
+        if (!$schedule) {
+            return response()->json(['success' => false, 'message' => 'Installment not found.'], 404);
+        }
+
+        if (is_null($schedule->paid_at)) {
+            return response()->json(['success' => false, 'message' => 'Proof can only be sent for a payment that is already recorded.'], 422);
+        }
+
+        $borrower = DB::table('users as u')
+            ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'u.user_id')
+            ->where('u.user_id', $loan->user_id)
+            ->select('u.email', 'u.name', 'bpd.first_name')
+            ->first();
+
+        if (!$borrower || empty($borrower->email)) {
+            return response()->json(['success' => false, 'message' => 'The borrower has no email address on file.'], 422);
+        }
+
+        $displayName = $borrower->first_name ?: ($borrower->name ?: 'Borrower');
+        $file = $request->file('proof');
+        $ext = $file->guessExtension() ?: 'jpg';
+
+        // Parehong format ng admin page: LN- + unang 8 chars ng uuid (hal. LN-34782CDF)
+        $loanCode = 'LN-' . strtoupper(substr($loan->uuid, 0, 8));
+
+        // Hindi tulad ng ibang emails, dito hindi natin nilulunok ang error:
+        // ang email mismo ang trabaho, kaya dapat malaman ng admin kung pumalya.
+        try {
+            Mail::to($borrower->email)->send(new LoanProofSent(
+                $loan,
+                $displayName,
+                $schedule,
+                $file->getRealPath(),
+                $file->getMimeType(),
+                "payment-proof-{$loanCode}-installment-{$schedule->installment_no}.{$ext}"
+            ));
+        } catch (\Throwable $e) {
+            Log::error("Send proof failed (loan {$applicationId}, installment {$schedule->installment_no}): " . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Failed to send the email. Please try again.'], 500);
+        }
+
+        Log::info("Payment proof emailed (loan {$applicationId}, installment {$schedule->installment_no}) by admin " . Session::get('user_id'));
+
+        return response()->json([
+            'success' => true,
+            'message' => "Proof sent to {$borrower->email}.",
+        ]);
     }
-
-    // The installment must belong to this loan and already be recorded as paid.
-    $schedule = DB::table('loan_payment_schedules')
-        ->where('id', (int) $request->input('schedule_id'))
-        ->where('application_id', $loan->application_id)
-        ->first();
-
-    if (!$schedule) {
-        return response()->json(['success' => false, 'message' => 'Installment not found.'], 404);
-    }
-
-    if (is_null($schedule->paid_at)) {
-        return response()->json(['success' => false, 'message' => 'Proof can only be sent for a payment that is already recorded.'], 422);
-    }
-
-    $borrower = DB::table('users as u')
-        ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'u.user_id')
-        ->where('u.user_id', $loan->user_id)
-        ->select('u.email', 'u.name', 'bpd.first_name')
-        ->first();
-
-    if (!$borrower || empty($borrower->email)) {
-        return response()->json(['success' => false, 'message' => 'The borrower has no email address on file.'], 422);
-    }
-
-    $displayName = $borrower->first_name ?: ($borrower->name ?: 'Borrower');
-    $file = $request->file('proof');
-    $ext = $file->guessExtension() ?: 'jpg';
-    $loanCode = 'LN-' . str_pad($loan->application_id, 6, '0', STR_PAD_LEFT);
-
-    // Hindi tulad ng ibang emails, dito hindi natin nilulunok ang error:
-    // ang email mismo ang trabaho, kaya dapat malaman ng admin kung pumalya.
-    try {
-        Mail::to($borrower->email)->send(new LoanProofSent(
-            $loan,
-            $displayName,
-            $schedule,
-            $file->getRealPath(),
-            $file->getMimeType(),
-            "payment-proof-{$loanCode}-installment-{$schedule->installment_no}.{$ext}"
-        ));
-    } catch (\Throwable $e) {
-        Log::error("Send proof failed (loan {$applicationId}, installment {$schedule->installment_no}): " . $e->getMessage());
-        return response()->json(['success' => false, 'message' => 'Failed to send the email. Please try again.'], 500);
-    }
-
-    Log::info("Payment proof emailed (loan {$applicationId}, installment {$schedule->installment_no}) by admin " . Session::get('user_id'));
-
-    return response()->json([
-        'success' => true,
-        'message' => "Proof sent to {$borrower->email}.",
-    ]);
-}
-
     private function saveLoanComment($applicationId, $adminId, $comment)
     {
         DB::table('loan_approval_comments')->insert([
@@ -1710,6 +1723,45 @@ public function voidPayment(Request $request, $id)
             'created_at' => now(),
         ]);
     }
+
+    private function sendPaymentVoidedEmail($schedule, string $reason = ''): void
+{
+    try {
+        $loan = DB::table('loan_applications')
+            ->where('application_id', $schedule->application_id)
+            ->first();
+
+        if (!$loan) {
+            return;
+        }
+
+        $borrower = DB::table('users as u')
+            ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'u.user_id')
+            ->where('u.user_id', $loan->user_id)
+            ->select('u.email', 'u.name', 'bpd.first_name')
+            ->first();
+
+        if (!$borrower || empty($borrower->email)) {
+            return;
+        }
+
+        $displayName = $borrower->first_name ?: ($borrower->name ?: 'Borrower');
+
+        Mail::to($borrower->email)->send(
+            new PaymentVoided(
+                $loan,
+                $displayName,
+                (int) $schedule->installment_no,
+                (float) $schedule->amount_paid,
+                now(),
+                $reason,
+            )
+        );
+    } catch (\Throwable $e) {
+        // Hindi dapat pumalya ang pag-void dahil lang sa email.
+        Log::warning("Payment voided email failed (schedule {$schedule->id}): " . $e->getMessage());
+    }
+}
 
     private function getLoanComments($applicationId)
     {

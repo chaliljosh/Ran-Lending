@@ -2,7 +2,8 @@
     $copy = [
         'approved' => [
             'label' => 'Approved',
-            'title' => 'Your loan application has been approved',
+            'badge' => '&#10003; Approved',
+            'title' => 'Loan application approved',
             'lines' => [
                 'Your loan application has been reviewed and approved by our admins.',
                 'Our team will contact you about the next steps. You can also track your loan anytime in your borrower account.',
@@ -10,15 +11,17 @@
         ],
         'rejected' => [
             'label' => 'Not approved',
+            'badge' => 'Not approved',
             'title' => 'Update on your loan application',
             'lines' => [
-                'Thank you for applying with Ran Serenity. After careful review, we are unable to approve your loan application at this time.',
+                'Thank you for applying with RAN Serenity. After careful review, we are unable to approve your loan application at this time.',
                 'If you have questions about this decision, please contact us directly.',
             ],
         ],
         'on_hold' => [
             'label' => 'On hold',
-            'title' => 'Your loan application is on hold',
+            'badge' => 'On hold',
+            'title' => 'Loan application on hold',
             'lines' => [
                 'Your loan application is currently on hold pending additional review.',
                 'You do not need to do anything right now. Our team may contact you for a follow-up, and we will let you know once there is an update.',
@@ -26,12 +29,25 @@
         ],
     ][$status] ?? null;
 
-    $loanId   = 'LN-' . str_pad($loan->application_id, 6, '0', STR_PAD_LEFT);
+    // Parehong format ng ibang emails: LN- + unang 8 chars ng uuid, uppercase
+    $loanId   = 'LN-' . strtoupper(substr($loan->uuid, 0, 8));
     $termInt  = (int) $loan->loan_term;
     $greetEnd = $status === 'approved' ? '!' : ',';
 
     // Inline only. Do NOT add a <style> block: an unclosed one makes Gmail hide the whole body.
     $f = 'font-family:Helvetica,Arial,sans-serif;';
+
+    // Logo: public URL galing sa Supabase Storage (public bucket)
+    $logoSrc = \Illuminate\Support\Facades\Storage::disk('supabase')->url('branding/ranlogo.png');
+
+    // Mga kulay, kapareho ng payment received email. Isang lugar lang para madaling palitan.
+    $cream      = '#ffffff';
+    $ink        = '#1c1b22';
+    $muted      = '#6b6a75';
+    $line       = '#e6e4ee';
+    $purple     = '#9b7bd6';
+    $purpleDark = '#6b4bb8';
+    $lavender   = '#efebf7';
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -40,84 +56,117 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $copy['title'] ?? 'Loan application update' }}</title>
 </head>
-<body bgcolor="#ffffff" style="margin:0;padding:0;background:#ffffff;{{ $f }}color:#1f1f1f;">
+<body bgcolor="{{ $cream }}" style="margin:0;padding:0;background:{{ $cream }};{{ $f }}color:{{ $ink }};">
 
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#ffffff">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="{{ $cream }}">
         <tr>
-            <td align="center" style="padding:40px 24px;">
+            <td align="center" style="padding:0 20px 32px;">
 
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;">
 
-                    {{-- Brand --}}
+                    {{-- Header: logo + pangalan --}}
                     <tr>
-                        <td align="center" style="padding:0 0 36px;{{ $f }}font-size:28px;line-height:1.2;font-weight:700;color:#1f1f1f;">
-                            Ran Serenity
+                        <td style="border-bottom:1px solid {{ $line }};">
+                            <table role="presentation" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td width="52" style="padding:16px 12px 16px 0;">
+                                        <img src="{{ $logoSrc }}" alt="" width="52" style="display:block;width:52px;height:auto;border:0;">
+                                    </td>
+                                    <td style="padding:16px 0;{{ $f }}font-size:22px;font-weight:700;color:{{ $ink }};">RAN Serenity</td>
+                                </tr>
+                            </table>
                         </td>
                     </tr>
 
                     @if($copy)
-                        {{-- Greeting --}}
+                        {{-- Pamagat at mensahe --}}
                         <tr>
-                            <td style="padding:0 0 16px;{{ $f }}font-size:22px;line-height:1.3;font-weight:700;color:#1f1f1f;">
-                                Hello, {{ $borrowerName }}{{ $greetEnd }}
+                            <td style="padding:36px 0 0;{{ $f }}font-size:14px;font-weight:400;letter-spacing:0.5px;color:{{ $purpleDark }};">
+                                {{ $copy['title'] }}
                             </td>
                         </tr>
-
-                        {{-- Message --}}
                         <tr>
-                            <td style="{{ $f }}font-size:15px;line-height:1.6;color:#1f1f1f;">
-                                @foreach($copy['lines'] as $line)
-                                    <p style="margin:0 0 12px;">{{ $line }}</p>
+                            <td style="padding:8px 0 12px;{{ $f }}font-size:36px;line-height:1.15;font-weight:700;color:{{ $ink }};">
+                                Hello, <span style="color:{{ $purple }};">{{ $borrowerName }}</span>{{ $greetEnd }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding:0 0 16px;{{ $f }}font-size:16px;font-weight:400;line-height:1.6;color:{{ $muted }};">
+                                @foreach($copy['lines'] as $text)
+                                    <p style="margin:0 0 12px;">{{ $text }}</p>
                                 @endforeach
                             </td>
                         </tr>
 
-                        {{-- Loan reference + details --}}
+                        {{-- Loan card --}}
                         <tr>
-                            <td style="padding:12px 0 0;">
-                                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#eff4ff" style="background:#eff4ff;border-radius:12px;">
+                            <td>
+                                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="background:#ffffff;border:1px solid {{ $line }};border-radius:18px;">
+
+                                    {{-- Loan number + badge --}}
                                     <tr>
-                                        <td align="center" style="padding:32px 24px 24px;{{ $f }}font-size:30px;line-height:1.2;font-weight:700;letter-spacing:4px;color:#4a7cf5;">
-                                            {{ $loanId }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding:0 24px 12px;">
+                                        <td style="padding:24px 24px 8px;">
                                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                                 <tr>
-                                                    <td style="padding:12px 0;border-top:1px solid #d6e2fb;{{ $f }}font-size:14px;color:#5f6b7a;">Status</td>
-                                                    <td align="right" style="padding:12px 0;border-top:1px solid #d6e2fb;{{ $f }}font-size:14px;font-weight:700;color:#1f1f1f;">{{ $copy['label'] }}</td>
+                                                    <td style="{{ $f }}font-size:13px;font-weight:400;color:{{ $muted }};">Loan number</td>
+                                                    <td align="right" rowspan="2" valign="top">
+                                                        <span style="display:inline-block;padding:5px 14px;background:{{ $lavender }};border-radius:999px;{{ $f }}font-size:13px;font-weight:400;color:{{ $purpleDark }};">{!! $copy['badge'] !!}</span>
+                                                    </td>
                                                 </tr>
                                                 <tr>
-                                                    <td style="padding:12px 0;border-top:1px solid #d6e2fb;{{ $f }}font-size:14px;color:#5f6b7a;">Loan amount</td>
-                                                    <td align="right" style="padding:12px 0;border-top:1px solid #d6e2fb;{{ $f }}font-size:14px;font-weight:700;color:#1f1f1f;">₱{{ number_format($loan->loan_amount, 2) }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td style="padding:12px 0;border-top:1px solid #d6e2fb;{{ $f }}font-size:14px;color:#5f6b7a;">Term</td>
-                                                    <td align="right" style="padding:12px 0;border-top:1px solid #d6e2fb;{{ $f }}font-size:14px;font-weight:700;color:#1f1f1f;">{{ $termInt }} {{ $termInt === 1 ? 'month' : 'months' }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td style="padding:12px 0;border-top:1px solid #d6e2fb;{{ $f }}font-size:14px;color:#5f6b7a;">Date applied</td>
-                                                    <td align="right" style="padding:12px 0;border-top:1px solid #d6e2fb;{{ $f }}font-size:14px;font-weight:700;color:#1f1f1f;">{{ \Carbon\Carbon::parse($loan->applied_at)->format('F j, Y') }}</td>
+                                                    <td style="padding-top:4px;{{ $f }}font-size:26px;line-height:1.2;font-weight:700;letter-spacing:1px;color:{{ $ink }};">{{ $loanId }}</td>
                                                 </tr>
                                             </table>
                                         </td>
                                     </tr>
+
+                                    {{-- Mga detalye --}}
+                                    <tr>
+                                        <td style="padding:8px 24px 16px;">
+                                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                                <tr>
+                                                    <td style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $muted }};">Status</td>
+                                                    <td align="right" style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $purpleDark }};">{{ $copy['label'] }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $muted }};">Loan amount</td>
+                                                    <td align="right" style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $ink }};">₱{{ number_format($loan->loan_amount, 2) }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $muted }};">Term</td>
+                                                    <td align="right" style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $ink }};">{{ $termInt }} {{ $termInt === 1 ? 'month' : 'months' }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $muted }};">Date applied</td>
+                                                    <td align="right" style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $ink }};">{{ \Carbon\Carbon::parse($loan->applied_at)->format('F j, Y') }}</td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+
                                 </table>
                             </td>
                         </tr>
-
-                        {{-- Button --}}
-                        
                     @endif
 
                     {{-- Footer --}}
                     <tr>
-                        <td style="padding:40px 0 0;{{ $f }}font-size:12px;line-height:1.5;color:#8a919c;">
-                            You are receiving this email because you applied for a loan with Ran Serenity.
+                        <td style="padding:28px 0 0;{{ $f }}font-size:15px;font-weight:400;line-height:1.5;color:{{ $purpleDark }};">
+                            Thank you for trusting RAN Serenity!
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:2px 0 0;{{ $f }}font-size:13px;font-weight:400;line-height:1.5;color:{{ $muted }};">
+                            Together towards your goals.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:24px 0 0;{{ $f }}font-size:12px;font-weight:400;line-height:1.5;color:{{ $muted }};">
+                            You are receiving this email because you applied for a loan with RAN Serenity.
                             This is an automated message, please do not reply.
                         </td>
                     </tr>
+
                 </table>
 
             </td>
