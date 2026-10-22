@@ -10,25 +10,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ---- Payment form fields ----
     const paidDateInput = document.getElementById('olsPaidDate');
-    const receiptInput = document.getElementById('olsReceiptInput');
-    const dropzone = document.getElementById('olsDropzone');
-    const previewWrap = document.getElementById('olsReceiptPreview');
-    const previewImg = document.getElementById('olsReceiptPreviewImg');
-    const fileNameEl = document.getElementById('olsReceiptFileName');
-    const fileSizeEl = document.getElementById('olsReceiptFileSize');
-    const removeReceiptBtn = document.getElementById('olsReceiptRemove');
     const errorEl = document.getElementById('olsMarkPaidError');
 
+    // Gamit pa rin sa Send Proof modal
     const MAX_RECEIPT_BYTES = 5 * 1024 * 1024; // 5MB
     const ALLOWED_TYPES = ['image/jpeg', 'image/png'];
 
     let pendingScheduleId = null;
     let pendingBtn = null;
-    let selectedFile = null;
-    let previewUrl = null;
 
     // ---- "Use borrower's receipt" mode (galing sa View Receipt modal) ----
-    const receiptField = document.getElementById('olsReceiptField');
     const borrowerReceiptField = document.getElementById('olsUsingBorrowerReceipt');
     const borrowerReceiptThumb = document.getElementById('olsUsingBorrowerThumb');
     const useOwnReceiptBtn = document.getElementById('olsUseOwnReceiptBtn');
@@ -36,7 +27,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function setBorrowerReceiptMode(url) {
         useBorrowerReceipt = !!url;
-        receiptField.style.display = useBorrowerReceipt ? 'none' : '';
         borrowerReceiptField.style.display = useBorrowerReceipt ? '' : 'none';
         if (useBorrowerReceipt) {
             borrowerReceiptThumb.src = url;
@@ -45,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // X -> alisin ang receipt ng borrower at bumalik sa normal na upload ng sariling receipt
+    // X -> alisin ang receipt ng borrower (walang receipt na isasama)
     useOwnReceiptBtn.addEventListener('click', function () {
         setBorrowerReceiptMode(null);
         showError('');
@@ -294,23 +284,14 @@ document.addEventListener('DOMContentLoaded', function () {
         errorEl.style.display = msg ? '' : 'none';
     }
 
+    // Gamit sa Send Proof modal
     function formatSize(bytes) {
         return bytes >= 1048576
             ? (bytes / 1048576).toFixed(1) + ' MB'
             : Math.max(1, Math.round(bytes / 1024)) + ' KB';
     }
 
-    function clearReceipt() {
-        if (previewUrl) { URL.revokeObjectURL(previewUrl); previewUrl = null; }
-        selectedFile = null;
-        receiptInput.value = '';
-        previewImg.removeAttribute('src');
-        previewWrap.style.display = 'none';
-        dropzone.style.display = '';
-    }
-
     function resetForm() {
-        clearReceipt();
         showError('');
         setBorrowerReceiptMode(null);
         const today = todayLocal();
@@ -319,35 +300,6 @@ document.addEventListener('DOMContentLoaded', function () {
         datePicker.setRange('', today);
         datePicker.setValue(today);
     }
-
-    receiptInput.addEventListener('change', function () {
-        const file = receiptInput.files[0];
-        clearReceipt();
-        showError('');
-        if (!file) return;
-
-        if (!ALLOWED_TYPES.includes(file.type)) {
-            showError('Only JPG or PNG images are allowed.');
-            return;
-        }
-        if (file.size > MAX_RECEIPT_BYTES) {
-            showError('File is too large. Maximum size is 5MB.');
-            return;
-        }
-
-        selectedFile = file;
-        previewUrl = URL.createObjectURL(file);
-        previewImg.src = previewUrl;
-        fileNameEl.textContent = file.name;
-        fileSizeEl.textContent = formatSize(file.size);
-        dropzone.style.display = 'none';
-        previewWrap.style.display = '';
-    });
-
-    removeReceiptBtn.addEventListener('click', function () {
-        clearReceipt();
-        showError('');
-    });
 
     // ---- Step 1: click "Record Payment" -> open confirm modal ----
     table.addEventListener('click', function (e) {
@@ -586,10 +538,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ---- Send Proof of Payment ----
-    // Proof ng bayad ng isang installment -> ie-email sa borrower.
+    // ---- Send Proof of Release ----
+    // ISANG BESES lang per loan: proof na na-release na ang loan sa borrower -> ie-email sa borrower.
+    // Ang button ay nasa page header (hindi na sa row ng installment).
     const proofModalEl = document.getElementById('olsSendProofModal');
-    if (proofModalEl) {
+    const proofOpenBtn = document.getElementById('olsSendProofBtn');
+    if (proofModalEl && proofOpenBtn) {
         const proofInput = document.getElementById('olsProofInput');
         const proofDropzone = document.getElementById('olsProofDropzone');
         const proofPreview = document.getElementById('olsProofPreview');
@@ -600,8 +554,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const proofErrorEl = document.getElementById('olsProofError');
         const proofSendBtn = document.getElementById('olsProofSendBtn');
 
-        let proofApplicationId = null;
-        let proofScheduleId = null;
+        const proofApplicationId = proofOpenBtn.dataset.applicationId;
         let proofFile = null;
         let proofPreviewUrl = null;
 
@@ -648,17 +601,11 @@ document.addEventListener('DOMContentLoaded', function () {
             showProofError('');
         });
 
-        // Buksan ang modal mula sa kebab menu ng row (installment) na pinili
-        table.addEventListener('click', function (e) {
-            const btn = e.target.closest('.js-send-proof');
-            if (!btn) return;
-
-            proofApplicationId = btn.dataset.applicationId;
-            proofScheduleId = btn.dataset.scheduleId;
-            document.getElementById('olsProofInstallmentNo').textContent = '#' + btn.dataset.installmentNo;
-            document.getElementById('olsProofAmount').textContent = btn.dataset.amount;
-            document.getElementById('olsProofBorrowerName').textContent = btn.dataset.borrowerName;
-            document.getElementById('olsProofBorrowerEmail').textContent = btn.dataset.borrowerEmail;
+        // Buksan ang modal mula sa "Send Proof of Release" button sa header
+        proofOpenBtn.addEventListener('click', function () {
+            document.getElementById('olsProofAmount').textContent = proofOpenBtn.dataset.amount;
+            document.getElementById('olsProofBorrowerName').textContent = proofOpenBtn.dataset.borrowerName;
+            document.getElementById('olsProofBorrowerEmail').textContent = proofOpenBtn.dataset.borrowerEmail;
             clearProof();
             showProofError('');
             bootstrap.Modal.getOrCreateInstance(proofModalEl).show();
@@ -670,13 +617,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         proofSendBtn.addEventListener('click', function () {
-            if (!proofApplicationId || !proofScheduleId) return;
+            if (!proofApplicationId) return;
             showProofError('');
             if (!proofFile) { showProofError('Please attach the proof.'); return; }
 
             const formData = new FormData();
             formData.append('proof', proofFile);
-            formData.append('schedule_id', proofScheduleId);
 
             proofSendBtn.disabled = true;
             proofSendBtn.classList.add('is-loading');
@@ -733,7 +679,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const paidDate = paidDateInput.value;
         if (!paidDate) { showError('Please select the date the payment was made.'); return; }
         if (paidDate > todayLocal()) { showError('The payment date cannot be in the future.'); return; }
-        if (!selectedFile && !useBorrowerReceipt) { showError('Please attach the receipt.'); return; }
 
         const scheduleId = pendingScheduleId;
         const btn = pendingBtn;
@@ -741,12 +686,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const formData = new FormData();
         formData.append('paid_date', paidDate);
+        // Receipt ng borrower lang ang puwedeng isama (galing sa View Receipt)
         if (useBorrowerReceipt) {
             formData.append('use_borrower_receipt', '1');
-        } else {
-            formData.append('receipt', selectedFile);
         }
-        formData.append('require_proof', '1');
 
         confirmBtn.disabled = true;
         confirmBtn.classList.add('is-loading');
@@ -789,7 +732,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const kebab = actionsCell.querySelector('.ols-kebab-wrap');
                 actionsCell.innerHTML = '<span class="sched-paid-note">Recorded</span>';
                 actionsCell.appendChild(kebab);
-                kebab.classList.remove('d-none'); // lalabas na ang Send Proof / View Payment Details / Void
+                kebab.classList.remove('d-none'); // lalabas na ang View Payment Details / Void
 
                 // Keep the "View Payment Details" modal data in sync with the newly recorded payment
                 const detailsBtn = row.querySelector('.js-view-payment-details');
@@ -802,10 +745,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     detailsBtn.dataset.recorded = longDate(new Date());
                     detailsBtn.dataset.receiptUrl = data.receipt_url || '';
                 }
-
-                // Keep the "Send Proof of Payment" amount in sync too
-                const sendProofBtn = row.querySelector('.js-send-proof');
-                if (sendProofBtn) sendProofBtn.dataset.amount = data.amount_paid_display;
 
                 // Reveal "Void Payment" for the newly recorded payment
                 const voidItem = row.querySelector('.js-void-item');

@@ -1234,70 +1234,115 @@ private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $i
         ]);
     }
 
-       public function overduePaymentDetail(Request $request, $uuid)
-    {
-        $adminId = Session::get('user_id');
+    public function overduePaymentDetail(Request $request, $uuid)
+{
+    $adminId = Session::get('user_id');
 
-        // UUID lang ang nasa URL. Ang integer na application_id ay internal na lang.
-        $applicationId = (int) DB::table('loan_applications')
-            ->where('uuid', $uuid)
-            ->value('application_id');
+    // UUID lang ang nasa URL. Ang integer na application_id ay internal na lang.
+    $applicationId = (int) DB::table('loan_applications')
+        ->where('uuid', $uuid)
+        ->value('application_id');
 
-        if (!$applicationId) {
-            return redirect()->route('admin.overdue-payments');
+    if (!$applicationId) {
+        return redirect()->route('admin.overdue-payments');
+    }
+
+    $app = $this->getLoanApplication($applicationId);
+
+    if (!$app) {
+        return redirect()->route('admin.overdue-payments');
+    }
+
+    $schedule = $this->getPaymentSchedule($applicationId);
+
+    $overdueSchedules = $schedule->filter(function ($s) {
+        return is_null($s->paid_at) && \Carbon\Carbon::parse($s->due_date)->isPast();
+    })->sortBy('due_date')->values();
+
+    $oldestOverdue = $overdueSchedules->first();
+
+    $currentPenalty = 0.0;
+    $penaltyId = null;
+
+    // Gamit ang existing na PenaltyHelper (₱50 kada 7 days, galing config/penalty.php)
+    // para laging updated ang penalty pagbukas ng page, at may row na para sa Waive.
+    foreach ($overdueSchedules as $s) {
+        $calc = PenaltyHelper::calculatePenalty($s);
+
+        if ($calc['amount'] <= 0) {
+            continue; // wala pang 7 days
         }
 
-        $app = $this->getLoanApplication($applicationId);
+        $row = DB::table('loan_penalties')->where('schedule_id', $s->id)->first();
 
-        if (!$app) {
-            return redirect()->route('admin.overdue-payments');
+        if (!$row) {
+            DB::table('loan_penalties')->insert([
+                'schedule_id'      => $s->id,
+                'application_id'   => $s->application_id,
+                'days_late'        => $calc['days_late'],
+                'late_fee_periods' => $calc['periods'],
+                'penalty_amount'   => $calc['amount'],
+                'status'           => 'unpaid',
+                'created_at'       => now(),
+                'updated_at'       => now(),
+            ]);
+        } elseif ($row->status === 'unpaid') {
+            // Huwag galawin ang paid/waived na
+            DB::table('loan_penalties')->where('id', $row->id)->update([
+                'days_late'        => $calc['days_late'],
+                'late_fee_periods' => $calc['periods'],
+                'penalty_amount'   => $calc['amount'],
+                'updated_at'       => now(),
+            ]);
         }
 
-        $schedule = $this->getPaymentSchedule($applicationId);
-
-        $overdueSchedules = $schedule->filter(function ($s) {
-            return is_null($s->paid_at) && \Carbon\Carbon::parse($s->due_date)->isPast();
-        })->sortBy('due_date')->values();
-
-        $oldestOverdue = $overdueSchedules->first();
-
-        $currentPenalty = 0.0;
-        $penaltyId = null;
-        if ($oldestOverdue) {
-            $penaltyRow = DB::table('loan_penalties')
-                ->where('schedule_id', $oldestOverdue->id)
+        if ($s->id === $oldestOverdue->id) {
+            $current = DB::table('loan_penalties')
+                ->where('schedule_id', $s->id)
                 ->where('status', 'unpaid')
                 ->first();
 
-            if ($penaltyRow) {
-                $currentPenalty = (float) $penaltyRow->penalty_amount;
-                $penaltyId = $penaltyRow->id;
+            if ($current) {
+                $currentPenalty = (float) $current->penalty_amount;
+                $penaltyId = $current->id;
             }
         }
-
-        $amountDue = $oldestOverdue ? ((float) $oldestOverdue->amount_due - (float) $oldestOverdue->amount_paid) : 0.0;
-        $totalOutstanding = $amountDue + $currentPenalty;
-
-        return view('admin.overdue-payment-detail', [
-            'app' => $app,
-            'applicationId' => $applicationId,
-            'loanUuid' => $uuid,
-            'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
-            'paymentSchedule' => $schedule,
-            'overdueCount' => $overdueSchedules->count(),
-            'daysLate' => $oldestOverdue ? \Carbon\Carbon::parse($oldestOverdue->due_date)->diffInDays(now()) : 0,
-            'overdueAmount' => $overdueSchedules->sum(fn($s) => $s->amount_due - $s->amount_paid),
-            'oldestOverdue' => $oldestOverdue,
-            'currentPenalty' => $currentPenalty,
-            'penaltyId' => $penaltyId,
-            'amountDue' => $amountDue,
-            'totalOutstanding' => $totalOutstanding,
-            'pendingCount' => $this->getPendingVerificationCount($adminId),
-            'pendingLoanCount' => $this->getPendingLoanCount($adminId),
-        ]);
     }
 
-     public function markInstallmentPaid(Request $request, $id)
+    $amountDue = $oldestOverdue ? ((float) $oldestOverdue->amount_due - (float) $oldestOverdue->amount_paid) : 0.0;
+    $totalOutstanding = $amountDue + $currentPenalty;
+
+    // Receipt na in-upload ng borrower para sa installment na ito (hinihintay pa ang admin).
+    // Null kung wala, kaya hindi lalabas ang "View Receipt" button.
+    $borrowerReceipt = $oldestOverdue
+        ? DB::table('payment_receipts')
+            ->where('schedule_id', $oldestOverdue->id)
+            ->where('status', 'submitted')
+            ->orderByDesc('submitted_at')
+            ->first()
+        : null;
+
+    return view('admin.overdue-payment-detail', [
+        'app' => $app,
+        'applicationId' => $applicationId,
+        'loanUuid' => $uuid,
+        'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
+        'paymentSchedule' => $schedule,
+        'overdueCount' => $overdueSchedules->count(),
+        'daysLate' => $oldestOverdue ? \Carbon\Carbon::parse($oldestOverdue->due_date)->diffInDays(now()) : 0,
+        'overdueAmount' => $overdueSchedules->sum(fn($s) => $s->amount_due - $s->amount_paid),
+        'oldestOverdue' => $oldestOverdue,
+        'currentPenalty' => $currentPenalty,
+        'penaltyId' => $penaltyId,
+        'amountDue' => $amountDue,
+        'totalOutstanding' => $totalOutstanding,
+        'borrowerReceipt' => $borrowerReceipt,
+        'pendingCount' => $this->getPendingVerificationCount($adminId),
+        'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+    ]);
+}
+
+        public function markInstallmentPaid(Request $request, $id)
 {
     $wantsJson = $request->ajax() || $request->wantsJson();
 
@@ -1318,23 +1363,16 @@ private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $i
         return back()->with('error', 'This installment is already marked as paid.');
     }
 
-    // Ang Ongoing Loan Detail page ay nagpapadala ng require_proof=1.
-    // Ang ibang pages na tumatawag pa rin sa endpoint na ito (walang date/receipt)
-    // ay gagana pa rin gaya ng dati hanggang mailipat sila sa bagong modal.
-    $requireProof = $request->boolean('require_proof');
-
     // Galing sa "View Receipt" modal: gagamitin ang receipt na in-upload ng borrower
     $useBorrowerReceipt = $request->boolean('use_borrower_receipt');
 
+    // Walang receipt upload ang admin. Date na lang ang kailangan.
+    // Nullable pa rin ang paid_date para gumana pa rin ang ibang pages na
+    // tumatawag sa endpoint na ito nang walang date (gagamitin ang now()).
     $request->validate([
-        'paid_date' => [Rule::requiredIf($requireProof), 'nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
-        'receipt'   => [Rule::requiredIf($requireProof && !$useBorrowerReceipt), 'nullable', 'file', 'mimes:jpg,jpeg,png', 'max:5120'],
+        'paid_date' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
     ], [
-        'paid_date.required'        => 'Please select the date the payment was made.',
         'paid_date.before_or_equal' => 'The payment date cannot be in the future.',
-        'receipt.required'          => 'Please attach the receipt.',
-        'receipt.mimes'             => 'The receipt must be a JPG or PNG image.',
-        'receipt.max'               => 'The receipt may not be larger than 5MB.',
     ]);
 
     // startOfDay para hindi mabilang na "late" ang bayad na on-time sa due date
@@ -1343,34 +1381,18 @@ private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $i
         ? \Carbon\Carbon::createFromFormat('Y-m-d', $request->input('paid_date'))->startOfDay()
         : now();
 
-    // ---- I-upload muna ang receipt (kung meron) ----
+    // ---- Receipt: galing lang sa borrower (kung "View Receipt" ang pinanggalingan) ----
+    // Kokopyahin sa valid_ids disk para pareho ang ayos ng lahat ng recorded payments
+    // (View Payment Details, Void, atbp.)
     $receiptPath = null;
-    if ($request->hasFile('receipt')) {
-        $file = $request->file('receipt');
-        $receiptPath = 'payment-receipts/' . $schedule->application_id . '/'
-            . $id . '-' . Str::random(12) . '.' . $file->guessExtension();
-
-        try {
-            Storage::disk(self::RECEIPT_DISK)->put($receiptPath, file_get_contents($file->getRealPath()));
-        } catch (\Throwable $e) {
-            Log::error("Receipt upload failed (schedule {$id}): " . $e->getMessage());
-            if ($wantsJson) {
-                return response()->json(['success' => false, 'message' => 'Failed to upload the receipt. Please try again.'], 500);
-            }
-            return back()->with('error', 'Failed to upload the receipt. Please try again.');
-        }
-    }
-
-    // Walang bagong file pero gagamitin ang receipt ng borrower -> kopyahin sa valid_ids disk
-    // para pareho ang ayos ng lahat ng recorded payments (View Payment Details, Void, atbp.)
-    if (!$request->hasFile('receipt') && $useBorrowerReceipt) {
+    if ($useBorrowerReceipt) {
         $borrowerReceipt = DB::table('payment_receipts')
             ->where('schedule_id', $id)
             ->where('status', 'submitted')
             ->first();
 
         if (!$borrowerReceipt || empty($borrowerReceipt->user_file_path)) {
-            $msg = 'The borrower receipt was not found. Please upload a receipt.';
+            $msg = 'The borrower receipt was not found.';
             if ($wantsJson) {
                 return response()->json(['success' => false, 'message' => $msg], 422);
             }
@@ -1632,24 +1654,18 @@ public function voidPayment(Request $request, $id)
 
     /**
      * POST /admin/loans/{applicationId}/send-proof
-     * Emails the borrower a proof of payment for ONE recorded installment.
-     * Expects: proof (JPG/PNG, max 5MB) and schedule_id (the installment row).
-     */
-       /**
-     * POST /admin/loans/{applicationId}/send-proof
-     * Emails the borrower a proof of payment for ONE recorded installment.
-     * Expects: proof (JPG/PNG, max 5MB) and schedule_id (the installment row).
+     * Emails the borrower the proof of loan release (ISANG BESES lang per loan —
+     * resibo na na-release na ang loan na nirequest ng borrower; hindi na per installment).
+     * Expects: proof (JPG/PNG, max 5MB).
      */
     public function sendProofToBorrower(Request $request, $applicationId)
     {
         $request->validate([
-            'proof'       => 'required|file|mimes:jpg,jpeg,png|max:5120',
-            'schedule_id' => 'required|integer',
+            'proof' => 'required|file|mimes:jpg,jpeg,png|max:5120',
         ], [
-            'proof.required'       => 'Please attach the proof.',
-            'proof.mimes'          => 'The proof must be a JPG or PNG image.',
-            'proof.max'            => 'The proof may not be larger than 5MB.',
-            'schedule_id.required' => 'Please choose the installment this proof is for.',
+            'proof.required' => 'Please attach the proof.',
+            'proof.mimes'    => 'The proof must be a JPG or PNG image.',
+            'proof.max'      => 'The proof may not be larger than 5MB.',
         ]);
 
         $loan = DB::table('loan_applications')
@@ -1658,20 +1674,6 @@ public function voidPayment(Request $request, $id)
 
         if (!$loan) {
             return response()->json(['success' => false, 'message' => 'Loan not found.'], 404);
-        }
-
-        // The installment must belong to this loan and already be recorded as paid.
-        $schedule = DB::table('loan_payment_schedules')
-            ->where('id', (int) $request->input('schedule_id'))
-            ->where('application_id', $loan->application_id)
-            ->first();
-
-        if (!$schedule) {
-            return response()->json(['success' => false, 'message' => 'Installment not found.'], 404);
-        }
-
-        if (is_null($schedule->paid_at)) {
-            return response()->json(['success' => false, 'message' => 'Proof can only be sent for a payment that is already recorded.'], 422);
         }
 
         $borrower = DB::table('users as u')
@@ -1697,17 +1699,16 @@ public function voidPayment(Request $request, $id)
             Mail::to($borrower->email)->send(new LoanProofSent(
                 $loan,
                 $displayName,
-                $schedule,
                 $file->getRealPath(),
                 $file->getMimeType(),
-                "payment-proof-{$loanCode}-installment-{$schedule->installment_no}.{$ext}"
+                "proof-of-release-{$loanCode}.{$ext}"
             ));
         } catch (\Throwable $e) {
-            Log::error("Send proof failed (loan {$applicationId}, installment {$schedule->installment_no}): " . $e->getMessage());
+            Log::error("Send proof of release failed (loan {$applicationId}): " . $e->getMessage());
             return response()->json(['success' => false, 'message' => 'Failed to send the email. Please try again.'], 500);
         }
 
-        Log::info("Payment proof emailed (loan {$applicationId}, installment {$schedule->installment_no}) by admin " . Session::get('user_id'));
+        Log::info("Proof of release emailed (loan {$applicationId}) by admin " . Session::get('user_id'));
 
         return response()->json([
             'success' => true,
@@ -1972,61 +1973,80 @@ public function voidPayment(Request $request, $id)
             'newApplicationsCount', 'needsAttentionCount', 'totalApprovedCount'
         );
     }
-    public function penaltyTracking(Request $request)
-    {
-        $adminId = Session::get('user_id');
+   public function penaltyTracking(Request $request)
+{
+    $adminId = Session::get('user_id');
 
-        $rpcRow = DB::selectOne('SELECT admin_penalty_tracking_data() as data');
-        $data = json_decode($rpcRow->data);
+    $rpcRow = DB::selectOne('SELECT admin_penalty_tracking_data() as data');
+    $data = json_decode($rpcRow->data);
 
-        $penalties = collect($data->penalties ?? [])->map(function ($p) {
-            $periods = (int) $p->late_fee_periods;
-            $rate = $periods > 0 ? round($p->penalty_amount / $periods, 2) : 0;
+    $penalties = collect($data->penalties ?? []);
 
-            $logsForApp = collect($p->point_logs ?? [])->values();
-            $useRealLogs = $periods > 0 && $logsForApp->count() === $periods;
+    $unpaid = $penalties->where('status', 'unpaid');
+    $paid   = $penalties->where('status', 'paid');
+    $waived = $penalties->where('status', 'waived');
 
-            $breakdown = [];
-            for ($i = 1; $i <= $periods; $i++) {
-                $log = $useRealLogs ? $logsForApp[$i - 1] : null;
-                $breakdown[] = [
-                    'date'         => $log->created_at ?? \Carbon\Carbon::parse($p->due_date)->addDays($i * 7),
-                    'reason'       => $log->reason ?? ($i * 7) . ' days overdue',
-                    'days_overdue' => $i * 7,
-                    'points'       => 1,
-                    'amount'       => $rate,
-                ];
-            }
+    $applicationIds = $penalties->pluck('application_id')->unique()->all();
 
-            $p->rate = $rate;
-            $p->breakdown = $breakdown;
-            $p->payment_status = $p->schedule_paid_at
-                ? 'Paid'
-                : (\Carbon\Carbon::parse($p->due_date)->isPast() ? 'Overdue' : 'Pending');
-            $p->loan_id_display = 'LN-' . str_pad($p->application_id, 5, '0', STR_PAD_LEFT);
+    // Ilang installments lahat ng bawat loan (para sa "3 of 5")
+    $installmentTotals = DB::table('loan_payment_schedules')
+        ->whereIn('application_id', $applicationIds)
+        ->selectRaw('application_id, COUNT(*) as total')
+        ->groupBy('application_id')
+        ->pluck('total', 'application_id');
 
-            return $p;
-        });
+    // uuid ng bawat loan (para sa links)
+    $loanUuids = DB::table('loan_applications')
+        ->whereIn('application_id', $applicationIds)
+        ->pluck('uuid', 'application_id');
 
-        $unpaid = $penalties->where('status', 'unpaid')->values();
-        $paid   = $penalties->where('status', 'paid')->values();
-        $waived = $penalties->where('status', 'waived')->values();
+    // 1 row kada loan
+    $loans = $penalties->groupBy('application_id')->map(function ($items, $applicationId) use ($installmentTotals, $loanUuids) {
+        $first = $items->first();
+        $unpaidItems = $items->where('status', 'unpaid');
 
-        return view('admin.penalty-tracking', [
-            'unpaid' => $unpaid,
-            'paid'   => $paid,
-            'waived' => $waived,
+        if ($unpaidItems->isNotEmpty()) {
+            $status = 'unpaid';
+        } elseif ($items->every(fn($p) => $p->status === 'paid')) {
+            $status = 'paid';
+        } elseif ($items->every(fn($p) => $p->status === 'waived')) {
+            $status = 'waived';
+        } else {
+            $status = 'mixed';
+        }
 
-            'totalPenaltiesCount' => $penalties->count(),
-            'outstandingAmount'   => $unpaid->sum('penalty_amount'),
-            'totalPaidAmount'     => $paid->sum('penalty_amount'),
-            'totalWaivedAmount'   => $waived->sum('penalty_amount'),
+        // Kung may unpaid, yun ang titingnan. Kung wala, lahat.
+        $focus = $unpaidItems->isNotEmpty() ? $unpaidItems : $items;
+        $main = $focus->sortByDesc('days_late')->first();
 
-            'pendingCount'     => $this->getPendingVerificationCount($adminId),
-            'pendingLoanCount' => $this->getPendingLoanCount($adminId),
-        ]);
-    }
+        return [
+            'application_id'            => $applicationId,
+            'loan_uuid'                 => $loanUuids[$applicationId] ?? null,
+            'first_name'                => $first->first_name ?? '',
+            'last_name'                 => $first->last_name ?? '',
+            'installments_with_penalty' => $items->count(),
+            'total_installments'        => $installmentTotals[$applicationId] ?? $items->count(),
+            'worst_days_late'           => $focus->max('days_late'),
+            'total_penalty'             => $items->sum('penalty_amount'),
+            'unpaid_penalty'            => $unpaidItems->sum('penalty_amount'),
+            'status'                    => $status,
+            'main_installment'          => $main->installment_no,
+            'items'                     => $items->sortBy('installment_no')->values(),
+        ];
+    })->values();
 
+    return view('admin.penalty-tracking', [
+        'loans' => $loans,
+
+        'totalPenaltiesCount' => $penalties->count(),
+        'outstandingAmount'   => $unpaid->sum('penalty_amount'),
+        'totalPaidAmount'     => $paid->sum('penalty_amount'),
+        'totalWaivedAmount'   => $waived->sum('penalty_amount'),
+
+        'pendingCount'     => $this->getPendingVerificationCount($adminId),
+        'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+    ]);
+}
     public function completedLoans(Request $request)
 {
     $adminId = Session::get('user_id');
@@ -2335,18 +2355,29 @@ private function computeBorrowerPerformance($applicationId, $schedule)
     return back()->with('success', 'Penalty marked as paid.');
 }
 
-public function penaltyTrackingDetail($id)
+public function penaltyTrackingDetail($uuid, $installment)
 {
     $adminId = Session::get('user_id');
+
+    // UUID lang ang nasa URL. Ang integer na application_id ay internal na lang.
+    $applicationId = (int) DB::table('loan_applications')
+        ->where('uuid', $uuid)
+        ->value('application_id');
+
+    if (!$applicationId) {
+        return redirect()->route('admin.penalty-tracking');
+    }
 
     $p = DB::table('loan_penalties as lp')
         ->join('loan_payment_schedules as sch', 'lp.schedule_id', '=', 'sch.id')
         ->join('loan_applications as la', 'lp.application_id', '=', 'la.application_id')
         ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
         ->leftJoin('users as waiver', 'lp.waived_by', '=', 'waiver.user_id')
-        ->where('lp.id', $id)
+        ->where('lp.application_id', $applicationId)
+        ->where('sch.installment_no', (int) $installment)
         ->select(
             'lp.*',
+            'la.uuid as loan_uuid',
             'sch.installment_no', 'sch.due_date', 'sch.amount_due', 'sch.paid_at as schedule_paid_at',
             'bpd.first_name', 'bpd.last_name',
             'waiver.name as waived_by_name'
@@ -2386,8 +2417,17 @@ public function penaltyTrackingDetail($id)
         : (\Carbon\Carbon::parse($p->due_date)->isPast() ? 'Overdue' : 'Pending');
     $p->loan_id_display = 'LN-' . str_pad($p->application_id, 5, '0', STR_PAD_LEFT);
 
+    // Lahat ng penalties ng loan na ito (para sa "All Penalties on this Loan" card)
+    $loanPenalties = DB::table('loan_penalties as lp')
+        ->join('loan_payment_schedules as sch', 'lp.schedule_id', '=', 'sch.id')
+        ->where('lp.application_id', $p->application_id)
+        ->orderBy('sch.installment_no')
+        ->select('lp.id', 'lp.days_late', 'lp.penalty_amount', 'lp.status', 'sch.installment_no', 'sch.due_date')
+        ->get();
+
     return view('admin.penalty-tracking-detail', [
         'p' => $p,
+        'loanPenalties' => $loanPenalties,
         'pendingCount' => $this->getPendingVerificationCount($adminId),
         'pendingLoanCount' => $this->getPendingLoanCount($adminId),
     ]);

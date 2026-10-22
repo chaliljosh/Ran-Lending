@@ -143,7 +143,10 @@ Route::post('/account-settings/profile-picture/remove', [AdminController::class,
     Route::get('/penalty-tracking', [AdminController::class, 'penaltyTracking'])->name('penalty-tracking');
     Route::post('/penalty-tracking/{id}/mark-paid', [AdminController::class, 'markPenaltyPaid'])->name('penalty-mark-paid');
     Route::post('/penalty-tracking/{id}/waive', [AdminController::class, 'waivePenalty'])->name('penalty-waive');
-    Route::get('/penalty-tracking-detail/{id}', [AdminController::class, 'penaltyTrackingDetail'])->name('penalty-tracking-detail');
+    Route::get('/penalty-tracking-detail/{uuid}/{installment}', [AdminController::class, 'penaltyTrackingDetail'])
+    ->whereUuid('uuid')
+    ->whereNumber('installment')
+    ->name('penalty-tracking-detail');
 
     // Active Loans > Ongoing Loans
     Route::get('/active-loans/ongoing', [AdminController::class, 'ongoingLoans'])->name('ongoing-loans');

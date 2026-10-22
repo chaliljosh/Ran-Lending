@@ -198,7 +198,7 @@ html body .main-content i[class*="feather-"]::before {
 .opd-summary-value { font-size: 0.9rem; font-weight: 500; color: #0f172a; text-align: right; }
 
 /* ============================================================
-   MODALS
+   MODALS (shared)
 ============================================================ */
 .opd-modal .modal-content { border: none; border-radius: 12px; box-shadow: 0 10px 30px rgba(15,23,42,0.12); }
 .opd-modal .modal-header { border-bottom: none; padding: 22px 24px 0; }
@@ -334,6 +334,297 @@ tr.ld-schedule-row-current {
     }
 }
 
+/* ============================================================
+   MARK AS PAID MODAL — details grid + breakdown
+============================================================ */
+.opd-confirm-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 20px;
+    margin-top: 18px;
+    padding-bottom: 16px;
+    text-align: left;
+}
+.opd-confirm-label {
+    font-size: 0.72rem;
+    font-weight: 400;
+    color: #94a3b8;
+    margin-bottom: 3px;
+}
+.opd-confirm-value {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #0f172a;
+    word-break: break-word;
+}
+.opd-confirm-sub {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 400;
+    margin-top: 2px;
+}
+.opd-confirm-sub.is-danger { color: #DC2626; }
+
+/* ---------- Breakdown: Amount Due + Penalty = Total Outstanding ---------- */
+.opd-breakdown {
+    margin-top: 4px;
+    padding: 6px 16px 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    text-align: left;
+}
+.opd-breakdown-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 0;
+    border-bottom: 1px solid #eef1f6;
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: #475569;
+}
+.opd-breakdown-row small {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.72rem;
+    color: #94a3b8;
+    line-height: 1.4;
+}
+.opd-breakdown-amount {
+    flex-shrink: 0;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #0f172a;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+.opd-breakdown-amount.is-orange { color: #EA580C; }
+.opd-breakdown-total {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-top: 14px;
+}
+.opd-confirm-total-label { font-size: 0.85rem; font-weight: 500; color: #0f172a; }
+.opd-confirm-total-value {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #DC2626;
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 575.98px) {
+    .opd-confirm-grid { grid-template-columns: 1fr; gap: 12px; }
+}
+
+/* ============================================================
+   MARK AS PAID MODAL: Date Paid + Receipt preview
+   (kapareho ng Ongoing Loan Detail)
+============================================================ */
+.ols-field { margin-top: 18px; text-align: left; }
+.ols-field-label { display: block; font-size: 0.78rem; font-weight: 600; color: #475569; margin-bottom: 6px; }
+.ols-req { color: #dc2626; }
+.ols-input {
+    width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 10px;
+    font-size: 0.85rem; color: #1a2a3a; background: #fff; outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+.ols-input:focus { border-color: #1e3a8a; box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.12); }
+
+.ols-dropzone {
+    display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 0;
+    padding: 18px 12px; border: 1.5px dashed #cbd5e1; border-radius: 12px; background: #fbfcfe;
+    text-align: center; cursor: pointer; transition: all .15s ease;
+}
+.ols-dropzone:hover { border-color: #1e3a8a; background: #f5f8ff; }
+.ols-dropzone i { font-size: 1.3rem; color: #94a3b8; margin-bottom: 4px; }
+.ols-dropzone-text { font-size: 0.82rem; font-weight: 600; color: #1a2a3a; }
+.ols-dropzone-hint { font-size: 0.72rem; color: #94a3b8; }
+
+.ols-preview { display: flex; align-items: center; gap: 12px; padding: 10px; border: 1px solid #e5e7eb; border-radius: 12px; background: #fff; }
+.ols-preview img { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; flex-shrink: 0; background: #f1f3f8; }
+.ols-preview-meta { display: flex; flex-direction: column; min-width: 0; flex: 1; text-align: left; }
+.ols-preview-meta span:first-child { font-size: 0.8rem; font-weight: 600; color: #1a2a3a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ols-preview-meta span:last-child { font-size: 0.72rem; color: #94a3b8; }
+.ols-preview-remove {
+    width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;
+    border: none; border-radius: 8px; background: #f1f3f8; color: #64748b; cursor: pointer; flex-shrink: 0;
+}
+.ols-preview-remove:hover { background: #fee2e2; color: #dc2626; }
+
+.ols-form-error { margin-top: 14px; padding: 9px 12px; border-radius: 10px; background: #fee2e2; color: #b91c1c; font-size: 0.78rem; text-align: left; }
+.ols-form-error.d-none { display: none; }
+
+/* ---------- Date picker ---------- */
+.ols-date-wrap { position: relative; }
+.ols-date-input { cursor: pointer; padding-right: 40px; }
+.ols-date-icon { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); font-size: 1rem; color: #64748b; pointer-events: none; }
+
+.ols-dp {
+    position: fixed; z-index: 5; width: 320px; max-width: calc(100vw - 16px); padding: 16px 16px 18px;
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18); font-size: 0.85rem; color: #1a2a3a; text-align: left;
+}
+.ols-dp button { font-family: inherit; }
+.ols-dp-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.ols-dp-title {
+    display: inline-flex; align-items: center; gap: 6px; margin-left: -6px; padding: 4px 8px; border: none;
+    border-radius: 8px; background: none; font-size: 0.95rem; font-weight: 700; color: #1a2a3a; cursor: pointer;
+}
+.ols-dp-title:hover { background: #f1f3f8; }
+.ols-dp-title i { font-size: 1rem; color: #64748b; }
+.ols-dp-nav { display: flex; gap: 4px; }
+.ols-dp-navbtn {
+    width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;
+    border: none; border-radius: 50%; background: none; color: #475569; cursor: pointer;
+}
+.ols-dp-navbtn:hover:not(:disabled) { background: #f1f3f8; }
+.ols-dp-navbtn:disabled { opacity: 0.3; cursor: not-allowed; }
+.ols-dp-weekdays, .ols-dp-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+.ols-dp-weekdays span { padding: 6px 0; text-align: center; font-size: 0.75rem; font-weight: 600; color: #94a3b8; }
+.ols-dp-grid { row-gap: 2px; }
+.ols-dp-day {
+    width: 36px; height: 36px; margin: 0 auto; border: 1px solid transparent; border-radius: 50%;
+    background: none; font-size: 0.82rem; font-weight: 500; color: #1a2a3a; cursor: pointer;
+}
+.ols-dp-day:hover:not(:disabled):not(.is-selected) { background: #f1f3f8; }
+.ols-dp-day.is-today { border-color: #94a3b8; }
+.ols-dp-day.is-selected { background: #1e3a8a; border-color: #1e3a8a; color: #fff; font-weight: 700; }
+.ols-dp-day:disabled { color: #cbd5e1; cursor: not-allowed; }
+.ols-dp-years { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px 4px; max-height: 252px; overflow-y: auto; padding-right: 4px; }
+.ols-dp-year { height: 36px; border: none; border-radius: 18px; background: none; font-size: 0.88rem; font-weight: 500; color: #1a2a3a; cursor: pointer; }
+.ols-dp-year:hover:not(.is-selected) { background: #f1f3f8; }
+.ols-dp-year.is-selected { background: #1e3a8a; color: #fff; font-weight: 700; }
+
+/* ===== "View Receipt" / "Download" button (secondary, outline) ===== */
+.opd-btn-view {
+    background: transparent;
+    border: 1px solid rgba(128, 128, 128, 0.35);
+    color: inherit;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.opd-btn-view:hover {
+    background: rgba(128, 128, 128, 0.1);
+    color: inherit;
+}
+
+/* ===== Borrower Receipt modal ===== */
+#opdBorrowerReceiptModal .modal-dialog {
+    max-width: 780px;
+}
+
+#opdBorrowerReceiptModal .modal-header {
+    justify-content: space-between;
+    text-align: left;
+}
+
+.opd-br-sub {
+    font-size: 0.78rem;
+    opacity: 0.65;
+    margin-top: 2px;
+}
+
+.opd-br-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 22px;
+    text-align: left;
+}
+
+.opd-br-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    max-height: 60vh;
+    padding: 10px;
+    overflow: auto;
+    border: 1px dashed rgba(128, 128, 128, 0.35);
+    border-radius: 12px;
+    background: rgba(128, 128, 128, 0.06);
+}
+
+.opd-br-preview img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+.opd-br-state {
+    font-size: 0.85rem;
+    opacity: 0.7;
+}
+
+.opd-br-hint {
+    margin-top: 8px;
+    font-size: 0.72rem;
+    opacity: 0.6;
+}
+
+.opd-br-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.opd-br-amount-label {
+    font-size: 0.78rem;
+    opacity: 0.65;
+}
+
+.opd-br-amount {
+    margin: 2px 0 14px;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #dc2626;
+    font-variant-numeric: tabular-nums;
+}
+
+.opd-br-list {
+    margin: 0;
+    border-top: 1px solid rgba(128, 128, 128, 0.25);
+}
+
+.opd-br-list > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    padding: 11px 0;
+    border-bottom: 1px dashed rgba(128, 128, 128, 0.25);
+}
+
+.opd-br-list dt {
+    font-size: 0.82rem;
+    font-weight: 400;
+    opacity: 0.65;
+}
+
+.opd-br-list dd {
+    margin: 0;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.opd-br-list dd.is-orange {
+    color: #ea580c;
+}
+
+@media (max-width: 767px) {
+    .opd-br-body {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* ══════════════════════════════════════════
    DARK MODE — TRUE BLACK PALETTE
    #0A0A0A bg, #141414 cards, #262626 borders,
@@ -463,150 +754,28 @@ html.app-skin-dark .opd-modal-textarea:focus {
     box-shadow: none !important;
 }
 
+/* ---------- Mark as Paid modal ---------- */
+html.app-skin-dark .opd-confirm-label { color: #9A9A9A !important; }
+html.app-skin-dark .opd-confirm-value { color: #F5F5F5 !important; }
+html.app-skin-dark .opd-confirm-sub.is-danger { color: #f87171 !important; }
+html.app-skin-dark .opd-breakdown { border-color: #262626 !important; }
+html.app-skin-dark .opd-breakdown-row { color: #9A9A9A !important; border-bottom-color: #262626 !important; }
+html.app-skin-dark .opd-breakdown-row small { color: #6b6b6b !important; }
+html.app-skin-dark .opd-breakdown-amount { color: #F5F5F5 !important; }
+html.app-skin-dark .opd-breakdown-amount.is-orange { color: #fb923c !important; }
+html.app-skin-dark .opd-confirm-total-label { color: #F5F5F5 !important; }
+html.app-skin-dark .opd-confirm-total-value { color: #f87171 !important; }
+
 @media (max-width: 767.98px) {
     html.app-skin-dark .opd-table tbody tr { border-color: #262626 !important; }
     html.app-skin-dark .opd-table tbody td::before { color: #6b6b6b !important; }
 }
 
-/* ============================================================
-   MARK AS PAID MODAL — 2-column stat grid + total bar
-============================================================ */
-.opd-confirm-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px 20px;
-    margin-top: 18px;
-    padding-bottom: 16px;
-    text-align: left;
-}
-.opd-confirm-label {
-    font-size: 0.72rem;
-    font-weight: 400;
-    color: #94a3b8;
-    margin-bottom: 3px;
-}
-.opd-confirm-value {
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: #0f172a;
-    word-break: break-word;
-}
-.opd-confirm-value.is-orange { color: #EA580C; }
-.opd-confirm-sub {
-    display: block;
-    font-size: 0.72rem;
-    font-weight: 400;
-    margin-top: 2px;
-}
-.opd-confirm-sub.is-danger { color: #DC2626; }
-
-.opd-confirm-total {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 14px 0 8px;
-    border-top: 1px solid #e5e7eb;
-}
-.opd-confirm-total-label { font-size: 0.85rem; font-weight: 500; color: #0f172a; }
-.opd-confirm-total-value { font-size: 1.3rem; font-weight: 600; color: #DC2626; }
-
-@media (max-width: 575.98px) {
-    .opd-confirm-grid { grid-template-columns: 1fr; gap: 12px; }
-}
-
-html.app-skin-dark .opd-confirm-label { color: #9A9A9A !important; }
-html.app-skin-dark .opd-confirm-value { color: #F5F5F5 !important; }
-html.app-skin-dark .opd-confirm-value.is-orange { color: #fb923c !important; }
-html.app-skin-dark .opd-confirm-sub.is-danger { color: #f87171 !important; }
-html.app-skin-dark .opd-confirm-total { border-top-color: #262626 !important; }
-html.app-skin-dark .opd-confirm-total-label { color: #F5F5F5 !important; }
-html.app-skin-dark .opd-confirm-total-value { color: #f87171 !important; }
-
-/* ============================================================
-   MARK AS PAID MODAL: Date Paid calendar + Receipt dropzone
-   (kapareho ng Ongoing Loan Detail)
-============================================================ */
-.ols-field { margin-top: 18px; text-align: left; }
-.ols-field-label { display: block; font-size: 0.78rem; font-weight: 600; color: #475569; margin-bottom: 6px; }
-.ols-req { color: #dc2626; }
-.ols-input {
-    width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 10px;
-    font-size: 0.85rem; color: #1a2a3a; background: #fff; outline: none;
-    transition: border-color .15s ease, box-shadow .15s ease;
-}
-.ols-input:focus { border-color: #1e3a8a; box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.12); }
-
-.ols-dropzone {
-    display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 0;
-    padding: 18px 12px; border: 1.5px dashed #cbd5e1; border-radius: 12px; background: #fbfcfe;
-    text-align: center; cursor: pointer; transition: all .15s ease;
-}
-.ols-dropzone:hover { border-color: #1e3a8a; background: #f5f8ff; }
-.ols-dropzone i { font-size: 1.3rem; color: #94a3b8; margin-bottom: 4px; }
-.ols-dropzone-text { font-size: 0.82rem; font-weight: 600; color: #1a2a3a; }
-.ols-dropzone-hint { font-size: 0.72rem; color: #94a3b8; }
-
-.ols-preview { display: flex; align-items: center; gap: 12px; padding: 10px; border: 1px solid #e5e7eb; border-radius: 12px; background: #fff; }
-.ols-preview img { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; flex-shrink: 0; background: #f1f3f8; }
-.ols-preview-meta { display: flex; flex-direction: column; min-width: 0; flex: 1; text-align: left; }
-.ols-preview-meta span:first-child { font-size: 0.8rem; font-weight: 600; color: #1a2a3a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ols-preview-meta span:last-child { font-size: 0.72rem; color: #94a3b8; }
-.ols-preview-remove {
-    width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;
-    border: none; border-radius: 8px; background: #f1f3f8; color: #64748b; cursor: pointer; flex-shrink: 0;
-}
-.ols-preview-remove:hover { background: #fee2e2; color: #dc2626; }
-
-.ols-form-error { margin-top: 14px; padding: 9px 12px; border-radius: 10px; background: #fee2e2; color: #b91c1c; font-size: 0.78rem; text-align: left; }
-.ols-form-error.d-none { display: none; }
-
-/* ---------- Date picker ---------- */
-.ols-date-wrap { position: relative; }
-.ols-date-input { cursor: pointer; padding-right: 40px; }
-.ols-date-icon { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); font-size: 1rem; color: #64748b; pointer-events: none; }
-
-.ols-dp {
-    position: fixed; z-index: 5; width: 320px; max-width: calc(100vw - 16px); padding: 16px 16px 18px;
-    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
-    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18); font-size: 0.85rem; color: #1a2a3a; text-align: left;
-}
-.ols-dp button { font-family: inherit; }
-.ols-dp-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.ols-dp-title {
-    display: inline-flex; align-items: center; gap: 6px; margin-left: -6px; padding: 4px 8px; border: none;
-    border-radius: 8px; background: none; font-size: 0.95rem; font-weight: 700; color: #1a2a3a; cursor: pointer;
-}
-.ols-dp-title:hover { background: #f1f3f8; }
-.ols-dp-title i { font-size: 1rem; color: #64748b; }
-.ols-dp-nav { display: flex; gap: 4px; }
-.ols-dp-navbtn {
-    width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;
-    border: none; border-radius: 50%; background: none; color: #475569; cursor: pointer;
-}
-.ols-dp-navbtn:hover:not(:disabled) { background: #f1f3f8; }
-.ols-dp-navbtn:disabled { opacity: 0.3; cursor: not-allowed; }
-.ols-dp-weekdays, .ols-dp-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
-.ols-dp-weekdays span { padding: 6px 0; text-align: center; font-size: 0.75rem; font-weight: 600; color: #94a3b8; }
-.ols-dp-grid { row-gap: 2px; }
-.ols-dp-day {
-    width: 36px; height: 36px; margin: 0 auto; border: 1px solid transparent; border-radius: 50%;
-    background: none; font-size: 0.82rem; font-weight: 500; color: #1a2a3a; cursor: pointer;
-}
-.ols-dp-day:hover:not(:disabled):not(.is-selected) { background: #f1f3f8; }
-.ols-dp-day.is-today { border-color: #94a3b8; }
-.ols-dp-day.is-selected { background: #1e3a8a; border-color: #1e3a8a; color: #fff; font-weight: 700; }
-.ols-dp-day:disabled { color: #cbd5e1; cursor: not-allowed; }
-.ols-dp-years { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px 4px; max-height: 252px; overflow-y: auto; padding-right: 4px; }
-.ols-dp-year { height: 36px; border: none; border-radius: 18px; background: none; font-size: 0.88rem; font-weight: 500; color: #1a2a3a; cursor: pointer; }
-.ols-dp-year:hover:not(.is-selected) { background: #f1f3f8; }
-.ols-dp-year.is-selected { background: #1e3a8a; color: #fff; font-weight: 700; }
-
-/* ---------- Dark mode ---------- */
+/* ---------- Date Paid + receipt preview (dark) ---------- */
 html.app-skin-dark .ols-field-label { color: #C4C4C4 !important; }
 html.app-skin-dark .ols-input { background: #0d0d0d !important; border-color: #262626 !important; color: #F5F5F5 !important; color-scheme: dark; }
-html.app-skin-dark .ols-input:focus { border-color: #4a4a4a !important; box-shadow: 0 0 0 3px rgba(255,255,255,0.06) !important; }
 html.app-skin-dark .ols-date-icon { color: #9A9A9A !important; }
+html.app-skin-dark .ols-input:focus { border-color: #4a4a4a !important; box-shadow: 0 0 0 3px rgba(255,255,255,0.06) !important; }
 html.app-skin-dark .ols-dropzone { background: #0d0d0d !important; border-color: #3a3a3a !important; }
 html.app-skin-dark .ols-dropzone:hover { background: #16181c !important; border-color: #6b6b6b !important; }
 html.app-skin-dark .ols-dropzone i { color: #9A9A9A !important; }

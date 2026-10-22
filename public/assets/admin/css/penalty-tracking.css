@@ -685,3 +685,122 @@ html.app-skin-dark .pt-breakdown-table thead th,
 html.app-skin-dark .pt-breakdown-table tfoot td {
     background: var(--pt-bg) !important;
 }
+
+/* ============================================================
+   PENALTY TRACKING — grouped by loan
+   Dagdag lang ito sa penalty-tracking.css (huwag burahin yung luma).
+   Naka-load ito pagkatapos ng penalty-tracking.css sa Blade.
+============================================================ */
+
+/* ---------- Installments cell + expand button ---------- */
+.pt-installments-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pt-expand-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 1px solid var(--pt-border);
+    background: var(--pt-white);
+    color: var(--pt-text-muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background .15s ease;
+}
+.pt-expand-btn:hover { background: var(--pt-bg); }
+.pt-expand-btn i { font-size: 0.8rem; transition: transform .15s ease; }
+.pt-tr.is-open .pt-expand-btn i { transform: rotate(180deg); }
+
+.pt-dash { color: var(--pt-text-faint); }
+
+/* Status na "Mixed" (may paid at waived, wala nang unpaid) */
+.pt-status-badge.is-mixed {
+    background: var(--pt-blue-soft);
+    color: var(--pt-blue);
+}
+
+/* ---------- Nakatagong row (listahan ng installments) ---------- */
+.pt-table tbody tr.pt-sub-tr > td {
+    background: var(--pt-bg);
+    padding: 0;
+    border-bottom: 1px solid var(--pt-border-soft);
+}
+
+.pt-sub-wrap { padding: 12px 20px 16px 70px; }
+
+.pt-sub-box {
+    background: var(--pt-white);
+    border: 1px solid var(--pt-border);
+    border-radius: var(--pt-radius-md);
+    overflow: hidden;
+}
+
+.pt-sub-table { width: 100%; border-collapse: collapse; }
+
+.pt-table .pt-sub-table thead th {
+    position: static;
+    background: var(--pt-bg);
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--pt-text-muted);
+    text-align: left;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--pt-border);
+}
+
+.pt-table .pt-sub-table td {
+    padding: 10px 14px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--pt-text);
+    border-bottom: 1px solid var(--pt-border-soft);
+}
+.pt-table .pt-sub-table tr:last-child td { border-bottom: none; }
+
+.pt-table .pt-sub-table td.pt-sub-link { text-align: right; }
+
+/* ---------- Mobile ---------- */
+@media (max-width: 767.98px) {
+    .pt-sub-wrap { padding: 8px 12px 12px; }
+
+    .pt-table .pt-sub-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 12px;
+        border-bottom: none;
+    }
+    .pt-table .pt-sub-table td::before {
+        content: attr(data-label);
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: var(--pt-text-faint);
+    }
+    .pt-table .pt-sub-table td.pt-sub-link { justify-content: flex-end; }
+    .pt-table .pt-sub-table td.pt-sub-link::before { content: none; }
+    .pt-table .pt-sub-table tr { border-bottom: 1px solid var(--pt-border-soft); padding: 6px 0; }
+    .pt-table .pt-sub-table tr:last-child { border-bottom: none; }
+}
+/* ============================================================
+   PENALTY TRACKING — grouped by loan
+   Dagdag lang ito sa penalty-tracking.css (huwag burahin yung luma).
+   Naka-load ito pagkatapos ng penalty-tracking.css sa Blade.
+============================================================ */
+
+/* Pantay-pantay ang row sa list (clickable) */
+.pt-table tbody tr.pt-tr { cursor: pointer; }
+
+/* "—" kapag walang days late */
+.pt-dash { color: var(--pt-text-faint); }
+
+/* Status na "Mixed" (may paid at waived, wala nang unpaid) */
+.pt-status-badge.is-mixed {
+    background: var(--pt-blue-soft);
+    color: var(--pt-blue);
+}

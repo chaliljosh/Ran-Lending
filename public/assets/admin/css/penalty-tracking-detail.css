@@ -595,3 +595,21 @@ html.app-skin-dark .pt-btn-cancel {
     color: #C4C4C4 !important;
 }
 html.app-skin-dark .pt-form-label { color: #C4C4C4 !important; }
+
+/* ============================================================
+   PENALTY TRACKING — grouped by loan
+   Dagdag lang ito sa penalty-tracking.css (huwag burahin yung luma).
+   Naka-load ito pagkatapos ng penalty-tracking.css sa Blade.
+============================================================ */
+
+/* Pantay-pantay ang row sa list (clickable) */
+.pt-table tbody tr.pt-tr { cursor: pointer; }
+
+/* "—" kapag walang days late */
+.pt-dash { color: var(--pt-text-faint); }
+
+/* Status na "Mixed" (may paid at waived, wala nang unpaid) */
+.pt-status-badge.is-mixed {
+    background: var(--pt-blue-soft);
+    color: var(--pt-blue);
+}

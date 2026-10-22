@@ -1,15 +1,12 @@
 @php
-    // Halaga ng installment na ito: ang na-record na bayad, o ang amount due kung wala pa
-    $amount = (float) ($schedule->amount_paid ?? 0) > 0
-        ? (float) $schedule->amount_paid
-        : (float) $schedule->amount_due;
+    // Halaga ng na-release na loan (principal na natanggap ng borrower)
+    $amount = (float) ($loan->loan_amount ?? 0);
 
     // Parehong format ng payment received email: LN- + unang 8 chars ng uuid, uppercase
-    $loanId   = 'LN-' . strtoupper(substr($loan->uuid, 0, 8));
-    $dueDate  = \Carbon\Carbon::parse($schedule->due_date)->format('F j, Y');
-    $paidDate = !empty($schedule->paid_at)
-        ? \Carbon\Carbon::parse($schedule->paid_at)->format('F j, Y')
-        : null;
+    // (galing sa Mailable; may fallback kung sakaling wala)
+    $loanId = $loanCode ?? ('LN-' . strtoupper(substr($loan->uuid, 0, 8)));
+
+    $term = (int) ($loan->loan_term ?? 0);
 
     // Inline only. Do NOT add a <style> block: an unclosed one makes Gmail hide the whole body.
     $f = 'font-family:Helvetica,Arial,sans-serif;';
@@ -33,13 +30,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="light">
     <meta name="supported-color-schemes" content="light">
-    <title>Proof of payment</title>
+    <title>Proof of loan release</title>
 </head>
 <body bgcolor="{{ $cream }}" style="margin:0;padding:0;background:{{ $cream }};{{ $f }}color:{{ $ink }};">
 
     {{-- Preview text na lumalabas sa tabi ng subject sa inbox --}}
     <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#ffffff;font-size:1px;line-height:1px;">
-        Your payment of &#8369;{{ number_format($amount, 2) }} for installment #{{ (int) $schedule->installment_no }} was recorded. The proof is attached.
+        Your loan of &#8369;{{ number_format($amount, 2) }} has been released. The proof is attached.
     </div>
 
     {{-- Full width na puting background --}}
@@ -67,7 +64,7 @@
                     {{-- Pamagat at mensahe --}}
                     <tr>
                         <td style="padding:36px 0 0;{{ $f }}font-size:14px;font-weight:400;letter-spacing:0.5px;color:{{ $purpleDark }};">
-                            Proof of payment
+                            Proof of loan release
                         </td>
                     </tr>
                     <tr>
@@ -77,14 +74,13 @@
                     </tr>
                     <tr>
                         <td style="padding:0 0 28px;{{ $f }}font-size:16px;font-weight:400;line-height:1.6;color:{{ $muted }};">
-                            We've recorded your payment of
+                            Your loan of
                             <strong style="color:{{ $ink }};">&#8369;{{ number_format($amount, 2) }}</strong>
-                            for installment <strong style="color:{{ $ink }};">#{{ (int) $schedule->installment_no }}</strong>.
-                            Your proof of payment is shown below and is also attached to this email.
+                            has been released. Your proof of release is shown below and is also attached to this email.
                         </td>
                     </tr>
 
-                    {{-- Payment card --}}
+                    {{-- Loan card --}}
                     <tr>
                         <td>
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="background:#ffffff;border:1px solid {{ $line }};border-radius:18px;">
@@ -96,7 +92,7 @@
                                             <tr>
                                                 <td style="{{ $f }}font-size:13px;font-weight:400;color:{{ $muted }};">Loan number</td>
                                                 <td align="right" rowspan="2" valign="top">
-                                                    <span style="display:inline-block;padding:5px 14px;background:{{ $lavender }};border-radius:999px;{{ $f }}font-size:13px;font-weight:400;color:{{ $purpleDark }};">&#10003; Paid</span>
+                                                    <span style="display:inline-block;padding:5px 14px;background:{{ $lavender }};border-radius:999px;{{ $f }}font-size:13px;font-weight:400;color:{{ $purpleDark }};">&#10003; Released</span>
                                                 </td>
                                             </tr>
                                             <tr>
@@ -111,21 +107,13 @@
                                     <td style="padding:8px 24px 16px;">
                                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                             <tr>
-                                                <td style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $muted }};">Installment</td>
-                                                <td align="right" style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $ink }};">#{{ (int) $schedule->installment_no }}</td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $muted }};">Amount paid</td>
+                                                <td style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $muted }};">Amount released</td>
                                                 <td align="right" style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $ink }};">&#8369;{{ number_format($amount, 2) }}</td>
                                             </tr>
-                                            <tr>
-                                                <td style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $muted }};">Due date</td>
-                                                <td align="right" style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $ink }};">{{ $dueDate }}</td>
-                                            </tr>
-                                            @if($paidDate)
+                                            @if($term > 0)
                                                 <tr>
-                                                    <td style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $muted }};">Date paid</td>
-                                                    <td align="right" style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $ink }};">{{ $paidDate }}</td>
+                                                    <td style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $muted }};">Loan term</td>
+                                                    <td align="right" style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $ink }};">{{ $term }} {{ $term === 1 ? 'month' : 'months' }}</td>
                                                 </tr>
                                             @endif
                                             <tr>
@@ -136,16 +124,16 @@
                                     </td>
                                 </tr>
 
-                                {{-- Proof image sa loob ng lavender box, kapareho ng "Next payment" box --}}
+                                {{-- Proof image sa loob ng lavender box --}}
                                 <tr>
                                     <td style="padding:0 16px 16px;">
                                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="{{ $lavender }}" style="background:{{ $lavender }};border-radius:14px;">
                                             <tr>
-                                                <td style="padding:16px 16px 8px;{{ $f }}font-size:15px;font-weight:400;color:{{ $ink }};">Proof of payment</td>
+                                                <td style="padding:16px 16px 8px;{{ $f }}font-size:15px;font-weight:400;color:{{ $ink }};">Proof of release</td>
                                             </tr>
                                             <tr>
                                                 <td style="padding:0 16px 16px;">
-                                                    <img src="{{ $message->embed($proofPath) }}" alt="Proof of payment" width="100%"
+                                                    <img src="{{ $message->embed($proofPath) }}" alt="Proof of loan release" width="100%"
                                                         style="display:block;width:100%;max-width:100%;height:auto;border:1px solid {{ $line }};border-radius:10px;">
                                                 </td>
                                             </tr>
@@ -170,7 +158,7 @@
                     </tr>
                     <tr>
                         <td style="padding:24px 0 0;{{ $f }}font-size:12px;font-weight:400;line-height:1.5;color:{{ $muted }};">
-                            If you did not make this payment, please contact us right away.
+                            If you did not receive this loan, please contact us right away.
                             This is an automated message, please do not reply.
                         </td>
                     </tr>

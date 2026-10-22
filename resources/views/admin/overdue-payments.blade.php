@@ -7,6 +7,42 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('assets/admin/css/overdue-payments.css') }}?v={{ time() }}" />
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/darkmode-global.css') }}?v={{ time() }}" />
+
+    {{-- Styles para sa clickable column headers at rows --}}
+    <style>
+        .rs-table th[data-sort] {
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        .rs-table th[data-sort]:hover {
+            opacity: 0.8;
+        }
+
+        /* Arrow sa tabi ng pangalan ng column */
+        .rs-table th[data-sort]::after {
+            content: '\2195';
+            margin-left: 6px;
+            font-size: 11px;
+            opacity: 0.35;
+        }
+
+        .rs-table th[data-sort].sort-asc::after {
+            content: '\25B2';
+            opacity: 1;
+        }
+
+        .rs-table th[data-sort].sort-desc::after {
+            content: '\25BC';
+            opacity: 1;
+        }
+
+        /* Pointer cursor sa clickable rows */
+        .rs-table tr.rs-clickable-row {
+            cursor: pointer;
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -91,21 +127,28 @@
                     <table class="table rs-table mb-0">
                         <thead>
                             <tr>
-                                <th>Borrower</th>
-                                <th>Loan Amount</th>
-                                <th>Overdue Installments</th>
-                                <th>Days Late</th>
-                                <th>Amount Overdue</th>
-                                <th>Status</th>
+                                {{-- Click ang header para mag-sort. Ang data-sort ay tumutugma sa data-* ng <tr> --}}
+                                <th data-sort="name" onclick="opSortByColumn('name')">Borrower</th>
+                                <th data-sort="loanAmount" onclick="opSortByColumn('loanAmount')">Loan Amount</th>
+                                <th data-sort="overdueCount" onclick="opSortByColumn('overdueCount')">Overdue Installments</th>
+                                <th data-sort="daysLate" onclick="opSortByColumn('daysLate')">Days Late</th>
+                                <th data-sort="overdueAmount" onclick="opSortByColumn('overdueAmount')">Amount Overdue</th>
+                                <th data-sort="status" onclick="opSortByColumn('status')">Status</th>
                                 <th class="text-end">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($overdueLoans as $loan)
                                 <tr data-search="{{ strtolower($loan['name'] . ' ' . $loan['email'] . ' ' . $loan['borrower_id']) }}"
+                                    data-name="{{ $loan['name'] }}"
+                                    data-loan-amount="{{ $loan['loan_amount'] }}"
+                                    data-overdue-count="{{ $loan['overdue_count'] }}"
+                                    data-overdue-amount="{{ $loan['overdue_amount'] }}"
+                                    data-status="{{ $loan['is_defaulted'] ? 1 : 0 }}"
                                     data-applied="{{ \Carbon\Carbon::parse($loan['applied_at'])->timestamp }}"
                                     data-days-late="{{ $loan['days_late'] }}"
                                     data-href="{{ route('admin.overdue-payment-detail', $loan['uuid']) }}"
+                                    onclick="opGoToRow(event, this)"
                                     class="rs-clickable-row">
                                     <td>
                                         <div class="borrower-cell-v2">
@@ -168,5 +211,5 @@
 @endsection
 
 @section('page-scripts')
-    <script src="{{ asset('functions/overdue-payments.js') }}"></script>
+    <script src="{{ asset('functions/overdue-payments.js') }}?v={{ time() }}"></script>
 @endsection

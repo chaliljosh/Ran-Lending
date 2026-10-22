@@ -95,6 +95,24 @@
             </div>
         </div>
 
+        {{-- ============ PROOF OF RELEASE (isang beses lang per loan) ============
+             Nasa ilalim ng borrower header card dahil ang loan amount mismo ang pinapatunayang na-release.
+             Ang id + data-* ay ginagamit ng functions/ongoing-loan-detail.js --}}
+        <div class="olr-card">
+            <div class="olr-icon"><i class="feather-send"></i></div>
+            <div class="olr-text">
+                <div class="olr-title">Proof of Release</div>
+                <div class="olr-sub">Email the borrower proof that the &#8369;{{ number_format($app->loan_amount ?? 0, 2) }} loan was released.</div>
+            </div>
+            <button type="button" class="btn-send-release" id="olsSendProofBtn"
+                data-application-id="{{ $applicationId }}"
+                data-amount="{{ number_format($app->loan_amount ?? 0, 2) }}"
+                data-borrower-name="{{ $app->first_name }} {{ $app->last_name }}"
+                data-borrower-email="{{ $app->email }}">
+                Send Proof
+            </button>
+        </div>
+
         <div class="loan-detail-grid">
 
             {{-- ============ LOAN SUMMARY ============ --}}
@@ -353,25 +371,13 @@
                                                 <span class="sched-paid-note">Recorded</span>
                                             @endif
 
-                                            {{-- Kebab (Send Proof / View Payment Details / Void) ay lalabas lang kapag recorded na ang payment --}}
+                                            {{-- Kebab (View Payment Details / Void) ay lalabas lang kapag recorded na ang payment --}}
                                             <div class="ols-kebab-wrap {{ $isPaid ? '' : 'd-none' }}">
                                                 <button type="button" class="ols-kebab-btn" data-bs-toggle="dropdown"
                                                     aria-expanded="false">
                                                     <i class="feather-chevron-down"></i>
                                                 </button>
                                                 <ul class="dropdown-menu dropdown-menu-end ols-kebab-menu">
-                                                    {{-- Send Proof of Payment: proof ng bayad ng installment na ito (ie-email sa borrower) --}}
-                                                    <li>
-                                                        <button type="button" class="dropdown-item js-send-proof"
-                                                            data-application-id="{{ $applicationId }}"
-                                                            data-schedule-id="{{ $s->id }}"
-                                                            data-installment-no="{{ $s->installment_no }}"
-                                                            data-amount="{{ number_format($isPaid ? $s->amount_paid : $s->amount_due, 2) }}"
-                                                            data-borrower-name="{{ $app->first_name }} {{ $app->last_name }}"
-                                                            data-borrower-email="{{ $app->email }}">
-                                                            Send Proof of Payment
-                                                        </button>
-                                                    </li>
                                                     <li>
                                                         <button type="button"
                                                             class="dropdown-item js-view-payment-details"
@@ -430,7 +436,7 @@
      RECORD PAYMENT CONFIRMATION MODAL
 ============================================================ --}}
 @push('modals')
-    {{-- RECORD PAYMENT CONFIRMATION MODAL --}}
+       {{-- RECORD PAYMENT CONFIRMATION MODAL --}}
     <div class="modal fade nxl-account-modal" id="olsMarkPaidConfirmModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content ols-confirm-modal">
@@ -455,28 +461,7 @@
                         <input type="hidden" id="olsPaidDate">
                     </div>
 
-                    <div class="ols-field" id="olsReceiptField">
-                        <label class="ols-field-label">Receipt <span class="ols-req">*</span></label>
-                        <label for="olsReceiptInput" class="ols-dropzone" id="olsDropzone">
-                            <i class="feather-upload-cloud"></i>
-                            <span class="ols-dropzone-text">Click to upload receipt</span>
-                            <span class="ols-dropzone-hint">JPG or PNG, up to 5MB</span>
-                        </label>
-                        <input type="file" id="olsReceiptInput" accept="image/jpeg,image/png" hidden>
-
-                        <div class="ols-preview" id="olsReceiptPreview" style="display:none;">
-                            <img id="olsReceiptPreviewImg" alt="Receipt preview">
-                            <div class="ols-preview-meta">
-                                <span id="olsReceiptFileName"></span>
-                                <span id="olsReceiptFileSize"></span>
-                            </div>
-                            <button type="button" class="ols-preview-remove" id="olsReceiptRemove" aria-label="Remove receipt">
-                                <i class="feather-x"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    {{-- Kapag galing sa "View Receipt" -> gagamitin na ang receipt ng borrower, hindi na mag-a-upload --}}
+                    {{-- Lalabas lang kapag galing sa "View Receipt" (receipt ng borrower) --}}
                     <div class="ols-field" id="olsUsingBorrowerReceipt" style="display:none;">
                         <label class="ols-field-label">Receipt</label>
                         <div class="ols-preview">
@@ -485,7 +470,7 @@
                                 <span>Receipt from the borrower</span>
                                 <span>Will be saved as the payment receipt</span>
                             </div>
-                            {{-- X button: aalisin ang receipt ng borrower at babalik sa normal na upload --}}
+                            {{-- X button: aalisin ang receipt ng borrower --}}
                             <button type="button" class="ols-preview-remove" id="olsUseOwnReceiptBtn"
                                 aria-label="Remove borrower receipt" title="Remove">
                                 <i class="feather-x"></i>
@@ -505,24 +490,23 @@
         </div>
     </div>
 
-    {{-- SEND PROOF OF PAYMENT MODAL --}}
+    {{-- SEND PROOF OF RELEASE MODAL (isang beses lang per loan) --}}
     <div class="modal fade nxl-account-modal" id="olsSendProofModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content ols-confirm-modal">
                 <div class="modal-body py-4">
                     <div class="text-center">
-                        <div class="ols-confirm-title">Send proof of payment?</div>
+                        <div class="ols-confirm-title">Send proof of release?</div>
                         <div class="ols-confirm-desc">
-                            Attach the proof of payment for installment
-                            <strong id="olsProofInstallmentNo">#1</strong> of
+                            Attach the proof that the loan of
                             <strong>&#8369;<span id="olsProofAmount">0.00</span></strong>
-                            from <strong id="olsProofBorrowerName"></strong>.
+                            has been released to <strong id="olsProofBorrowerName"></strong>.
                             It will be emailed to <strong id="olsProofBorrowerEmail"></strong>.
                         </div>
                     </div>
 
                     <div class="ols-field">
-                        <label class="ols-field-label">Proof of Payment <span class="ols-req">*</span></label>
+                        <label class="ols-field-label">Proof of Release <span class="ols-req">*</span></label>
                         <label for="olsProofInput" class="ols-dropzone" id="olsProofDropzone">
                             <i class="feather-upload-cloud"></i>
                             <span class="ols-dropzone-text">Click to upload proof</span>

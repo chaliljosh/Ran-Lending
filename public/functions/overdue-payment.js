@@ -1,17 +1,19 @@
 // public/functions/overdue-payments.js
 // Used by: resources/views/admin/overdue-payments.blade.php
 //
-// Handles search filtering, sort (most days late / newest / oldest), and
-// rows-per-page pagination together. Sorting physically reorders the
-// <tr> elements in the DOM (via tbody.appendChild), so pagination always
-// re-reads rows in their CURRENT DOM order — that way Prev/Next pages
-// stay correct no matter which sort is active.
+// Handles search filtering, sorting (dropdown AT click sa column header),
+// rows-per-page pagination, at clickable rows.
+// Ang mga click ay naka-inline onclick sa blade (hindi document listener),
+// para hindi ma-block ng ibang scripts sa layout.
 
 let opCurrentPage = 1;
 let opRowsPerPage = 10;
 
-// Rows that match the current search box, in their current DOM order
-// (i.e. respecting whatever sort was last applied).
+// Current sort state. Default: Most Days Late.
+let opSortKey = 'daysLate';
+let opSortDir = 'desc';
+
+// Rows na tumutugma sa search box, sa current DOM order.
 function opGetMatchingRows() {
     const searchInput = document.getElementById('filterSearchInput');
     const query = (searchInput?.value || '').trim().toLowerCase();
@@ -24,33 +26,114 @@ function opGetMatchingRows() {
 }
 
 function filterOverdueLoans() {
-    opCurrentPage = 1; // any new search resets back to page 1
+    opCurrentPage = 1;
     opRenderPage();
 }
 
-function sortOverdueLoans() {
-    const order = document.getElementById('sortFilter').value;
+// Kunin ang value ng row para sa sorting.
+// Text ang 'name', number ang lahat ng iba.
+function opGetSortValue(row, key) {
+    if (key === 'name') {
+        return (row.dataset.name || '').toLowerCase();
+    }
+    return parseFloat(row.dataset[key]) || 0;
+}
+
+// Ang mismong pag-sort ng rows sa tbody.
+function opSortRows() {
     const tbody = document.querySelector('#loanTableWrap table tbody');
     if (!tbody) return;
 
     const rows = Array.from(tbody.querySelectorAll('tr[data-search]'));
+
     rows.sort(function (a, b) {
-        if (order === 'most_late') {
-            const aLate = parseInt(a.dataset.daysLate, 10) || 0;
-            const bLate = parseInt(b.dataset.daysLate, 10) || 0;
-            return bLate - aLate;
-        }
-        const aApplied = parseInt(a.dataset.applied, 10) || 0;
-        const bApplied = parseInt(b.dataset.applied, 10) || 0;
-        return order === 'oldest' ? aApplied - bApplied : bApplied - aApplied;
+        const aVal = opGetSortValue(a, opSortKey);
+        const bVal = opGetSortValue(b, opSortKey);
+
+        let result = 0;
+        if (aVal < bVal) result = -1;
+        if (aVal > bVal) result = 1;
+
+        return opSortDir === 'asc' ? result : -result;
     });
 
     rows.forEach(function (row) {
         tbody.appendChild(row);
     });
 
-    opCurrentPage = 1; // re-sorting also resets back to page 1
+    opCurrentPage = 1;
     opRenderPage();
+}
+
+// Dropdown sort (Most Days Late / Newest / Oldest)
+function sortOverdueLoans() {
+    const order = document.getElementById('sortFilter').value;
+
+    if (order === 'most_late') {
+        opSortKey = 'daysLate';
+        opSortDir = 'desc';
+    } else if (order === 'oldest') {
+        opSortKey = 'applied';
+        opSortDir = 'asc';
+    } else {
+        opSortKey = 'applied';
+        opSortDir = 'desc';
+    }
+
+    opSortRows();
+    opUpdateHeaderArrows();
+}
+
+// Click sa column header (tinatawag ng onclick sa <th>)
+function opSortByColumn(key) {
+    if (opSortKey === key) {
+        // Same column: i-toggle ang direction
+        opSortDir = opSortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+        // Bagong column: ascending muna
+        opSortKey = key;
+        opSortDir = 'asc';
+    }
+
+    opSortRows();
+    opUpdateHeaderArrows();
+    opSyncDropdown();
+}
+
+// Ipakita ang arrow (▲/▼) sa active na column
+function opUpdateHeaderArrows() {
+    const headers = document.querySelectorAll('#loanTableWrap th[data-sort]');
+
+    headers.forEach(function (th) {
+        th.classList.remove('sort-asc', 'sort-desc');
+
+        if (th.dataset.sort === opSortKey) {
+            th.classList.add(opSortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+        }
+    });
+}
+
+// Kung hindi tugma sa dropdown options ang sort, i-blank ang dropdown
+function opSyncDropdown() {
+    const select = document.getElementById('sortFilter');
+    if (!select) return;
+
+    if (opSortKey === 'daysLate' && opSortDir === 'desc') {
+        select.value = 'most_late';
+    } else {
+        select.selectedIndex = -1;
+    }
+}
+
+// Click sa row (tinatawag ng onclick sa <tr>)
+// Pupunta sa detail page, maliban kung link/button ang na-click.
+function opGoToRow(event, row) {
+    if (event.target.closest('a, button, input, select, textarea')) return;
+
+    const url = row.dataset.href;
+    if (url) {
+        window.location.href = url;
+    }
 }
 
 function opChangeRowsPerPage(select) {
@@ -70,7 +153,7 @@ function opRenderPage() {
     );
     const matchingRows = opGetMatchingRows();
 
-    // Hide everything first; only the current page's slice gets revealed.
+    // Itago muna lahat; yung nasa current page lang ang ipapakita.
     allRows.forEach(row => row.style.display = 'none');
 
     const totalRows = matchingRows.length;
@@ -83,7 +166,6 @@ function opRenderPage() {
     const end = start + opRowsPerPage;
     matchingRows.slice(start, end).forEach(row => row.style.display = '');
 
-    // Reuse the existing "no results" / table-wrap toggle from the search feature.
     const noResults = document.getElementById('filteredNoResults');
     const tableWrap = document.getElementById('loanTableWrap');
     if (noResults && tableWrap) {
@@ -118,34 +200,22 @@ function opUpdatePaginationControls(totalRows, totalPages, start, end) {
     if (prevBtn) prevBtn.disabled = opCurrentPage <= 1;
     if (nextBtn) nextBtn.disabled = opCurrentPage >= totalPages;
 
-    // No point showing the pagination bar if there are zero rows overall
-    // (not just filtered out) — the "no overdue loans" empty state
-    // already covers that case.
     if (paginationWrap) {
         paginationWrap.style.display = totalRows === 0 ? 'none' : 'flex';
     }
 }
 
-// Slice to page 1 (10 rows) as soon as the page loads.
-document.addEventListener('DOMContentLoaded', function () {
+// Pag-load ng page: i-sort ayon sa default (Most Days Late) tapos page 1.
+function opInit() {
     if (document.getElementById('loanTableWrap')) {
-        opRenderPage();
+        opSortRows();
+        opUpdateHeaderArrows();
     }
-});
+}
 
-// ========================================
-// CLICKABLE ROWS — buong <tr> na may data-href ang
-// mag-a-navigate papunta sa detail page, maliban kung
-// ang na-click ay isang link/button (para hindi
-// mag-double-navigate sa "View Details" button).
-// Event delegation dahil pinapalitan ng search/sort/
-// pagination ang visibility ng rows nang dynamic.
-// ========================================
-document.addEventListener('click', function (e) {
-    var row = e.target.closest('tr[data-href]');
-    if (!row) return;
-
-    if (e.target.closest('a, button, input, select, textarea')) return;
-
-    window.location.href = row.dataset.href;
-});
+// Tatakbo agad kung tapos na mag-load ang page, kung hindi hintayin muna.
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', opInit);
+} else {
+    opInit();
+}

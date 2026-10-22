@@ -103,14 +103,18 @@
                         </div>
 
                         <div class="opd-actions">
+                            {{-- Lalabas lang kapag may in-upload na receipt ang borrower para sa installment na ito --}}
+                            @if ($borrowerReceipt)
+                                <button type="button" class="opd-btn opd-btn-view" data-bs-toggle="modal"
+                                    data-bs-target="#opdBorrowerReceiptModal">
+                                    <i class="feather-file-text"></i> View Receipt
+                                </button>
+                            @endif
                             <button type="button" class="opd-btn opd-btn-mark-paid" data-bs-toggle="modal"
                                 data-bs-target="#opdConfirmPaidModal">
                                  Mark as Paid
                             </button>
-                            <button type="button" class="opd-btn opd-btn-waive" data-bs-toggle="modal"
-                                data-bs-target="#opdWaiveModal" {{ !$penaltyId ? 'disabled' : '' }}>
-                                <i class="feather-slash"></i> Waive Penalty
-                            </button>
+                        
                         </div>
                     </div>
                 @else
@@ -177,10 +181,7 @@
                         <span class="opd-summary-label">Term</span>
                         <span class="opd-summary-value">{{ $app->loan_term }} months</span>
                     </div>
-                    <div class="opd-summary-row">
-                        <span class="opd-summary-label">Interest Rate</span>
-                        <span class="opd-summary-value">5% / month</span>
-                    </div>
+
                     <div class="opd-summary-row">
                         <span class="opd-summary-label">Total Interest</span>
                         <span class="opd-summary-value">₱{{ number_format($app->total_interest ?? 0, 2) }}</span>
@@ -217,9 +218,9 @@
         data-waive-url="{{ $penaltyId ? route('admin.penalty-waive', $penaltyId) : '' }}"
         data-csrf="{{ csrf_token() }}" style="display:none;"></div>
 
-    {{-- ============ CONFIRM: Mark as Paid (may Date Paid + Receipt) ============ --}}
+    {{-- ============ CONFIRM: Mark as Paid (Date Paid lang, walang receipt upload) ============ --}}
     <div class="modal fade opd-modal" id="opdConfirmPaidModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header justify-content-end">
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -250,22 +251,37 @@
                                         day{{ $daysLate == 1 ? '' : 's' }} overdue</span>
                                 </div>
                             </div>
-                            <div class="opd-confirm-cell">
-                                <div class="opd-confirm-label">Amount Due</div>
-                                <div class="opd-confirm-value">₱{{ number_format($amountDue, 2) }}</div>
+                        </div>
+
+                        {{-- Amount Due + Penalty = Total Outstanding --}}
+                        <div class="opd-breakdown">
+                            <div class="opd-breakdown-row">
+                                <span>Amount Due</span>
+                                <span class="opd-breakdown-amount">₱{{ number_format($amountDue, 2) }}</span>
                             </div>
-                            <div class="opd-confirm-cell">
-                                <div class="opd-confirm-label">Penalty</div>
-                                <div class="opd-confirm-value is-orange">₱{{ number_format($currentPenalty, 2) }}</div>
+                            <div class="opd-breakdown-row">
+                                <span>
+                                    Penalty
+                                    @if ($currentPenalty > 0)
+                                        <small>
+                                            {{ intdiv($daysLate, config('penalty.late_fee_period_days')) }}
+                                            × ₱{{ number_format(config('penalty.late_fee_amount'), 0) }}
+                                            (₱{{ number_format(config('penalty.late_fee_amount'), 0) }} every
+                                            {{ config('penalty.late_fee_period_days') }} days late)
+                                        </small>
+                                    @endif
+                                </span>
+                                <span class="opd-breakdown-amount {{ $currentPenalty > 0 ? 'is-orange' : '' }}">
+                                    ₱{{ number_format($currentPenalty, 2) }}
+                                </span>
+                            </div>
+                            <div class="opd-breakdown-total">
+                                <span class="opd-confirm-total-label">Total Outstanding</span>
+                                <span class="opd-confirm-total-value">₱{{ number_format($totalOutstanding, 2) }}</span>
                             </div>
                         </div>
 
-                        <div class="opd-confirm-total">
-                            <span class="opd-confirm-total-label">Total Outstanding</span>
-                            <span class="opd-confirm-total-value">₱{{ number_format($totalOutstanding, 2) }}</span>
-                        </div>
-
-                        {{-- Date Paid + Receipt (kapareho ng Ongoing Loans) --}}
+                        {{-- Date Paid (kapareho ng Ongoing Loans) --}}
                         <div class="ols-field">
                             <label for="opdPaidDateDisplay" class="ols-field-label">Date Paid <span class="ols-req">*</span></label>
                             <div class="ols-date-wrap">
@@ -277,27 +293,24 @@
                             <input type="hidden" id="opdPaidDate">
                         </div>
 
-                        <div class="ols-field">
-                            <label class="ols-field-label">Receipt <span class="ols-req">*</span></label>
-                            <label for="opdReceipt" class="ols-dropzone" id="opdDropzone">
-                                <i class="feather-upload-cloud"></i>
-                                <span class="ols-dropzone-text">Click to upload receipt</span>
-                                <span class="ols-dropzone-hint">JPG or PNG, up to 5MB</span>
-                            </label>
-                            <input type="file" id="opdReceipt" accept="image/jpeg,image/png" hidden>
-
-                            <div class="ols-preview" id="opdReceiptPreview" style="display:none;">
-                                <img id="opdReceiptPreviewImg" alt="Receipt preview">
-                                <div class="ols-preview-meta">
-                                    <span id="opdReceiptFileName"></span>
-                                    <span id="opdReceiptFileSize"></span>
+                        {{-- Lalabas lang kapag galing sa "View Receipt" > "Record Payment" --}}
+                        @if ($borrowerReceipt)
+                            <div class="ols-field" id="opdUsingBorrowerReceipt" style="display:none;">
+                                <label class="ols-field-label">Receipt</label>
+                                <div class="ols-preview">
+                                    <img id="opdUsingBorrowerThumb" alt="Borrower receipt">
+                                    <div class="ols-preview-meta">
+                                        <span>Receipt from the borrower</span>
+                                        <span>Will be saved as the payment receipt</span>
+                                    </div>
+                                    {{-- X button: ire-record na lang ang payment nang walang receipt --}}
+                                    <button type="button" class="ols-preview-remove" id="opdUseNoReceiptBtn"
+                                        aria-label="Remove borrower receipt" title="Remove">
+                                        <i class="feather-x"></i>
+                                    </button>
                                 </div>
-                                <button type="button" class="ols-preview-remove" id="opdReceiptRemove"
-                                    aria-label="Remove receipt">
-                                    <i class="feather-x"></i>
-                                </button>
                             </div>
-                        </div>
+                        @endif
 
                         <div id="opdPaidError" class="ols-form-error d-none"></div>
                     @endif
@@ -312,6 +325,76 @@
             </div>
         </div>
     </div>
+
+    {{-- ============ BORROWER RECEIPT (View Receipt) ============
+         Tinitingnan muna ng admin ang receipt na in-upload ng borrower bago i-record ang payment.
+         Ang route ay kapareho ng ginagamit ng Ongoing Loan Detail. --}}
+    @if ($borrowerReceipt && $oldestOverdue)
+        <div class="modal fade opd-modal" id="opdBorrowerReceiptModal" tabindex="-1" aria-labelledby="opdBrTitle"
+            aria-hidden="true"
+            data-file-url="{{ route('admin.borrower-receipt-file', $borrowerReceipt->receipt_id) }}">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div>
+                            <h6 class="modal-title" id="opdBrTitle">Borrower Receipt</h6>
+                            <div class="opd-br-sub">Installment #{{ $oldestOverdue->installment_no }}</div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body opd-br-body">
+                        {{-- Kaliwa: receipt image --}}
+                        <div class="opd-br-preview">
+                            <div class="opd-br-state" id="opdBrLoading">Loading receipt...</div>
+                            <div class="opd-br-state" id="opdBrError" style="display:none;">Unable to load the receipt.</div>
+                            <a href="#" target="_blank" rel="noopener" id="opdBrImgLink" title="Open full size"
+                                style="display:none;">
+                                <img id="opdBrImg" alt="Receipt uploaded by the borrower">
+                            </a>
+                            <div class="opd-br-hint" id="opdBrHint" style="display:none;">Click the image to open it full size</div>
+                        </div>
+
+                        {{-- Kanan: halagang dapat bayaran at kailan na-submit --}}
+                        <div class="opd-br-details">
+                            <div class="opd-br-amount-label">Total Outstanding</div>
+                            <div class="opd-br-amount">₱{{ number_format($totalOutstanding, 2) }}</div>
+
+                            <dl class="opd-br-list">
+                                <div>
+                                    <dt>Amount Due</dt>
+                                    <dd>₱{{ number_format($amountDue, 2) }}</dd>
+                                </div>
+                                <div>
+                                    <dt>Penalty</dt>
+                                    <dd class="{{ $currentPenalty > 0 ? 'is-orange' : '' }}">
+                                        ₱{{ number_format($currentPenalty, 2) }}</dd>
+                                </div>
+                                <div>
+                                    <dt>Due Date</dt>
+                                    <dd>{{ \Carbon\Carbon::parse($oldestOverdue->due_date)->format('F j, Y') }}</dd>
+                                </div>
+                                <div>
+                                    <dt>Submitted</dt>
+                                    <dd>{{ !empty($borrowerReceipt->submitted_at) ? \Carbon\Carbon::parse($borrowerReceipt->submitted_at)->format('F j, Y \a\t g:i A') : '—' }}
+                                    </dd>
+                                </div>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="opd-btn opd-btn-waive" data-bs-dismiss="modal">Close</button>
+                        <a href="{{ route('admin.borrower-receipt-file', ['id' => $borrowerReceipt->receipt_id, 'download' => 1]) }}"
+                            class="opd-btn opd-btn-view">
+                            <i class="feather-download"></i> Download
+                        </a>
+                        <button type="button" class="opd-btn opd-btn-mark-paid" id="opdBrRecordBtn">Record Payment</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 
     {{-- ============ WAIVE PENALTY ============ --}}
     <div class="modal fade opd-modal" id="opdWaiveModal" tabindex="-1">

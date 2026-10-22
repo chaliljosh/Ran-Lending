@@ -1743,3 +1743,108 @@ html.app-skin-dark .ols-link-btn:focus-visible {
     border-color: #6b6b6b !important;
     box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08) !important;
 }
+
+/* ============================================================
+   PROOF OF RELEASE CARD
+   Isang beses lang per loan. Standalone card na nakalagay sa
+   ilalim ng borrower header card (.olh-card), bago ang
+   Loan Summary / Admin Review grid.
+============================================================ */
+.olr-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding: 18px 24px 18px 20px;
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    border-left: 4px solid #1f2937;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+}
+.olr-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1f2937;
+    color: #fff;
+    font-size: 1.15rem;
+}
+.olr-text { flex: 1; min-width: 0; }
+.olr-title { font-size: 0.95rem; font-weight: 700; color: #0f172a; }
+.olr-sub {
+    margin-top: 3px;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    color: #475569;
+}
+
+.btn-send-release {
+    flex-shrink: 0;
+    padding: 10px 22px;
+    border-radius: 10px;
+    border: 1px solid #1f2937;
+    background: #1f2937;
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background .15s ease, border-color .15s ease, color .15s ease, transform .1s ease;
+}
+.btn-send-release:hover {
+    background: #111827;
+    border-color: #111827;
+    color: #fff;
+}
+.btn-send-release:active { transform: scale(0.97); }
+.btn-send-release:focus-visible {
+    outline: none;
+    border-color: #111827;
+    box-shadow: 0 0 0 3px rgba(31, 41, 55, 0.18);
+}
+
+@media (max-width: 575px) {
+    .olr-card { flex-wrap: wrap; padding: 14px 18px; }
+    .olr-text { flex: 1 1 calc(100% - 52px); }
+    .btn-send-release { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .btn-send-release { transition: none; }
+    .btn-send-release:active { transform: none; }
+}
+
+/* ---------- Dark mode ---------- */
+html.app-skin-dark .olr-card {
+    background: #141414 !important;
+    border-color: #3a3a3a !important;
+    border-left-color: #F5F5F5 !important;
+    box-shadow: none !important;
+}
+html.app-skin-dark .olr-icon {
+    background: #F5F5F5 !important;
+    color: #0A0A0A !important;
+    box-shadow: none !important;
+}
+html.app-skin-dark .olr-title { color: #F5F5F5 !important; }
+html.app-skin-dark .olr-sub { color: #C4C4C4 !important; }
+html.app-skin-dark .btn-send-release {
+    background: #F5F5F5 !important;
+    border-color: #F5F5F5 !important;
+    color: #0A0A0A !important;
+}
+html.app-skin-dark .btn-send-release:hover {
+    background: #D4D4D4 !important;
+    border-color: #D4D4D4 !important;
+    color: #0A0A0A !important;
+}
+html.app-skin-dark .btn-send-release:focus-visible {
+    border-color: #6b6b6b !important;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08) !important;
+}

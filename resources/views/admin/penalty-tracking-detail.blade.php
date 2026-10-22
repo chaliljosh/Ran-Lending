@@ -150,10 +150,53 @@
             </div>
         @endif
 
-        {{-- ── PENALTY STATUS ── --}}
+        {{-- ── LAHAT NG PENALTIES NG LOAN NA ITO ── --}}
+        @if (!empty($loanPenalties) && $loanPenalties->count() > 1)
+            <div class="pd-card mb-4">
+                <div class="pd-card-header">
+                    <div class="pd-card-title">All Penalties on this Loan</div>
+                </div>
+                <div class="pd-card-body p-0">
+                    <div class="pd-table-scroll">
+                        <table class="pd-table">
+                            <thead>
+                                <tr>
+                                    <th>Installment</th>
+                                    <th>Due Date</th>
+                                    <th>Days Late</th>
+                                    <th>Penalty</th>
+                                    <th>Status</th>
+                                    <th class="text-end"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($loanPenalties as $lp)
+                                    <tr>
+                                        <td>#{{ $lp->installment_no }}</td>
+                                        <td>{{ \Carbon\Carbon::parse($lp->due_date)->format('M d, Y') }}</td>
+                                        <td>{{ $lp->status === 'unpaid' ? (int) $lp->days_late . ' days' : '—' }}</td>
+                                        <td class="fw-600">₱{{ number_format($lp->penalty_amount, 2) }}</td>
+                                        <td><span class="pd-status-badge pd-badge-{{ $lp->status }}">{{ ucfirst($lp->status) }}</span></td>
+                                        <td class="text-end">
+                                            @if ($lp->id === $p->id)
+                                                <span class="pd-borrower-sub">Viewing</span>
+                                            @else
+                                                <a href="{{ route('admin.penalty-tracking-detail', [$p->loan_uuid, $lp->installment_no]) }}" class="pd-back-btn">View</a>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        {{-- ── PENALTY STATUS (read-only, paid/waived lang) ── --}}
+        @if ($status !== 'unpaid')
         <div class="pd-card mb-4">
             <div class="pd-card-header">
-
                 <div class="pd-card-title">Penalty Status</div>
             </div>
             <div class="pd-card-body">
@@ -185,7 +228,7 @@
                                 @elseif($status === 'waived')
                                     This penalty was waived and no longer needs payment.
                                 @else
-                                    Payment is still pending for this penalty.
+                                    Payment is still pending. It is settled on the Overdue Payment page.
                                 @endif
                             </div>
                         </div>
@@ -195,7 +238,7 @@
                         <div class="pd-status-box">
                             <div class="pd-status-box-icon is-blue"><i class="bi bi-calendar-check"></i></div>
                             <div>
-                                <div class="pd-status-box-label">Resolved Date</div>
+                                <div class="pd-status-box-label">Paid On</div>
                                 <div class="pd-status-box-value">
                                     {{ \Carbon\Carbon::parse($p->updated_at)->format('M d, Y') }}</div>
                                 <div class="pd-status-box-desc">Date when the penalty was fully paid.</div>
@@ -205,7 +248,7 @@
                         <div class="pd-status-box">
                             <div class="pd-status-box-icon is-blue"><i class="bi bi-calendar-check"></i></div>
                             <div>
-                                <div class="pd-status-box-label">Waived Date</div>
+                                <div class="pd-status-box-label">Waived On</div>
                                 <div class="pd-status-box-value">
                                     {{ \Carbon\Carbon::parse($p->updated_at)->format('M d, Y') }}</div>
                                 <div class="pd-status-box-desc">Waived by {{ $p->waived_by_name ?? '—' }}.</div>
@@ -225,118 +268,10 @@
                 @endif
             </div>
         </div>
-
-        {{-- Action Buttons (unpaid only) --}}
-        @if ($status === 'unpaid')
-            <div class="pd-action-row mb-4">
-                <button type="button" class="pd-btn-paid" data-bs-toggle="modal" data-bs-target="#paidConfirmModal">
-                     Mark as Paid
-                </button>
-                <button type="button" class="pd-btn-waive" data-bs-toggle="modal" data-bs-target="#waiveModal">
-                    Waive Penalty
-                </button>
-            </div>
         @endif
 
     </div>
 
 @endsection
 
-@push('modals')
-    @if ($status === 'unpaid')
-        <div class="modal fade pt-modal" id="paidConfirmModal" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header justify-content-end">
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="pt-modal-icon is-confirm"><i class="bi bi-question-circle"></i></div>
-                        <div class="pt-modal-title">Mark as Paid?</div>
-                        <div class="pt-modal-subtitle">Are you sure you want to mark this penalty as paid?</div>
-                        <div class="pt-info-card">
-                            <div class="pt-info-item">
-                                <div class="pt-info-label">Borrower</div>
-                                <div class="pt-info-value">{{ $p->first_name ?? '—' }} {{ $p->last_name ?? '' }}</div>
-                            </div>
-                            <div class="pt-info-item">
-                                <div class="pt-info-label">Installment</div>
-                                <div class="pt-info-value">#{{ $p->installment_no }}</div>
-                            </div>
-                            <div class="pt-info-item">
-                                <div class="pt-info-label">Amount Due</div>
-                                <div class="pt-info-value">₱{{ number_format($p->amount_due, 2) }}</div>
-                            </div>
-                            <div class="pt-info-item">
-                                <div class="pt-info-label">Late Fee</div>
-                                <div class="pt-info-value">₱{{ number_format($p->penalty_amount, 2) }}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="pt-btn-cancel" data-bs-dismiss="modal">No, Cancel</button>
-                        <button type="button" class="pt-btn-confirm-paid"
-                            data-mark-paid-url="{{ route('admin.penalty-mark-paid', $p->id) }}"
-                            data-redirect="{{ route('admin.penalty-tracking') }}">
-                            <i class="bi bi-check-lg"></i> Yes, Mark as Paid
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade pt-modal" id="waiveModal" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <form method="POST" action="{{ route('admin.penalty-waive', $p->id) }}" class="pt-waive-form"
-                        data-redirect="{{ route('admin.penalty-tracking') }}">
-                        @csrf
-                        <div class="modal-header justify-content-end">
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="pt-modal-icon"><i class="bi bi-exclamation-triangle"></i></div>
-                            <div class="pt-modal-title">Waive Penalty</div>
-                            <div class="pt-modal-subtitle">This action will permanently waive the selected penalty.</div>
-                            <div class="pt-info-card">
-                                <div class="pt-info-item">
-                                    <div class="pt-info-label">Borrower</div>
-                                    <div class="pt-info-value">{{ $p->first_name ?? '—' }} {{ $p->last_name ?? '' }}
-                                    </div>
-                                </div>
-                                <div class="pt-info-item">
-                                    <div class="pt-info-label">Late Fee</div>
-                                    <div class="pt-info-value">₱{{ number_format($p->penalty_amount, 2) }}</div>
-                                </div>
-                                <div class="pt-info-item">
-                                    <div class="pt-info-label">Days Late</div>
-                                    <div class="pt-info-value">{{ $p->days_late }} Days</div>
-                                </div>
-                                <div class="pt-info-item">
-                                    <div class="pt-info-label">Installment</div>
-                                    <div class="pt-info-value">#{{ $p->installment_no }}</div>
-                                </div>
-                            </div>
-                            <label class="pt-form-label mt-3">Reason for Waiver <span class="req">*</span></label>
-                            <textarea name="waived_reason" class="pt-textarea" rows="4"
-                                placeholder="Enter the reason for waiving this penalty..." required></textarea>
-                            <div class="pt-warning-line">
-                                <i class="bi bi-exclamation-triangle-fill"></i> This action cannot be undone.
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="pt-btn-cancel" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="pt-btn-confirm-waive">
-                                <i class="bi bi-check-lg"></i> Confirm Waive
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    @endif
-@endpush
-
-@section('page-scripts')
-    <script src="{{ asset('functions/penalty-tracking-detail.js') }}"></script>
-@endsection
+{{-- Wala nang JS at modals dito. View-only na ang page na ito. --}}

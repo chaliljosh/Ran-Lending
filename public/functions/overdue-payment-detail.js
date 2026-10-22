@@ -20,23 +20,29 @@
     const confirmPaidText = document.getElementById('opdConfirmPaidText');
     const confirmPaidSpinner = document.getElementById('opdConfirmPaidSpinner');
 
-    // ---- Mga field ng "Mark as Paid" modal ----
+    // ---- Mga field ng "Mark as Paid" modal (Date Paid lang) ----
     const paidDateInput = document.getElementById('opdPaidDate');            // hidden (Y-m-d)
     const paidDateDisplay = document.getElementById('opdPaidDateDisplay');   // nakikita (MM/DD/YYYY)
-    const receiptInput = document.getElementById('opdReceipt');
-    const dropzone = document.getElementById('opdDropzone');
-    const previewWrap = document.getElementById('opdReceiptPreview');
-    const previewImg = document.getElementById('opdReceiptPreviewImg');
-    const fileNameEl = document.getElementById('opdReceiptFileName');
-    const fileSizeEl = document.getElementById('opdReceiptFileSize');
-    const removeReceiptBtn = document.getElementById('opdReceiptRemove');
     const paidError = document.getElementById('opdPaidError');
 
-    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-    const ALLOWED_TYPES = ['image/jpeg', 'image/png'];
+    // ---- Receipt na in-upload ng borrower (wala ang mga ito kapag walang receipt) ----
+    const brModalEl = document.getElementById('opdBorrowerReceiptModal');
+    const brLoading = document.getElementById('opdBrLoading');
+    const brError = document.getElementById('opdBrError');
+    const brImg = document.getElementById('opdBrImg');
+    const brImgLink = document.getElementById('opdBrImgLink');
+    const brHint = document.getElementById('opdBrHint');
+    const brRecordBtn = document.getElementById('opdBrRecordBtn');
+    const brFileUrl = brModalEl ? (brModalEl.dataset.fileUrl || '') : '';
 
-    let selectedFile = null;
-    let previewUrl = null;
+    const usingBorrowerWrap = document.getElementById('opdUsingBorrowerReceipt');
+    const usingBorrowerThumb = document.getElementById('opdUsingBorrowerThumb');
+    const removeBorrowerBtn = document.getElementById('opdUseNoReceiptBtn');
+
+    // true kapag galing sa "View Receipt" > "Record Payment"
+    // (gagamitin ang receipt ng borrower bilang receipt ng payment)
+    let pendingBorrowerReceipt = false;
+    let useBorrowerReceipt = false;
 
     function showSuccessThenReload(title, desc) {
         if (window.showAdminToast) {
@@ -57,12 +63,6 @@
         if (!paidError) return;
         paidError.textContent = '';
         paidError.classList.add('d-none');
-    }
-
-    function formatSize(bytes) {
-        return bytes >= 1048576
-            ? (bytes / 1048576).toFixed(1) + ' MB'
-            : Math.max(1, Math.round(bytes / 1024)) + ' KB';
     }
 
     function todayLocal() {
@@ -302,21 +302,18 @@
         ? createDatePicker(paidDateDisplay, paidDateInput, confirmPaidModalEl)
         : null;
 
-    // ============================================================
-    // Receipt dropzone
-    // ============================================================
-    function clearReceipt() {
-        if (!receiptInput) return;
-        if (previewUrl) { URL.revokeObjectURL(previewUrl); previewUrl = null; }
-        selectedFile = null;
-        receiptInput.value = '';
-        previewImg.removeAttribute('src');
-        previewWrap.style.display = 'none';
-        dropzone.style.display = '';
+    // Ipakita o itago ang receipt ng borrower sa loob ng Mark as Paid modal
+    function setReceiptMode(on) {
+        useBorrowerReceipt = !!on && !!usingBorrowerWrap;
+        if (usingBorrowerWrap) {
+            usingBorrowerWrap.style.display = useBorrowerReceipt ? '' : 'none';
+            if (useBorrowerReceipt && usingBorrowerThumb) {
+                usingBorrowerThumb.src = brFileUrl;
+            }
+        }
     }
 
     function resetForm() {
-        clearReceipt();
         clearPaidError();
         if (datePicker) {
             const today = todayLocal();
@@ -324,54 +321,69 @@
             datePicker.setRange('', today);   // hindi puwede sa hinaharap
             datePicker.setValue(today);
         }
-    }
-
-    if (receiptInput) {
-        receiptInput.addEventListener('change', function () {
-            const file = receiptInput.files[0];
-            clearReceipt();
-            clearPaidError();
-            if (!file) return;
-
-            if (ALLOWED_TYPES.indexOf(file.type) === -1) {
-                showPaidError('Only JPG or PNG images are allowed.');
-                return;
-            }
-            if (file.size > MAX_FILE_SIZE) {
-                showPaidError('File is too large. Maximum size is 5MB.');
-                return;
-            }
-
-            selectedFile = file;
-            previewUrl = URL.createObjectURL(file);
-            previewImg.src = previewUrl;
-            fileNameEl.textContent = file.name;
-            fileSizeEl.textContent = formatSize(file.size);
-            dropzone.style.display = 'none';
-            previewWrap.style.display = '';
-        });
-
-        removeReceiptBtn.addEventListener('click', function () {
-            clearReceipt();
-            clearPaidError();
-        });
+        // Ginagamit lang ang receipt ng borrower kapag galing sa "Record Payment"
+        // ng View Receipt modal. Sa direktang "Mark as Paid", walang receipt.
+        setReceiptMode(pendingBorrowerReceipt);
+        pendingBorrowerReceipt = false;
     }
 
     // Tuwing bubuksan o isasara ang modal -> fresh na form (today ang default na date)
     confirmPaidModalEl.addEventListener('show.bs.modal', resetForm);
     confirmPaidModalEl.addEventListener('hidden.bs.modal', resetForm);
 
-    // Tingnan kung okay na ang date at receipt bago mag-send.
+    // X button: ire-record ang payment nang walang receipt
+    if (removeBorrowerBtn) {
+        removeBorrowerBtn.addEventListener('click', function () {
+            setReceiptMode(false);
+        });
+    }
+
+    // ============================================================
+    // View Receipt modal (receipt na in-upload ng borrower)
+    // ============================================================
+    if (brModalEl && brImg) {
+        brModalEl.addEventListener('show.bs.modal', function () {
+            brLoading.style.display = '';
+            brError.style.display = 'none';
+            brImgLink.style.display = 'none';
+            brHint.style.display = 'none';
+
+            brImg.onload = function () {
+                brLoading.style.display = 'none';
+                brImgLink.style.display = '';
+                brHint.style.display = '';
+            };
+            brImg.onerror = function () {
+                brLoading.style.display = 'none';
+                brError.style.display = '';
+            };
+
+            brImgLink.href = brFileUrl;
+            brImg.src = brFileUrl;
+        });
+
+        // Record Payment -> isara ang receipt modal, tapos buksan ang Mark as Paid
+        // na kasama ang receipt ng borrower
+        if (brRecordBtn) {
+            brRecordBtn.addEventListener('click', function () {
+                brModalEl.addEventListener('hidden.bs.modal', function openPaid() {
+                    brModalEl.removeEventListener('hidden.bs.modal', openPaid);
+                    pendingBorrowerReceipt = true;
+                    bootstrap.Modal.getOrCreateInstance(confirmPaidModalEl).show();
+                });
+                bootstrap.Modal.getInstance(brModalEl).hide();
+            });
+        }
+    }
+
+    // Tingnan kung okay na ang date bago mag-send.
     // Return: error message, o '' kung okay na.
     function validatePaidForm() {
-        if (!paidDateInput.value) {
+        if (!paidDateInput || !paidDateInput.value) {
             return 'Please select the date the payment was made.';
         }
         if (paidDateInput.value > todayLocal()) {
             return 'The payment date cannot be in the future.';
-        }
-        if (!selectedFile) {
-            return 'Please attach the receipt.';
         }
         return '';
     }
@@ -392,12 +404,13 @@
         confirmPaidText.classList.add('d-none');
         confirmPaidSpinner.classList.remove('d-none');
 
-        // FormData ang gamit (hindi JSON) dahil may file na kasama.
-        // Huwag maglagay ng 'Content-Type' header — ang browser na ang bahala.
+        // Walang receipt upload ang admin. Date lang ang ipinapadala, at kung galing
+        // sa View Receipt, ipinapaalam sa server na gamitin ang receipt ng borrower.
         const formData = new FormData();
-        formData.append('require_proof', '1');
         formData.append('paid_date', paidDateInput.value);
-        formData.append('receipt', selectedFile);
+        if (useBorrowerReceipt) {
+            formData.append('use_borrower_receipt', '1');
+        }
 
         fetch(markPaidUrl, {
             method: 'POST',
@@ -422,7 +435,6 @@
                 }
 
                 // 422 galing sa validation — ipakita sa loob ng modal
-                // para hindi mawala ang piniling file ng admin.
                 if (result.status === 422 && data.errors) {
                     const firstKey = Object.keys(data.errors)[0];
                     showPaidError(data.errors[firstKey][0]);
