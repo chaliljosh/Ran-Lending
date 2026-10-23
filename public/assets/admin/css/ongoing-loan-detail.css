@@ -1,11 +1,7 @@
-/* ---------- Page background: white instead of theme's default gray ---------- */
 html:not(.app-skin-dark) .nxl-content {
     background: #fff;
 }
 
-/* ============================================
-   SIDEBAR ACTIVE-STATE OVERRIDE
-============================================ */
 .nxl-navigation .nxl-submenu .nxl-item[data-current="true"] > .nxl-link,
 .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
     color: #4a7cf7 !important;
@@ -19,9 +15,6 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
     background: rgba(108, 155, 255, 0.12);
 }
 
-/* ============================================
-   PANEL
-============================================ */
 .panel {
     background: #ffffff;
     border: 1px solid #e5e7eb !important;
@@ -75,9 +68,6 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
 .empty-note { font-size: 0.85rem; margin-bottom: 0; }
 .text-muted { color: #8a9bb0 !important; }
 
-/* ============================================================
-   MERGED HEADER CARD (.olh-*)
-============================================================ */
 .olh-card {
     border-radius: 14px;
     padding: 22px 28px;
@@ -203,9 +193,6 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
     .olh-stat { min-width: 45%; flex: 1 1 45%; border-right: none !important; padding: 6px 0; }
 }
 
-/* ============================================
-   MAIN GRID
-============================================ */
 .loan-detail-grid {
     display: grid;
     grid-template-columns: 1.15fr 1fr;
@@ -225,9 +212,6 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
     .loan-detail-grid { grid-template-columns: 1fr; }
 }
 
-/* ============================================
-   LOAN SUMMARY
-============================================ */
 .loan-info-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -255,9 +239,6 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
     .loan-info-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
-/* ============================================
-   PAYMENT PROGRESS
-============================================ */
 .lsc-progress {
     padding-top: 20px;
     margin-top: 4px;
@@ -290,326 +271,6 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
     .loan-info-grid.progress-row { grid-template-columns: repeat(3, 1fr); gap: 14px 10px; }
 }
 
-/* ============================================
-   ADMIN REVIEW
-============================================ */
-.review-item {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 13px 16px;
-    border-radius: 12px;
-    margin-bottom: 10px;
-    background: #f8f9fb;
-}
-.review-item:last-child { margin-bottom: 0; }
-.review-item.is-approved { background: #f0fbf3; }
-.review-item.is-rejected { background: #fef2f2; }
-.review-item.is-comment { background: #f5f8ff; align-items: flex-start; }
-
-.review-avatar {
-    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
-    background: #f1f3f8; color: #adb5bd; font-weight: 700; font-size: 1rem;
-    display: flex; align-items: center; justify-content: center;
-    overflow: hidden;
-}
-.review-avatar img {
-    width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
-}
-.review-avatar.mine { background: #4a7cf7; color: #fff; }
-
-.review-body {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-.review-name { font-weight: 700; color: #1a2a3a; font-size: 0.85rem; }
-.review-remark {
-    font-size: 0.8rem;
-    color: #5b6b82;
-    font-style: italic;
-    overflow-wrap: anywhere;
-}
-.review-time { font-size: 0.72rem; color: #adb5bd; }
-
-.review-item .badge {
-    flex-shrink: 0;
-    font-size: 0.72rem;
-    font-weight: 700;
-    padding: 5px 14px;
-    border-radius: 20px;
-}
-
-.comments-label {
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: #94a3b8;
-    text-transform: none;
-    letter-spacing: normal;
-    margin: 18px 0 10px;
-}
-
-/* ============================================
-   PAYMENT SCHEDULE TABLE (legacy — kept for fallback)
-============================================ */
-.loan-schedule-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.85rem;
-}
-.loan-schedule-table thead th {
-    text-align: left;
-    font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: none;
-    letter-spacing: normal;
-    color: #94a3b8;
-    padding: 10px 14px;
-    border-bottom: 2px solid #eef1f6;
-}
-.loan-schedule-table tbody td {
-    padding: 13px 14px;
-    color: #1a2a3a;
-    border-bottom: 1px solid #f1f3f8;
-}
-.loan-schedule-table tbody tr:last-child td { border-bottom: none; }
-.loan-schedule-table tbody tr:hover { background: #f8faff; }
-
-.sched-status {
-    display: inline-block;
-    font-size: 0.72rem;
-    font-weight: 700;
-    padding: 4px 12px;
-    border-radius: 16px;
-}
-.sched-status.is-paid     { background: #dcfce7; color: #16a34a; }
-.sched-status.is-overdue  { background: #fee2e2; color: #dc2626; }
-.sched-status.is-upcoming { background: #fff8e1; color: #b45309; }
-
-/* ============================================
-   RESPONSIVE
-============================================ */
-@media (max-width: 767px) {
-    .panel-body { padding: 18px; }
-    .panel-header { padding: 14px 18px; }
-    .panel-footer { padding: 12px 18px; flex-direction: column; align-items: flex-start; gap: 6px; }
-    .loan-schedule-table { font-size: 0.78rem; }
-    .loan-schedule-table thead th,
-    .loan-schedule-table tbody td { padding: 8px 10px; }
-    .review-item { flex-wrap: wrap; }
-}
-
-/* ══════════════════════════════════════════
-   DARK MODE — TRUE BLACK PALETTE
-   Kinopya ang eksaktong color scheme ng penalty-tracking-detail.css
-   (#0A0A0A background, #141414 cards, #262626 borders, #F5F5F5 text,
-   #9A9A9A muted text) para consistent ang lahat ng admin detail pages.
-   Nasa dulo ito ng file para mag-override sa lahat ng naunang navy-blue
-   (#0f172a, #1e2a3a, #2d3f55, #e2e8f0, #94a3b8) na dark mode rules.
-   ══════════════════════════════════════════ */
-
-html.app-skin-dark .nxl-content { background: #0A0A0A !important; }
-
-/* ---------- Panel shell ---------- */
-html.app-skin-dark .panel {
-    background: #141414 !important;
-    border-color: #262626 !important;
-}
-html.app-skin-dark .panel-header {
-    color: #F5F5F5 !important;
-    border-color: #262626 !important;
-}
-html.app-skin-dark .panel-header i { color: #C4C4C4 !important; }
-html.app-skin-dark .panel-footer {
-    background: #0d0d0d !important;
-    border-color: #262626 !important;
-    color: #9A9A9A !important;
-}
-
-/* ---------- Merged header card (.olh-*) ---------- */
-html.app-skin-dark .olh-card {
-    background: #141414 !important;
-    border-color: #262626 !important;
-}
-html.app-skin-dark .olh-name { color: #F5F5F5 !important; }
-html.app-skin-dark .olh-meta-row { color: #9A9A9A !important; }
-html.app-skin-dark .olh-meta-row strong { color: #C4C4C4 !important; }
-html.app-skin-dark .olh-meta-sep { color: #4a4a4a !important; }
-html.app-skin-dark .olh-stats { border-color: #262626 !important; }
-html.app-skin-dark .olh-stat:not(:last-child) { border-color: #262626 !important; }
-html.app-skin-dark .olh-stat-value { color: #F5F5F5 !important; }
-html.app-skin-dark .olh-stat-label { color: #9A9A9A !important; }
-
-/* "Active" status badge — black instead of blue */
-html.app-skin-dark .badge-active {
-    background: #262626 !important;
-    color: #F5F5F5 !important;
-    border: 1px solid #3a3a3a !important;
-}
-
-/* ---------- Loan Summary info items ---------- */
-html.app-skin-dark .info-item2 label { color: #9A9A9A !important; }
-html.app-skin-dark .info-item2 span { color: #F5F5F5 !important; }
-html.app-skin-dark .info-item2.is-primary span { color: #F5F5F5 !important; }
-
-/* ---------- Payment progress ---------- */
-html.app-skin-dark .old-progress-row { border-color: #262626 !important; }
-html.app-skin-dark .old-progress-count { color: #F5F5F5 !important; }
-html.app-skin-dark .lsc-progress-title { color: #9A9A9A !important; }
-html.app-skin-dark .lsc-progress-bar { background: #262626 !important; }
-html.app-skin-dark .lsc-progress-fill {
-    background: linear-gradient(90deg, #4a4a4a, #6b6b6b) !important;
-}
-html.app-skin-dark .old-next-due-box { background: #0d0d0d !important; }
-html.app-skin-dark .old-next-due-label { color: #9A9A9A !important; }
-html.app-skin-dark .old-next-due-date { color: #F5F5F5 !important; }
-html.app-skin-dark .old-next-due-date i { color: #C4C4C4 !important; }
-
-/* ---------- Admin Review Status ---------- */
-html.app-skin-dark .old-view-all-link { color: #C4C4C4 !important; }
-html.app-skin-dark .review-item { background: #0d0d0d !important; }
-html.app-skin-dark .review-item.is-approved { background: rgba(22,163,74,.12) !important; }
-html.app-skin-dark .review-item.is-rejected { background: rgba(220,38,38,.12) !important; }
-html.app-skin-dark .review-item.is-comment { background: #16181c !important; }
-html.app-skin-dark .review-avatar { background: #262626 !important; color: #9A9A9A !important; }
-html.app-skin-dark .review-avatar.mine { background: #3a3a3a !important; color: #fff !important; }
-html.app-skin-dark .review-avatar.is-purple { background: rgba(139,92,246,.18) !important; color: #c4b5fd !important; }
-html.app-skin-dark .review-avatar.is-blue { background: #262626 !important; color: #C4C4C4 !important; }
-html.app-skin-dark .review-name { color: #F5F5F5 !important; }
-html.app-skin-dark .review-remark { color: #C4C4C4 !important; }
-html.app-skin-dark .review-time { color: #9A9A9A !important; }
-html.app-skin-dark .comments-label { color: #9A9A9A !important; }
-html.app-skin-dark .badge-approved { background: rgba(22,163,74,.18) !important; color: #4ade80 !important; }
-html.app-skin-dark .badge-rejected { background: rgba(220,38,38,.18) !important; color: #f87171 !important; }
-
-/* ---------- Payment Schedule table ---------- */
-html.app-skin-dark .ols-sched-header { border-color: #262626 !important; }
-html.app-skin-dark .ols-sched-title { color: #F5F5F5 !important; }
-html.app-skin-dark .ols-sched-subtitle { color: #9A9A9A !important; }
-html.app-skin-dark .ols-sched-icon { background: #262626 !important; color: #F5F5F5 !important; }
-html.app-skin-dark .ols-sched-count-pill {
-    background: #0d0d0d !important;
-    border-color: #262626 !important;
-    color: #C4C4C4 !important;
-}
-html.app-skin-dark .ols-sched-count-pill i { color: #C4C4C4 !important; }
-html.app-skin-dark .ols-sched-count-pill strong { color: #F5F5F5 !important; }
-
-html.app-skin-dark .ols-sched-table thead th {
-    background: #0d0d0d !important;
-    color: #9A9A9A !important;
-    border-color: #262626 !important;
-}
-html.app-skin-dark .ols-sched-table tbody td {
-    color: #F5F5F5 !important;
-    border-color: #262626 !important;
-}
-html.app-skin-dark .ols-sched-table tbody tr:hover { background: #16181c !important; }
-
-html.app-skin-dark .ols-row-num { background: #262626 !important; color: #C4C4C4 !important; }
-html.app-skin-dark .ols-due-date { color: #F5F5F5 !important; }
-html.app-skin-dark .ols-due-sub { color: #9A9A9A !important; }
-html.app-skin-dark .ols-amount-due { color: #F5F5F5 !important; }
-html.app-skin-dark .ols-amount-paid-value { color: #F5F5F5 !important; }
-html.app-skin-dark .ols-mini-progress-track { background: #262626 !important; }
-html.app-skin-dark .ols-mini-progress-fill {
-    background: linear-gradient(90deg, #4a4a4a, #6b6b6b) !important;
-}
-html.app-skin-dark .ols-mini-progress-pct { color: #9A9A9A !important; }
-
-html.app-skin-dark .ols-status-pill.is-paid     { background: rgba(22,163,74,.18) !important; color: #4ade80 !important; }
-html.app-skin-dark .ols-status-pill.is-overdue  { background: rgba(220,38,38,.18) !important; color: #f87171 !important; }
-html.app-skin-dark .ols-status-pill.is-upcoming { background: rgba(245,158,11,.18) !important; color: #fbbf24 !important; }
-
-html.app-skin-dark .btn-record-payment {
-    border: 1px solid #3a3a3a !important;
-    background: #262626 !important;
-    color: #F5F5F5 !important;
-}
-html.app-skin-dark .btn-record-payment:hover:not(:disabled) {
-    background: #3a3a3a !important;
-    color: #fff !important;
-}
-html.app-skin-dark .sched-paid-note { color: #6b6b6b !important; }
-
-html.app-skin-dark .ols-kebab-btn {
-    border: 1px solid #262626 !important;
-    background: #0d0d0d !important;
-    color: #9A9A9A !important;
-}
-html.app-skin-dark .ols-kebab-btn:hover {
-    border-color: #4a4a4a !important;
-    color: #F5F5F5 !important;
-    background: #262626 !important;
-}
-html.app-skin-dark .ols-sched-footnote {
-    background: #0d0d0d !important;
-    border-color: #262626 !important;
-    color: #9A9A9A !important;
-}
-html.app-skin-dark .ols-sched-footnote i { color: #9A9A9A !important; }
-
-html.app-skin-dark .ols-page-arrow {
-    border: 1px solid #262626 !important;
-    background: #0d0d0d !important;
-    color: #9A9A9A !important;
-}
-html.app-skin-dark .ols-page-arrow:hover:not(:disabled) {
-    border-color: #4a4a4a !important;
-    color: #F5F5F5 !important;
-}
-html.app-skin-dark .ols-page-indicator {
-    background: #262626 !important;
-    color: #F5F5F5 !important;
-}
-
-/* ---------- "Mark as Paid" confirmation modal ---------- */
-html.app-skin-dark .ols-confirm-modal.modal-content { background: #141414 !important; }
-html.app-skin-dark .ols-confirm-eyebrow { color: #6b6b6b !important; }
-html.app-skin-dark .ols-confirm-title { color: #F5F5F5 !important; }
-html.app-skin-dark .ols-confirm-desc { color: #9A9A9A !important; }
-html.app-skin-dark .ols-confirm-icon { background: #262626 !important; color: #F5F5F5 !important; }
-html.app-skin-dark #olsMarkPaidConfirmModal .nxl-pw-btn-discard {
-    background: #0d0d0d !important;
-    border-color: #262626 !important;
-    color: #F5F5F5 !important;
-}
-html.app-skin-dark #olsMarkPaidConfirmModal .nxl-pw-btn-discard:hover {
-    background: #16181c !important;
-}
-html.app-skin-dark #olsMarkPaidConfirmModal .nxl-pw-btn-apply {
-    background: #262626 !important;
-    border: 1px solid #3a3a3a !important;
-    color: #fff !important;
-}
-html.app-skin-dark #olsMarkPaidConfirmModal .nxl-pw-btn-apply:hover {
-    background: #1a1a1a !important;
-    border-color: #1a1a1a !important;
-}
-
-/* ---------- Back button + text-muted ---------- */
-html.app-skin-dark .btn-light {
-    background: #141414 !important;
-    border-color: #262626 !important;
-    color: #F5F5F5 !important;
-}
-html.app-skin-dark .btn-light:hover {
-    border-color: #4a4a4a !important;
-    color: #F5F5F5 !important;
-    background: #262626 !important;
-}
-html.app-skin-dark .text-muted { color: #9A9A9A !important; }
-html.app-skin-dark .empty-note { color: #9A9A9A !important; }
-
-/* ---------- Action recorded badge (kept green — status color) ---------- */
-html.app-skin-dark .action-recorded-badge { color: #4ade80 !important; }
-/* ---------- Success / "Recorded" note (kept green — status color, not accent) ---------- */
-/* Sinadyang hindi binago ang .action-recorded-badge dahil status color
-   ito (paid = green), hindi theme accent — pareho ang treatment sa
-   badge-approved/badge-paid na mga ibang status indicators. */
-/* ---------- Payment Progress row ---------- */
 .old-progress-row {
     display: flex;
     align-items: center;
@@ -653,7 +314,6 @@ html.app-skin-dark .action-recorded-badge { color: #4ade80 !important; }
 }
 .old-next-due-date i { color: #4a7cf7; font-size: 0.9rem; }
 
-/* ---------- Admin Review "View All" link ---------- */
 .old-view-all-link {
     display: inline-flex;
     align-items: center;
@@ -665,11 +325,66 @@ html.app-skin-dark .action-recorded-badge { color: #4ade80 !important; }
 }
 .old-view-all-link:hover { text-decoration: underline; }
 
-/* ---------- Review avatar color variants ---------- */
+.review-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 16px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    background: #f8f9fb;
+}
+.review-item:last-child { margin-bottom: 0; }
+.review-item.is-approved { background: #f0fbf3; }
+.review-item.is-rejected { background: #fef2f2; }
+.review-item.is-comment { background: #f5f8ff; align-items: flex-start; }
+
+.review-avatar {
+    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+    background: #f1f3f8; color: #adb5bd; font-weight: 700; font-size: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+}
+.review-avatar img {
+    width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
+}
+.review-avatar.mine { background: #4a7cf7; color: #fff; }
 .review-avatar.is-purple { background: #ede9fe; color: #7c3aed; }
 .review-avatar.is-blue { background: #e6ecff; color: #4a7cf7; }
 
-/* ---------- Payment Schedule header ---------- */
+.review-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.review-name { font-weight: 700; color: #1a2a3a; font-size: 0.85rem; }
+.review-remark {
+    font-size: 0.8rem;
+    color: #5b6b82;
+    font-style: italic;
+    overflow-wrap: anywhere;
+}
+.review-time { font-size: 0.72rem; color: #adb5bd; }
+
+.review-item .badge {
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 5px 14px;
+    border-radius: 20px;
+}
+
+.comments-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: none;
+    letter-spacing: normal;
+    margin: 18px 0 10px;
+}
+
 .old-schedule-title-wrap { display: flex; flex-direction: column; gap: 2px; }
 .old-schedule-subtitle {
     font-size: 0.7rem;
@@ -681,20 +396,50 @@ html.app-skin-dark .action-recorded-badge { color: #4ade80 !important; }
 }
 .old-export-btn { display: inline-flex; align-items: center; }
 
-/* ---------- Dark mode additions ---------- */
-html.app-skin-dark .old-progress-row { border-color: #2d3f55; }
-html.app-skin-dark .old-progress-count { color: #e2e8f0; }
-html.app-skin-dark .old-next-due-box { background: #16202e; }
-html.app-skin-dark .old-next-due-label { color: #94a3b8; }
-html.app-skin-dark .old-next-due-date { color: #e2e8f0; }
-html.app-skin-dark .old-view-all-link { color: #6c9bff; }
-html.app-skin-dark .review-avatar.is-purple { background: rgba(139,92,246,.18); color: #c4b5fd; }
-html.app-skin-dark .review-avatar.is-blue { background: #2d3f55; color: #9db8ff; }
-html.app-skin-dark .old-schedule-subtitle { color: #94a3b8; }
+.loan-schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+.loan-schedule-table thead th {
+    text-align: left;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
+    color: #94a3b8;
+    padding: 10px 14px;
+    border-bottom: 2px solid #eef1f6;
+}
+.loan-schedule-table tbody td {
+    padding: 13px 14px;
+    color: #1a2a3a;
+    border-bottom: 1px solid #f1f3f8;
+}
+.loan-schedule-table tbody tr:last-child td { border-bottom: none; }
+.loan-schedule-table tbody tr:hover { background: #f8faff; }
 
-/* ============================================================
-   PAYMENT SCHEDULE — redesigned per mockup
-============================================================ */
+.sched-status {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 16px;
+}
+.sched-status.is-paid     { background: #dcfce7; color: #16a34a; }
+.sched-status.is-overdue  { background: #fee2e2; color: #dc2626; }
+.sched-status.is-upcoming { background: #fff8e1; color: #b45309; }
+
+@media (max-width: 767px) {
+    .panel-body { padding: 18px; }
+    .panel-header { padding: 14px 18px; }
+    .panel-footer { padding: 12px 18px; flex-direction: column; align-items: flex-start; gap: 6px; }
+    .loan-schedule-table { font-size: 0.78rem; }
+    .loan-schedule-table thead th,
+    .loan-schedule-table tbody td { padding: 8px 10px; }
+    .review-item { flex-wrap: wrap; }
+}
+
 .payment-schedule-panel { overflow: hidden; }
 
 .ols-sched-header {
@@ -784,51 +529,67 @@ html.app-skin-dark .old-schedule-subtitle { color: #94a3b8; }
 .ols-mini-progress-pct { font-size: 0.7rem; color: #94a3b8; margin-top: 3px; }
 
 .ols-status-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 0.76rem;
-    font-weight: 700;
-    padding: 5px 12px;
-    border-radius: 20px;
+    display: inline-block;
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+    font-size: 0.83rem;
+    font-weight: 600;
+    white-space: nowrap;
 }
-.ols-status-pill.is-paid     { background: #dcfce7; color: #16a34a; }
-.ols-status-pill.is-overdue  { background: #fee2e2; color: #dc2626; }
-.ols-status-pill.is-upcoming { background: #fff8e1; color: #b45309; }
-.ols-status-pill i { font-size: 0.78rem; }
+.ols-status-pill.is-paid     { color: #15803d; }
+.ols-status-pill.is-overdue  { color: #b91c1c; }
+.ols-status-pill.is-upcoming { color: #b45309; }
 
 .ols-actions-cell { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+
 .btn-record-payment {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
+    gap: 8px;
+    padding: 9px 18px;
     border-radius: 10px;
-    border: 1px solid #4a7cf7;
-    background: #eef3ff;
-    color: #4a7cf7;
-    font-size: 0.8rem;
+    border: 1px solid #1f2937;
+    background: #1f2937;
+    color: #fff;
+    font-size: 0.82rem;
     font-weight: 600;
     cursor: pointer;
     transition: all .15s ease;
     white-space: nowrap;
 }
-.btn-record-payment:hover:not(:disabled) { background: #4a7cf7; color: #fff; }
+.btn-record-payment i { font-size: 1rem; }
+.btn-record-payment:hover:not(:disabled) {
+    background: #111827;
+    border-color: #111827;
+    color: #fff;
+}
 .btn-record-payment:disabled { opacity: 0.6; cursor: not-allowed; }
 .sched-paid-note { color: #adb5bd; font-size: 0.82rem; }
 
+.ols-void-pending {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #b45309;
+    white-space: nowrap;
+}
+.ols-void-pending i { font-size: 0.9rem; }
+
 .ols-kebab-wrap { position: relative; }
 .ols-kebab-btn {
-    width: 34px; height: 34px;
+    width: 36px; height: 36px;
     display: inline-flex; align-items: center; justify-content: center;
     border-radius: 10px;
     border: 1px solid #e5e7eb;
-    background: #fff;
-    color: #94a3b8;
+    background: #f3f4f6;
+    color: #475569;
     cursor: pointer;
     transition: all .15s ease;
 }
-.ols-kebab-btn:hover { border-color: #4a7cf7; color: #4a7cf7; background: #eef3ff; }
+.ols-kebab-btn:hover { background: #e5e7eb; border-color: #d1d5db; color: #111827; }
 .ols-kebab-menu { font-size: 0.85rem; }
 
 .ols-sched-footnote {
@@ -877,9 +638,6 @@ html.app-skin-dark .old-schedule-subtitle { color: #94a3b8; }
     border-radius: 16px;
     box-shadow: 0 12px 40px rgba(15, 23, 42, 0.18);
 }
-#olsMarkPaidConfirmModal .modal-dialog {
-    max-width: 400px;
-}
 .ols-confirm-icon {
     width: 48px; height: 48px; border-radius: 50%;
     margin: 4px auto 14px;
@@ -899,6 +657,7 @@ html.app-skin-dark .old-schedule-subtitle { color: #94a3b8; }
 .ols-confirm-title { font-size: 1rem; font-weight: 700; color: #1a2a3a; margin-bottom: 10px; }
 .ols-confirm-desc { font-size: 0.82rem; color: #64748b; line-height: 1.55; padding: 0 4px; }
 
+#olsMarkPaidConfirmModal .modal-dialog { max-width: 440px; }
 #olsMarkPaidConfirmModal .nxl-pw-modal-footer {
     padding: 16px 20px 20px;
     gap: 10px;
@@ -916,9 +675,7 @@ html.app-skin-dark .old-schedule-subtitle { color: #94a3b8; }
     color: #1a2a3a;
     font-weight: 600;
 }
-#olsMarkPaidConfirmModal .nxl-pw-btn-discard:hover {
-    background: #f8fafc;
-}
+#olsMarkPaidConfirmModal .nxl-pw-btn-discard:hover { background: #f8fafc; }
 #olsMarkPaidConfirmModal .nxl-pw-btn-apply {
     background: #1e3a8a;
     border: 1px solid #1e3a8a;
@@ -934,24 +691,6 @@ html.app-skin-dark .old-schedule-subtitle { color: #94a3b8; }
 .nxl-pw-btn-apply.is-loading i.feather-check { display: none; }
 .nxl-pw-btn-apply .spin-icon { display: none; }
 .nxl-pw-btn-apply.is-loading .spin-icon { display: inline-block; }
-
-html.app-skin-dark .ols-confirm-modal.modal-content { background: #1e2a3a; }
-html.app-skin-dark .ols-confirm-eyebrow { color: #64748b; }
-html.app-skin-dark .ols-confirm-title { color: #e2e8f0; }
-html.app-skin-dark .ols-confirm-desc { color: #94a3b8; }
-html.app-skin-dark #olsMarkPaidConfirmModal .nxl-pw-btn-discard {
-    background: #16202e;
-    border-color: #2d3f55;
-    color: #e2e8f0;
-}
-html.app-skin-dark #olsMarkPaidConfirmModal .nxl-pw-btn-apply {
-    background: #1e40af;
-    border-color: #1e40af;
-}
-html.app-skin-dark #olsMarkPaidConfirmModal .nxl-pw-btn-apply:hover {
-    background: #1e3a8a;
-    border-color: #1e3a8a;
-}
 
 @keyframes dl-spin {
     from { transform: rotate(0deg); }
@@ -971,14 +710,6 @@ html.app-skin-dark #olsMarkPaidConfirmModal .nxl-pw-btn-apply:hover {
     font-size: 0.82rem;
 }
 .action-recorded-badge i { font-size: 0.95rem; }
-
-html.app-skin-dark .action-recorded-badge { color: #6ee7a4; }
-
-
-/* ============================================================
-   RECORD PAYMENT MODAL — date picker + receipt upload
-============================================================ */
-#olsMarkPaidConfirmModal .modal-dialog { max-width: 440px; }
 
 .ols-field { margin-top: 18px; text-align: left; }
 .ols-field-label {
@@ -1065,24 +796,25 @@ html.app-skin-dark .action-recorded-badge { color: #6ee7a4; }
     text-align: left;
 }
 
-/* ---------- View Receipt ---------- */
 .btn-view-receipt {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
+    gap: 8px;
+    padding: 9px 16px;
     border-radius: 10px;
     border: 1px solid #e5e7eb;
-    background: #fff;
-    color: #475569;
-    font-size: 0.78rem;
+    background: #f3f4f6;
+    color: #1f2937;
+    font-size: 0.82rem;
     font-weight: 600;
     text-decoration: none;
     white-space: nowrap;
     cursor: pointer;
     transition: all .15s ease;
 }
-.btn-view-receipt:hover { border-color: #4a7cf7; color: #4a7cf7; background: #eef3ff; }
+.btn-view-receipt i { font-size: 1rem; color: #475569; }
+.btn-view-receipt:hover { background: #e5e7eb; border-color: #d1d5db; color: #111827; }
+.btn-view-receipt:hover i { color: #111827; }
 
 .ols-receipt-modal.modal-content {
     border: none;
@@ -1096,52 +828,6 @@ html.app-skin-dark .action-recorded-badge { color: #6ee7a4; }
 .ols-receipt-body img { max-width: 100%; max-height: 70vh; border-radius: 10px; }
 .ols-receipt-status { font-size: 0.82rem; color: #94a3b8; padding: 50px 0; }
 
-/* ---------- Dark mode ---------- */
-html.app-skin-dark .ols-field-label { color: #C4C4C4 !important; }
-html.app-skin-dark .ols-input {
-    background: #0d0d0d !important;
-    border-color: #262626 !important;
-    color: #F5F5F5 !important;
-    color-scheme: dark;
-}
-html.app-skin-dark .ols-input:focus {
-    border-color: #4a4a4a !important;
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06) !important;
-}
-html.app-skin-dark .ols-dropzone { background: #0d0d0d !important; border-color: #3a3a3a !important; }
-html.app-skin-dark .ols-dropzone:hover { background: #16181c !important; border-color: #6b6b6b !important; }
-html.app-skin-dark .ols-dropzone i { color: #9A9A9A !important; }
-html.app-skin-dark .ols-dropzone-text { color: #F5F5F5 !important; }
-html.app-skin-dark .ols-dropzone-hint { color: #9A9A9A !important; }
-html.app-skin-dark .ols-preview { background: #0d0d0d !important; border-color: #262626 !important; }
-html.app-skin-dark .ols-preview img { background: #262626 !important; }
-html.app-skin-dark .ols-preview-meta span:first-child { color: #F5F5F5 !important; }
-html.app-skin-dark .ols-preview-meta span:last-child { color: #9A9A9A !important; }
-html.app-skin-dark .ols-preview-remove { background: #262626 !important; color: #C4C4C4 !important; }
-html.app-skin-dark .ols-preview-remove:hover { background: rgba(220,38,38,.18) !important; color: #f87171 !important; }
-html.app-skin-dark .ols-form-error { background: rgba(220,38,38,.18) !important; color: #f87171 !important; }
-
-html.app-skin-dark .btn-view-receipt {
-    background: #0d0d0d !important;
-    border-color: #262626 !important;
-    color: #C4C4C4 !important;
-}
-html.app-skin-dark .btn-view-receipt:hover {
-    background: #262626 !important;
-    border-color: #4a4a4a !important;
-    color: #F5F5F5 !important;
-}
-html.app-skin-dark .ols-receipt-modal.modal-content { background: #141414 !important; }
-html.app-skin-dark .ols-receipt-modal .modal-header,
-html.app-skin-dark .ols-receipt-modal .modal-footer { border-color: #262626 !important; }
-html.app-skin-dark .ols-receipt-modal .modal-title { color: #F5F5F5 !important; }
-html.app-skin-dark .ols-receipt-modal .btn-close { filter: invert(1) grayscale(1); }
-html.app-skin-dark .ols-receipt-body { background: #0d0d0d !important; }
-html.app-skin-dark .ols-receipt-status { color: #9A9A9A !important; }
-
-/* ============================================================
-   VIEW PAYMENT DETAILS MODAL
-============================================================ */
 .ols-details-modal.modal-content {
     background: #fff;
     border: 1px solid #e5e7eb;
@@ -1194,7 +880,7 @@ html.app-skin-dark .ols-receipt-status { color: #9A9A9A !important; }
     max-height: 300px;
     width: auto;
     height: auto;
-    object-fit: contain;   /* keeps aspect ratio, never distorts */
+    object-fit: contain;
 }
 .ols-details-empty { font-size: 0.82rem; color: #94a3b8; padding: 18px 0; }
 
@@ -1213,27 +899,6 @@ html.app-skin-dark .ols-receipt-status { color: #9A9A9A !important; }
 
 @media (max-width: 420px) { .ols-details-grid { grid-template-columns: 1fr; } }
 
-/* ---------- Dark mode ---------- */
-html.app-skin-dark .ols-details-modal.modal-content { background: #141414 !important; border-color: #262626 !important; }
-html.app-skin-dark .ols-details-modal .modal-header,
-html.app-skin-dark .ols-details-modal .modal-footer,
-html.app-skin-dark .ols-details-section { border-color: #262626 !important; }
-html.app-skin-dark .ols-details-modal .modal-title,
-html.app-skin-dark .ols-details-grid dd,
-html.app-skin-dark .ols-details-section-title { color: #F5F5F5 !important; }
-html.app-skin-dark .ols-details-sub,
-html.app-skin-dark .ols-details-grid dt,
-html.app-skin-dark .ols-details-fulllink,
-html.app-skin-dark .ols-details-empty { color: #9A9A9A !important; }
-html.app-skin-dark .ols-details-fulllink:hover { color: #F5F5F5 !important; }
-html.app-skin-dark .ols-details-receipt { background: #0d0d0d !important; border-color: #262626 !important; }
-html.app-skin-dark .ols-details-modal .btn-close { filter: invert(1) grayscale(1); }
-html.app-skin-dark .ols-details-close { background: #0d0d0d !important; border-color: #262626 !important; color: #F5F5F5 !important; }
-html.app-skin-dark .ols-details-close:hover { background: #16181c !important; }
-
-/* ============================================================
-   VOID PAYMENT — idagdag sa dulo ng ongoing-loan-detail.css
-============================================================ */
 .ols-item-danger { color: #dc2626; }
 .ols-item-danger:hover { background: #fee2e2; color: #b91c1c; }
 
@@ -1263,29 +928,96 @@ html.app-skin-dark .ols-details-close:hover { background: #16181c !important; }
 }
 #olsVoidModal .ols-btn-danger:hover { background: #b91c1c; border-color: #b91c1c; }
 
-/* ---------- Dark mode ---------- */
-html.app-skin-dark .ols-item-danger { color: #f87171 !important; }
-html.app-skin-dark .ols-item-danger:hover { background: rgba(220,38,38,.18) !important; color: #f87171 !important; }
-html.app-skin-dark #olsVoidModal .nxl-pw-btn-discard {
-    background: #0d0d0d !important;
-    border-color: #262626 !important;
-    color: #F5F5F5 !important;
+#olsVoteVoidModal .modal-dialog { max-width: 500px; }
+#olsVoteVoidModal .nxl-pw-modal-footer { padding: 16px 20px 20px; gap: 10px; flex-wrap: wrap; }
+#olsVoteVoidModal .nxl-pw-btn-discard,
+#olsVoteVoidModal .nxl-pw-btn-apply {
+    flex: 1 1 0;
+    font-size: 0.85rem;
+    padding: 10px 14px;
+    border-radius: 10px;
+    white-space: nowrap;
 }
-html.app-skin-dark #olsVoidModal .nxl-pw-btn-discard:hover { background: #16181c !important; }
-html.app-skin-dark #olsVoidModal .ols-btn-danger {
-    background: #b91c1c !important;
-    border-color: #b91c1c !important;
-    color: #fff !important;
+#olsVoteVoidModal .nxl-pw-btn-discard {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    color: #1a2a3a;
+    font-weight: 600;
 }
-html.app-skin-dark #olsVoidModal .ols-btn-danger:hover {
-    background: #991b1b !important;
-    border-color: #991b1b !important;
+#olsVoteVoidModal .nxl-pw-btn-discard:hover { background: #f8fafc; }
+#olsVoteVoidModal .nxl-pw-btn-apply {
+    background: #1f2937;
+    border: 1px solid #1f2937;
+    color: #fff;
+    font-weight: 600;
+}
+#olsVoteVoidModal .nxl-pw-btn-apply:hover { background: #111827; border-color: #111827; }
+#olsVoteVoidModal .ols-btn-danger { background: #dc2626; border-color: #dc2626; }
+#olsVoteVoidModal .ols-btn-danger:hover { background: #b91c1c; border-color: #b91c1c; }
+#olsVoteVoidModal .ols-input { resize: vertical; font-family: inherit; }
+
+.ols-vv-reason {
+    padding: 10px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #fbfcfe;
+    font-size: 0.85rem;
+    color: #1a2a3a;
+    overflow-wrap: anywhere;
+}
+.ols-vv-votes { display: flex; flex-direction: column; gap: 8px; }
+.ols-vv-vote {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+}
+.ols-vv-vote-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ols-vv-vote-name { font-size: 0.83rem; font-weight: 700; color: #1a2a3a; }
+.ols-vv-vote-remarks { font-size: 0.78rem; font-style: italic; color: #5b6b82; overflow-wrap: anywhere; }
+.ols-vv-vote-time { font-size: 0.72rem; color: #94a3b8; }
+.ols-vv-vote-state { font-size: 0.78rem; font-weight: 600; text-transform: capitalize; flex-shrink: 0; }
+.ols-vv-vote-state.is-approved { color: #15803d; }
+.ols-vv-vote-state.is-rejected { color: #b91c1c; }
+.ols-vv-empty { font-size: 0.8rem; color: #94a3b8; }
+.ols-vv-note {
+    margin-top: 14px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    background: #f3f4f6;
+    color: #475569;
+    font-size: 0.78rem;
+    text-align: left;
 }
 
-/* ============================================================
-   BORROWER RECEIPT — "Receipt submitted" flag + View Receipt modal
-   (idagdag sa dulo ng ongoing-loan-detail.css)
-============================================================ */
+.ols-void-panel { margin-top: 18px; }
+.ols-void-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid #f1f3f8;
+}
+.ols-void-item:first-child { padding-top: 0; }
+.ols-void-item:last-child { padding-bottom: 0; border-bottom: none; }
+.ols-void-main { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.ols-void-title { font-size: 0.88rem; font-weight: 700; color: #1a2a3a; }
+.ols-void-reason { font-size: 0.82rem; color: #475569; overflow-wrap: anywhere; }
+.ols-void-meta { font-size: 0.74rem; color: #94a3b8; }
+.ols-void-votes { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 2px; }
+.ols-void-vote { font-size: 0.74rem; font-weight: 600; text-transform: capitalize; }
+.ols-void-vote.is-approved { color: #15803d; }
+.ols-void-vote.is-rejected { color: #b91c1c; }
+.ols-void-state { font-size: 0.82rem; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
+.ols-void-state.is-pending { color: #b45309; }
+.ols-void-state.is-approved { color: #b91c1c; }
+.ols-void-state.is-rejected { color: #15803d; }
+.ols-void-state.is-cancelled { color: #64748b; }
+
 .ols-receipt-flag {
     display: flex;
     align-items: center;
@@ -1297,9 +1029,6 @@ html.app-skin-dark #olsVoidModal .ols-btn-danger:hover {
     color: #4a7cf7;
 }
 .ols-receipt-flag i { font-size: 0.8rem; }
-
-/* .btn-view-receipt is already defined above — just keep the icon aligned */
-.btn-view-receipt i { font-size: 0.9rem; }
 
 #olsBorrowerReceiptModal .modal-dialog { max-width: 780px; }
 
@@ -1323,7 +1052,6 @@ html.app-skin-dark #olsVoidModal .ols-btn-danger:hover {
     grid-template-columns: 1.25fr 1fr;
 }
 
-/* ---- Left: receipt image ---- */
 .ols-br-preview {
     display: flex;
     flex-direction: column;
@@ -1346,7 +1074,6 @@ html.app-skin-dark #olsVoidModal .ols-btn-danger:hover {
 .ols-br-state { font-size: 0.82rem; color: #94a3b8; text-align: center; }
 .ols-br-hint { font-size: 0.72rem; color: #94a3b8; }
 
-/* ---- Right: details ---- */
 .ols-br-details { padding: 22px 24px; }
 .ols-br-amount-label { font-size: 0.72rem; font-weight: 600; color: #94a3b8; }
 .ols-br-amount {
@@ -1369,7 +1096,6 @@ html.app-skin-dark #olsVoidModal .ols-btn-danger:hover {
     line-height: 1.5;
 }
 
-/* ---- Footer ---- */
 .ols-br-modal .modal-footer {
     padding: 12px 24px;
     border-top: 1px solid #eef1f6;
@@ -1412,117 +1138,6 @@ html.app-skin-dark #olsVoidModal .ols-btn-danger:hover {
     }
 }
 
-/* ---------- Dark mode ---------- */
-html.app-skin-dark .ols-receipt-flag { color: #9db8ff !important; }
-html.app-skin-dark .ols-br-modal.modal-content { background: #141414 !important; }
-html.app-skin-dark .ols-br-modal .modal-header,
-html.app-skin-dark .ols-br-modal .modal-footer { border-color: #262626 !important; }
-html.app-skin-dark .ols-br-modal .modal-title,
-html.app-skin-dark .ols-br-amount,
-html.app-skin-dark .ols-br-list dd { color: #F5F5F5 !important; }
-html.app-skin-dark .ols-br-sub,
-html.app-skin-dark .ols-br-amount-label,
-html.app-skin-dark .ols-br-list dt,
-html.app-skin-dark .ols-br-state,
-html.app-skin-dark .ols-br-hint { color: #9A9A9A !important; }
-html.app-skin-dark .ols-br-preview { background: #0d0d0d !important; border-color: #262626 !important; }
-html.app-skin-dark .ols-br-preview img { box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); }
-html.app-skin-dark .ols-br-notice { background: rgba(245,158,11,.18) !important; color: #fbbf24 !important; }
-html.app-skin-dark .ols-br-modal .btn-close { filter: invert(1) grayscale(1); }
-html.app-skin-dark .ols-br-btn-download {
-    background: #0d0d0d !important;
-    border-color: #262626 !important;
-    color: #F5F5F5 !important;
-}
-html.app-skin-dark .ols-br-btn-download:hover {
-    background: #262626 !important;
-    border-color: #4a4a4a !important;
-}
-html.app-skin-dark .ols-br-btn-record {
-    background: #262626 !important;
-    border-color: #3a3a3a !important;
-    color: #fff !important;
-}
-html.app-skin-dark .ols-br-btn-record:hover { background: #3a3a3a !important; }
-
-/* ============================================================
-   ACTION BUTTONS — bagong design (idagdag sa DULO ng ongoing-loan-detail.css,
-   pagkatapos ng naunang block, para ito ang mag-override)
-============================================================ */
-
-/* ---------- View Receipt (light gray) ---------- */
-.btn-view-receipt {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 9px 16px;
-    border-radius: 10px;
-    border: 1px solid #e5e7eb;
-    background: #f3f4f6;
-    color: #1f2937;
-    font-size: 0.82rem;
-    font-weight: 600;
-}
-.btn-view-receipt i { font-size: 1rem; color: #475569; }
-.btn-view-receipt:hover {
-    background: #e5e7eb;
-    border-color: #d1d5db;
-    color: #111827;
-}
-.btn-view-receipt:hover i { color: #111827; }
-
-/* ---------- Record Payment (dark filled) ---------- */
-.btn-record-payment {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 9px 18px;
-    border-radius: 10px;
-    border: 1px solid #1f2937;
-    background: #1f2937;
-    color: #fff;
-    font-size: 0.82rem;
-    font-weight: 600;
-}
-.btn-record-payment i { font-size: 1rem; }
-.btn-record-payment:hover:not(:disabled) {
-    background: #111827;
-    border-color: #111827;
-    color: #fff;
-}
-
-/* ---------- Dropdown arrow (light gray square) ---------- */
-.ols-kebab-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    border: 1px solid #e5e7eb;
-    background: #f3f4f6;
-    color: #475569;
-}
-.ols-kebab-btn:hover {
-    background: #e5e7eb;
-    border-color: #d1d5db;
-    color: #111827;
-}
-
-/* ---------- Dark mode ---------- */
-html.app-skin-dark .btn-view-receipt i { color: #9A9A9A !important; }
-html.app-skin-dark .btn-record-payment {
-    background: #F5F5F5 !important;
-    border-color: #F5F5F5 !important;
-    color: #0A0A0A !important;
-}
-html.app-skin-dark .btn-record-payment:hover:not(:disabled) {
-    background: #D4D4D4 !important;
-    border-color: #D4D4D4 !important;
-    color: #0A0A0A !important;
-}
-
-/* ============================================================
-   CUSTOM DATE PICKER (Date Paid)
-   Idagdag sa DULO ng ongoing-loan-detail.css
-============================================================ */
 .ols-date-wrap { position: relative; }
 .ols-date-input { cursor: pointer; padding-right: 40px; }
 .ols-date-icon {
@@ -1626,7 +1241,6 @@ html.app-skin-dark .btn-record-payment:hover:not(:disabled) {
 }
 .ols-dp-day:disabled { color: #cbd5e1; cursor: not-allowed; }
 
-/* Year grid (lalabas kapag na-click ang "October 2026") */
 .ols-dp-years {
     position: relative;
     display: grid;
@@ -1649,37 +1263,6 @@ html.app-skin-dark .btn-record-payment:hover:not(:disabled) {
 .ols-dp-year:hover:not(.is-selected) { background: #f1f3f8; }
 .ols-dp-year.is-selected { background: #1e3a8a; color: #fff; font-weight: 700; }
 
-/* ---------- Dark mode ---------- */
-html.app-skin-dark .ols-date-icon { color: #9A9A9A !important; }
-html.app-skin-dark .ols-dp {
-    background: #1c1c1c !important;
-    border-color: #3a3a3a !important;
-    color: #F5F5F5 !important;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
-}
-html.app-skin-dark .ols-dp-title,
-html.app-skin-dark .ols-dp-day,
-html.app-skin-dark .ols-dp-year { color: #F5F5F5 !important; }
-html.app-skin-dark .ols-dp-title i { color: #9A9A9A !important; }
-html.app-skin-dark .ols-dp-title:hover,
-html.app-skin-dark .ols-dp-navbtn:hover:not(:disabled),
-html.app-skin-dark .ols-dp-day:hover:not(:disabled):not(.is-selected),
-html.app-skin-dark .ols-dp-year:hover:not(.is-selected) { background: #2a2a2a !important; }
-html.app-skin-dark .ols-dp-navbtn { color: #C4C4C4 !important; }
-html.app-skin-dark .ols-dp-weekdays span { color: #9A9A9A !important; }
-html.app-skin-dark .ols-dp-day.is-today { border-color: #6b6b6b !important; }
-html.app-skin-dark .ols-dp-day.is-selected,
-html.app-skin-dark .ols-dp-year.is-selected {
-    background: #F5F5F5 !important;
-    border-color: #F5F5F5 !important;
-    color: #0A0A0A !important;
-}
-html.app-skin-dark .ols-dp-day:disabled { color: #4a4a4a !important; }
-
-/* ============================================================
-   "CHANGE" BUTTON — borrower receipt card (#olsUseOwnReceiptBtn)
-   Quiet secondary action: matches View Receipt / dropdown arrow tone.
-============================================================ */
 .ols-link-btn {
     display: inline-flex;
     align-items: center;
@@ -1726,30 +1309,6 @@ html.app-skin-dark .ols-dp-day:disabled { color: #4a4a4a !important; }
     .ols-link-btn:active { transform: none; }
 }
 
-/* ---------- Dark mode ---------- */
-html.app-skin-dark .ols-link-btn {
-    background: #262626 !important;
-    border-color: #3a3a3a !important;
-    color: #F5F5F5 !important;
-}
-html.app-skin-dark .ols-link-btn i { color: #9A9A9A !important; }
-html.app-skin-dark .ols-link-btn:hover {
-    background: #3a3a3a !important;
-    border-color: #4a4a4a !important;
-    color: #fff !important;
-}
-html.app-skin-dark .ols-link-btn:hover i { color: #fff !important; }
-html.app-skin-dark .ols-link-btn:focus-visible {
-    border-color: #6b6b6b !important;
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08) !important;
-}
-
-/* ============================================================
-   PROOF OF RELEASE CARD
-   Isang beses lang per loan. Standalone card na nakalagay sa
-   ilalim ng borrower header card (.olh-card), bago ang
-   Loan Summary / Admin Review grid.
-============================================================ */
 .olr-card {
     display: flex;
     align-items: center;
@@ -1820,7 +1379,386 @@ html.app-skin-dark .ols-link-btn:focus-visible {
     .btn-send-release:active { transform: none; }
 }
 
-/* ---------- Dark mode ---------- */
+html.app-skin-dark .nxl-content { background: #0A0A0A !important; }
+
+html.app-skin-dark .panel {
+    background: #141414 !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .panel-header {
+    color: #F5F5F5 !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .panel-header i { color: #C4C4C4 !important; }
+html.app-skin-dark .panel-footer {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #9A9A9A !important;
+}
+
+html.app-skin-dark .olh-card {
+    background: #141414 !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .olh-name { color: #F5F5F5 !important; }
+html.app-skin-dark .olh-meta-row { color: #9A9A9A !important; }
+html.app-skin-dark .olh-meta-row strong { color: #C4C4C4 !important; }
+html.app-skin-dark .olh-meta-sep { color: #4a4a4a !important; }
+html.app-skin-dark .olh-stats { border-color: #262626 !important; }
+html.app-skin-dark .olh-stat:not(:last-child) { border-color: #262626 !important; }
+html.app-skin-dark .olh-stat-value { color: #F5F5F5 !important; }
+html.app-skin-dark .olh-stat-label { color: #9A9A9A !important; }
+
+html.app-skin-dark .badge-active {
+    background: #262626 !important;
+    color: #F5F5F5 !important;
+    border: 1px solid #3a3a3a !important;
+}
+
+html.app-skin-dark .info-item2 label { color: #9A9A9A !important; }
+html.app-skin-dark .info-item2 span { color: #F5F5F5 !important; }
+html.app-skin-dark .info-item2.is-primary span { color: #F5F5F5 !important; }
+
+html.app-skin-dark .old-progress-row { border-color: #262626 !important; }
+html.app-skin-dark .old-progress-count { color: #F5F5F5 !important; }
+html.app-skin-dark .lsc-progress-title { color: #9A9A9A !important; }
+html.app-skin-dark .lsc-progress-bar { background: #262626 !important; }
+html.app-skin-dark .lsc-progress-fill {
+    background: linear-gradient(90deg, #4a4a4a, #6b6b6b) !important;
+}
+html.app-skin-dark .old-next-due-box { background: #0d0d0d !important; }
+html.app-skin-dark .old-next-due-label { color: #9A9A9A !important; }
+html.app-skin-dark .old-next-due-date { color: #F5F5F5 !important; }
+html.app-skin-dark .old-next-due-date i { color: #C4C4C4 !important; }
+html.app-skin-dark .old-schedule-subtitle { color: #94a3b8; }
+
+html.app-skin-dark .old-view-all-link { color: #C4C4C4 !important; }
+html.app-skin-dark .review-item { background: #0d0d0d !important; }
+html.app-skin-dark .review-item.is-approved { background: rgba(22,163,74,.12) !important; }
+html.app-skin-dark .review-item.is-rejected { background: rgba(220,38,38,.12) !important; }
+html.app-skin-dark .review-item.is-comment { background: #16181c !important; }
+html.app-skin-dark .review-avatar { background: #262626 !important; color: #9A9A9A !important; }
+html.app-skin-dark .review-avatar.mine { background: #3a3a3a !important; color: #fff !important; }
+html.app-skin-dark .review-avatar.is-purple { background: rgba(139,92,246,.18) !important; color: #c4b5fd !important; }
+html.app-skin-dark .review-avatar.is-blue { background: #262626 !important; color: #C4C4C4 !important; }
+html.app-skin-dark .review-name { color: #F5F5F5 !important; }
+html.app-skin-dark .review-remark { color: #C4C4C4 !important; }
+html.app-skin-dark .review-time { color: #9A9A9A !important; }
+html.app-skin-dark .comments-label { color: #9A9A9A !important; }
+html.app-skin-dark .badge-approved { background: rgba(22,163,74,.18) !important; color: #4ade80 !important; }
+html.app-skin-dark .badge-rejected { background: rgba(220,38,38,.18) !important; color: #f87171 !important; }
+
+html.app-skin-dark .ols-sched-header { border-color: #262626 !important; }
+html.app-skin-dark .ols-sched-title { color: #F5F5F5 !important; }
+html.app-skin-dark .ols-sched-subtitle { color: #9A9A9A !important; }
+html.app-skin-dark .ols-sched-icon { background: #262626 !important; color: #F5F5F5 !important; }
+html.app-skin-dark .ols-sched-count-pill {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #C4C4C4 !important;
+}
+html.app-skin-dark .ols-sched-count-pill i { color: #C4C4C4 !important; }
+html.app-skin-dark .ols-sched-count-pill strong { color: #F5F5F5 !important; }
+
+html.app-skin-dark .ols-sched-table thead th {
+    background: #0d0d0d !important;
+    color: #9A9A9A !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .ols-sched-table tbody td {
+    color: #F5F5F5 !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .ols-sched-table tbody tr:hover { background: #16181c !important; }
+
+html.app-skin-dark .ols-row-num { background: #262626 !important; color: #C4C4C4 !important; }
+html.app-skin-dark .ols-due-date { color: #F5F5F5 !important; }
+html.app-skin-dark .ols-due-sub { color: #9A9A9A !important; }
+html.app-skin-dark .ols-amount-due { color: #F5F5F5 !important; }
+html.app-skin-dark .ols-amount-paid-value { color: #F5F5F5 !important; }
+html.app-skin-dark .ols-mini-progress-track { background: #262626 !important; }
+html.app-skin-dark .ols-mini-progress-fill {
+    background: linear-gradient(90deg, #4a4a4a, #6b6b6b) !important;
+}
+html.app-skin-dark .ols-mini-progress-pct { color: #9A9A9A !important; }
+
+html.app-skin-dark .ols-status-pill.is-paid     { color: #4ade80 !important; }
+html.app-skin-dark .ols-status-pill.is-overdue  { color: #f87171 !important; }
+html.app-skin-dark .ols-status-pill.is-upcoming { color: #fbbf24 !important; }
+
+html.app-skin-dark .btn-record-payment {
+    background: #F5F5F5 !important;
+    border-color: #F5F5F5 !important;
+    color: #0A0A0A !important;
+}
+html.app-skin-dark .btn-record-payment:hover:not(:disabled) {
+    background: #D4D4D4 !important;
+    border-color: #D4D4D4 !important;
+    color: #0A0A0A !important;
+}
+html.app-skin-dark .sched-paid-note { color: #6b6b6b !important; }
+html.app-skin-dark .ols-void-pending { color: #fbbf24 !important; }
+
+html.app-skin-dark .ols-kebab-btn {
+    border: 1px solid #262626 !important;
+    background: #0d0d0d !important;
+    color: #9A9A9A !important;
+}
+html.app-skin-dark .ols-kebab-btn:hover {
+    border-color: #4a4a4a !important;
+    color: #F5F5F5 !important;
+    background: #262626 !important;
+}
+html.app-skin-dark .ols-sched-footnote {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #9A9A9A !important;
+}
+html.app-skin-dark .ols-sched-footnote i { color: #9A9A9A !important; }
+
+html.app-skin-dark .ols-page-arrow {
+    border: 1px solid #262626 !important;
+    background: #0d0d0d !important;
+    color: #9A9A9A !important;
+}
+html.app-skin-dark .ols-page-arrow:hover:not(:disabled) {
+    border-color: #4a4a4a !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .ols-page-indicator {
+    background: #262626 !important;
+    color: #F5F5F5 !important;
+}
+
+html.app-skin-dark .ols-confirm-modal.modal-content { background: #141414 !important; }
+html.app-skin-dark .ols-confirm-eyebrow { color: #6b6b6b !important; }
+html.app-skin-dark .ols-confirm-title { color: #F5F5F5 !important; }
+html.app-skin-dark .ols-confirm-desc { color: #9A9A9A !important; }
+html.app-skin-dark .ols-confirm-icon { background: #262626 !important; color: #F5F5F5 !important; }
+html.app-skin-dark #olsMarkPaidConfirmModal .nxl-pw-btn-discard {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark #olsMarkPaidConfirmModal .nxl-pw-btn-discard:hover { background: #16181c !important; }
+html.app-skin-dark #olsMarkPaidConfirmModal .nxl-pw-btn-apply {
+    background: #262626 !important;
+    border: 1px solid #3a3a3a !important;
+    color: #fff !important;
+}
+html.app-skin-dark #olsMarkPaidConfirmModal .nxl-pw-btn-apply:hover {
+    background: #1a1a1a !important;
+    border-color: #1a1a1a !important;
+}
+
+html.app-skin-dark .btn-light {
+    background: #141414 !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .btn-light:hover {
+    border-color: #4a4a4a !important;
+    color: #F5F5F5 !important;
+    background: #262626 !important;
+}
+html.app-skin-dark .text-muted { color: #9A9A9A !important; }
+html.app-skin-dark .empty-note { color: #9A9A9A !important; }
+
+html.app-skin-dark .action-recorded-badge { color: #4ade80 !important; }
+
+html.app-skin-dark .ols-field-label { color: #C4C4C4 !important; }
+html.app-skin-dark .ols-input {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+    color-scheme: dark;
+}
+html.app-skin-dark .ols-input:focus {
+    border-color: #4a4a4a !important;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06) !important;
+}
+html.app-skin-dark .ols-dropzone { background: #0d0d0d !important; border-color: #3a3a3a !important; }
+html.app-skin-dark .ols-dropzone:hover { background: #16181c !important; border-color: #6b6b6b !important; }
+html.app-skin-dark .ols-dropzone i { color: #9A9A9A !important; }
+html.app-skin-dark .ols-dropzone-text { color: #F5F5F5 !important; }
+html.app-skin-dark .ols-dropzone-hint { color: #9A9A9A !important; }
+html.app-skin-dark .ols-preview { background: #0d0d0d !important; border-color: #262626 !important; }
+html.app-skin-dark .ols-preview img { background: #262626 !important; }
+html.app-skin-dark .ols-preview-meta span:first-child { color: #F5F5F5 !important; }
+html.app-skin-dark .ols-preview-meta span:last-child { color: #9A9A9A !important; }
+html.app-skin-dark .ols-preview-remove { background: #262626 !important; color: #C4C4C4 !important; }
+html.app-skin-dark .ols-preview-remove:hover { background: rgba(220,38,38,.18) !important; color: #f87171 !important; }
+html.app-skin-dark .ols-form-error { background: rgba(220,38,38,.18) !important; color: #f87171 !important; }
+
+html.app-skin-dark .btn-view-receipt {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #C4C4C4 !important;
+}
+html.app-skin-dark .btn-view-receipt i { color: #9A9A9A !important; }
+html.app-skin-dark .btn-view-receipt:hover {
+    background: #262626 !important;
+    border-color: #4a4a4a !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .ols-receipt-modal.modal-content { background: #141414 !important; }
+html.app-skin-dark .ols-receipt-modal .modal-header,
+html.app-skin-dark .ols-receipt-modal .modal-footer { border-color: #262626 !important; }
+html.app-skin-dark .ols-receipt-modal .modal-title { color: #F5F5F5 !important; }
+html.app-skin-dark .ols-receipt-modal .btn-close { filter: invert(1) grayscale(1); }
+html.app-skin-dark .ols-receipt-body { background: #0d0d0d !important; }
+html.app-skin-dark .ols-receipt-status { color: #9A9A9A !important; }
+
+html.app-skin-dark .ols-details-modal.modal-content { background: #141414 !important; border-color: #262626 !important; }
+html.app-skin-dark .ols-details-modal .modal-header,
+html.app-skin-dark .ols-details-modal .modal-footer,
+html.app-skin-dark .ols-details-section { border-color: #262626 !important; }
+html.app-skin-dark .ols-details-modal .modal-title,
+html.app-skin-dark .ols-details-grid dd,
+html.app-skin-dark .ols-details-section-title { color: #F5F5F5 !important; }
+html.app-skin-dark .ols-details-sub,
+html.app-skin-dark .ols-details-grid dt,
+html.app-skin-dark .ols-details-fulllink,
+html.app-skin-dark .ols-details-empty { color: #9A9A9A !important; }
+html.app-skin-dark .ols-details-fulllink:hover { color: #F5F5F5 !important; }
+html.app-skin-dark .ols-details-receipt { background: #0d0d0d !important; border-color: #262626 !important; }
+html.app-skin-dark .ols-details-modal .btn-close { filter: invert(1) grayscale(1); }
+html.app-skin-dark .ols-details-close { background: #0d0d0d !important; border-color: #262626 !important; color: #F5F5F5 !important; }
+html.app-skin-dark .ols-details-close:hover { background: #16181c !important; }
+
+html.app-skin-dark .ols-item-danger { color: #f87171 !important; }
+html.app-skin-dark .ols-item-danger:hover { background: rgba(220,38,38,.18) !important; color: #f87171 !important; }
+html.app-skin-dark #olsVoidModal .nxl-pw-btn-discard {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark #olsVoidModal .nxl-pw-btn-discard:hover { background: #16181c !important; }
+html.app-skin-dark #olsVoidModal .ols-btn-danger {
+    background: #b91c1c !important;
+    border-color: #b91c1c !important;
+    color: #fff !important;
+}
+html.app-skin-dark #olsVoidModal .ols-btn-danger:hover {
+    background: #991b1b !important;
+    border-color: #991b1b !important;
+}
+
+html.app-skin-dark #olsVoteVoidModal .nxl-pw-btn-discard {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark #olsVoteVoidModal .nxl-pw-btn-discard:hover { background: #16181c !important; }
+html.app-skin-dark #olsVoteVoidModal .nxl-pw-btn-apply {
+    background: #F5F5F5 !important;
+    border-color: #F5F5F5 !important;
+    color: #0A0A0A !important;
+}
+html.app-skin-dark #olsVoteVoidModal .nxl-pw-btn-apply:hover { background: #D4D4D4 !important; border-color: #D4D4D4 !important; }
+html.app-skin-dark #olsVoteVoidModal .ols-btn-danger {
+    background: #b91c1c !important;
+    border-color: #b91c1c !important;
+    color: #fff !important;
+}
+html.app-skin-dark #olsVoteVoidModal .ols-btn-danger:hover { background: #991b1b !important; border-color: #991b1b !important; }
+
+html.app-skin-dark .ols-vv-reason { background: #0d0d0d !important; border-color: #262626 !important; color: #F5F5F5 !important; }
+html.app-skin-dark .ols-vv-vote { border-color: #262626 !important; }
+html.app-skin-dark .ols-vv-vote-name { color: #F5F5F5 !important; }
+html.app-skin-dark .ols-vv-vote-remarks { color: #C4C4C4 !important; }
+html.app-skin-dark .ols-vv-vote-time,
+html.app-skin-dark .ols-vv-empty { color: #9A9A9A !important; }
+html.app-skin-dark .ols-vv-vote-state.is-approved,
+html.app-skin-dark .ols-void-vote.is-approved,
+html.app-skin-dark .ols-void-state.is-rejected { color: #4ade80 !important; }
+html.app-skin-dark .ols-vv-vote-state.is-rejected,
+html.app-skin-dark .ols-void-vote.is-rejected,
+html.app-skin-dark .ols-void-state.is-approved { color: #f87171 !important; }
+html.app-skin-dark .ols-vv-note { background: #0d0d0d !important; color: #C4C4C4 !important; }
+
+html.app-skin-dark .ols-void-item { border-color: #262626 !important; }
+html.app-skin-dark .ols-void-title { color: #F5F5F5 !important; }
+html.app-skin-dark .ols-void-reason { color: #C4C4C4 !important; }
+html.app-skin-dark .ols-void-meta { color: #9A9A9A !important; }
+html.app-skin-dark .ols-void-state.is-pending { color: #fbbf24 !important; }
+html.app-skin-dark .ols-void-state.is-cancelled { color: #9A9A9A !important; }
+
+html.app-skin-dark .ols-receipt-flag { color: #9db8ff !important; }
+html.app-skin-dark .ols-br-modal.modal-content { background: #141414 !important; }
+html.app-skin-dark .ols-br-modal .modal-header,
+html.app-skin-dark .ols-br-modal .modal-footer { border-color: #262626 !important; }
+html.app-skin-dark .ols-br-modal .modal-title,
+html.app-skin-dark .ols-br-amount,
+html.app-skin-dark .ols-br-list dd { color: #F5F5F5 !important; }
+html.app-skin-dark .ols-br-sub,
+html.app-skin-dark .ols-br-amount-label,
+html.app-skin-dark .ols-br-list dt,
+html.app-skin-dark .ols-br-state,
+html.app-skin-dark .ols-br-hint { color: #9A9A9A !important; }
+html.app-skin-dark .ols-br-preview { background: #0d0d0d !important; border-color: #262626 !important; }
+html.app-skin-dark .ols-br-preview img { box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); }
+html.app-skin-dark .ols-br-notice { background: rgba(245,158,11,.18) !important; color: #fbbf24 !important; }
+html.app-skin-dark .ols-br-modal .btn-close { filter: invert(1) grayscale(1); }
+html.app-skin-dark .ols-br-btn-download {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .ols-br-btn-download:hover {
+    background: #262626 !important;
+    border-color: #4a4a4a !important;
+}
+html.app-skin-dark .ols-br-btn-record {
+    background: #262626 !important;
+    border-color: #3a3a3a !important;
+    color: #fff !important;
+}
+html.app-skin-dark .ols-br-btn-record:hover { background: #3a3a3a !important; }
+
+html.app-skin-dark .ols-date-icon { color: #9A9A9A !important; }
+html.app-skin-dark .ols-dp {
+    background: #1c1c1c !important;
+    border-color: #3a3a3a !important;
+    color: #F5F5F5 !important;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+}
+html.app-skin-dark .ols-dp-title,
+html.app-skin-dark .ols-dp-day,
+html.app-skin-dark .ols-dp-year { color: #F5F5F5 !important; }
+html.app-skin-dark .ols-dp-title i { color: #9A9A9A !important; }
+html.app-skin-dark .ols-dp-title:hover,
+html.app-skin-dark .ols-dp-navbtn:hover:not(:disabled),
+html.app-skin-dark .ols-dp-day:hover:not(:disabled):not(.is-selected),
+html.app-skin-dark .ols-dp-year:hover:not(.is-selected) { background: #2a2a2a !important; }
+html.app-skin-dark .ols-dp-navbtn { color: #C4C4C4 !important; }
+html.app-skin-dark .ols-dp-weekdays span { color: #9A9A9A !important; }
+html.app-skin-dark .ols-dp-day.is-today { border-color: #6b6b6b !important; }
+html.app-skin-dark .ols-dp-day.is-selected,
+html.app-skin-dark .ols-dp-year.is-selected {
+    background: #F5F5F5 !important;
+    border-color: #F5F5F5 !important;
+    color: #0A0A0A !important;
+}
+html.app-skin-dark .ols-dp-day:disabled { color: #4a4a4a !important; }
+
+html.app-skin-dark .ols-link-btn {
+    background: #262626 !important;
+    border-color: #3a3a3a !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .ols-link-btn i { color: #9A9A9A !important; }
+html.app-skin-dark .ols-link-btn:hover {
+    background: #3a3a3a !important;
+    border-color: #4a4a4a !important;
+    color: #fff !important;
+}
+html.app-skin-dark .ols-link-btn:hover i { color: #fff !important; }
+html.app-skin-dark .ols-link-btn:focus-visible {
+    border-color: #6b6b6b !important;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08) !important;
+}
+
 html.app-skin-dark .olr-card {
     background: #141414 !important;
     border-color: #3a3a3a !important;

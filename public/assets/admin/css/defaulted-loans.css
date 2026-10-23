@@ -1,14 +1,3 @@
-/* ========================================================
-   DEFAULTED LOANS — REDESIGN
-   Same white-bg / bordered-card / soft-shadow treatment and
-   stat-card pattern as Completed Loans (.rs-card, plain-outline-
-   icon stat cards: label + icon top row, big number, muted
-   subtext underneath). Red/danger accent kept for the status
-   pill and outstanding-balance figures ("bad news" indicators);
-   interactive elements (hover states, pagination) use the same
-   blue brand accent as the rest of the system.
-   ======================================================== */
-
 :root {
     --rs-brand: #4a7cf7;
     --rs-brand-soft: #eef3ff;
@@ -17,13 +6,6 @@
     --rs-muted: #94a3b8;
     --rs-border: #e5e7eb;
     --rs-bg: #f8fafc;
-
-    --dl-red: #dc2626;
-    --dl-red-soft: #fef2f2;
-    --dl-red-border: #fecaca;
-    --dl-orange: #ea580c;
-    --dl-orange-soft: #fff7ed;
-
     --rs-radius: 14px;
     --rs-radius-sm: 10px;
     --rs-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
@@ -37,389 +19,378 @@ body { background: var(--rs-bg); }
 
 .page-header .page-header-title h5 { color: var(--rs-ink); font-weight: 700; }
 
-.rs-card {
-    background: #fff !important;
-    border: 1px solid var(--rs-border) !important;
-    border-radius: var(--rs-radius) !important;
-    box-shadow: var(--rs-shadow) !important;
+.dl-page,
+.dl-page * {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
+.dl-page i,
+.dl-page [class*="bi-"] {
+    font-family: inherit !important;
+}
+.dl-page i[class*="bi-"]::before {
+    font-family: 'bootstrap-icons' !important;
+}
+.dl-page { color: var(--rs-ink); }
 
-/* ── Stat cards — plain white card, outline icon top-right,
-       bold number, muted subtext underneath (matched to
-       Completed Loans' stat card treatment) ── */
-.stats-grid-v2 {
+.dl-summary-row {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 16px;
     margin-bottom: 28px;
 }
-.stat-card-v2 {
+@media (max-width: 767.98px) { .dl-summary-row { grid-template-columns: 1fr; } }
+
+.dl-summary-card {
+    background: #fff !important;
+    border: 1px solid var(--rs-border) !important;
+    border-radius: var(--rs-radius) !important;
+    box-shadow: var(--rs-shadow) !important;
     padding: 20px 22px;
-    transition: box-shadow .15s ease, transform .15s ease;
 }
-.stat-card-v2:hover {
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12) !important;
-    transform: translateY(-1px);
-}
-.stat-card-v2-head {
+.dl-summary-card-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 14px;
 }
-.stat-label-v2 {
+.dl-summary-label {
     font-size: 0.86rem;
     font-weight: 500;
     color: #334155;
 }
-.stat-icon-v2 {
-    color: #94a3b8;
-    font-size: 16px;
+.dl-summary-icon {
+    color: var(--rs-muted);
+    font-size: 1rem;
     flex-shrink: 0;
 }
-.stat-value-v2 {
+.dl-summary-value {
     font-size: 1.7rem;
     font-weight: 700;
     color: var(--rs-ink);
     line-height: 1.1;
-    margin-bottom: 4px;
     font-variant-numeric: tabular-nums;
 }
-.stat-sub-v2 {
-    font-size: 0.76rem;
-    color: #94a3b8;
+
+.dl-table-card {
+    background: #fff !important;
+    border: 1px solid var(--rs-border) !important;
+    border-radius: var(--rs-radius) !important;
+    box-shadow: var(--rs-shadow) !important;
+    overflow: hidden;
 }
 
-/* ── Filter bar ── */
 .dl-filter-bar {
-    display: flex; align-items: center; gap: 14px;
-    margin-bottom: 20px; flex-wrap: wrap;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--rs-border);
 }
 .dl-search-wrap {
-    flex: 1; min-width: 260px;
-    display: flex; align-items: center; gap: 10px;
-    background: #fff; border: 1px solid var(--rs-border);
-    border-radius: var(--rs-radius-sm); padding: 0 16px;
+    position: relative;
+    flex: 0 1 400px;
+    min-width: 260px;
 }
 .dl-search-wrap i {
-    color: var(--rs-muted); font-size: 15px;
-    flex-shrink: 0; pointer-events: none;
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--rs-muted);
+    font-size: 0.9rem;
+    pointer-events: none;
 }
-.dl-search-wrap input {
-    flex: 1; height: 46px; border: none; box-shadow: none;
-    background: transparent; font-size: 0.86rem; color: var(--rs-ink);
+.dl-search-input {
+    width: 100%;
+    height: 46px;
+    border: 1px solid var(--rs-border);
+    border-radius: var(--rs-radius-sm);
+    padding: 0 16px 0 42px;
+    font-size: 0.86rem;
+    color: var(--rs-ink);
+    background: #fff;
 }
-.dl-search-wrap input:focus { outline: none; box-shadow: none; }
+.dl-search-input::placeholder { color: var(--rs-muted); }
+.dl-search-input:focus {
+    outline: none;
+    border-color: var(--rs-brand);
+    box-shadow: 0 0 0 3px var(--rs-brand-soft);
+}
 
 .dl-select {
     height: 46px;
     border: 1px solid var(--rs-border);
     border-radius: var(--rs-radius-sm);
+    padding: 0 16px;
     font-size: 0.83rem;
     font-weight: 500;
     color: var(--rs-ink);
-    padding: 0 16px;
     background: #fff;
-    flex-shrink: 0;
 }
-.dl-select:focus { border-color: var(--rs-brand); box-shadow: 0 0 0 3px var(--rs-brand-soft); }
-.dl-select-sm { height: 34px; padding: 0 10px; font-size: 0.8rem; }
-
-/* ── Table ── */
-.rs-table-card { overflow: hidden; }
-.rs-table thead th {
-    background: #fbfcfe; color: var(--rs-muted);
-    font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: .4px; border-bottom: 1px solid var(--rs-border);
-    padding: 14px 20px; white-space: nowrap;
+.dl-select:focus {
+    outline: none;
+    border-color: var(--rs-brand);
+    box-shadow: 0 0 0 3px var(--rs-brand-soft);
 }
-.rs-table tbody td {
-    padding: 16px 20px; border-bottom: 1px solid var(--rs-border);
-    vertical-align: middle; font-size: 0.85rem;
+.dl-filter-bar #dlDaysFilter { margin-left: auto; }
+
+.dl-table-scroll { overflow-x: auto; }
+.dl-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1040px;
 }
-.rs-table tbody tr:last-child td { border-bottom: none; }
-.rs-table tbody tr:hover { background: #fafbfd; }
-
-.borrower-cell-v2 { display: flex; align-items: center; gap: 12px; }
-.dl-avatar {
-    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
-    background: linear-gradient(135deg, var(--dl-red), #f87171);
-    display: flex; align-items: center; justify-content: center;
-    color: #fff; font-weight: 700; font-size: 0.78rem;
-}
-.borrower-name-v2 { font-weight: 700; color: var(--rs-ink); font-size: 0.87rem; }
-.borrower-id-v2 { font-size: 0.7rem; color: var(--rs-brand); font-weight: 600; margin: 1px 0; }
-.borrower-email-v2 { font-size: 0.76rem; color: var(--rs-muted); }
-
-.loan-amount-v2 { font-weight: 700; color: var(--rs-ink); font-variant-numeric: tabular-nums; }
-.loan-meta-v2 { color: var(--rs-body); }
-
-.dl-outstanding-v2 { font-weight: 700; color: var(--dl-red); font-variant-numeric: tabular-nums; }
-.dl-loan-id { color: var(--rs-brand); font-weight: 700; font-size: 0.83rem; }
-.dl-days-text { color: var(--dl-red); font-weight: 700; }
-
-.dl-status-pill {
-    display: inline-block;
-    padding: 5px 14px;
-    border-radius: 20px;
-    background: var(--dl-red-soft);
-    color: var(--dl-red);
-    font-size: 0.74rem;
+.dl-table thead th {
+    background: #fbfcfe;
+    color: var(--rs-muted);
+    font-size: 0.7rem;
     font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    text-align: left;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--rs-border);
+    white-space: nowrap;
+}
+.dl-table thead th.text-end { text-align: right; }
+.dl-table tbody td {
+    padding: 16px 20px;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--rs-border);
+    font-size: 0.85rem;
+}
+.dl-table tbody tr:last-child td { border-bottom: none; }
+.dl-table tbody tr.dl-tr { cursor: pointer; }
+.dl-table tbody tr.dl-tr:hover { background: #fafbfd; }
+.dl-table tbody tr.dl-tr:focus-visible {
+    outline: 2px solid var(--rs-brand);
+    outline-offset: -2px;
 }
 
-.btn-view-v2 {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 8px 16px; border-radius: 20px;
-    border: 1px solid var(--rs-border); background: #fff;
-    font-size: 0.78rem; font-weight: 600; color: var(--rs-ink);
-    transition: all .15s ease;
-}
-.btn-view-v2:hover { border-color: var(--rs-brand); color: var(--rs-brand); background: var(--rs-brand-soft); }
+.dl-borrower-name { font-weight: 700; color: var(--rs-ink); font-size: 0.87rem; line-height: 1.3; white-space: nowrap; }
+.dl-borrower-sub { font-size: 0.76rem; color: var(--rs-muted); margin-top: 1px; white-space: nowrap; }
 
-/* ── Actions cell: View Details + kebab ── */
-.dl-actions-cell {
-    display: flex;
+.dl-amount-value { font-weight: 700; color: var(--rs-ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dl-outstanding { font-weight: 700; color: #dc2626; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dl-cell-meta { color: var(--rs-body); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.dl-days { font-weight: 600; color: #dc2626; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.dl-status { font-size: 0.83rem; font-weight: 600; color: #b91c1c; white-space: nowrap; }
+
+.dl-btn-view {
+    display: inline-flex;
     align-items: center;
-    justify-content: flex-end;
-    gap: 8px;
-}
-.dl-kebab-wrap { position: relative; }
-.dl-kebab-btn {
-    width: 34px; height: 34px;
-    display: inline-flex; align-items: center; justify-content: center;
-    border-radius: var(--rs-radius-sm);
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 8px;
     border: 1px solid var(--rs-border);
     background: #fff;
-    color: var(--rs-muted);
-    cursor: pointer;
-    transition: all .15s ease;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--rs-ink);
+    line-height: 1.4;
+    white-space: nowrap;
+    text-decoration: none;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
 }
-.dl-kebab-btn:hover { border-color: var(--dl-red); color: var(--dl-red); background: var(--dl-red-soft); }
-.dl-kebab-menu {
-    font-size: 0.85rem;
-    position: absolute !important;
-    inset: auto 0 auto auto !important;
-    top: 100% !important;
+.dl-btn-view i { font-size: 14px; line-height: 1; }
+.dl-btn-view:hover { border-color: var(--rs-brand); color: var(--rs-brand); background: var(--rs-brand-soft); }
+.dl-btn-view:focus-visible {
+    outline: none;
+    border-color: var(--rs-brand);
+    box-shadow: 0 0 0 3px var(--rs-brand-soft);
 }
 
-/* ── Empty / no-results state ── */
-.empty-state-v2 { text-align: center; padding: 64px 20px; }
-.empty-state-v2 i { font-size: 42px; color: var(--rs-muted); }
-.empty-state-v2 .feather-check-circle { color: #16a34a; }
-.empty-state-v2 h6 { margin-top: 14px; font-weight: 700; color: var(--rs-ink); }
-.empty-state-v2 p { color: var(--rs-muted); font-size: 0.85rem; margin: 0; }
+.dl-empty-state {
+    display: none;
+    text-align: center;
+    padding: 64px 20px;
+}
+.dl-empty-state i { font-size: 42px; color: var(--rs-muted); }
+.dl-empty-state i.is-good { color: #16a34a; }
+.dl-empty-state h6 { margin-top: 14px; font-weight: 700; color: var(--rs-ink); }
+.dl-empty-state p { color: var(--rs-muted); font-size: 0.85rem; margin: 0; }
 
-/* ── Rows-per-page + pagination bar ── */
-.dl-pagination-bar {
-    display: flex;
+.dl-table-footer {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    flex-wrap: wrap;
-    padding: 16px 20px;
+    gap: 12px;
+    padding: 14px 20px;
     border-top: 1px solid var(--rs-border);
     background: #fbfcfe;
 }
-.dl-rows-per-page {
+.dl-footer-left {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 0.8rem;
-    color: var(--rs-body);
+    flex-wrap: wrap;
+    gap: 12px 24px;
+}
+.dl-rows {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     flex-shrink: 0;
 }
-.dl-pagination-info { font-size: 0.8rem; color: var(--rs-muted); }
-.dl-pagination-controls { display: flex; align-items: center; gap: 14px; }
+.dl-rows-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--rs-muted);
+    white-space: nowrap;
+    margin: 0;
+}
+.dl-rows-select {
+    height: 38px;
+    border: 1px solid var(--rs-border);
+    border-radius: var(--rs-radius-sm);
+    padding: 0 12px;
+    font-size: 0.83rem;
+    font-weight: 500;
+    color: var(--rs-ink);
+    background: #fff;
+}
+.dl-rows-select:focus {
+    outline: none;
+    border-color: var(--rs-brand);
+    box-shadow: 0 0 0 3px var(--rs-brand-soft);
+}
+.dl-footer-info { font-size: 0.8rem; color: var(--rs-muted); white-space: nowrap; }
+.dl-footer-info strong { color: var(--rs-ink); font-weight: 600; }
 
-/* Text-style pagination (matched to Completed Loans' "‹ Prev /
-   Page 1 of 1 / Next ›" treatment) — replaces the old numbered-
-   circle + arrow-button pagination. */
-.dl-page-text-btn {
-    display: inline-flex;
+.dl-pagination {
+    display: flex;
     align-items: center;
-    gap: 4px;
-    background: none;
-    border: none;
+    gap: 6px;
+    min-height: 36px;
+}
+.dl-page-btn {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--rs-body);
     font-size: 0.85rem;
     font-weight: 600;
-    color: var(--rs-body);
     cursor: pointer;
-    padding: 4px 2px;
-    transition: color .15s ease;
+    transition: background-color .15s ease, color .15s ease;
 }
-.dl-page-text-btn:hover:not(:disabled) { color: var(--rs-brand); }
-.dl-page-text-btn:disabled { color: var(--rs-muted); opacity: 0.6; cursor: not-allowed; }
-.dl-page-text-btn i { font-size: 14px; }
-.dl-page-label {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: var(--rs-ink);
-}
+.dl-page-btn:hover:not(:disabled):not(.is-active) { background: var(--rs-brand-soft); color: var(--rs-brand); }
+.dl-page-btn.is-active { background: var(--rs-brand); color: #fff; }
+.dl-page-btn:disabled { opacity: .35; cursor: not-allowed; }
+.dl-page-dots { padding: 0 4px; color: var(--rs-muted); }
 
-/* ── Responsive ── */
 @media (max-width: 767.98px) {
-    .stats-grid-v2 { grid-template-columns: 1fr; }
+    .dl-filter-bar #dlDaysFilter { margin-left: 0; }
+    .dl-search-wrap { flex: 1 1 100%; }
+    .dl-table-footer { grid-template-columns: 1fr; justify-items: center; }
+    .dl-footer-left { justify-content: center; }
 }
-@media (max-width: 575.98px) {
-    .dl-pagination-bar { flex-direction: column; align-items: stretch; text-align: center; }
-    .dl-pagination-controls { justify-content: center; }
-}
-
-/* ══════════════════════════════════════════
-   DARK MODE — TRUE BLACK PALETTE
-   Kinopya ang eksaktong color scheme ng ibang admin detail pages
-   (#0A0A0A background, #141414 cards, #262626 borders, #F5F5F5 text,
-   #9A9A9A muted text). Nasa dulo ito ng file para mag-override sa
-   lahat ng naunang navy-blue (#0f172a, #1e2a3a, #2d3f55, #16202e)
-   na dark mode rules.
-
-   Red (outstanding balance, days overdue, "Defaulted" status pill)
-   ay sinadyang hindi ginawang black — meaning-carrying sila. Ang
-   Borrower ID / Loan ID (dating blue) lang ang ginawang neutral.
-   ══════════════════════════════════════════ */
 
 html.app-skin-dark body { background: #0A0A0A !important; }
 html.app-skin-dark .nxl-content { background: #0A0A0A !important; }
 
-html.app-skin-dark .rs-card {
+html.app-skin-dark .dl-summary-card,
+html.app-skin-dark .dl-table-card {
     background: #141414 !important;
     border-color: #262626 !important;
 }
-html.app-skin-dark .stat-label-v2 { color: #C4C4C4 !important; }
-html.app-skin-dark .stat-value-v2,
-html.app-skin-dark .borrower-name-v2,
-html.app-skin-dark .loan-amount-v2,
-html.app-skin-dark .btn-view-v2,
-html.app-skin-dark .empty-state-v2 h6 {
-    color: #F5F5F5 !important;
-}
-html.app-skin-dark .stat-sub-v2,
-html.app-skin-dark .borrower-email-v2,
-html.app-skin-dark .loan-meta-v2,
-html.app-skin-dark .empty-state-v2 p {
-    color: #9A9A9A !important;
-}
-html.app-skin-dark .stat-icon-v2 { color: #C4C4C4 !important; }
+html.app-skin-dark .dl-summary-label { color: #C4C4C4 !important; }
+html.app-skin-dark .dl-summary-icon { color: #C4C4C4 !important; }
+html.app-skin-dark .dl-summary-value { color: #F5F5F5 !important; }
 
-/* ---------- Search / filter selects ---------- */
-html.app-skin-dark .dl-search-wrap {
-    background: #0d0d0d !important;
-    border-color: #262626 !important;
-}
-html.app-skin-dark .dl-search-wrap input { color: #F5F5F5 !important; }
-html.app-skin-dark .dl-search-wrap input::placeholder { color: #6b6b6b !important; }
-html.app-skin-dark .dl-search-wrap i { color: #9A9A9A !important; }
-
+html.app-skin-dark .dl-filter-bar { border-color: #262626 !important; }
+html.app-skin-dark .dl-search-input,
 html.app-skin-dark .dl-select,
 html.app-skin-dark #dlDaysFilter,
-html.app-skin-dark #dlSortFilter {
+html.app-skin-dark #dlSortSelect {
     background-color: #0d0d0d !important;
     border-color: #262626 !important;
     color: #F5F5F5 !important;
 }
+html.app-skin-dark .dl-search-input::placeholder { color: #6b6b6b !important; }
+html.app-skin-dark .dl-search-wrap i { color: #9A9A9A !important; }
 html.app-skin-dark .dl-select option,
 html.app-skin-dark #dlDaysFilter option,
-html.app-skin-dark #dlSortFilter option {
+html.app-skin-dark #dlSortSelect option {
     background-color: #0d0d0d !important;
     color: #F5F5F5 !important;
 }
 
-/* ---------- Table ---------- */
-html.app-skin-dark .rs-table thead th {
+html.app-skin-dark .dl-table thead th {
     background: #0d0d0d !important;
     border-color: #262626 !important;
     color: #9A9A9A !important;
 }
-html.app-skin-dark .rs-table tbody td {
+html.app-skin-dark .dl-table tbody td {
     border-color: #262626 !important;
     color: #F5F5F5 !important;
 }
-html.app-skin-dark .rs-table tbody tr:hover { background: #16181c !important; }
+html.app-skin-dark .dl-table tbody tr.dl-tr { background-color: transparent !important; }
+html.app-skin-dark .dl-table tbody tr.dl-tr:hover { background-color: #16181c !important; }
 
-/* Avatar gradient — dating red-to-lightred, pinatingkad lang
-   para maganda pa rin sa itim (status-adjacent color, hindi pure
-   theme accent, kaya pinanatili) */
-html.app-skin-dark .dl-avatar {
-    background: linear-gradient(135deg, #dc2626, #f87171) !important;
-}
+html.app-skin-dark .dl-borrower-name,
+html.app-skin-dark .dl-amount-value { color: #F5F5F5 !important; }
+html.app-skin-dark .dl-borrower-sub { color: #9A9A9A !important; }
+html.app-skin-dark .dl-cell-meta { color: #9A9A9A !important; }
 
-/* Borrower ID / Loan ID — dating blue, ginawang neutral gray */
-html.app-skin-dark .borrower-id-v2 { color: #C4C4C4 !important; }
-html.app-skin-dark .dl-loan-id { color: #C4C4C4 !important; }
+html.app-skin-dark .dl-outstanding,
+html.app-skin-dark .dl-days,
+html.app-skin-dark .dl-status { color: #f87171 !important; }
 
-/* ---------- Status colors (kept — red = danger/default indicator) ---------- */
-html.app-skin-dark .dl-outstanding-v2 { color: #f87171 !important; }
-html.app-skin-dark .dl-days-text { color: #f87171 !important; }
-html.app-skin-dark .dl-status-pill {
-    background: rgba(220,38,38,.18) !important;
-    color: #f87171 !important;
-}
-
-/* ---------- "View Details" button + kebab ---------- */
-html.app-skin-dark .btn-view-v2 {
+html.app-skin-dark .dl-btn-view {
     background: #0d0d0d !important;
     border-color: #262626 !important;
     color: #F5F5F5 !important;
 }
-html.app-skin-dark .btn-view-v2:hover {
-    border-color: #4a4a4a !important;
-    color: #F5F5F5 !important;
-    background: #262626 !important;
+html.app-skin-dark .dl-btn-view:hover {
+    border-color: #9BBE4A !important;
+    color: #9BBE4A !important;
+    background: #1C1C1C !important;
 }
-html.app-skin-dark .dl-kebab-btn {
+
+html.app-skin-dark .dl-empty-state i { color: #9A9A9A !important; }
+html.app-skin-dark .dl-empty-state i.is-good { color: #4ade80 !important; }
+html.app-skin-dark .dl-empty-state h6 { color: #F5F5F5 !important; }
+html.app-skin-dark .dl-empty-state p { color: #9A9A9A !important; }
+
+html.app-skin-dark .dl-table-footer {
     background: #141414 !important;
     border-color: #262626 !important;
-    color: #9A9A9A !important;
 }
-html.app-skin-dark .dl-kebab-btn:hover {
-    border-color: #f87171 !important;
-    color: #f87171 !important;
-    background: rgba(220,38,38,.12) !important;
-}
-
-/* ---------- Empty state ---------- */
-html.app-skin-dark .empty-state-v2 i { color: #9A9A9A !important; }
-html.app-skin-dark .empty-state-v2 .feather-check-circle { color: #4ade80 !important; }
-
-/* ---------- Pagination ---------- */
-html.app-skin-dark .dl-pagination-bar {
-    background: #0d0d0d !important;
+html.app-skin-dark .dl-rows-label { color: #9A9A9A !important; }
+html.app-skin-dark .dl-rows-select {
+    background-color: #0d0d0d !important;
     border-color: #262626 !important;
+    color: #F5F5F5 !important;
 }
-html.app-skin-dark .dl-rows-per-page,
-html.app-skin-dark .dl-pagination-info { color: #9A9A9A !important; }
-html.app-skin-dark .dl-page-text-btn { color: #9A9A9A !important; }
-html.app-skin-dark .dl-page-text-btn:hover:not(:disabled) { color: #F5F5F5 !important; }
-html.app-skin-dark .dl-page-label { color: #F5F5F5 !important; }
+html.app-skin-dark .dl-footer-info { color: #9A9A9A !important; }
+html.app-skin-dark .dl-footer-info strong { color: #F5F5F5 !important; }
+html.app-skin-dark .dl-page-btn { color: #9A9A9A !important; }
+html.app-skin-dark .dl-page-btn:hover:not(:disabled):not(.is-active) {
+    background: #1C1C1C !important;
+    color: #9BBE4A !important;
+}
+html.app-skin-dark .dl-page-btn.is-active {
+    background: #9BBE4A !important;
+    color: #0A0A0A !important;
+}
+html.app-skin-dark .dl-page-dots { color: #9A9A9A !important; }
 
-/* ══════════════════════════════════════════
-   FIX: Bootstrap table CSS variables
-   Ang <table class="table rs-table" id="dlTable"> ay may Bootstrap
-   "table" class, kaya gumagamit ito ng --bs-table-bg custom
-   properties na may mas mataas na specificity — parehong fix na
-   ginamit sa Overdue Payments / Borrowers / Completed Loans.
-   ══════════════════════════════════════════ */
-html.app-skin-dark .rs-table,
-html.app-skin-dark .rs-table > :not(caption) > * {
-    --bs-table-bg: transparent !important;
-    --bs-table-striped-bg: transparent !important;
-    --bs-table-accent-bg: transparent !important;
-    --bs-table-hover-bg: #16181c !important;
-    --bs-table-color: #F5F5F5 !important;
-    --bs-table-striped-color: #F5F5F5 !important;
-    --bs-table-hover-color: #F5F5F5 !important;
+.nxl-container {
+    min-height: calc(100vh - 80px) !important;
+    display: flex !important;
+    flex-direction: column !important;
 }
-html.app-skin-dark .rs-table tbody tr {
-    background-color: transparent !important;
-    box-shadow: none !important;
+.nxl-content {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
 }
-html.app-skin-dark .rs-table tbody tr td {
-    background-color: transparent !important;
-    box-shadow: none !important;
-}
-
-/* ---------- Clickable rows ---------- */
-.rs-clickable-row {
-    cursor: pointer;
-}
+.nxl-content .main-content { flex: 1 !important; }
+.footer { flex-shrink: 0 !important; margin-top: auto !important; }

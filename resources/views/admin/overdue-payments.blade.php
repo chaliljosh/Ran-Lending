@@ -7,42 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('assets/admin/css/overdue-payments.css') }}?v={{ time() }}" />
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/darkmode-global.css') }}?v={{ time() }}" />
-
-    {{-- Styles para sa clickable column headers at rows --}}
-    <style>
-        .rs-table th[data-sort] {
-            cursor: pointer;
-            user-select: none;
-            white-space: nowrap;
-        }
-
-        .rs-table th[data-sort]:hover {
-            opacity: 0.8;
-        }
-
-        /* Arrow sa tabi ng pangalan ng column */
-        .rs-table th[data-sort]::after {
-            content: '\2195';
-            margin-left: 6px;
-            font-size: 11px;
-            opacity: 0.35;
-        }
-
-        .rs-table th[data-sort].sort-asc::after {
-            content: '\25B2';
-            opacity: 1;
-        }
-
-        .rs-table th[data-sort].sort-desc::after {
-            content: '\25BC';
-            opacity: 1;
-        }
-
-        /* Pointer cursor sa clickable rows */
-        .rs-table tr.rs-clickable-row {
-            cursor: pointer;
-        }
-    </style>
 @endsection
 
 @section('content')
@@ -86,28 +50,6 @@
             </div>
         </div>
 
-        <!-- Filter toolbar -->
-        <div class="filter-bar-v2">
-            <div class="search-wrap-v2">
-                <i class="feather-search"></i>
-                <input type="text" id="filterSearchInput"
-                    placeholder="Search borrowers by name, email, or Borrower ID..." onkeyup="filterOverdueLoans()">
-            </div>
-            <select class="sort-select-v2" id="sortFilter" onchange="sortOverdueLoans()">
-                <option value="most_late" {{ $sort === 'most_late' ? 'selected' : '' }}>Most Days Late</option>
-                <option value="newest" {{ $sort === 'newest' ? 'selected' : '' }}>Newest First</option>
-                <option value="oldest" {{ $sort === 'oldest' ? 'selected' : '' }}>Oldest First</option>
-            </select>
-            <div class="rows-per-page-v2">
-                <label for="opRowsPerPage" class="rows-per-page-label-v2">Rows per page</label>
-                <select id="opRowsPerPage" class="rows-per-page-select-v2" onchange="opChangeRowsPerPage(this)">
-                    <option value="10" selected>10</option>
-                    <option value="25">25</option>
-                    <option value="50">50</option>
-                </select>
-            </div>
-        </div>
-
         @if (count($overdueLoans) === 0)
             <div class="rs-card">
                 <div class="empty-state-v2">
@@ -118,7 +60,30 @@
             </div>
         @else
             <div class="rs-card rs-table-card">
-                <div id="filteredNoResults" class="empty-state-v2" style="display:none;">
+                <!-- Filter toolbar -->
+                <div class="filter-bar-v2">
+                    <div class="search-wrap-v2">
+                        <i class="feather-search"></i>
+                        <input type="text" id="filterSearchInput"
+                            placeholder="Search borrowers by name, email, or Borrower ID..." onkeyup="filterOverdueLoans()">
+                    </div>
+                    {{-- Lahat ng 12 buwan. Ang value ay "01" hanggang "12" (walang year) --}}
+                    <select class="sort-select-v2" id="monthFilter" onchange="filterOverdueLoans()" aria-label="Filter by month">
+                        <option value="">All Months</option>
+                        @foreach (range(1, 12) as $m)
+                            <option value="{{ str_pad($m, 2, '0', STR_PAD_LEFT) }}">
+                                {{ date('F', mktime(0, 0, 0, $m, 1)) }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <select class="sort-select-v2" id="sortFilter" onchange="sortOverdueLoans()">
+                        <option value="most_late" {{ $sort === 'most_late' ? 'selected' : '' }}>Most Days Late</option>
+                        <option value="newest" {{ $sort === 'newest' ? 'selected' : '' }}>Newest First</option>
+                        <option value="oldest" {{ $sort === 'oldest' ? 'selected' : '' }}>Oldest First</option>
+                    </select>
+                </div>
+
+                <div id="filteredNoResults" class="empty-state-v2">
                     <i class="feather-search"></i>
                     <h6>No matches found</h6>
                     <p>Try a different search term.</p>
@@ -146,6 +111,7 @@
                                     data-overdue-amount="{{ $loan['overdue_amount'] }}"
                                     data-status="{{ $loan['is_defaulted'] ? 1 : 0 }}"
                                     data-applied="{{ \Carbon\Carbon::parse($loan['applied_at'])->timestamp }}"
+                                    data-month="{{ \Carbon\Carbon::parse($loan['applied_at'])->format('m') }}"
                                     data-days-late="{{ $loan['days_late'] }}"
                                     data-href="{{ route('admin.overdue-payment-detail', $loan['uuid']) }}"
                                     onclick="opGoToRow(event, this)"
@@ -189,20 +155,23 @@
                     </table>
                 </div>
 
-                {{-- Pagination bar: info text (left) + Prev/Next controls (right). --}}
+                {{-- Pagination bar: Rows per page + Showing (kaliwa), page numbers (gitna) --}}
                 <div class="pagination-bar-v2" id="opPagination">
-                    <span class="pagination-info-v2" id="opPaginationInfo">
-                        Showing 1&ndash;{{ min(10, count($overdueLoans)) }} of {{ count($overdueLoans) }}
-                    </span>
-                    <div class="pagination-controls-v2">
-                        <button type="button" class="btn-page-v2" id="opPrevPage" onclick="opGoToPage(-1)">
-                            <i class="feather-chevron-left"></i> Prev
-                        </button>
-                        <span class="page-indicator-v2" id="opPageIndicator">Page 1 of 1</span>
-                        <button type="button" class="btn-page-v2" id="opNextPage" onclick="opGoToPage(1)">
-                            Next <i class="feather-chevron-right"></i>
-                        </button>
+                    <div class="pagination-left-v2">
+                        <div class="rows-per-page-v2">
+                            <label for="opRowsPerPage" class="rows-per-page-label-v2">Rows per page</label>
+                            <select id="opRowsPerPage" class="rows-per-page-select-v2" onchange="opChangeRowsPerPage(this)">
+                                <option value="10" selected>10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                            </select>
+                        </div>
+                        <span class="pagination-info-v2" id="opPaginationInfo">
+                            Showing 1&ndash;{{ min(10, count($overdueLoans)) }} of {{ count($overdueLoans) }}
+                        </span>
                     </div>
+                    <div class="pagination-nav-v2" id="opPaginationNav"></div>
+                    <div></div>
                 </div>
             </div>
         @endif
@@ -211,5 +180,5 @@
 @endsection
 
 @section('page-scripts')
-    <script src="{{ asset('functions/overdue-payments.js') }}?v={{ time() }}"></script>
+<script src="{{ asset('functions/overdue-payment.js') }}"></script>
 @endsection

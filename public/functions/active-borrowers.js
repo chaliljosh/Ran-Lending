@@ -1,189 +1,152 @@
-/* ========================================================
-   ACTIVE BORROWERS — table search, sort, pagination
-   Client-side lang; wala pang backend query params.
-   ======================================================== */
+let abCurrentPage = 1;
+let abRowsPerPage = 10;
 
-(function () {
-    let currentPage = 1;
-    let rowsPerPage = 10;
+function abGetAllRows() {
+    return Array.from(document.querySelectorAll('#borrowerTableWrap table tbody tr[data-search]'));
+}
 
-    function getAllRows() {
-        return Array.from(document.querySelectorAll('#borrowerTableWrap tbody tr[data-search]'));
+function abGetMatchingRows() {
+    const query = (document.getElementById('filterSearchInput')?.value || '').trim().toLowerCase();
+    const month = document.getElementById('monthFilter')?.value || '';
+
+    return abGetAllRows().filter(function (row) {
+        const matchSearch = !query || row.dataset.search.includes(query);
+        const matchMonth = !month || row.dataset.month === month;
+        return matchSearch && matchMonth;
+    });
+}
+
+function filterActiveBorrowers() {
+    abCurrentPage = 1;
+    abRenderPage();
+}
+
+function sortActiveBorrowers() {
+    const order = document.getElementById('sortFilter').value;
+    const tbody = document.querySelector('#borrowerTableWrap table tbody');
+    if (!tbody) return;
+
+    const rows = abGetAllRows();
+    rows.sort(function (a, b) {
+        const aApplied = parseInt(a.dataset.applied, 10) || 0;
+        const bApplied = parseInt(b.dataset.applied, 10) || 0;
+        return order === 'oldest' ? aApplied - bApplied : bApplied - aApplied;
+    });
+
+    rows.forEach(function (row) {
+        tbody.appendChild(row);
+    });
+
+    abCurrentPage = 1;
+    abRenderPage();
+}
+
+function abChangeRowsPerPage(select) {
+    abRowsPerPage = parseInt(select.value, 10) || 10;
+    abCurrentPage = 1;
+    abRenderPage();
+}
+
+function abRenderPage() {
+    const allRows = abGetAllRows();
+    const matchingRows = abGetMatchingRows();
+
+    allRows.forEach(row => row.style.display = 'none');
+
+    const totalRows = matchingRows.length;
+    const totalPages = Math.max(1, Math.ceil(totalRows / abRowsPerPage));
+
+    if (abCurrentPage > totalPages) abCurrentPage = totalPages;
+    if (abCurrentPage < 1) abCurrentPage = 1;
+
+    const start = (abCurrentPage - 1) * abRowsPerPage;
+    const end = start + abRowsPerPage;
+    matchingRows.slice(start, end).forEach(row => row.style.display = '');
+
+    const noResults = document.getElementById('filteredNoResults');
+    const tableWrap = document.getElementById('borrowerTableWrap');
+    if (noResults && tableWrap) {
+        noResults.style.display = totalRows === 0 ? 'block' : 'none';
+        tableWrap.style.display = totalRows === 0 ? 'none' : '';
     }
 
-    function getVisibleRows() {
-        // "visible" dito ay yung mga hindi na-filter out ng search (data-match !== 'false')
-        return getAllRows().filter(function (row) {
-            return row.dataset.match !== 'false';
-        });
-    }
+    abUpdatePaginationControls(totalRows, totalPages, start, end);
+}
 
-    function filterActiveBorrowers() {
-        const query = document.getElementById('filterSearchInput').value.trim().toLowerCase();
-        const rows = getAllRows();
-
-        rows.forEach(function (row) {
-            const matches = row.dataset.search.includes(query);
-            row.dataset.match = matches ? 'true' : 'false';
-        });
-
-        currentPage = 1;
-        renderTable();
-    }
-
-    function sortActiveBorrowers() {
-        const order = document.getElementById('sortFilter').value;
-        const tbody = document.querySelector('#borrowerTableWrap table tbody');
-        if (!tbody) return;
-
-        const rows = getAllRows();
-        rows.sort(function (a, b) {
-            const aApplied = parseInt(a.dataset.applied, 10) || 0;
-            const bApplied = parseInt(b.dataset.applied, 10) || 0;
-            return order === 'oldest' ? aApplied - bApplied : bApplied - aApplied;
-        });
-
-        rows.forEach(function (row) {
-            tbody.appendChild(row);
-        });
-
-        currentPage = 1;
-        renderTable();
-    }
-
-    function changeRowsPerPage() {
-        const select = document.getElementById('rowsPerPageSelect');
-        rowsPerPage = select.value === 'all' ? Infinity : parseInt(select.value, 10);
-        currentPage = 1;
-        renderTable();
-    }
-
-    function goToPage(page) {
-        currentPage = page;
-        renderTable();
-    }
-
-    function renderTable() {
-        const allRows = getAllRows();
-        const visibleRows = getVisibleRows();
-        const noResults = document.getElementById('filteredNoResults');
-        const tableWrap = document.getElementById('borrowerTableWrap');
-        const paginationBar = document.getElementById('rsPaginationBar');
-
-        // hide lahat muna ng rows
-        allRows.forEach(function (row) {
-            row.style.display = 'none';
-        });
-
-        if (visibleRows.length === 0) {
-            if (noResults) noResults.style.display = 'block';
-            if (tableWrap) tableWrap.style.display = 'none';
-            if (paginationBar) paginationBar.style.display = 'none';
-            return;
-        }
-
-        if (noResults) noResults.style.display = 'none';
-        if (tableWrap) tableWrap.style.display = '';
-
-        const totalPages = Math.max(1, Math.ceil(visibleRows.length / rowsPerPage));
-        if (currentPage > totalPages) currentPage = totalPages;
-
-        const start = rowsPerPage === Infinity ? 0 : (currentPage - 1) * rowsPerPage;
-        const end = rowsPerPage === Infinity ? visibleRows.length : start + rowsPerPage;
-
-        visibleRows.slice(start, end).forEach(function (row) {
-            row.style.display = '';
-        });
-
-        renderPaginationBar(visibleRows.length, totalPages);
-    }
-
-    function renderPaginationBar(totalRows, totalPages) {
-        const paginationBar = document.getElementById('rsPaginationBar');
-        const infoEl = document.getElementById('rsPaginationInfo');
-        const controlsEl = document.getElementById('rsPaginationControls');
-        if (!paginationBar || !infoEl || !controlsEl) return;
-
-        paginationBar.style.display = 'flex';
-
-        const start = rowsPerPage === Infinity ? 1 : (currentPage - 1) * rowsPerPage + 1;
-        const end = rowsPerPage === Infinity ? totalRows : Math.min(currentPage * rowsPerPage, totalRows);
-        infoEl.innerHTML = 'Showing <strong>' + start + '&ndash;' + end + '</strong> of <strong>' + totalRows + '</strong> borrowers';
-
-        controlsEl.innerHTML = '';
-
-        if (totalPages <= 1) return;
-
-        controlsEl.appendChild(makePageBtn('«', currentPage - 1, currentPage === 1, false));
-
-        const pages = getPageList(currentPage, totalPages);
-        pages.forEach(function (p) {
-            if (p === '...') {
-                const span = document.createElement('span');
-                span.className = 'rs-page-ellipsis';
-                span.textContent = '…';
-                controlsEl.appendChild(span);
-            } else {
-                controlsEl.appendChild(makePageBtn(String(p), p, false, p === currentPage));
-            }
-        });
-
-        controlsEl.appendChild(makePageBtn('»', currentPage + 1, currentPage === totalPages, false));
-    }
-
-    function makePageBtn(label, targetPage, disabled, isActive) {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'rs-page-btn' + (isActive ? ' active' : '');
-        btn.textContent = label;
-        btn.disabled = disabled;
-        if (!disabled && !isActive) {
-            btn.addEventListener('click', function () { goToPage(targetPage); });
-        }
-        return btn;
-    }
-
-    function getPageList(current, total) {
-        const delta = 1;
-        const range = [];
-        const pages = [];
-        let last = null;
-
-        for (let i = 1; i <= total; i++) {
-            if (i === 1 || i === total || (i >= current - delta && i <= current + delta)) {
-                range.push(i);
-            }
-        }
-
-        range.forEach(function (i) {
-            if (last !== null && i - last > 1) {
-                pages.push('...');
-            }
+function abGetPageList(current, total) {
+    const pages = [];
+    for (let i = 1; i <= total; i++) {
+        const isEdge = i === 1 || i === total;
+        const isNearCurrent = Math.abs(i - current) <= 1;
+        if (isEdge || isNearCurrent) {
             pages.push(i);
-            last = i;
-        });
+        } else if (pages[pages.length - 1] !== '...') {
+            pages.push('...');
+        }
+    }
+    return pages;
+}
 
-        return pages;
+function abRenderPageButtons(nav, totalPages) {
+    let html = '';
+
+    html += '<button type="button" class="btn-page-num-v2" data-page="' + (abCurrentPage - 1) + '"'
+        + (abCurrentPage === 1 ? ' disabled' : '') + ' aria-label="Previous page">&#8249;</button>';
+
+    abGetPageList(abCurrentPage, totalPages).forEach(function (p) {
+        if (p === '...') {
+            html += '<span class="page-dots-v2">...</span>';
+        } else {
+            html += '<button type="button" class="btn-page-num-v2' + (p === abCurrentPage ? ' is-active' : '')
+                + '" data-page="' + p + '">' + p + '</button>';
+        }
+    });
+
+    html += '<button type="button" class="btn-page-num-v2" data-page="' + (abCurrentPage + 1) + '"'
+        + (abCurrentPage === totalPages ? ' disabled' : '') + ' aria-label="Next page">&#8250;</button>';
+
+    nav.innerHTML = html;
+}
+
+function abUpdatePaginationControls(totalRows, totalPages, start, end) {
+    const infoEl = document.getElementById('abPaginationInfo');
+    const nav = document.getElementById('abPaginationNav');
+    const paginationWrap = document.getElementById('abPagination');
+
+    if (infoEl) {
+        if (totalRows === 0) {
+            infoEl.innerHTML = 'Showing <strong>0</strong> of <strong>0</strong>';
+        } else {
+            infoEl.innerHTML = 'Showing <strong>' + (start + 1) + '\u2013' + Math.min(end, totalRows)
+                + '</strong> of <strong>' + totalRows + '</strong>';
+        }
     }
 
-    // ── Clickable rows ──
-    // Pag kinlick ang kahit anong part ng row, pupunta sa View Details page.
-    // Hindi gagana kung link/button mismo ang na-click, o may hinihighlight na text.
-    document.addEventListener('click', function (e) {
-        const row = e.target.closest('tr[data-href]');
-        if (!row) return;
-        if (e.target.closest('a, button, input, select')) return;
-        if (window.getSelection && window.getSelection().toString()) return;
-        window.location.href = row.dataset.href;
-    });
+    if (nav) abRenderPageButtons(nav, totalPages);
 
-    // init: markahan lahat ng rows na "match" bago mag-render
-    document.addEventListener('DOMContentLoaded', function () {
-        getAllRows().forEach(function (row) { row.dataset.match = 'true'; });
-        renderTable();
-    });
+    if (paginationWrap) {
+        paginationWrap.style.display = totalRows === 0 ? 'none' : 'grid';
+    }
+}
 
-    window.filterActiveBorrowers = filterActiveBorrowers;
-    window.sortActiveBorrowers = sortActiveBorrowers;
-    window.changeRowsPerPage = changeRowsPerPage;
-})();
+document.addEventListener('click', function (e) {
+    const btn = e.target.closest('#abPaginationNav .btn-page-num-v2');
+    if (!btn || btn.disabled) return;
+
+    abCurrentPage = parseInt(btn.dataset.page, 10);
+    abRenderPage();
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    if (document.getElementById('borrowerTableWrap')) {
+        abRenderPage();
+    }
+});
+
+document.addEventListener('click', function (e) {
+    const row = e.target.closest('tr[data-href]');
+    if (!row) return;
+    if (e.target.closest('a, button, input, select, textarea')) return;
+    if (window.getSelection && window.getSelection().toString()) return;
+    window.location.href = row.dataset.href;
+});

@@ -1,218 +1,158 @@
-/* ============================================================
-   COMPLETED LOANS PAGE - JavaScript
-   ------------------------------------------------------------
-   This file handles 4 things:
-   1. Searching the table (filter by name/email/borrower id)
-   2. Choosing how many rows to show per page
-   3. Pagination (Prev / Page X of Y / Next)
-   4. Clickable rows — clicking anywhere on a row (except a
-      link/button inside it) navigates to that loan's detail page
+let clCurrentPage = 1;
+let clRowsPerPage = 10;
 
-   Note: Sorting (Newest, Oldest, etc.) is NOT here.
-   Sorting reloads the page using ?sort=... because the
-   server needs to calculate "completed_at" dates.
-   ============================================================ */
-
-// These variables "remember" the current state of the table.
-let currentPage = 1;
-let rowsPerPage = 10;
-
-
-/* ------------------------------------------------------------
-   STEP 1: Get all table rows
-   ------------------------------------------------------------ */
-function getAllRows() {
-    const tableBody = document.getElementById('loanTableBody');
-    if (!tableBody) {
-        return [];
-    }
-    return Array.from(tableBody.querySelectorAll('tr'));
-}
-
-
-/* ------------------------------------------------------------
-   STEP 2: Get only the rows that match the search box
-   ------------------------------------------------------------ */
-function getMatchingRows() {
+function clGetMatchingRows() {
     const searchInput = document.getElementById('filterSearchInput');
-    const searchText = searchInput ? searchInput.value.trim().toLowerCase() : '';
+    const query = (searchInput?.value || '').trim().toLowerCase();
+    const month = document.getElementById('monthFilter')?.value || '';
 
-    const allRows = getAllRows();
+    const allRows = Array.from(
+        document.querySelectorAll('#loanTableWrap table tbody tr[data-search]')
+    );
 
-    if (searchText === '') {
-        return allRows;
-    }
-
-    const matchingRows = [];
-    for (let i = 0; i < allRows.length; i++) {
-        const row = allRows[i];
-        const rowText = row.getAttribute('data-search');
-        if (rowText.includes(searchText)) {
-            matchingRows.push(row);
-        }
-    }
-    return matchingRows;
+    return allRows.filter(function (row) {
+        const matchSearch = !query || row.dataset.search.includes(query);
+        const matchMonth = !month || row.dataset.month === month;
+        return matchSearch && matchMonth;
+    });
 }
 
+function filterCompletedLoans() {
+    clCurrentPage = 1;
+    clRenderPage();
+}
 
-/* ------------------------------------------------------------
-   STEP 3: Show the correct rows for the current page
-   ------------------------------------------------------------ */
-function showCurrentPage() {
-    const allRows = getAllRows();
-    const matchingRows = getMatchingRows();
+function sortCompletedLoans() {
+    const order = document.getElementById('sortFilter').value;
+    const tbody = document.getElementById('loanTableBody');
+    if (!tbody) return;
 
-    const noResultsBox = document.getElementById('filteredNoResults');
-    const tableWrap = document.getElementById('loanTableWrap');
-    const paginationWrap = document.getElementById('paginationWrap');
+    const rules = {
+        newest: ['applied', -1],
+        oldest: ['applied', 1],
+        completed_newest: ['completed', -1],
+        completed_oldest: ['completed', 1]
+    };
+    const rule = rules[order] || rules.newest;
 
-    // Hide every row first
-    allRows.forEach(function (row) {
-        row.style.display = 'none';
+    const rows = Array.from(tbody.querySelectorAll('tr[data-search]'));
+    rows.sort(function (a, b) {
+        const aVal = parseInt(a.dataset[rule[0]], 10) || 0;
+        const bVal = parseInt(b.dataset[rule[0]], 10) || 0;
+        return (aVal - bVal) * rule[1];
+    });
+    rows.forEach(function (row) {
+        tbody.appendChild(row);
     });
 
-    // No matches at all
-    if (matchingRows.length === 0) {
-        if (noResultsBox) noResultsBox.style.display = 'block';
-        if (tableWrap) tableWrap.style.display = 'none';
-        if (paginationWrap) paginationWrap.style.display = 'none';
-        return;
-    }
-
-    if (noResultsBox) noResultsBox.style.display = 'none';
-    if (tableWrap) tableWrap.style.display = '';
-    if (paginationWrap) paginationWrap.style.display = 'flex';
-
-    // Work out total pages
-    let totalPages;
-    if (rowsPerPage === 'all') {
-        totalPages = 1;
-    } else {
-        totalPages = Math.ceil(matchingRows.length / rowsPerPage);
-    }
-    if (totalPages < 1) {
-        totalPages = 1;
-    }
-
-    // Keep currentPage inside valid range
-    if (currentPage > totalPages) {
-        currentPage = totalPages;
-    }
-    if (currentPage < 1) {
-        currentPage = 1;
-    }
-
-    // Work out which rows belong on this page
-    let startIndex;
-    let endIndex;
-
-    if (rowsPerPage === 'all') {
-        startIndex = 0;
-        endIndex = matchingRows.length;
-    } else {
-        startIndex = (currentPage - 1) * rowsPerPage;
-        endIndex = startIndex + rowsPerPage;
-    }
-
-    // Show only rows between startIndex and endIndex
-    for (let i = startIndex; i < endIndex && i < matchingRows.length; i++) {
-        matchingRows[i].style.display = '';
-    }
-
-    updatePaginationInfo(matchingRows.length, startIndex, endIndex);
-    updatePaginationStatus(totalPages);
+    clCurrentPage = 1;
+    clRenderPage();
 }
 
+function clChangeRowsPerPage(select) {
+    clRowsPerPage = parseInt(select.value, 10) || 10;
+    clCurrentPage = 1;
+    clRenderPage();
+}
 
-/* ------------------------------------------------------------
-   STEP 4: Update the "Showing X-Y of Z" text (left side)
-   ------------------------------------------------------------ */
-function updatePaginationInfo(totalMatches, startIndex, endIndex) {
-    const infoBox = document.getElementById('paginationInfo');
-    if (!infoBox) return;
+function clRenderPage() {
+    const allRows = Array.from(
+        document.querySelectorAll('#loanTableWrap table tbody tr[data-search]')
+    );
+    const matchingRows = clGetMatchingRows();
 
-    const shownStart = totalMatches === 0 ? 0 : startIndex + 1;
-    let shownEnd = endIndex;
-    if (shownEnd > totalMatches) {
-        shownEnd = totalMatches;
+    allRows.forEach(row => row.style.display = 'none');
+
+    const totalRows = matchingRows.length;
+    const totalPages = Math.max(1, Math.ceil(totalRows / clRowsPerPage));
+
+    if (clCurrentPage > totalPages) clCurrentPage = totalPages;
+    if (clCurrentPage < 1) clCurrentPage = 1;
+
+    const start = (clCurrentPage - 1) * clRowsPerPage;
+    const end = start + clRowsPerPage;
+    matchingRows.slice(start, end).forEach(row => row.style.display = '');
+
+    const noResults = document.getElementById('filteredNoResults');
+    const tableWrap = document.getElementById('loanTableWrap');
+    if (noResults && tableWrap) {
+        noResults.style.display = totalRows === 0 ? 'block' : 'none';
+        tableWrap.style.display = totalRows === 0 ? 'none' : '';
     }
 
-    infoBox.textContent = 'Showing ' + shownStart + '-' + shownEnd + ' of ' + totalMatches;
+    clUpdatePaginationControls(totalRows, totalPages, start, end);
 }
 
+function clGetPageList(current, total) {
+    const pages = [];
+    for (let i = 1; i <= total; i++) {
+        const isEdge = i === 1 || i === total;
+        const isNearCurrent = Math.abs(i - current) <= 1;
+        if (isEdge || isNearCurrent) {
+            pages.push(i);
+        } else if (pages[pages.length - 1] !== '...') {
+            pages.push('...');
+        }
+    }
+    return pages;
+}
 
-/* ------------------------------------------------------------
-   STEP 5: Update "Page X of Y" text + enable/disable Prev/Next
-   ------------------------------------------------------------ */
-function updatePaginationStatus(totalPages) {
-    const pageStatusText = document.getElementById('pageStatusText');
-    const prevButton = document.getElementById('prevPageBtn');
-    const nextButton = document.getElementById('nextPageBtn');
+function clRenderPageButtons(nav, totalPages) {
+    let html = '';
 
-    if (pageStatusText) {
-        pageStatusText.textContent = 'Page ' + currentPage + ' of ' + totalPages;
+    html += '<button type="button" class="btn-page-num-v2" data-page="' + (clCurrentPage - 1) + '"'
+        + (clCurrentPage === 1 ? ' disabled' : '') + ' aria-label="Previous page">&#8249;</button>';
+
+    clGetPageList(clCurrentPage, totalPages).forEach(function (p) {
+        if (p === '...') {
+            html += '<span class="page-dots-v2">...</span>';
+        } else {
+            html += '<button type="button" class="btn-page-num-v2' + (p === clCurrentPage ? ' is-active' : '')
+                + '" data-page="' + p + '">' + p + '</button>';
+        }
+    });
+
+    html += '<button type="button" class="btn-page-num-v2" data-page="' + (clCurrentPage + 1) + '"'
+        + (clCurrentPage === totalPages ? ' disabled' : '') + ' aria-label="Next page">&#8250;</button>';
+
+    nav.innerHTML = html;
+}
+
+function clUpdatePaginationControls(totalRows, totalPages, start, end) {
+    const infoEl = document.getElementById('clPaginationInfo');
+    const nav = document.getElementById('clPaginationNav');
+    const paginationWrap = document.getElementById('clPagination');
+
+    if (infoEl) {
+        if (totalRows === 0) {
+            infoEl.innerHTML = 'Showing <strong>0</strong> of <strong>0</strong>';
+        } else {
+            infoEl.innerHTML = 'Showing <strong>' + (start + 1) + '\u2013' + Math.min(end, totalRows)
+                + '</strong> of <strong>' + totalRows + '</strong>';
+        }
     }
 
-    if (prevButton) {
-        prevButton.disabled = (currentPage === 1);
+    if (nav) clRenderPageButtons(nav, totalPages);
+
+    if (paginationWrap) {
+        paginationWrap.style.display = totalRows === 0 ? 'none' : 'grid';
     }
-    if (nextButton) {
-        nextButton.disabled = (currentPage === totalPages);
-    }
 }
 
+document.addEventListener('click', function (e) {
+    const btn = e.target.closest('#clPaginationNav .btn-page-num-v2');
+    if (!btn || btn.disabled) return;
 
-/* ------------------------------------------------------------
-   STEP 6: Functions connected to the HTML (onclick / onkeyup)
-   ------------------------------------------------------------ */
+    clCurrentPage = parseInt(btn.dataset.page, 10);
+    clRenderPage();
+});
 
-function goToPreviousPage() {
-    currentPage = currentPage - 1;
-    showCurrentPage();
-}
-
-function goToNextPage() {
-    currentPage = currentPage + 1;
-    showCurrentPage();
-}
-
-function onSearchChanged() {
-    currentPage = 1; // always go back to page 1 on a new search
-    showCurrentPage();
-}
-
-function onRowsPerPageChanged() {
-    const select = document.getElementById('rowsPerPageSelect');
-    const value = select.value;
-
-    if (value === 'all') {
-        rowsPerPage = 'all';
-    } else {
-        rowsPerPage = parseInt(value, 10);
-    }
-
-    currentPage = 1; // reset to page 1 whenever rows-per-page changes
-    showCurrentPage();
-}
-
-
-/* ------------------------------------------------------------
-   STEP 7: Run everything once the page has fully loaded
-   ------------------------------------------------------------ */
 document.addEventListener('DOMContentLoaded', function () {
     if (document.getElementById('loanTableWrap')) {
-        showCurrentPage();
+        clRenderPage();
     }
 });
 
-
-/* ------------------------------------------------------------
-   STEP 8: CLICKABLE ROWS — buong <tr> na may data-href ang
-   mag-a-navigate papunta sa detail page, maliban kung ang
-   na-click ay isang link/button (para hindi mag-double-navigate
-   sa "View Details" button). Event delegation dahil pinapalitan
-   ng search/pagination ang visibility ng rows nang dynamic.
-   ------------------------------------------------------------ */
 document.addEventListener('click', function (e) {
     var row = e.target.closest('tr[data-href]');
     if (!row) return;

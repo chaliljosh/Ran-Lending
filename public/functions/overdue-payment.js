@@ -22,7 +22,14 @@ function opGetMatchingRows() {
         document.querySelectorAll('#loanTableWrap table tbody tr[data-search]')
     );
 
-    return allRows.filter(row => !query || row.dataset.search.includes(query));
+    // Napiling buwan (hal. "09" = September). Walang laman = All Months
+    const month = document.getElementById('monthFilter')?.value || '';
+
+    return allRows.filter(function (row) {
+        const matchSearch = !query || row.dataset.search.includes(query);
+        const matchMonth = !month || row.dataset.month === month;
+        return matchSearch && matchMonth;
+    });
 }
 
 function filterOverdueLoans() {
@@ -142,8 +149,9 @@ function opChangeRowsPerPage(select) {
     opRenderPage();
 }
 
-function opGoToPage(direction) {
-    opCurrentPage += direction;
+// Tinatawag ng onclick ng page buttons (inline, gaya ng ibang click dito)
+function opSetPage(page) {
+    opCurrentPage = page;
     opRenderPage();
 }
 
@@ -176,32 +184,64 @@ function opRenderPage() {
     opUpdatePaginationControls(totalRows, totalPages, start, end);
 }
 
+// Gumagawa ng listahan ng page numbers, hal. [1, 2, '...', 4]
+function opGetPageList(current, total) {
+    const pages = [];
+    for (let i = 1; i <= total; i++) {
+        const isEdge = i === 1 || i === total;
+        const isNearCurrent = Math.abs(i - current) <= 1;
+        if (isEdge || isNearCurrent) {
+            pages.push(i);
+        } else if (pages[pages.length - 1] !== '...') {
+            pages.push('...');
+        }
+    }
+    return pages;
+}
+
+function opRenderPageButtons(nav, totalPages) {
+    let html = '';
+
+    html += '<button type="button" class="btn-page-num-v2" onclick="opSetPage(' + (opCurrentPage - 1) + ')"'
+        + (opCurrentPage === 1 ? ' disabled' : '') + ' aria-label="Previous page">&#8249;</button>';
+
+    opGetPageList(opCurrentPage, totalPages).forEach(function (p) {
+        if (p === '...') {
+            html += '<span class="page-dots-v2">...</span>';
+        } else {
+            html += '<button type="button" class="btn-page-num-v2' + (p === opCurrentPage ? ' is-active' : '')
+                + '" onclick="opSetPage(' + p + ')">' + p + '</button>';
+        }
+    });
+
+    html += '<button type="button" class="btn-page-num-v2" onclick="opSetPage(' + (opCurrentPage + 1) + ')"'
+        + (opCurrentPage === totalPages ? ' disabled' : '') + ' aria-label="Next page">&#8250;</button>';
+
+    nav.innerHTML = html;
+}
+
 function opUpdatePaginationControls(totalRows, totalPages, start, end) {
     const infoEl = document.getElementById('opPaginationInfo');
-    const pageIndicator = document.getElementById('opPageIndicator');
-    const prevBtn = document.getElementById('opPrevPage');
-    const nextBtn = document.getElementById('opNextPage');
+    const nav = document.getElementById('opPaginationNav');
     const paginationWrap = document.getElementById('opPagination');
 
     if (infoEl) {
         if (totalRows === 0) {
-            infoEl.textContent = 'Showing 0 of 0';
+            infoEl.innerHTML = 'Showing <strong>0</strong> of <strong>0</strong>';
         } else {
             const shownStart = start + 1;
             const shownEnd = Math.min(end, totalRows);
-            infoEl.textContent = `Showing ${shownStart}–${shownEnd} of ${totalRows}`;
+            infoEl.innerHTML = 'Showing <strong>' + shownStart + '\u2013' + shownEnd
+                + '</strong> of <strong>' + totalRows + '</strong>';
         }
     }
 
-    if (pageIndicator) {
-        pageIndicator.textContent = `Page ${opCurrentPage} of ${totalPages}`;
+    if (nav) {
+        opRenderPageButtons(nav, totalPages);
     }
 
-    if (prevBtn) prevBtn.disabled = opCurrentPage <= 1;
-    if (nextBtn) nextBtn.disabled = opCurrentPage >= totalPages;
-
     if (paginationWrap) {
-        paginationWrap.style.display = totalRows === 0 ? 'none' : 'flex';
+        paginationWrap.style.display = totalRows === 0 ? 'none' : 'grid';
     }
 }
 

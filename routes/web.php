@@ -176,8 +176,15 @@ Route::post('/account-settings/profile-picture/remove', [AdminController::class,
     ->name('installment-receipt');
         Route::get('/payment-receipts/{id}/file', [AdminController::class, 'borrowerReceiptFile'])
         ->name('borrower-receipt-file');
-    Route::post('/installments/{id}/void', [AdminController::class, 'voidPayment'])
-    ->name('admin.installments.void');
+   Route::post('/installments/{id}/void-request', [AdminController::class, 'requestVoid'])
+    ->whereNumber('id')
+    ->name('installment-void-request');
+Route::post('/void-requests/{id}/vote', [AdminController::class, 'voteVoid'])
+    ->whereNumber('id')
+    ->name('void-request-vote');
+Route::post('/void-requests/{id}/cancel', [AdminController::class, 'cancelVoid'])
+    ->whereNumber('id')
+    ->name('void-request-cancel');
 
     // Send proof (na naibigay na ang pinautang) sa borrower via email.
     // Ang buong URL ay /admin/loans/{applicationId}/send-proof — ito ang tinatawag ng JS.

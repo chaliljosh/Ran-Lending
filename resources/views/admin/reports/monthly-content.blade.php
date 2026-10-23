@@ -187,6 +187,26 @@
                         </tbody>
                     </table>
                 </div>
+
+                {{-- Pagination (client-side, hawak ng admin-reports.js) --}}
+                @if ($approvedList->isNotEmpty())
+                    <div class="rpt-pager">
+                        <div class="rpt-pager-left">
+                            <div class="rpt-pager-size">
+                                <span>Rows per page</span>
+                                <select class="form-select rpt-page-size" aria-label="Rows per page">
+                                    <option value="10">10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                            </div>
+                            <div class="rpt-pager-info"></div>
+                        </div>
+                        <div class="rpt-pager-nav"></div>
+                        <div></div>
+                    </div>
+                @endif
             </div>
         </div>
     </div>

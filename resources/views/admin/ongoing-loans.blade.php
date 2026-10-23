@@ -5,8 +5,8 @@
 @section('page-styles')
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-   <link rel="stylesheet" href="{{ asset('assets/admin/css/ongoing-loans.css') }}?v={{ time() }}">
-<link rel="stylesheet" href="{{ asset('assets/admin/css/darkmode-global.css') }}?v={{ time() }}">
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/ongoing-loans.css') }}?v={{ time() }}">
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/darkmode-global.css') }}?v={{ time() }}">
 @endsection
 
 @section('content')
@@ -51,27 +51,6 @@
             </div>
         </div>
 
-        <!-- Filter toolbar -->
-        <div class="filter-bar-v2">
-            <div class="search-wrap-v2">
-                <i class="feather-search"></i>
-                <input type="text" id="filterSearchInput"
-                    placeholder="Search borrowers by name, email, or Borrower ID..." onkeyup="filterOngoingLoans()">
-            </div>
-            <select class="sort-select-v2" id="sortFilter" onchange="sortOngoingLoans()">
-                <option value="newest" {{ $sort === 'newest' ? 'selected' : '' }}>Newest First</option>
-                <option value="oldest" {{ $sort === 'oldest' ? 'selected' : '' }}>Oldest First</option>
-            </select>
-            <div class="rows-per-page-v2">
-                <label for="olRowsPerPage" class="rows-per-page-label-v2">Rows per page</label>
-                <select id="olRowsPerPage" class="rows-per-page-select-v2" onchange="olChangeRowsPerPage(this)">
-                    <option value="10" selected>10</option>
-                    <option value="25">25</option>
-                    <option value="50">50</option>
-                </select>
-            </div>
-        </div>
-
         @if (count($ongoingLoans) === 0)
             <div class="rs-card">
                 <div class="empty-state-v2">
@@ -82,32 +61,65 @@
             </div>
         @else
             <div class="rs-card rs-table-card">
-                <div id="filteredNoResults" class="empty-state-v2" style="display:none;">
+                <!-- Filter toolbar -->
+                <div class="filter-bar-v2">
+                    <div class="search-wrap-v2">
+                        <i class="feather-search"></i>
+                        <input type="text" id="filterSearchInput"
+                            placeholder="Search borrowers by name, email, or Borrower ID..." onkeyup="filterOngoingLoans()">
+                    </div>
+                    {{-- Lahat ng 12 buwan. Ang value ay "01" hanggang "12" (walang year) --}}
+                    <select class="sort-select-v2" id="monthFilter" onchange="filterOngoingLoans()" aria-label="Filter by month">
+                        <option value="">All Months</option>
+                        @foreach (range(1, 12) as $m)
+                            <option value="{{ str_pad($m, 2, '0', STR_PAD_LEFT) }}">
+                                {{ date('F', mktime(0, 0, 0, $m, 1)) }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <select class="sort-select-v2" id="sortFilter" onchange="sortOngoingLoans()">
+                        <option value="newest" {{ $sort === 'newest' ? 'selected' : '' }}>Newest First</option>
+                        <option value="oldest" {{ $sort === 'oldest' ? 'selected' : '' }}>Oldest First</option>
+                    </select>
+                </div>
+
+                <div id="filteredNoResults" class="empty-state-v2">
                     <i class="feather-search"></i>
                     <h6>No matches found</h6>
                     <p>Try a different search term.</p>
                 </div>
                 <div class="table-responsive" id="loanTableWrap">
-                   <table class="rs-table mb-0">
+                    <table class="table rs-table mb-0">
                         <thead>
                             <tr>
-                                <th>Borrower</th>
-                                <th>Loan Amount</th>
-                                <th>Progress</th>
-                                <th>Next Due</th>
-                                <th>Collected</th>
+                                {{-- Click ang header para mag-sort. Ang data-sort ay tumutugma sa data-* ng <tr> --}}
+                                <th data-sort="name" onclick="olSortByColumn('name')">Borrower</th>
+                                <th data-sort="loanAmount" onclick="olSortByColumn('loanAmount')">Loan Amount</th>
+                                <th data-sort="progress" onclick="olSortByColumn('progress')">Progress</th>
+                                <th data-sort="nextDue" onclick="olSortByColumn('nextDue')">Next Due</th>
+                                <th data-sort="collected" onclick="olSortByColumn('collected')">Collected</th>
                                 <th class="text-end">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($ongoingLoans as $loan)
+                                @php
+                                    $progressPercent = $loan['total_count'] ? round(($loan['paid_count'] / $loan['total_count']) * 100) : 0;
+                                    $nextDueStamp = $loan['next_due_date'] ? \Carbon\Carbon::parse($loan['next_due_date'])->timestamp : 9999999999;
+                                @endphp
                                 <tr data-search="{{ strtolower($loan['name'] . ' ' . $loan['email'] . ' ' . $loan['borrower_id']) }}"
+                                    data-name="{{ $loan['name'] }}"
+                                    data-loan-amount="{{ $loan['loan_amount'] }}"
+                                    data-progress="{{ $progressPercent }}"
+                                    data-next-due="{{ $nextDueStamp }}"
+                                    data-collected="{{ $loan['amount_collected'] }}"
                                     data-applied="{{ \Carbon\Carbon::parse($loan['applied_at'])->timestamp }}"
+                                    data-month="{{ \Carbon\Carbon::parse($loan['applied_at'])->format('m') }}"
                                     data-href="{{ route('admin.ongoing-loan-detail', $loan['uuid']) }}?from=ongoing-loans"
+                                    onclick="olGoToRow(event, this)"
                                     class="rs-clickable-row">
                                     <td>
                                         <div class="borrower-cell-v2">
-
                                             <div>
                                                 <div class="borrower-name-v2">{{ $loan['name'] }}</div>
                                                 <div class="borrower-id-v2">{{ $loan['borrower_id'] }}</div>
@@ -119,13 +131,9 @@
                                     <td>
                                         <div class="progress-cell-v2">
                                             <div class="progress-bar-track-v2">
-                                                <div class="progress-bar-fill-v2"
-                                                    style="width: {{ $loan['total_count'] ? round(($loan['paid_count'] / $loan['total_count']) * 100) : 0 }}%">
-                                                </div>
+                                                <div class="progress-bar-fill-v2" style="width: {{ $progressPercent }}%"></div>
                                             </div>
-                                            <span
-                                                class="progress-label-v2">{{ $loan['paid_count'] }}/{{ $loan['total_count'] }}
-                                                paid</span>
+                                            <span class="progress-label-v2">{{ $loan['paid_count'] }}/{{ $loan['total_count'] }} paid</span>
                                         </div>
                                     </td>
                                     <td class="loan-meta-v2">
@@ -150,20 +158,23 @@
                     </table>
                 </div>
 
-                {{-- Pagination bar: info text (left) + Prev/Next controls (right). --}}
+                {{-- Pagination bar: Rows per page + Showing (kaliwa), page numbers (gitna) --}}
                 <div class="pagination-bar-v2" id="olPagination">
-                    <span class="pagination-info-v2" id="olPaginationInfo">
-                        Showing 1&ndash;{{ min(10, count($ongoingLoans)) }} of {{ count($ongoingLoans) }}
-                    </span>
-                    <div class="pagination-controls-v2">
-                        <button type="button" class="btn-page-v2" id="olPrevPage" onclick="olGoToPage(-1)">
-                            <i class="feather-chevron-left"></i> Prev
-                        </button>
-                        <span class="page-indicator-v2" id="olPageIndicator">Page 1 of 1</span>
-                        <button type="button" class="btn-page-v2" id="olNextPage" onclick="olGoToPage(1)">
-                            Next <i class="feather-chevron-right"></i>
-                        </button>
+                    <div class="pagination-left-v2">
+                        <div class="rows-per-page-v2">
+                            <label for="olRowsPerPage" class="rows-per-page-label-v2">Rows per page</label>
+                            <select id="olRowsPerPage" class="rows-per-page-select-v2" onchange="olChangeRowsPerPage(this)">
+                                <option value="10" selected>10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                            </select>
+                        </div>
+                        <span class="pagination-info-v2" id="olPaginationInfo">
+                            Showing 1&ndash;{{ min(10, count($ongoingLoans)) }} of {{ count($ongoingLoans) }}
+                        </span>
                     </div>
+                    <div class="pagination-nav-v2" id="olPaginationNav"></div>
+                    <div></div>
                 </div>
             </div>
         @endif

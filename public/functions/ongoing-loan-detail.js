@@ -8,18 +8,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const confirmInstallmentNo = document.getElementById('olsConfirmInstallmentNo');
     const confirmAmount = document.getElementById('olsConfirmAmount');
 
-    // ---- Payment form fields ----
     const paidDateInput = document.getElementById('olsPaidDate');
     const errorEl = document.getElementById('olsMarkPaidError');
 
-    // Gamit pa rin sa Send Proof modal
-    const MAX_RECEIPT_BYTES = 5 * 1024 * 1024; // 5MB
+    const MAX_RECEIPT_BYTES = 5 * 1024 * 1024;
     const ALLOWED_TYPES = ['image/jpeg', 'image/png'];
 
     let pendingScheduleId = null;
     let pendingBtn = null;
 
-    // ---- "Use borrower's receipt" mode (galing sa View Receipt modal) ----
     const borrowerReceiptField = document.getElementById('olsUsingBorrowerReceipt');
     const borrowerReceiptThumb = document.getElementById('olsUsingBorrowerThumb');
     const useOwnReceiptBtn = document.getElementById('olsUseOwnReceiptBtn');
@@ -35,7 +32,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // X -> alisin ang receipt ng borrower (walang receipt na isasama)
     useOwnReceiptBtn.addEventListener('click', function () {
         setBorrowerReceiptMode(null);
         showError('');
@@ -47,19 +43,13 @@ document.addEventListener('DOMContentLoaded', function () {
         return d.toISOString().slice(0, 10);
     }
 
-    // ============================================================
-    // Custom date picker (calendar + year grid)
-    // displayEl = nakikitang text field (MM/DD/YYYY)
-    // hiddenEl  = tunay na value (YYYY-MM-DD)
-    // hostEl    = modal element kung saan ilalagay ang popup
-    // ============================================================
     function createDatePicker(displayEl, hiddenEl, hostEl) {
         const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
             'July', 'August', 'September', 'October', 'November', 'December'];
         const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
         const pad = n => String(n).padStart(2, '0');
-        const toYmd = (y, m, d) => y + '-' + pad(m + 1) + '-' + pad(d); // m = 0-based
+        const toYmd = (y, m, d) => y + '-' + pad(m + 1) + '-' + pad(d);
         const parseYmd = str => {
             const parts = str.split('-').map(Number);
             return { y: parts[0], m: parts[1] - 1, d: parts[2] };
@@ -67,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         let minYmd = '';
         let maxYmd = '';
-        let view = 'days'; // 'days' o 'years'
+        let view = 'days';
         let viewYear = 0;
         let viewMonth = 0;
         let isOpen = false;
@@ -162,7 +152,6 @@ document.addEventListener('DOMContentLoaded', function () {
             html += '</div>';
             pop.innerHTML = html;
 
-            // I-scroll ang listahan para nasa gitna ang napiling taon
             const grid = pop.querySelector('.ols-dp-years');
             const current = pop.querySelector('.ols-dp-year.is-selected');
             if (grid && current) {
@@ -177,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             let top = r.bottom + 6;
             if (top + h > window.innerHeight - 8) {
-                top = Math.max(8, r.top - h - 6); // kapag kulang ang espasyo sa baba, sa taas ilalabas
+                top = Math.max(8, r.top - h - 6);
             }
             const left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8));
 
@@ -215,7 +204,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         function pickYear(year) {
             viewYear = year;
-            // Siguraduhing nasa loob ng pinapayagang buwan
             if (minYmd && (viewYear * 12 + viewMonth) < monthIndex(minYmd)) viewMonth = parseYmd(minYmd).m;
             if (maxYmd && (viewYear * 12 + viewMonth) > monthIndex(maxYmd)) viewMonth = parseYmd(maxYmd).m;
             view = 'days';
@@ -250,14 +238,12 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // Click sa labas -> isara
         document.addEventListener('mousedown', function (e) {
             if (!isOpen) return;
             if (pop.contains(e.target) || displayEl.parentElement.contains(e.target)) return;
             close();
         });
 
-        // Escape -> isara lang ang calendar (hindi ang buong modal)
         hostEl.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && isOpen) {
                 e.stopImmediatePropagation();
@@ -284,7 +270,6 @@ document.addEventListener('DOMContentLoaded', function () {
         errorEl.style.display = msg ? '' : 'none';
     }
 
-    // Gamit sa Send Proof modal
     function formatSize(bytes) {
         return bytes >= 1048576
             ? (bytes / 1048576).toFixed(1) + ' MB'
@@ -295,13 +280,53 @@ document.addEventListener('DOMContentLoaded', function () {
         showError('');
         setBorrowerReceiptMode(null);
         const today = todayLocal();
-        // Hindi puwede sa hinaharap (walang minimum na petsa)
         datePicker.close();
         datePicker.setRange('', today);
         datePicker.setValue(today);
     }
 
-    // ---- Step 1: click "Record Payment" -> open confirm modal ----
+    function setBtnLoading(btn, loading) {
+        btn.disabled = loading;
+        btn.classList.toggle('is-loading', loading);
+        const spinner = btn.querySelector('.spin-icon');
+        if (loading && !spinner) {
+            const s = document.createElement('i');
+            s.className = 'feather-loader spin-icon';
+            btn.insertBefore(s, btn.firstChild);
+        } else if (!loading && spinner) {
+            spinner.remove();
+        }
+    }
+
+    function postJson(url, body) {
+        return fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify(body || {}),
+        }).then(res => res.json().then(data => ({ ok: res.ok, data: data })));
+    }
+
+    function firstMessage(data, fallback) {
+        const firstError = data.errors ? Object.values(data.errors)[0]?.[0] : null;
+        return firstError || data.message || fallback;
+    }
+
+    function escapeHtml(str) {
+        return String(str == null ? '' : str).replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+
+    function flashAndReload(title, message) {
+        sessionStorage.setItem('olsFlashToast', JSON.stringify({ title: title, message: message }));
+        window.location.reload();
+    }
+
     table.addEventListener('click', function (e) {
         const btn = e.target.closest('.btn-record-payment');
         if (!btn) return;
@@ -316,7 +341,6 @@ document.addEventListener('DOMContentLoaded', function () {
         modal.show();
     });
 
-    // ---- View Payment Details ----
     const detailsModalEl = document.getElementById('olsPaymentDetailsModal');
     if (detailsModalEl) {
         const el = id => document.getElementById(id);
@@ -330,7 +354,6 @@ document.addEventListener('DOMContentLoaded', function () {
             upcoming: ['is-upcoming', 'Pending'],
         };
 
-        // Show "View Full Receipt" only when the image is scaled down to fit
         function updateFullLink() {
             if (dImg.style.display === 'none') { dFull.style.display = 'none'; return; }
             const scaled = dImg.naturalWidth > dImg.clientWidth + 1 || dImg.naturalHeight > dImg.clientHeight + 1;
@@ -374,7 +397,6 @@ document.addEventListener('DOMContentLoaded', function () {
             bootstrap.Modal.getOrCreateInstance(detailsModalEl).show();
         });
 
-        // The modal isn't laid out until it's shown, so re-check then
         detailsModalEl.addEventListener('shown.bs.modal', updateFullLink);
         detailsModalEl.addEventListener('hidden.bs.modal', function () {
             dImg.onload = null;
@@ -383,7 +405,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ---- View Borrower Receipt (receipt na in-upload ng borrower) ----
     const brModalEl = document.getElementById('olsBorrowerReceiptModal');
     if (brModalEl) {
         const br = id => document.getElementById(id);
@@ -423,7 +444,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             resetBorrowerReceipt();
 
-            // Set handlers BEFORE src para hindi ma-miss ang event
             brImg.onload = function () {
                 brLoading.style.display = 'none';
                 brImgLink.style.display = '';
@@ -438,15 +458,14 @@ document.addEventListener('DOMContentLoaded', function () {
             bootstrap.Modal.getOrCreateInstance(brModalEl).show();
         });
 
-        // "Record Payment" sa loob ng receipt modal -> isara muna, tapos buksan ang existing Record Payment modal
         brRecordBtn.addEventListener('click', function () {
             const rowBtn = table.querySelector(`.btn-record-payment[data-schedule-id="${brScheduleId}"]`);
             if (!rowBtn) return;
 
             const fileUrl = brFileUrl;
             brModalEl.addEventListener('hidden.bs.modal', function () {
-                rowBtn.click();                    // bubuksan ang Mark as Paid modal (nire-reset nito ang form)
-                setBorrowerReceiptMode(fileUrl);   // tapos gagamitin na ang receipt ng borrower
+                rowBtn.click();
+                setBorrowerReceiptMode(fileUrl);
             }, { once: true });
 
             bootstrap.Modal.getOrCreateInstance(brModalEl).hide();
@@ -455,16 +474,16 @@ document.addEventListener('DOMContentLoaded', function () {
         brModalEl.addEventListener('hidden.bs.modal', resetBorrowerReceipt);
     }
 
-    // ---- Toast shown after a page reload (used by Void Payment) ----
-    const flashToast = sessionStorage.getItem('olsFlashToast');
-    if (flashToast) {
+    const flashRaw = sessionStorage.getItem('olsFlashToast');
+    if (flashRaw) {
         sessionStorage.removeItem('olsFlashToast');
-        if (typeof window.showAdminToast === 'function') {
-            window.showAdminToast('success', 'Payment Voided', flashToast);
+        let flash = null;
+        try { flash = JSON.parse(flashRaw); } catch (e) {}
+        if (flash && typeof window.showAdminToast === 'function') {
+            window.showAdminToast('success', flash.title, flash.message);
         }
     }
 
-    // ---- Void Payment ----
     const voidModalEl = document.getElementById('olsVoidModal');
     if (voidModalEl) {
         const voidBtn = document.getElementById('olsConfirmVoidBtn');
@@ -495,52 +514,142 @@ document.addEventListener('DOMContentLoaded', function () {
             const reason = voidReason.value.trim();
             if (reason.length < 5) { showVoidError('Please enter a reason (at least 5 characters).'); return; }
             showVoidError('');
+            setBtnLoading(voidBtn, true);
 
-            voidBtn.disabled = true;
-            voidBtn.classList.add('is-loading');
-            if (!voidBtn.querySelector('.spin-icon')) {
-                const spinner = document.createElement('i');
-                spinner.className = 'feather-loader spin-icon';
-                voidBtn.insertBefore(spinner, voidBtn.firstChild);
-            }
-
-            fetch(`/admin/installments/${voidScheduleId}/void`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': csrfToken,
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                body: JSON.stringify({ reason }),
-            })
-            .then(res => res.json().then(data => ({ ok: res.ok, data })))
-            .then(({ ok, data }) => {
-                if (!ok || !data.success) {
-                    const firstError = data.errors ? Object.values(data.errors)[0]?.[0] : null;
-                    showVoidError(firstError || data.message || 'Failed to void the payment.');
-                    return;
-                }
-                // Reload so the stats, progress, next due, and row status are all recomputed by the server
-                sessionStorage.setItem('olsFlashToast', data.message || 'Payment voided successfully.');
-                window.location.reload();
-            })
-            .catch(err => {
-                console.error('[ongoing-loan-detail.js] void error:', err);
-                showVoidError('Something went wrong. Please try again.');
-            })
-            .finally(() => {
-                voidBtn.disabled = false;
-                voidBtn.classList.remove('is-loading');
-                const spinner = voidBtn.querySelector('.spin-icon');
-                if (spinner) spinner.remove();
-            });
+            postJson('/admin/installments/' + voidScheduleId + '/void-request', { reason: reason })
+                .then(function (res) {
+                    if (!res.ok || !res.data.success) {
+                        showVoidError(firstMessage(res.data, 'Failed to submit the void request.'));
+                        setBtnLoading(voidBtn, false);
+                        return;
+                    }
+                    flashAndReload('Void Requested', res.data.message);
+                })
+                .catch(function (err) {
+                    console.error('[ongoing-loan-detail.js] void request error:', err);
+                    showVoidError('Something went wrong. Please try again.');
+                    setBtnLoading(voidBtn, false);
+                });
         });
     }
 
-    // ---- Send Proof of Release ----
-    // ISANG BESES lang per loan: proof na na-release na ang loan sa borrower -> ie-email sa borrower.
-    // Ang button ay nasa page header (hindi na sa row ng installment).
+    const voteModalEl = document.getElementById('olsVoteVoidModal');
+    if (voteModalEl) {
+        const $ = function (id) { return document.getElementById(id); };
+        const approveBtn = $('olsVvApprove');
+        const rejectBtn = $('olsVvReject');
+        const cancelBtn = $('olsVvCancel');
+        const remarksField = $('olsVvRemarksField');
+        const remarksInput = $('olsVvRemarks');
+        const noteEl = $('olsVvNote');
+        const errEl = $('olsVvError');
+        let voteRequestId = null;
+
+        function showVoteError(msg) {
+            errEl.textContent = msg || '';
+            errEl.style.display = msg ? '' : 'none';
+        }
+
+        function renderVotes(votes) {
+            $('olsVvVotes').innerHTML = votes.length
+                ? votes.map(function (v) {
+                    const who = escapeHtml(v.name) + (v.me ? ' (You)' : '');
+                    const remarks = v.remarks ? '<div class="ols-vv-vote-remarks">' + escapeHtml(v.remarks) + '</div>' : '';
+                    return '<div class="ols-vv-vote">' +
+                        '<div class="ols-vv-vote-main"><span class="ols-vv-vote-name">' + who + '</span>' + remarks +
+                        '<span class="ols-vv-vote-time">' + escapeHtml(v.time) + '</span></div>' +
+                        '<span class="ols-vv-vote-state is-' + escapeHtml(v.decision) + '">' + escapeHtml(v.decision) + '</span></div>';
+                }).join('')
+                : '<div class="ols-vv-empty">No votes yet.</div>';
+        }
+
+        table.addEventListener('click', function (e) {
+            const btn = e.target.closest('.js-view-void-request');
+            if (!btn) return;
+            const d = btn.dataset;
+
+            let votes = [];
+            try { votes = JSON.parse(d.votes || '[]'); } catch (err) {}
+
+            const isRequester = d.isRequester === '1';
+            const hasVoted = votes.some(function (v) { return v.me; });
+
+            voteRequestId = d.requestId;
+            $('olsVvInstallment').textContent = '#' + d.installmentNo;
+            $('olsVvAmount').textContent = d.amount;
+            $('olsVvRequester').textContent = d.requester;
+            $('olsVvDate').textContent = d.requestedAt;
+            $('olsVvReason').textContent = d.reason;
+            $('olsVvCount').textContent = d.approvals;
+            renderVotes(votes);
+
+            remarksInput.value = '';
+            showVoteError('');
+            remarksField.style.display = hasVoted ? 'none' : '';
+            approveBtn.style.display = hasVoted ? 'none' : '';
+            rejectBtn.style.display = hasVoted ? 'none' : '';
+            cancelBtn.style.display = isRequester ? '' : 'none';
+
+            const note = isRequester
+                ? 'You requested this void. You can cancel it while it is still pending.'
+                : (hasVoted ? 'You already voted on this request.' : '');
+            noteEl.textContent = note;
+            noteEl.style.display = note ? '' : 'none';
+
+            bootstrap.Modal.getOrCreateInstance(voteModalEl).show();
+        });
+
+        function submitVote(decision, btn, successTitle) {
+            if (!voteRequestId) return;
+            const remarks = remarksInput.value.trim();
+            if (decision === 'rejected' && remarks.length < 3) {
+                showVoteError('Please enter a remark when rejecting.');
+                return;
+            }
+            showVoteError('');
+            setBtnLoading(btn, true);
+
+            postJson('/admin/void-requests/' + voteRequestId + '/vote', { decision: decision, remarks: remarks })
+                .then(function (res) {
+                    if (!res.ok || !res.data.success) {
+                        showVoteError(firstMessage(res.data, 'Failed to record your vote.'));
+                        setBtnLoading(btn, false);
+                        return;
+                    }
+                    flashAndReload(successTitle, res.data.message);
+                })
+                .catch(function (err) {
+                    console.error('[ongoing-loan-detail.js] vote error:', err);
+                    showVoteError('Something went wrong. Please try again.');
+                    setBtnLoading(btn, false);
+                });
+        }
+
+        approveBtn.addEventListener('click', function () { submitVote('approved', approveBtn, 'Vote Recorded'); });
+        rejectBtn.addEventListener('click', function () { submitVote('rejected', rejectBtn, 'Void Rejected'); });
+
+        cancelBtn.addEventListener('click', function () {
+            if (!voteRequestId) return;
+            showVoteError('');
+            setBtnLoading(cancelBtn, true);
+
+            postJson('/admin/void-requests/' + voteRequestId + '/cancel', {})
+                .then(function (res) {
+                    if (!res.ok || !res.data.success) {
+                        showVoteError(firstMessage(res.data, 'Failed to cancel the request.'));
+                        setBtnLoading(cancelBtn, false);
+                        return;
+                    }
+                    flashAndReload('Request Cancelled', res.data.message);
+                })
+                .catch(function (err) {
+                    console.error('[ongoing-loan-detail.js] cancel void error:', err);
+                    showVoteError('Something went wrong. Please try again.');
+                    setBtnLoading(cancelBtn, false);
+                });
+        });
+    }
+
     const proofModalEl = document.getElementById('olsSendProofModal');
     const proofOpenBtn = document.getElementById('olsSendProofBtn');
     if (proofModalEl && proofOpenBtn) {
@@ -601,7 +710,6 @@ document.addEventListener('DOMContentLoaded', function () {
             showProofError('');
         });
 
-        // Buksan ang modal mula sa "Send Proof of Release" button sa header
         proofOpenBtn.addEventListener('click', function () {
             document.getElementById('olsProofAmount').textContent = proofOpenBtn.dataset.amount;
             document.getElementById('olsProofBorrowerName').textContent = proofOpenBtn.dataset.borrowerName;
@@ -624,13 +732,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const formData = new FormData();
             formData.append('proof', proofFile);
 
-            proofSendBtn.disabled = true;
-            proofSendBtn.classList.add('is-loading');
-            if (!proofSendBtn.querySelector('.spin-icon')) {
-                const spinner = document.createElement('i');
-                spinner.className = 'feather-loader spin-icon';
-                proofSendBtn.insertBefore(spinner, proofSendBtn.firstChild);
-            }
+            setBtnLoading(proofSendBtn, true);
 
             fetch(`/admin/loans/${proofApplicationId}/send-proof`, {
                 method: 'POST',
@@ -638,15 +740,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     'X-CSRF-TOKEN': csrfToken,
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
-                    // Huwag mag-set ng Content-Type — ang browser ang bahala (multipart boundary)
                 },
                 body: formData,
             })
             .then(res => res.json().then(data => ({ ok: res.ok, data })))
             .then(({ ok, data }) => {
                 if (!ok || !data.success) {
-                    const firstError = data.errors ? Object.values(data.errors)[0]?.[0] : null;
-                    showProofError(firstError || data.message || 'Failed to send the proof.');
+                    showProofError(firstMessage(data, 'Failed to send the proof.'));
                     return;
                 }
 
@@ -662,42 +762,29 @@ document.addEventListener('DOMContentLoaded', function () {
                 showProofError('Something went wrong. Please try again.');
             })
             .finally(() => {
-                proofSendBtn.disabled = false;
-                proofSendBtn.classList.remove('is-loading');
-                const spinner = proofSendBtn.querySelector('.spin-icon');
-                if (spinner) spinner.remove();
+                setBtnLoading(proofSendBtn, false);
             });
         });
     }
 
-    // ---- Step 2: confirm -> fire the actual request ----
     confirmBtn.addEventListener('click', function () {
         if (!pendingScheduleId || !pendingBtn) return;
 
-        // Client-side validation (server pa rin ang final na authority)
         showError('');
         const paidDate = paidDateInput.value;
         if (!paidDate) { showError('Please select the date the payment was made.'); return; }
         if (paidDate > todayLocal()) { showError('The payment date cannot be in the future.'); return; }
 
         const scheduleId = pendingScheduleId;
-        const btn = pendingBtn;
         const row = table.querySelector(`tr[data-schedule-row="${scheduleId}"]`);
 
         const formData = new FormData();
         formData.append('paid_date', paidDate);
-        // Receipt ng borrower lang ang puwedeng isama (galing sa View Receipt)
         if (useBorrowerReceipt) {
             formData.append('use_borrower_receipt', '1');
         }
 
-        confirmBtn.disabled = true;
-        confirmBtn.classList.add('is-loading');
-        if (!confirmBtn.querySelector('.spin-icon')) {
-            const spinner = document.createElement('i');
-            spinner.className = 'feather-loader spin-icon';
-            confirmBtn.insertBefore(spinner, confirmBtn.firstChild);
-        }
+        setBtnLoading(confirmBtn, true);
 
         fetch(`/admin/installments/${scheduleId}/mark-paid`, {
             method: 'POST',
@@ -705,15 +792,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 'X-CSRF-TOKEN': csrfToken,
                 'Accept': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
-                // Huwag mag-set ng Content-Type — ang browser ang bahala (multipart boundary)
             },
             body: formData,
         })
         .then(res => res.json().then(data => ({ ok: res.ok, data })))
         .then(({ ok, data }) => {
             if (!ok || !data.success) {
-                const firstError = data.errors ? Object.values(data.errors)[0]?.[0] : null;
-                showError(firstError || data.message || 'Failed to mark as paid.');
+                showError(firstMessage(data, 'Failed to mark as paid.'));
                 return;
             }
 
@@ -723,18 +808,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 row.querySelector('[data-field="progress_pct"]').textContent = '100%';
                 row.querySelector('[data-field="paid_on"]').textContent = data.paid_on_display;
                 row.querySelector('[data-field="due_sub"]').textContent = 'Paid';
-                // Pinapalitan din nito ang "Receipt submitted" flag sa status cell
                 row.querySelector('[data-field="status"]').innerHTML =
-                    '<span class="ols-status-pill is-paid"><i class="feather-check-circle"></i> Paid</span>';
+                    '<span class="ols-status-pill is-paid">Paid</span>';
 
-                // Replace "Record Payment" (at "View Receipt") with the "Recorded" note, keep the kebab dropdown
                 const actionsCell = row.querySelector('[data-field="action"] .ols-actions-cell');
                 const kebab = actionsCell.querySelector('.ols-kebab-wrap');
                 actionsCell.innerHTML = '<span class="sched-paid-note">Recorded</span>';
                 actionsCell.appendChild(kebab);
-                kebab.classList.remove('d-none'); // lalabas na ang View Payment Details / Void
+                kebab.classList.remove('d-none');
 
-                // Keep the "View Payment Details" modal data in sync with the newly recorded payment
                 const detailsBtn = row.querySelector('.js-view-payment-details');
                 if (detailsBtn) {
                     const longDate = dt => dt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -746,7 +828,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     detailsBtn.dataset.receiptUrl = data.receipt_url || '';
                 }
 
-                // Reveal "Void Payment" for the newly recorded payment
                 const voidItem = row.querySelector('.js-void-item');
                 if (voidItem) {
                     voidItem.classList.remove('d-none');
@@ -785,16 +866,12 @@ document.addEventListener('DOMContentLoaded', function () {
             showError('Something went wrong. Please try again.');
         })
         .finally(() => {
-            confirmBtn.disabled = false;
-            confirmBtn.classList.remove('is-loading');
-            const spinner = confirmBtn.querySelector('.spin-icon');
-            if (spinner) spinner.remove();
+            setBtnLoading(confirmBtn, false);
             pendingScheduleId = null;
             pendingBtn = null;
         });
     });
 
-    // ---- Simple client-side pagination (10 rows per page) ----
     const rows = Array.from(table.querySelectorAll('tbody tr[data-page-row]'));
     const rowsPerPage = 10;
     let currentPage = 1;

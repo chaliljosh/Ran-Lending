@@ -184,3 +184,181 @@ html.app-skin-dark .adm-table tfoot td {
     .rpt-select { flex: 1 1 45%; }
     .rpt-export-btn { flex: 1 1 100%; justify-content: center; }
 }
+
+
+/* ============ Approved Applications pagination ============ */
+/* I-paste ito sa dulo ng assets/admin/css/admin-reports.css */
+
+.rpt-pager {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 14px 24px;
+    border-top: 1px solid rgba(128, 128, 128, 0.2);
+    font-size: 14px;
+}
+
+.rpt-pager-size {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #6b7280;
+}
+
+.rpt-pager-size .rpt-page-size {
+    width: auto;
+    min-width: 80px;
+    padding: 6px 28px 6px 12px;
+    font-size: 14px;
+}
+
+.rpt-pager-info {
+    color: #6b7280;
+}
+
+.rpt-pager-info strong {
+    color: inherit;
+    font-weight: 600;
+}
+
+.rpt-pager-nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 36px;
+}
+
+.rpt-page-btn {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.rpt-page-btn:hover:not(:disabled):not(.is-active) {
+    background: rgba(128, 128, 128, 0.15);
+}
+
+.rpt-page-btn.is-active {
+    background: #2563eb;
+    color: #fff;
+    font-weight: 600;
+}
+
+.rpt-page-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.rpt-page-dots {
+    padding: 0 4px;
+    color: #6b7280;
+}
+
+@media (max-width: 767px) {
+    .rpt-pager {
+        justify-content: center;
+        padding: 12px 16px;
+    }
+}
+
+/* ============ Approved Applications pagination ============ */
+/* I-paste ito sa dulo ng assets/admin/css/admin-reports.css */
+
+.rpt-pager {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 24px;
+    border-top: 1px solid rgba(128, 128, 128, 0.2);
+    font-size: 14px;
+}
+
+.rpt-pager-left {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+}
+
+.rpt-pager-size {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #6b7280;
+}
+
+.rpt-pager-size .rpt-page-size {
+    width: auto;
+    min-width: 80px;
+    padding: 6px 28px 6px 12px;
+    font-size: 14px;
+}
+
+.rpt-pager-info {
+    color: #6b7280;
+}
+
+.rpt-pager-info strong {
+    color: inherit;
+    font-weight: 600;
+}
+
+.rpt-pager-nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 36px;
+}
+
+.rpt-page-btn {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.rpt-page-btn:hover:not(:disabled):not(.is-active) {
+    background: rgba(128, 128, 128, 0.15);
+}
+
+.rpt-page-btn.is-active {
+    background: #2563eb;
+    color: #fff;
+    font-weight: 600;
+}
+
+.rpt-page-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.rpt-page-dots {
+    padding: 0 4px;
+    color: #6b7280;
+}
+
+@media (max-width: 767px) {
+    .rpt-pager {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        padding: 12px 16px;
+    }
+
+    .rpt-pager-left {
+        justify-content: center;
+    }
+}

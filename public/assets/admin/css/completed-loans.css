@@ -1,13 +1,3 @@
-/* ========================================================
-   COMPLETED LOANS — REDESIGN
-   Same white-bg / bordered-card / soft-shadow treatment as
-   Active Borrowers (.rs-card pattern), same plain-outline-icon
-   stat card style (label + icon top row, big number, muted
-   subtext underneath), same table/filter/pagination typography
-   and spacing tokens. Green pa rin ang pangunahing accent dito
-   dahil "success" state ito (fully paid loans).
-   ======================================================== */
-
 :root {
     --rs-brand: #4a7cf7;
     --rs-brand-soft: #eef3ff;
@@ -45,9 +35,6 @@ body { background: var(--rs-bg); }
     box-shadow: var(--rs-shadow) !important;
 }
 
-/* ── Stat cards — plain white card, outline icon top-right,
-       bold number, muted subtext underneath (matched to
-       Active Borrowers' stat card treatment) ── */
 .stats-grid-v2 {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -91,13 +78,13 @@ body { background: var(--rs-bg); }
     color: #94a3b8;
 }
 
-/* ── Filter bar ── */
 .filter-bar-v2 {
-    display: flex; align-items: center; gap: 14px;
-    margin-bottom: 20px; flex-wrap: wrap;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--rs-border);
 }
 .search-wrap-v2 {
-    flex: 1; min-width: 260px;
+    flex: 0 1 400px; min-width: 260px;
     display: flex; align-items: center; gap: 10px;
     background: #fff; border: 1px solid var(--rs-border);
     border-radius: var(--rs-radius-sm); padding: 0 16px;
@@ -118,8 +105,8 @@ body { background: var(--rs-bg); }
     padding: 0 16px; background: #fff;
 }
 .sort-select-v2:focus { border-color: var(--rs-brand); box-shadow: 0 0 0 3px var(--rs-brand-soft); }
+.filter-bar-v2 #monthFilter { margin-left: auto; }
 
-/* ── Table ── */
 .rs-table-card { overflow: hidden; }
 .rs-table thead th {
     background: #fbfcfe; color: var(--rs-muted);
@@ -135,12 +122,6 @@ body { background: var(--rs-bg); }
 .rs-table tbody tr:hover { background: #fafbfd; }
 
 .borrower-cell-v2 { display: flex; align-items: center; gap: 12px; }
-.borrower-avatar-v2 {
-    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
-    background: linear-gradient(135deg, var(--rs-green), #4ade80);
-    display: flex; align-items: center; justify-content: center;
-    color: #fff; font-weight: 700; font-size: 0.78rem;
-}
 .borrower-name-v2 { font-weight: 700; color: var(--rs-ink); font-size: 0.87rem; }
 .borrower-id-v2 { font-size: 0.7rem; color: var(--rs-brand); font-weight: 600; margin: 1px 0; }
 .borrower-email-v2 { font-size: 0.76rem; color: var(--rs-muted); }
@@ -161,108 +142,70 @@ body { background: var(--rs-bg); }
 
 .btn-view-v2 {
     display: inline-flex; align-items: center; gap: 6px;
-    padding: 8px 16px; border-radius: 20px;
+    padding: 8px 16px; border-radius: 8px;
     border: 1px solid var(--rs-border); background: #fff;
     font-size: 0.78rem; font-weight: 600; color: var(--rs-ink);
-    transition: all .15s ease;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
 }
 .btn-view-v2:hover { border-color: var(--rs-brand); color: var(--rs-brand); background: var(--rs-brand-soft); }
 
-/* ── Empty / no-results state ── */
 .empty-state-v2 { text-align: center; padding: 64px 20px; }
+#filteredNoResults { display: none; }
 .empty-state-v2 i { font-size: 42px; color: var(--rs-muted); }
 .empty-state-v2 h6 { margin-top: 14px; font-weight: 700; color: var(--rs-ink); }
 .empty-state-v2 p { color: var(--rs-muted); font-size: 0.85rem; margin: 0; }
 
-/* ── Rows per page (label + small select) ── */
-.rows-per-page-v2 {
-    display: flex;
+.pagination-bar-v2 {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    gap: 10px;
-    white-space: nowrap;
+    gap: 12px;
+    padding: 14px 20px;
+    border-top: 1px solid var(--rs-border);
+    background: #fbfcfe;
+}
+.pagination-left-v2 {
+    display: flex; align-items: center; flex-wrap: wrap;
+    gap: 12px 24px;
+}
+.rows-per-page-v2 {
+    display: flex; align-items: center; gap: 10px; flex-shrink: 0;
 }
 .rows-per-page-label-v2 {
-    font-size: 0.83rem;
-    font-weight: 500;
-    color: var(--rs-body);
+    font-size: 0.8rem; font-weight: 500; color: var(--rs-muted);
+    white-space: nowrap; margin: 0;
 }
 .rows-per-page-select-v2 {
-    height: 46px;
-    width: 72px;
-    border: 1px solid var(--rs-border);
-    border-radius: var(--rs-radius-sm);
-    font-size: 0.83rem;
-    font-weight: 500;
-    color: var(--rs-ink);
-    padding: 0 10px;
-    background: #fff;
-    text-align: center;
+    height: 38px; border: 1px solid var(--rs-border); border-radius: var(--rs-radius-sm);
+    font-size: 0.83rem; font-weight: 500; color: var(--rs-ink);
+    padding: 0 12px; background: #fff;
 }
-.rows-per-page-select-v2:focus {
-    border-color: var(--rs-brand);
-    box-shadow: 0 0 0 3px var(--rs-brand-soft);
-}
+.rows-per-page-select-v2:focus { border-color: var(--rs-brand); box-shadow: 0 0 0 3px var(--rs-brand-soft); }
 
-/* ── Pagination bar ── */
-.pagination-wrap-v2 {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-    flex-wrap: wrap;
-    padding: 16px 20px;
-    border-top: 1px solid var(--rs-border);
-}
-.pagination-info-v2 {
-    font-size: 0.78rem;
-    color: var(--rs-muted);
-    font-weight: 500;
-}
-.pagination-buttons-v2 {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
-.page-status-v2 {
-    font-size: 0.83rem;
-    font-weight: 600;
-    color: var(--rs-ink);
-}
-.prev-next-btn-v2 {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    height: 38px;
-    padding: 0 16px;
-    border: 1px solid var(--rs-border);
-    background: #fff;
-    border-radius: 20px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--rs-ink);
-    transition: all .15s ease;
-}
-.prev-next-btn-v2:hover:not(:disabled) {
-    border-color: var(--rs-brand);
-    color: var(--rs-brand);
-    background: var(--rs-brand-soft);
-}
-.prev-next-btn-v2:disabled {
-    opacity: .4;
-    cursor: not-allowed;
-}
-/* ══════════════════════════════════════════
-   DARK MODE — TRUE BLACK PALETTE
-   Kinopya ang eksaktong color scheme ng ibang admin detail pages
-   (#0A0A0A background, #141414 cards, #262626 borders, #F5F5F5 text,
-   #9A9A9A muted text). Nasa dulo ito ng file para mag-override sa
-   lahat ng naunang navy-blue (#0f172a, #1e2a3a, #2d3f55, #16202e)
-   na dark mode rules.
+.pagination-info-v2 { font-size: 0.8rem; color: var(--rs-muted); }
+.pagination-info-v2 strong { color: var(--rs-ink); font-weight: 600; }
 
-   Green pa rin ang "success" accent dito (repaid amount, completed
-   badge, check icon) dahil status color ito, hindi theme accent.
-   Ang Borrower ID (dating blue) lang ang ginawang neutral.
-   ══════════════════════════════════════════ */
+.pagination-nav-v2 {
+    display: flex; align-items: center; gap: 6px; min-height: 36px;
+}
+.btn-page-num-v2 {
+    min-width: 36px; height: 36px; padding: 0 8px;
+    border: 0; border-radius: 8px;
+    background: transparent; color: var(--rs-body);
+    font-size: 0.85rem; font-weight: 600; cursor: pointer;
+    transition: background-color .15s ease, color .15s ease;
+}
+.btn-page-num-v2:hover:not(:disabled):not(.is-active) { background: var(--rs-brand-soft); color: var(--rs-brand); }
+.btn-page-num-v2.is-active { background: var(--rs-brand); color: #fff; }
+.btn-page-num-v2:disabled { opacity: .35; cursor: not-allowed; }
+.page-dots-v2 { padding: 0 4px; color: var(--rs-muted); }
+
+@media (max-width: 767.98px) {
+    .stats-grid-v2 { grid-template-columns: 1fr; }
+    .pagination-bar-v2 { grid-template-columns: 1fr; justify-items: center; }
+    .pagination-left-v2 { justify-content: center; }
+    .filter-bar-v2 #monthFilter { margin-left: 0; }
+}
 
 html.app-skin-dark body { background: #0A0A0A !important; }
 html.app-skin-dark .nxl-content { background: #0A0A0A !important; }
@@ -287,7 +230,7 @@ html.app-skin-dark .empty-state-v2 p {
 }
 html.app-skin-dark .stat-icon-v2 { color: #C4C4C4 !important; }
 
-/* ---------- Search / sort / rows-per-page ---------- */
+html.app-skin-dark .filter-bar-v2 { border-color: #262626 !important; }
 html.app-skin-dark .search-wrap-v2 {
     background: #0d0d0d !important;
     border-color: #262626 !important;
@@ -297,13 +240,15 @@ html.app-skin-dark .search-wrap-v2 input::placeholder { color: #6b6b6b !importan
 html.app-skin-dark .search-wrap-v2 i { color: #9A9A9A !important; }
 
 html.app-skin-dark .sort-select-v2,
-html.app-skin-dark #sortFilter {
+html.app-skin-dark #sortFilter,
+html.app-skin-dark #monthFilter {
     background-color: #0d0d0d !important;
     border-color: #262626 !important;
     color: #F5F5F5 !important;
 }
 html.app-skin-dark .sort-select-v2 option,
-html.app-skin-dark #sortFilter option {
+html.app-skin-dark #sortFilter option,
+html.app-skin-dark #monthFilter option {
     background-color: #0d0d0d !important;
     color: #F5F5F5 !important;
 }
@@ -314,7 +259,6 @@ html.app-skin-dark .rows-per-page-select-v2 {
     color: #F5F5F5 !important;
 }
 
-/* ---------- Table ---------- */
 html.app-skin-dark .rs-table thead th {
     background: #0d0d0d !important;
     border-color: #262626 !important;
@@ -326,23 +270,14 @@ html.app-skin-dark .rs-table tbody td {
 }
 html.app-skin-dark .rs-table tbody tr:hover { background: #16181c !important; }
 
-/* Borrower ID — dating blue, ginawang neutral gray */
 html.app-skin-dark .borrower-id-v2 { color: #C4C4C4 !important; }
 
-/* Avatar gradient — pinanatili ang green (success indicator para sa
-   completed loans), pero pinatingkad para maganda pa rin sa itim */
-html.app-skin-dark .borrower-avatar-v2 {
-    background: linear-gradient(135deg, #16a34a, #4ade80) !important;
-}
-
-/* ---------- Repaid amount + completed badge (status color — kept green) ---------- */
 html.app-skin-dark .repaid-amount-v2 { color: #4ade80 !important; }
 html.app-skin-dark .completed-badge {
     background: rgba(22,163,74,.18) !important;
     color: #4ade80 !important;
 }
 
-/* ---------- "View Details" button ---------- */
 html.app-skin-dark .btn-view-v2 {
     background: #0d0d0d !important;
     border-color: #262626 !important;
@@ -354,32 +289,28 @@ html.app-skin-dark .btn-view-v2:hover {
     background: #262626 !important;
 }
 
-/* ---------- Empty state ---------- */
 html.app-skin-dark .empty-state-v2 i { color: #9A9A9A !important; }
 
-/* ---------- Pagination ---------- */
-html.app-skin-dark .pagination-wrap-v2 { border-color: #262626 !important; }
-html.app-skin-dark .pagination-info-v2 { color: #9A9A9A !important; }
-html.app-skin-dark .page-status-v2 { color: #F5F5F5 !important; }
-html.app-skin-dark .prev-next-btn-v2 {
-    background-color: #141414 !important;
+html.app-skin-dark .pagination-bar-v2 {
+    background: #141414 !important;
     border-color: #262626 !important;
-    color: #F5F5F5 !important;
 }
-html.app-skin-dark .prev-next-btn-v2:hover:not(:disabled) {
-    border-color: #4a4a4a !important;
-    color: #F5F5F5 !important;
-    background: #262626 !important;
+html.app-skin-dark .pagination-info-v2 { color: #9A9A9A !important; }
+html.app-skin-dark .pagination-info-v2 strong { color: #F5F5F5 !important; }
+html.app-skin-dark .page-dots-v2 { color: #9A9A9A !important; }
+html.app-skin-dark .btn-page-num-v2 {
+    background: transparent !important;
+    color: #cbd5e1 !important;
+}
+html.app-skin-dark .btn-page-num-v2:hover:not(:disabled):not(.is-active) {
+    background: rgba(74,124,247,.15) !important;
+    color: #93c5fd !important;
+}
+html.app-skin-dark .btn-page-num-v2.is-active {
+    background: var(--rs-brand) !important;
+    color: #fff !important;
 }
 
-/* ══════════════════════════════════════════
-   FIX: Bootstrap table CSS variables
-   Ang <table class="table rs-table"> ay may Bootstrap "table" class,
-   kaya gumagamit ito ng --bs-table-bg / --bs-table-hover-bg custom
-   properties na may mas mataas na specificity kaysa sa plain
-   "background" override — parehong fix na ginamit sa Overdue Payments
-   at Borrowers pages.
-   ══════════════════════════════════════════ */
 html.app-skin-dark .rs-table,
 html.app-skin-dark .rs-table > :not(caption) > * {
     --bs-table-bg: transparent !important;
@@ -399,7 +330,6 @@ html.app-skin-dark .rs-table tbody tr td {
     box-shadow: none !important;
 }
 
-/* ── Footer sa ibaba ── */
 .nxl-container {
     min-height: calc(100vh - 80px) !important;
     display: flex !important;
@@ -413,7 +343,6 @@ html.app-skin-dark .rs-table tbody tr td {
 .nxl-content .main-content { flex: 1 !important; }
 .footer { flex-shrink: 0 !important; margin-top: auto !important; }
 
-/* ---------- Clickable rows ---------- */
 .rs-clickable-row {
     cursor: pointer;
 }

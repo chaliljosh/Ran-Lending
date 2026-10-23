@@ -438,10 +438,41 @@ public function verificationDetail(Request $request, $id)
 
     // Kunin ang uuid ng lahat ng application na lalabas sa notifications (isang query lang).
     // Ginagamit ito sa mga link papunta sa loan-application-detail.
+       // ---- Void requests ----
+    // Para sa ibang admin: may void request na hinihintay ang boto nila
+    $pendingVoids = DB::table('payment_void_requests as r')
+        ->join('users as req', 'r.requested_by', '=', 'req.user_id')
+        ->join('loan_payment_schedules as sch', 'r.schedule_id', '=', 'sch.id')
+        ->where('r.status', 'pending')
+        ->where('r.requested_by', '!=', $adminId)
+        ->whereNotExists(function ($q) use ($adminId) {
+            $q->select(DB::raw(1))->from('payment_void_votes as v')
+                ->whereColumn('v.request_id', 'r.id')
+                ->where('v.admin_id', $adminId);
+        })
+        ->select('r.id', 'r.application_id', 'r.created_at', 'req.name as requester_name', 'sch.installment_no')
+        ->orderByDesc('r.created_at')
+        ->limit(20)
+        ->get();
+
+    // Para sa nag-request: approved o rejected na (huling 7 araw)
+    $voidResults = DB::table('payment_void_requests as r')
+        ->join('loan_payment_schedules as sch', 'r.schedule_id', '=', 'sch.id')
+        ->where('r.requested_by', $adminId)
+        ->whereIn('r.status', ['approved', 'rejected'])
+        ->where('r.resolved_at', '>=', now()->subDays(7))
+        ->select('r.id', 'r.application_id', 'r.status', 'r.resolved_at', 'sch.installment_no')
+        ->orderByDesc('r.resolved_at')
+        ->limit(10)
+        ->get();
+
+    // Kunin ang uuid ng lahat ng application na lalabas sa notifications (isang query lang).
     $loanUuids = DB::table('loan_applications')
         ->whereIn('application_id', $pendingLoans->pluck('application_id')
             ->merge($onHoldLoans->pluck('application_id'))
             ->merge($overdueRows->pluck('application_id'))
+            ->merge($pendingVoids->pluck('application_id'))
+            ->merge($voidResults->pluck('application_id'))
             ->unique()
             ->all())
         ->pluck('uuid', 'application_id');
@@ -485,6 +516,32 @@ public function verificationDetail(Request $request, $id)
         ]);
     }
 
+        foreach ($pendingVoids as $row) {
+        $items->push([
+            'key'      => 'void:' . $row->id,
+            'title'    => 'Void Request Needs Your Vote',
+            'subtitle' => ($row->requester_name ?? 'An admin') . ' · Installment #' . $row->installment_no,
+            'icon'     => 'feather-rotate-ccw',
+            'color'    => 'warning',
+            'url'      => route('admin.ongoing-loan-detail', $loanUuids[$row->application_id]) . '?from=ongoing-loans',
+            'ts'       => $row->created_at,
+        ]);
+    }
+
+
+    foreach ($voidResults as $row) {
+        $approved = $row->status === 'approved';
+        $items->push([
+            'key'      => 'voidresult:' . $row->id,
+            'title'    => $approved ? 'Void Request Approved' : 'Void Request Rejected',
+            'subtitle' => 'Installment #' . $row->installment_no,
+            'icon'     => $approved ? 'feather-check-circle' : 'feather-x-circle',
+            'color'    => $approved ? 'success' : 'danger',
+            'url'      => route('admin.ongoing-loan-detail', $loanUuids[$row->application_id]) . '?from=ongoing-loans',
+            'ts'       => $row->resolved_at,
+        ]);
+    }
+
     return $items
         ->map(function ($n) use ($readKeys) {
             $n['read'] = $readKeys->has($n['key']);
@@ -492,6 +549,15 @@ public function verificationDetail(Request $request, $id)
         })
         ->sortByDesc('ts')
         ->values();
+}
+
+private function forgetAllAdminNotificationCaches(): void
+{
+    $adminIds = DB::table('users')->where('role', 'admin')->pluck('user_id');
+    foreach ($adminIds as $aid) {
+        Cache::forget("admin_notifications_{$aid}");
+    }
+    Cache::forget('admin_recent_activity');
 }
 
     public function notificationOpen(Request $request, $key)
@@ -841,11 +907,10 @@ public function ongoingLoans(Request $request)
         'pendingLoanCount' => $this->getPendingLoanCount($adminId),
     ]);
 }
-     public function ongoingLoanDetail(Request $request, $uuid)
+    public function ongoingLoanDetail(Request $request, $uuid)
 {
     $adminId = Session::get('user_id');
 
-    // UUID lang ang nasa URL. Ang integer na application_id ay internal na lang.
     $applicationId = (int) DB::table('loan_applications')
         ->where('uuid', $uuid)
         ->value('application_id');
@@ -869,18 +934,43 @@ public function ongoingLoans(Request $request)
     $monthlyPayment = $totalCount > 0 ? ($app->total_amount / $totalCount) : 0;
     $totalInterest = max(0, $app->total_amount - $app->loan_amount);
 
-    // Interest rate PER MONTH: total interest ÷ loan amount ÷ number of months
     $term = (int) ($app->loan_term ?: $totalCount);
     $interestRate = ($app->loan_amount > 0 && $term > 0)
         ? round(($totalInterest / $app->loan_amount / $term) * 100, 2)
         : 0;
 
-    // Mga receipt na in-upload ng borrower na hinihintay pa ang admin
     $borrowerReceipts = DB::table('payment_receipts')
         ->where('application_id', $applicationId)
         ->where('status', 'submitted')
         ->get()
         ->keyBy('schedule_id');
+
+    $voidRequests = DB::table('payment_void_requests as r')
+        ->join('users as u', 'r.requested_by', '=', 'u.user_id')
+        ->join('loan_payment_schedules as sch', 'r.schedule_id', '=', 'sch.id')
+        ->where('r.application_id', $applicationId)
+        ->where('r.status', 'pending')
+        ->select('r.*', 'u.name as requester_name', 'sch.installment_no')
+        ->get()
+        ->keyBy('schedule_id');
+
+    $voidHistory = DB::table('payment_void_requests as r')
+        ->join('users as u', 'r.requested_by', '=', 'u.user_id')
+        ->join('loan_payment_schedules as sch', 'r.schedule_id', '=', 'sch.id')
+        ->where('r.application_id', $applicationId)
+        ->where('r.status', '!=', 'pending')
+        ->select('r.*', 'u.name as requester_name', 'sch.installment_no')
+        ->orderByDesc('r.resolved_at')
+        ->limit(10)
+        ->get();
+
+    $voidVotes = DB::table('payment_void_votes as v')
+        ->join('users as u', 'v.admin_id', '=', 'u.user_id')
+        ->whereIn('v.request_id', $voidRequests->pluck('id')->merge($voidHistory->pluck('id'))->all())
+        ->select('v.*', 'u.name as admin_name')
+        ->orderBy('v.reviewed_at')
+        ->get()
+        ->groupBy('request_id');
 
     return view('admin.ongoing-loan-detail', [
         'app' => $app,
@@ -897,6 +987,10 @@ public function ongoingLoans(Request $request)
         'monthlyPayment' => $monthlyPayment,
         'totalInterest' => $totalInterest,
         'interestRate' => $interestRate,
+        'voidRequests' => $voidRequests,
+        'voidHistory' => $voidHistory,
+        'voidVotes' => $voidVotes,
+        'requiredVoidApprovals' => self::REQUIRED_VOID_APPROVALS,
         'pendingCount' => $this->getPendingVerificationCount($adminId),
         'pendingLoanCount' => $this->getPendingLoanCount($adminId),
     ]);
@@ -1573,7 +1667,7 @@ public function borrowerReceiptFile(Request $request, $id)
     return redirect($disk->temporaryUrl($receipt->user_file_path, now()->addMinutes(10)));
 }
 
-public function voidPayment(Request $request, $id)
+public function requestVoid(Request $request, $id)
 {
     $request->validate([
         'reason' => 'required|string|min:5|max:500',
@@ -1583,10 +1677,10 @@ public function voidPayment(Request $request, $id)
     ]);
 
     $adminId = Session::get('user_id');
+    $reason = trim($request->input('reason'));
 
     try {
-        // Ibinabalik ng transaction ang schedule row (bago ma-void) para magamit sa email
-        $voided = DB::transaction(function () use ($request, $id, $adminId) {
+        $result = DB::transaction(function () use ($id, $adminId, $reason) {
             $schedule = DB::table('loan_payment_schedules')
                 ->where('id', $id)
                 ->lockForUpdate()
@@ -1599,49 +1693,239 @@ public function voidPayment(Request $request, $id)
                 throw new \RuntimeException('This installment is not recorded as paid.');
             }
 
-            DB::table('installment_payment_logs')->insert([
-                'installment_id' => $schedule->id,
-                'action'         => 'voided',
-                'amount'         => $schedule->amount_paid,
-                'paid_at'        => \Carbon\Carbon::parse($schedule->paid_at)->toDateString(),
-                'receipt_path'   => $schedule->receipt_path,
-                'reason'         => trim($request->input('reason')),
-                'admin_id'       => $adminId,
-                'created_at'     => now(),
+            $hasPending = DB::table('payment_void_requests')
+                ->where('schedule_id', $id)
+                ->where('status', 'pending')
+                ->exists();
+
+            if ($hasPending) {
+                throw new \RuntimeException('There is already a pending void request for this installment.');
+            }
+
+            $requestId = DB::table('payment_void_requests')->insertGetId([
+                'schedule_id'           => $schedule->id,
+                'application_id'        => $schedule->application_id,
+                'requested_by'          => $adminId,
+                'reason'                => $reason,
+                'amount_snapshot'       => $schedule->amount_paid,
+                'paid_at_snapshot'      => \Carbon\Carbon::parse($schedule->paid_at)->toDateString(),
+                'receipt_path_snapshot' => $schedule->receipt_path,
+                'status'                => 'pending',
+                'created_at'            => now(),
+                'updated_at'            => now(),
             ]);
 
-            DB::table('loan_payment_schedules')
+            DB::table('payment_void_votes')->insert([
+                'request_id'  => $requestId,
+                'admin_id'    => $adminId,
+                'decision'    => 'approved',
+                'remarks'     => null,
+                'reviewed_at' => now(),
+            ]);
+
+            return ['request_id' => $requestId, 'schedule' => $schedule];
+        });
+    } catch (\RuntimeException $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+    } catch (\Illuminate\Database\QueryException $e) {
+        if ($e->getCode() === '23505') {
+            return response()->json([
+                'success' => false,
+                'message' => 'There is already a pending void request for this installment.',
+            ], 422);
+        }
+        Log::error("Void request failed (schedule {$id}): " . $e->getMessage());
+        return response()->json(['success' => false, 'message' => 'Failed to submit the void request.'], 500);
+    } catch (\Throwable $e) {
+        Log::error("Void request failed (schedule {$id}): " . $e->getMessage());
+        return response()->json(['success' => false, 'message' => 'Failed to submit the void request.'], 500);
+    }
+
+    return response()->json([
+        'success'    => true,
+        'status'     => 'pending',
+        'request_id' => $result['request_id'],
+        'message'    => 'Void request submitted. Waiting for the other admins to vote.',
+    ]);
+}
+
+public function voteVoid(Request $request, $id)
+{
+  $request->validate([
+    'decision' => 'required|in:approved,rejected',
+    'remarks'  => 'required_if:decision,rejected|nullable|string|min:3|max:255',
+], [
+    'remarks.required_if' => 'Please enter a reason for rejecting this void request.',
+    'remarks.min'         => 'Remarks must be at least 3 characters.',
+]);
+
+    $adminId = Session::get('user_id');
+    $decision = $request->input('decision');
+    $remarks = trim((string) $request->input('remarks', ''));
+
+    try {
+        $result = DB::transaction(function () use ($id, $adminId, $decision, $remarks) {
+            $voidRequest = DB::table('payment_void_requests')
                 ->where('id', $id)
-                ->update([
-                    'paid_at'      => null,
-                    'amount_paid'  => 0,
-                    'receipt_path' => null,
+                ->lockForUpdate()
+                ->first();
+
+            if (!$voidRequest) {
+                throw new \RuntimeException('Void request not found.');
+            }
+            if ($voidRequest->status !== 'pending') {
+                throw new \RuntimeException('This void request is already ' . $voidRequest->status . '.');
+            }
+
+            $alreadyVoted = DB::table('payment_void_votes')
+                ->where('request_id', $id)
+                ->where('admin_id', $adminId)
+                ->exists();
+
+            if ($alreadyVoted) {
+                throw new \RuntimeException('You have already voted on this request.');
+            }
+
+            DB::table('payment_void_votes')->insert([
+                'request_id'  => $id,
+                'admin_id'    => $adminId,
+                'decision'    => $decision,
+                'remarks'     => $remarks !== '' ? $remarks : null,
+                'reviewed_at' => now(),
+            ]);
+
+            if ($decision === 'rejected') {
+                DB::table('payment_void_requests')->where('id', $id)->update([
+                    'status'      => 'rejected',
+                    'resolved_at' => now(),
+                    'updated_at'  => now(),
                 ]);
 
-            DB::table('loan_applications')
-                ->where('application_id', $schedule->application_id)
-                ->where('status', 'completed')
-                ->update(['status' => 'active']);
+                return ['status' => 'rejected', 'schedule' => null, 'reason' => null];
+            }
 
-            return $schedule;
+            $approvals = DB::table('payment_void_votes')
+                ->where('request_id', $id)
+                ->where('decision', 'approved')
+                ->count();
+
+            if ($approvals < self::REQUIRED_VOID_APPROVALS) {
+                return ['status' => 'pending', 'schedule' => null, 'reason' => null, 'approvals' => $approvals];
+            }
+
+            $schedule = $this->executeVoid($voidRequest);
+
+            return ['status' => 'approved', 'schedule' => $schedule, 'reason' => $voidRequest->reason];
         });
-    } catch (\Illuminate\Database\QueryException $e) {
-        Log::error("Void payment failed (schedule {$id}): " . $e->getMessage());
-        return response()->json(['success' => false, 'message' => 'Failed to void the payment.'], 500);
     } catch (\RuntimeException $e) {
         return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
     } catch (\Throwable $e) {
-        Log::error("Void payment failed (schedule {$id}): " . $e->getMessage());
-        return response()->json(['success' => false, 'message' => 'Failed to void the payment.'], 500);
+        Log::error("Void vote failed (request {$id}): " . $e->getMessage());
+        return response()->json(['success' => false, 'message' => 'Failed to record your vote.'], 500);
     }
 
-    // Email sa borrower (hindi pumapalya ang void kahit pumalya ang email)
-   $this->sendPaymentVoidedEmail($voided, trim($request->input('reason')));
+    if ($result['status'] === 'approved' && $result['schedule']) {
+        $this->sendPaymentVoidedEmail($result['schedule'], $result['reason']);
+    }
+
+    $messages = [
+        'approved' => 'Void approved by all admins. The payment has been voided.',
+        'rejected' => 'Void request rejected. The payment remains recorded as paid.',
+        'pending'  => 'Your vote has been recorded.',
+    ];
 
     return response()->json([
-        'success' => true,
-        'message' => 'Payment voided successfully.',
+        'success'            => true,
+        'status'             => $result['status'],
+        'approvals'          => $result['approvals'] ?? null,
+        'required_approvals' => self::REQUIRED_VOID_APPROVALS,
+        'message'            => $messages[$result['status']],
     ]);
+}
+
+public function cancelVoid(Request $request, $id)
+{
+    $adminId = Session::get('user_id');
+
+    try {
+        DB::transaction(function () use ($id, $adminId) {
+            $voidRequest = DB::table('payment_void_requests')
+                ->where('id', $id)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$voidRequest) {
+                throw new \RuntimeException('Void request not found.');
+            }
+            if ($voidRequest->status !== 'pending') {
+                throw new \RuntimeException('This void request is already ' . $voidRequest->status . '.');
+            }
+            if ((int) $voidRequest->requested_by !== (int) $adminId) {
+                throw new \RuntimeException('Only the admin who requested the void can cancel it.');
+            }
+
+            DB::table('payment_void_requests')->where('id', $id)->update([
+                'status'      => 'cancelled',
+                'resolved_at' => now(),
+                'updated_at'  => now(),
+            ]);
+        });
+    } catch (\RuntimeException $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+    } catch (\Throwable $e) {
+        Log::error("Cancel void failed (request {$id}): " . $e->getMessage());
+        return response()->json(['success' => false, 'message' => 'Failed to cancel the void request.'], 500);
+    }
+
+    return response()->json(['success' => true, 'message' => 'Void request cancelled.']);
+}
+
+private function executeVoid($voidRequest)
+{
+    $schedule = DB::table('loan_payment_schedules')
+        ->where('id', $voidRequest->schedule_id)
+        ->lockForUpdate()
+        ->first();
+
+    if (!$schedule) {
+        throw new \RuntimeException('Installment not found.');
+    }
+   if (is_null($schedule->paid_at)) {
+    throw new \RuntimeException('This installment is no longer recorded as paid.');
+}
+
+    DB::table('installment_payment_logs')->insert([
+        'installment_id' => $schedule->id,
+        'action'         => 'voided',
+        'amount'         => $schedule->amount_paid,
+        'paid_at'        => \Carbon\Carbon::parse($schedule->paid_at)->toDateString(),
+        'receipt_path'   => $schedule->receipt_path,
+        'reason'         => $voidRequest->reason,
+        'admin_id'       => $voidRequest->requested_by,
+        'request_id'     => $voidRequest->id,
+        'created_at'     => now(),
+    ]);
+
+    DB::table('loan_payment_schedules')
+        ->where('id', $schedule->id)
+        ->update([
+            'paid_at'      => null,
+            'amount_paid'  => 0,
+            'receipt_path' => null,
+        ]);
+
+    DB::table('loan_applications')
+        ->where('application_id', $schedule->application_id)
+        ->where('status', 'completed')
+        ->update(['status' => 'active']);
+
+    DB::table('payment_void_requests')->where('id', $voidRequest->id)->update([
+        'status'      => 'approved',
+        'resolved_at' => now(),
+        'updated_at'  => now(),
+    ]);
+
+    return $schedule;
 }
 
     private function getPaymentSchedule($applicationId)
@@ -2185,6 +2469,7 @@ public function voidPayment(Request $request, $id)
      * the constant below if the business wants a different cutoff.
      */
     private const DEFAULT_DAYS_LATE = 90;
+    private const REQUIRED_VOID_APPROVALS = 3;
 
     private const RECEIPT_DISK = 'valid_ids'; 
 

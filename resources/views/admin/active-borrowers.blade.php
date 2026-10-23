@@ -5,8 +5,8 @@
 @section('page-styles')
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ asset('assets/admin/css/active-borrowers.css') }}?v={{ time() }}" />
-     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/darkmode-global.css') }}?v={{ time() }}" />
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/active-borrowers.css') }}?v={{ time() }}" />
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/darkmode-global.css') }}?v={{ time() }}" />
 @endsection
 
 @section('content')
@@ -26,8 +26,6 @@
 
     <div class="main-content">
 
-
-        <!-- Stats -->
         <div class="stats-grid-v2">
             <div class="rs-card stat-card-v2">
                 <div class="stat-card-v2-head">
@@ -35,7 +33,6 @@
                     <i class="feather-users stat-icon-v2"></i>
                 </div>
                 <div class="stat-value-v2">{{ $stats['total'] }}</div>
-           
             </div>
 
             <div class="rs-card stat-card-v2">
@@ -44,7 +41,6 @@
                     <i class="feather-dollar-sign stat-icon-v2"></i>
                 </div>
                 <div class="stat-value-v2">₱{{ number_format($stats['total_amount'], 0) }}</div>
-
             </div>
 
             <div class="rs-card stat-card-v2">
@@ -53,21 +49,7 @@
                     <i class="feather-trending-up stat-icon-v2"></i>
                 </div>
                 <div class="stat-value-v2">₱{{ number_format($stats['avg_amount'], 0) }}</div>
-      
             </div>
-        </div>
-
-        <!-- Filter toolbar -->
-        <div class="filter-bar-v2">
-            <div class="search-wrap-v2">
-                <i class="feather-search"></i>
-                <input type="text" id="filterSearchInput"
-                    placeholder="Search borrowers by name, email, or Borrower ID..." onkeyup="filterActiveBorrowers()">
-            </div>
-            <select class="sort-select-v2" id="sortFilter" onchange="sortActiveBorrowers()">
-                <option value="newest" {{ $sort === 'newest' ? 'selected' : '' }}>Newest First</option>
-                <option value="oldest" {{ $sort === 'oldest' ? 'selected' : '' }}>Oldest First</option>
-            </select>
         </div>
 
         @if (count($activeBorrowers) === 0)
@@ -80,11 +62,35 @@
             </div>
         @else
             <div class="rs-card rs-table-card">
-                <div id="filteredNoResults" class="empty-state-v2" style="display:none;">
+                <div class="filter-bar-v2">
+                    <div class="search-wrap-v2">
+                        <i class="feather-search"></i>
+                        <input type="text" id="filterSearchInput"
+                            placeholder="Search borrowers by name, email, or Borrower ID..."
+                            onkeyup="filterActiveBorrowers()">
+                    </div>
+
+                    <select class="sort-select-v2" id="monthFilter" onchange="filterActiveBorrowers()" aria-label="Filter by month">
+                        <option value="">All Months</option>
+                        @foreach (range(1, 12) as $m)
+                            <option value="{{ str_pad($m, 2, '0', STR_PAD_LEFT) }}">
+                                {{ date('F', mktime(0, 0, 0, $m, 1)) }}
+                            </option>
+                        @endforeach
+                    </select>
+
+                    <select class="sort-select-v2" id="sortFilter" onchange="sortActiveBorrowers()" aria-label="Sort borrowers">
+                        <option value="newest" {{ $sort === 'newest' ? 'selected' : '' }}>Newest First</option>
+                        <option value="oldest" {{ $sort === 'oldest' ? 'selected' : '' }}>Oldest First</option>
+                    </select>
+                </div>
+
+                <div id="filteredNoResults" class="empty-state-v2">
                     <i class="feather-search"></i>
                     <h6>No matches found</h6>
-                    <p>Try a different search term.</p>
+                    <p>Try a different search term or month.</p>
                 </div>
+
                 <div class="table-responsive" id="borrowerTableWrap">
                     <table class="table rs-table mb-0">
                         <thead>
@@ -103,7 +109,7 @@
                                     data-href="{{ route('admin.active-borrower-detail', $b['application_id']) }}"
                                     data-search="{{ strtolower($b['name'] . ' ' . $b['email'] . ' ' . $b['borrower_id']) }}"
                                     data-applied="{{ \Carbon\Carbon::parse($b['applied_at'])->timestamp }}"
-                                    data-match="true">
+                                    data-month="{{ \Carbon\Carbon::parse($b['applied_at'])->format('m') }}">
                                     <td>
                                         <div class="borrower-cell-v2">
                                             <div>
@@ -114,25 +120,17 @@
                                         </div>
                                     </td>
                                     <td class="loan-amount-v2">₱{{ number_format($b['loan_amount'], 2) }}</td>
-                                    <td class="loan-meta-v2">{{ $b['loan_term'] }}
-                                        {{ Str::plural('month', $b['loan_term']) }}</td>
-                                    <td>
+                                    <td class="loan-meta-v2">{{ $b['loan_term'] }} {{ Str::plural('month', $b['loan_term']) }}</td>
+                                    <td class="loan-meta-v2 purpose-text">
                                         @if ($b['loan_purpose'])
-                                            <span
-                                                class="purpose-pill">{{ str_replace('_', ' ', $b['loan_purpose']) }}</span>
+                                            {{ str_replace('_', ' ', $b['loan_purpose']) }}
                                         @else
-                                            <span class="loan-meta-v2">—</span>
+                                            —
                                         @endif
                                     </td>
-                                    <td class="loan-meta-v2">
-                                        {{ \Carbon\Carbon::parse($b['applied_at'])->format('M d, Y') }}</td>
+                                    <td class="loan-meta-v2">{{ \Carbon\Carbon::parse($b['applied_at'])->format('M d, Y') }}</td>
                                     <td class="text-end">
-                                        {{-- Points to the new, focused Active Borrower Detail page
-                                     (profile + standing, Loan Summary, Payment Progress,
-                                     Payment Schedule) instead of loan-application-detail,
-                                     so that page's approve/reject review flow stays untouched. --}}
-                                        <a href="{{ route('admin.active-borrower-detail', $b['application_id']) }}"
-                                            class="btn-view-v2">
+                                        <a href="{{ route('admin.active-borrower-detail', $b['application_id']) }}" class="btn-view-v2">
                                             <i class="feather-eye"></i> View Details
                                         </a>
                                     </td>
@@ -142,22 +140,23 @@
                     </table>
                 </div>
 
-                <!-- Pagination -->
-                <div class="rs-pagination-bar" id="rsPaginationBar">
-                    <div class="rs-pagination-info" id="rsPaginationInfo"></div>
-                    <div class="rs-pagination-right">
-                        <div class="rs-per-page">
-                            <label for="rowsPerPageSelect">Rows per page</label>
-                            <select id="rowsPerPageSelect" onchange="changeRowsPerPage()">
+                <div class="pagination-bar-v2" id="abPagination">
+                    <div class="pagination-left-v2">
+                        <div class="rows-per-page-v2">
+                            <label for="abRowsPerPage" class="rows-per-page-label-v2">Rows per page</label>
+                            <select id="abRowsPerPage" class="rows-per-page-select-v2" onchange="abChangeRowsPerPage(this)">
                                 <option value="10" selected>10</option>
                                 <option value="25">25</option>
                                 <option value="50">50</option>
                                 <option value="100">100</option>
-                                <option value="all">All</option>
                             </select>
                         </div>
-                        <div class="rs-pagination-controls" id="rsPaginationControls"></div>
+                        <span class="pagination-info-v2" id="abPaginationInfo">
+                            Showing 1&ndash;{{ min(10, count($activeBorrowers)) }} of {{ count($activeBorrowers) }}
+                        </span>
                     </div>
+                    <div class="pagination-nav-v2" id="abPaginationNav"></div>
+                    <div></div>
                 </div>
             </div>
         @endif
@@ -167,5 +166,5 @@
 @endsection
 
 @section('page-scripts')
-    <script src="{{ asset('functions/active-borrowers.js') }}"></script>
+    <script src="{{ asset('functions/active-borrowers.js') }}?v={{ time() }}"></script>
 @endsection

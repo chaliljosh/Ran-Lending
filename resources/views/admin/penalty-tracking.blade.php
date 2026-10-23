@@ -3,25 +3,11 @@
 @section('title', 'Penalty Tracking')
 
 @section('page-styles')
-    <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/penalty-tracking.css') }}?v={{ time() }}" />
-    {{-- styles para sa grouped rows --}}
-    <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/penalty-tracking-grouped.css') }}?v={{ time() }}" />
-    <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/darkmode-global.css') }}?v={{ time() }}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script>
-        // Temporary — pinapakita nito sa screen mismo ang anumang JS error,
-        // dahil naka-block ang DevTools sa laptop na ito. Tanggalin na lang
-        // ito pagkatapos ma-ayos yung bug.
-        window.addEventListener('error', function(e) {
-            var box = document.createElement('div');
-            box.style.cssText =
-                'position:fixed;bottom:0;left:0;right:0;background:#dc2626;color:#fff;padding:14px;font-family:monospace;font-size:13px;z-index:999999;white-space:pre-wrap;';
-            box.textContent = 'JS ERROR: ' + e.message + '  (file: ' + e.filename + ', line: ' + e.lineno + ')';
-            document.body.appendChild(box);
-        });
-    </script>
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/penalty-tracking.css') }}?v={{ time() }}" />
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/darkmode-global.css') }}?v={{ time() }}" />
 @endsection
 
 @section('content')
@@ -39,16 +25,7 @@
     </div>
 
     <div class="main-content pt-page">
-        {{--
-            DATA galing sa AdminController::penaltyTracking():
-            $loans -> isang item kada loan, may: application_id, loan_id_display,
-                first_name, last_name, installments_with_penalty, total_installments,
-                worst_days_late, total_penalty, unpaid_penalty, status,
-                loan_uuid, main_installment, items[] (bawat penalty ng loan)
-            $totalPenaltiesCount, $outstandingAmount, $totalPaidAmount, $totalWaivedAmount
-        --}}
 
-        {{-- ============ SUMMARY CARDS (walang nagbago) ============ --}}
         <div class="pt-summary-row">
             <div class="pt-summary-card">
                 <div class="pt-summary-card-head">
@@ -80,38 +57,43 @@
             </div>
         </div>
 
-        {{-- ============ TOOLBAR ============ --}}
-        <div class="pt-toolbar">
-            <div class="pt-search-wrap">
-                <i class="bi bi-search"></i>
-                <input type="text" id="ptSearchInput" class="pt-search-input" placeholder="Search borrower...">
-            </div>
-            <select id="ptMonthFilter" class="pt-select">
-                <option value="">All Months</option>
-                @for ($m = 1; $m <= 12; $m++)
-                    <option value="{{ $m }}">{{ \Carbon\Carbon::create()->month($m)->format('F') }}</option>
-                @endfor
-            </select>
-            {{-- Unpaid ang default, para yung may problema lang ang unang makita --}}
-            <select id="ptStatusFilter" class="pt-select">
-                <option value="">All Status</option>
-                <option value="unpaid" selected>Unpaid</option>
-                <option value="paid">Paid</option>
-                <option value="waived">Waived</option>
-                <option value="mixed">Mixed</option>
-            </select>
-            <select id="ptSortSelect" class="pt-select">
-                <option value="days_desc">Sort: Most days late</option>
-                <option value="days_asc">Sort: Fewest days late</option>
-                <option value="penalty_desc">Sort: Highest penalty</option>
-                <option value="penalty_asc">Sort: Lowest penalty</option>
-            </select>
-            <div class="pt-toolbar-spacer"></div>
-        </div>
-
-        {{-- ============ TABLE (1 row kada loan) ============ --}}
         <div class="pt-table-card">
-            <div class="pt-table-scroll">
+            <div class="pt-filter-bar">
+                <div class="pt-search-wrap">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="ptSearchInput" class="pt-search-input" placeholder="Search borrower...">
+                </div>
+
+                <select id="ptMonthFilter" class="pt-select" aria-label="Filter by month">
+                    <option value="">All Months</option>
+                    @for ($m = 1; $m <= 12; $m++)
+                        <option value="{{ $m }}">{{ \Carbon\Carbon::create()->month($m)->format('F') }}</option>
+                    @endfor
+                </select>
+
+                <select id="ptStatusFilter" class="pt-select" aria-label="Filter by status">
+                    <option value="">All Status</option>
+                    <option value="unpaid" selected>Unpaid</option>
+                    <option value="paid">Paid</option>
+                    <option value="waived">Waived</option>
+                    <option value="mixed">Mixed</option>
+                </select>
+
+                <select id="ptSortSelect" class="pt-select" aria-label="Sort penalties">
+                    <option value="days_desc">Most days late</option>
+                    <option value="days_asc">Fewest days late</option>
+                    <option value="penalty_desc">Highest penalty</option>
+                    <option value="penalty_asc">Lowest penalty</option>
+                </select>
+            </div>
+
+            <div class="pt-empty-state" id="ptEmptyState">
+                <i class="bi bi-inbox"></i>
+                <h6>No penalty records found</h6>
+                <p>Try adjusting your search or filters.</p>
+            </div>
+
+            <div class="pt-table-scroll" id="ptTableWrap">
                 <table class="pt-table" id="ptTable">
                     <thead>
                         <tr>
@@ -120,7 +102,7 @@
                             <th>Worst Days Late</th>
                             <th>Total Penalty</th>
                             <th>Status</th>
-                            <th class="is-actions-col">Actions</th>
+                            <th class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="ptTableBody">
@@ -130,101 +112,80 @@
                                 $days = (int) $loan['worst_days_late'];
                                 $fullName = trim(($loan['first_name'] ?? '') . ' ' . ($loan['last_name'] ?? ''));
 
-                                // Kulay ng "days late" pill (para sa unpaid lang)
                                 if ($days >= 15) {
-                                    $pillClass = 'is-red';
+                                    $daysClass = 'is-red';
                                 } elseif ($days >= 7) {
-                                    $pillClass = 'is-orange';
+                                    $daysClass = 'is-orange';
                                 } else {
-                                    $pillClass = 'is-blue';
+                                    $daysClass = 'is-blue';
                                 }
 
-                                // Mga buwan ng due date ng lahat ng penalty ng loan (para sa month filter)
                                 $months = collect($loan['items'])
                                     ->map(fn($i) => \Carbon\Carbon::parse($i->due_date)->month)
                                     ->unique()
                                     ->implode(',');
+
+                                $detailUrl = route('admin.penalty-tracking-detail', [$loan['loan_uuid'], $loan['main_installment']]);
                             @endphp
 
                             <tr class="pt-tr" data-loan-id="{{ $loan['application_id'] }}"
-                                data-href="{{ route('admin.penalty-tracking-detail', [$loan['loan_uuid'], $loan['main_installment']]) }}"
+                                data-href="{{ $detailUrl }}"
                                 data-borrower="{{ strtolower($fullName) }}" data-months="{{ $months }}"
                                 data-status="{{ $status }}" data-days="{{ $days }}"
                                 data-penalty="{{ $loan['total_penalty'] }}">
 
                                 <td>
-                                    <div class="pt-cell-borrower">
-                                        <div>
-                                            <div class="pt-borrower-name">{{ $fullName !== '' ? $fullName : '—' }}</div>
-                                            <div class="pt-borrower-sub">Loan
-                                                #{{ str_pad($loan['application_id'], 5, '0', STR_PAD_LEFT) }}</div>
-                                        </div>
-                                    </div>
+                                    <div class="pt-borrower-name">{{ $fullName !== '' ? $fullName : '—' }}</div>
+                                    <div class="pt-borrower-sub">Loan #{{ str_pad($loan['application_id'], 5, '0', STR_PAD_LEFT) }}</div>
                                 </td>
 
-                                <td class="pt-cell-installment">
-                                    <div class="pt-installments-cell">
-                                        <span>{{ $loan['installments_with_penalty'] }} of {{ $loan['total_installments'] }}</span>
-                                    </div>
-                                </td>
+                                <td class="pt-cell-meta">{{ $loan['installments_with_penalty'] }} of {{ $loan['total_installments'] }}</td>
 
-                                <td class="pt-cell-days">
+                                <td>
                                     @if ($status === 'unpaid')
-                                        <span class="pt-pill {{ $pillClass }}">{{ $days }} Days</span>
+                                        <span class="pt-days {{ $daysClass }}">{{ $days }} {{ $days === 1 ? 'day' : 'days' }}</span>
                                     @else
                                         <span class="pt-dash">—</span>
                                     @endif
                                 </td>
 
-                                <td class="pt-cell-amount">
-                                    <div>
-                                        <div class="pt-amount-value">₱{{ number_format($loan['total_penalty'], 2) }}</div>
-                                        @if ($loan['unpaid_penalty'] > 0)
-                                            <div class="pt-amount-fee">Unpaid ₱{{ number_format($loan['unpaid_penalty'], 2) }}</div>
-                                        @endif
-                                    </div>
+                                <td>
+                                    <div class="pt-amount-value">₱{{ number_format($loan['total_penalty'], 2) }}</div>
+                                    @if ($loan['unpaid_penalty'] > 0)
+                                        <div class="pt-amount-fee">Unpaid ₱{{ number_format($loan['unpaid_penalty'], 2) }}</div>
+                                    @endif
                                 </td>
 
-                                <td class="pt-cell-status">
-                                    <span class="pt-status-badge is-{{ $status }}">{{ strtoupper($status) }}</span>
+                                <td>
+                                    <span class="pt-status is-{{ $status }}">{{ ucfirst($status) }}</span>
                                 </td>
 
-                                {{-- View Details lang ang action (view-only na ang page na ito) --}}
-                                <td class="pt-cell-actions">
-                                    <div class="pt-actions-group">
-                                        <a href="{{ route('admin.penalty-tracking-detail', [$loan['loan_uuid'], $loan['main_installment']]) }}"
-                                            class="pt-action-btn is-view" title="View Details">
-                                            <i class="bi bi-eye"></i>
-                                            <span>View Details</span>
-                                        </a>
-                                    </div>
+                                <td class="pt-cell-actions text-end">
+                                    <a href="{{ $detailUrl }}" class="pt-btn-view">
+                                        <i class="bi bi-eye"></i> View Details
+                                    </a>
                                 </td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
-
-                <div class="pt-empty-state" id="ptEmptyState" style="display:none;">
-                    <div class="pt-empty-icon"><i class="bi bi-inbox"></i></div>
-                    <div class="pt-empty-title">No penalty records found.</div>
-                    <div class="pt-empty-desc">Try adjusting your search or filters.</div>
-                </div>
             </div>
 
-            <div class="pt-table-footer">
-                <div class="pt-footer-info">
-                    <span id="ptShowingText">Showing 0–0 of 0 records</span>
-                    <span>
-                        Rows per page:
+            <div class="pt-table-footer" id="ptFooter">
+                <div class="pt-footer-left">
+                    <div class="pt-rows">
+                        <label for="ptRowsPerPage" class="pt-rows-label">Rows per page</label>
                         <select id="ptRowsPerPage" class="pt-rows-select">
-                            <option value="10">10</option>
+                            <option value="10" selected>10</option>
                             <option value="25">25</option>
                             <option value="50">50</option>
                             <option value="100">100</option>
                         </select>
-                    </span>
+                    </div>
+                    <span class="pt-footer-info" id="ptShowingText"></span>
                 </div>
                 <div class="pt-pagination" id="ptPagination"></div>
+                <div></div>
             </div>
         </div>
 
@@ -233,5 +194,5 @@
 @endsection
 
 @section('page-scripts')
-    <script src="{{ asset('functions/penalty-tracking.js') }}?v=8"></script>
+    <script src="{{ asset('functions/penalty-tracking.js') }}?v={{ time() }}"></script>
 @endsection
