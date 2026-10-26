@@ -82,6 +82,68 @@
                 </a>
             </div>
 
+            {{-- ============ VOID REQUESTS NA HINIHINTAY ANG BOTO MO ============
+                 Lalabas lang kapag may kailangang iboto ang admin na nakabukas.
+                 Hindi kasama ang request na siya mismo ang nag-request. --}}
+            @if ($pendingVoidCount > 0)
+                <div class="col-12">
+                    <div class="card stretch stretch-full adm-panel adm-void-card">
+                        <div class="card-header adm-panel-header">
+                            <div class="adm-panel-header-left">
+                                <div>
+                                    <h5 class="card-title adm-panel-title">Void Requests Need Your Vote</h5>
+                                    <p class="adm-panel-sub">A payment is only voided once all admins approve. Click a row to review and vote.</p>
+                                </div>
+                            </div>
+                            <span class="adm-void-count">
+                                <i class="feather-rotate-ccw"></i>
+                                {{ $pendingVoidCount }} waiting for your vote
+                            </span>
+                        </div>
+                        <div class="card-body custom-card-action p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0 adm-table">
+                                    <thead>
+                                        <tr class="border-b">
+                                            <th>Borrower</th>
+                                            <th>Installment</th>
+                                            <th>Amount</th>
+                                            <th>Requested By</th>
+                                            <th>Requested</th>
+                                            <th class="adm-table-chevron-col"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($pendingVoidRequests as $void)
+                                            <tr data-href="{{ $void->url }}">
+                                                <td>
+                                                    <div class="adm-table-borrower">
+                                                        <span class="adm-table-name">{{ $void->borrower_name }}</span>
+                                                    </div>
+                                                </td>
+                                                <td class="adm-table-amount">#{{ $void->installment_no }}</td>
+                                                <td class="adm-table-amount">&#8369;{{ number_format($void->amount_snapshot, 2) }}</td>
+                                                <td class="adm-table-date">{{ $void->requester_name }}</td>
+                                                <td class="adm-table-date">{{ \Carbon\Carbon::parse($void->created_at)->diffForHumans() }}</td>
+                                                <td class="adm-table-chevron-col">
+                                                    <i class="feather-chevron-right adm-table-chevron"></i>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                            @if ($pendingVoidCount > $pendingVoidRequests->count())
+                                <div class="adm-void-more">
+                                    Showing {{ $pendingVoidRequests->count() }} of {{ $pendingVoidCount }}.
+                                    Vote on these first and the rest will show up here.
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             {{-- ============ ROW 1: PAYMENT OVERVIEW (col-lg-7, dating pwesto ng Loan Applications) ============ --}}
             <div class="col-lg-7">
                 <div class="card stretch stretch-full adm-panel adm-overview-card">

@@ -8,6 +8,11 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
+use Illuminate\Database\QueryException;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
@@ -124,126 +129,240 @@ class AuthController extends Controller
     // =====================================================================
 
     public function register(Request $request)
-    {
-        $lastName        = trim($request->input('lastName'));
-        $firstName       = trim($request->input('firstName'));
-        $middleName      = trim($request->input('middleName'));
-        $email           = $this->normalizeEmail($request->input('email'));
-        $password        = $request->input('password');
-        $confirmPassword = $request->input('confirmPassword');
-        $birthMonth      = $request->input('birthMonth');
-        $birthDay        = $request->input('birthDay');
-        $birthYear       = $request->input('birthYear');
+{
+    $request->merge([
+        'email'      => $this->normalizeEmail((string) $request->input('email')),
+        'firstName'  => trim((string) $request->input('firstName')),
+        'middleName' => trim((string) $request->input('middleName')),
+        'lastName'   => trim((string) $request->input('lastName')),
+    ]);
 
-        if (!$lastName || !$firstName || !$email || !$password || !$confirmPassword) {
-            return response()->json(['success' => false, 'message' => 'Please fill in all required fields.']);
+    $validator = Validator::make($request->all(), [
+        'firstName'       => ['required', 'string', 'max:100'],
+        'middleName'      => ['nullable', 'regex:/^[A-Za-z]$/'],
+        'lastName'        => ['required', 'string', 'max:100'],
+        'email'           => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
+        'password'        => [
+            'required', 'string', 'min:8',
+            function ($attribute, $value, $fail) {
+                if (!preg_match('/[A-Z]/', $value)) {
+                    $fail('Password must include at least 1 uppercase letter.');
+                }
+                if (!preg_match('/[0-9]/', $value)) {
+                    $fail('Password must include at least 1 number.');
+                }
+            },
+            'same:confirmPassword',
+        ],
+        'confirmPassword' => ['required'],
+        'birthMonth'      => ['required', 'integer'],
+        'birthDay'        => ['required', 'integer'],
+        'birthYear'       => ['required', 'integer'],
+        'suffix'          => ['nullable', Rule::in(['Jr.', 'Sr.', 'II', 'III', 'IV', 'V'])],
+        'gender'          => ['required', Rule::in(['male', 'female'])],
+        'civilStatus'     => ['required', Rule::in(['single', 'taken', 'married', 'widowed', 'separated'])],
+        'citizenship'     => ['required', 'string', 'max:100'],
+        'cellphone'       => [
+            'required', 'string', 'max:20',
+            function ($attribute, $value, $fail) {
+                if (!preg_match('/^639\d{9}$/', preg_replace('/\D/', '', $value))) {
+                    $fail('Please enter a valid mobile number (e.g. +63 912 345 6789).');
+                }
+            },
+        ],
+        'birthCountry'    => ['required', 'string', 'max:100'],
+        'birthProvince'   => ['required', 'string', 'max:100'],
+        'birthCity'       => ['required', 'string', 'max:100'],
+        'monthlyIncome'   => ['required', Rule::in([
+            'Below ₱10,000',
+            '₱10,000 - ₱20,000',
+            '₱20,001 - ₱30,000',
+            '₱30,001 - ₱50,000',
+            '₱50,001 - ₱100,000',
+            'Above ₱100,000',
+        ])],
+        'region'          => ['required', 'string', 'max:150'],
+        'province'        => ['required', 'string', 'max:150'],
+        'city'            => ['required', 'string', 'max:150'],
+        'barangay'        => ['required', 'string', 'max:150'],
+        'zipcode'         => ['nullable', 'digits:4'],
+        'homeAddress'     => ['nullable', 'string', 'max:255'],
+    ], [
+        'password.same'    => 'Passwords do not match.',
+        'password.min'     => 'Password must be at least 8 characters.',
+        'middleName.regex' => 'Middle name must be a single letter.',
+        'email.unique'     => 'Email is already registered.',
+        'email.email'      => 'Please enter a valid email address.',
+        'zipcode.digits'   => 'Zipcode must be 4 digits.',
+    ], [
+        'firstName'       => 'first name',
+        'lastName'        => 'last name',
+        'confirmPassword' => 'confirm password',
+        'birthMonth'      => 'birth month',
+        'birthDay'        => 'birth day',
+        'birthYear'       => 'birth year',
+        'civilStatus'     => 'civil status',
+        'birthCountry'    => 'birth country',
+        'birthProvince'   => 'birth province',
+        'birthCity'       => 'birth city',
+        'monthlyIncome'   => 'monthly income',
+        'homeAddress'     => 'home address',
+    ]);
+
+    $validator->after(function ($v) use ($request) {
+        if ($v->errors()->hasAny(['birthMonth', 'birthDay', 'birthYear'])) {
+            return;
         }
 
-                // Middle name ay optional, pero kung meron, isang letra lang dapat.
-        if ($middleName !== '' && !preg_match('/^[A-Za-z]$/', $middleName)) {
-            return response()->json(['success' => false, 'message' => 'Middle name must be a single letter.']);
+        $month = (int) $request->input('birthMonth');
+        $day   = (int) $request->input('birthDay');
+        $year  = (int) $request->input('birthYear');
+
+        if ($year < 1900 || !checkdate($month, $day, $year)) {
+            $v->errors()->add('birthday', 'Please enter a valid birthday.');
+            return;
         }
 
-        if ($password !== $confirmPassword) {
-            return response()->json(['success' => false, 'message' => 'Passwords do not match.']);
+        if (Carbon::create($year, $month, $day)->age < 18) {
+            $v->errors()->add('birthday', 'You must be at least 18 years old to register.');
         }
+    });
 
-        if (strlen($password) < 8) {
-            return response()->json(['success' => false, 'message' => 'Password must be at least 8 characters.']);
-        }
-
-        if ($birthMonth && $birthDay && $birthYear) {
-            $birthday = sprintf('%04d-%02d-%02d', $birthYear, $birthMonth, $birthDay);
-            $age = \Carbon\Carbon::parse($birthday)->age;
-            if ($age < 18) {
-                return response()->json(['success' => false, 'message' => 'You must be at least 18 years old to register.']);
-            }
-        } else {
-            return response()->json(['success' => false, 'message' => 'Please enter your complete birthday.']);
-        }
-
-        // Uniqueness check gamit ang NORMALIZED email — kaya kahit
-        // "juan+2@gmail.com" o "j.uan@gmail.com" ang itype, mahaharang
-        // pa rin kung existing na ang "juan@gmail.com".
-        $exists = DB::table('users')->where('email', $email)->exists();
-        if ($exists) {
-            return response()->json(['success' => false, 'message' => 'Email is already registered.']);
-        }
-
-        Session::put('pending_register', [
-            'first_name'  => $firstName,
-            'middle_name' => $middleName,
-            'last_name'   => $lastName,
-            'email'       => $email,
-            'password'    => $password,
-            'birthday'    => $birthday,
-        ]);
-
-        $otp       = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        $expiresAt = now()->addMinutes(10);
-
-        DB::table('otp_verifications')->where('email', $email)->where('type', 'register')->delete();
-        DB::table('otp_verifications')->insert([
-            'email'      => $email,
-            'otp'        => Hash::make($otp),
-            'type'       => 'register',
-            'expires_at' => $expiresAt,
-        ]);
-
-        Mail::to($email)->send(new \App\Mail\OtpMail($firstName, $otp));
-
-        // Ibinabalik yung NORMALIZED email para 'yun din ang gamitin ng
-        // frontend sa susunod na verify/resend calls — dapat magkatugma
-        // laging ang email na pinapadala pabalik-balik.
-        return response()->json(['success' => true, 'email' => $email]);
+    if ($validator->fails()) {
+        return response()->json([
+            'success' => false,
+            'message' => $validator->errors()->first(),
+            'errors'  => $validator->errors()->toArray(),
+        ], 422);
     }
 
-    public function verifyRegisterOtp(Request $request)
-    {
-        $email = $this->normalizeEmail($request->input('email'));
-        $otp   = trim($request->input('otp'));
+    $firstName  = $request->input('firstName');
+    $middleName = (string) $request->input('middleName');
+    $lastName   = $request->input('lastName');
+    $email      = $request->input('email');
+    $birthday   = sprintf(
+        '%04d-%02d-%02d',
+        (int) $request->input('birthYear'),
+        (int) $request->input('birthMonth'),
+        (int) $request->input('birthDay')
+    );
 
-        if (!$email || !$otp) {
-            return response()->json(['success' => false, 'message' => 'OTP is required.']);
-        }
+    Session::put('pending_register', [
+        'first_name'    => $firstName,
+        'middle_name'   => $middleName,
+        'last_name'     => $lastName,
+        'email'         => $email,
+        'password_hash' => Hash::make($request->input('password')),
+        'birthday'      => $birthday,
+        'details'       => [
+            'suffix'         => $request->input('suffix') ?: null,
+            'gender'         => $request->input('gender'),
+            'civil_status'   => $request->input('civilStatus'),
+            'citizenship'    => trim($request->input('citizenship')),
+            'birth_country'  => trim($request->input('birthCountry')),
+            'birth_province' => trim($request->input('birthProvince')),
+            'birth_city'     => trim($request->input('birthCity')),
+            'cellphone_num'  => trim($request->input('cellphone')),
+            'monthly_income' => $request->input('monthlyIncome'),
+        ],
+        'address'       => [
+            'region'       => $request->input('region'),
+            'province'     => $request->input('province'),
+            'city'         => $request->input('city'),
+            'barangay'     => $request->input('barangay'),
+            'zipcode'      => $request->input('zipcode'),
+            'home_address' => $request->input('homeAddress'),
+        ],
+    ]);
 
-        $pending = Session::get('pending_register');
-        if (!$pending || $this->normalizeEmail($pending['email']) !== $email) {
-            return response()->json(['success' => false, 'message' => 'Session expired. Please register again.']);
-        }
+    $otp       = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+    $expiresAt = now()->addMinutes(10);
 
-        $record = DB::table('otp_verifications')
-            ->where('email', $email)
-            ->where('type', 'register')
-            ->where('expires_at', '>', now())
-            ->where('is_used', 0)
-            ->first();
+    DB::table('otp_verifications')->where('email', $email)->where('type', 'register')->delete();
+    DB::table('otp_verifications')->insert([
+        'email'      => $email,
+        'otp'        => Hash::make($otp),
+        'type'       => 'register',
+        'expires_at' => $expiresAt,
+    ]);
 
-        if (!$record || !Hash::check($otp, $record->otp)) {
-            return response()->json(['success' => false, 'message' => 'Invalid or expired OTP.']);
-        }
+    Mail::to($email)->send(new \App\Mail\OtpMail($firstName, $otp));
 
-        DB::table('otp_verifications')->where('id', $record->id)->update(['is_used' => 1]);
+    return response()->json(['success' => true, 'email' => $email]);
+}
 
-        $fullName = trim($pending['first_name'] . ' ' . $pending['middle_name'] . ' ' . $pending['last_name']);
+   public function verifyRegisterOtp(Request $request)
+{
+    $email = $this->normalizeEmail($request->input('email'));
+    $otp   = trim($request->input('otp'));
 
-        DB::table('users')->insert([
-            'first_name'    => $pending['first_name'],
-            'middle_name'   => $pending['middle_name'],
-            'last_name'     => $pending['last_name'],
-            'name'          => $fullName,
-            'email'         => $pending['email'], // naka-normalize na dahil galing sa register()
-            'password_hash' => Hash::make($pending['password']),
-            'birthday'      => $pending['birthday'],
-            'role'          => 'borrower',
-            'is_active'     => 1,
-            'created_at'    => now(),
-        ]);
-
-        Session::forget('pending_register');
-
-        return response()->json(['success' => true]);
+    if (!$email || !$otp) {
+        return response()->json(['success' => false, 'message' => 'OTP is required.']);
     }
+
+    $pending = Session::get('pending_register');
+    if (!$pending || $this->normalizeEmail($pending['email']) !== $email) {
+        return response()->json(['success' => false, 'message' => 'Session expired. Please register again.']);
+    }
+
+    $record = DB::table('otp_verifications')
+        ->where('email', $email)
+        ->where('type', 'register')
+        ->where('expires_at', '>', now())
+        ->where('is_used', 0)
+        ->first();
+
+    if (!$record || !Hash::check($otp, $record->otp)) {
+        return response()->json(['success' => false, 'message' => 'Invalid or expired OTP.']);
+    }
+
+    $fullName = trim(preg_replace('/\s+/', ' ', $pending['first_name'] . ' ' . $pending['middle_name'] . ' ' . $pending['last_name']));
+
+    try {
+        DB::transaction(function () use ($pending, $record, $fullName) {
+            DB::table('otp_verifications')->where('id', $record->id)->update(['is_used' => 1]);
+
+            $userId = DB::table('users')->insertGetId([
+                'first_name'    => $pending['first_name'],
+                'middle_name'   => $pending['middle_name'],
+                'last_name'     => $pending['last_name'],
+                'name'          => $fullName,
+                'email'         => $pending['email'],
+                'password_hash' => $pending['password_hash'],
+                'birthday'      => $pending['birthday'],
+                'role'          => 'borrower',
+                'is_active'     => 1,
+                'created_at'    => now(),
+            ], 'user_id');
+
+            $detailId = DB::table('borrowerpersonaldetails')->insertGetId(array_merge($pending['details'], [
+                'uuid'        => (string) Str::uuid(),
+                'user_id'     => $userId,
+                'last_name'   => $pending['last_name'],
+                'first_name'  => $pending['first_name'],
+                'middle_name' => $pending['middle_name'],
+                'birthday'    => $pending['birthday'],
+                'email'       => $pending['email'],
+                'status'      => 'approved',
+                'created_at'  => now(),
+            ]), 'detail_id');
+
+            DB::table('borroweraddress')->insert(array_merge($pending['address'], [
+                'detail_id' => $detailId,
+            ]));
+        });
+    } catch (QueryException $e) {
+        report($e);
+        return response()->json([
+            'success' => false,
+            'message' => 'Could not create your account. Please try again.',
+        ], 500);
+    }
+
+    Session::forget('pending_register');
+
+    return response()->json(['success' => true]);
+}
 
     public function resendRegisterOtp(Request $request)
     {
@@ -269,4 +388,25 @@ class AuthController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function checkRegisterEmail(Request $request)
+{
+    $email = $this->normalizeEmail((string) $request->input('email'));
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Please enter a valid email address.',
+        ], 422);
+    }
+
+    if (DB::table('users')->where('email', $email)->exists()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Email is already registered.',
+        ], 422);
+    }
+
+    return response()->json(['success' => true]);
+}
 }

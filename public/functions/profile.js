@@ -1,4 +1,5 @@
-// My Profile — per-section inline editing (AJAX save) + change password modal.
+// My Profile — per-section inline editing (AJAX save) + change password modal
+// + Loan History modal.
 // Expects window.PROFILE_CONFIG = { csrfToken, updateSectionUrl, changePasswordUrl } to be set inline before this file loads.
 
 (function () {
@@ -159,4 +160,67 @@
             errorBox.classList.remove('d-none');
         });
     };
+})();
+
+
+// ══════════════════════════════════════════
+// LOAN HISTORY — buksan ang modal pag na-click ang View o ang row
+// (kailangan ng #profileLoanHistory at #ldLoanModal sa page)
+// ══════════════════════════════════════════
+(function () {
+    const wrap = document.getElementById('profileLoanHistory');
+    const modalEl = document.getElementById('ldLoanModal');
+    if (!wrap || !modalEl) return;
+
+    function setText(id, text) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text || '—';
+    }
+
+    function showIf(id, visible) {
+        const el = document.getElementById(id);
+        if (el) el.style.display = visible ? '' : 'none';
+    }
+
+    function openLoanModal(row) {
+        const d = row.dataset;
+
+        setText('ldLoanId', d.loanId);
+        setText('ldLoanAmount', d.amount);
+        setText('ldLoanTerm', d.term);
+        setText('ldLoanApplied', d.applied);
+        setText('ldLoanMonthly', d.monthly);
+        setText('ldLoanTotal', d.total);
+
+        showIf('ldLoanMonthlyWrap', !!d.monthly);
+        showIf('ldLoanTotalWrap', !!d.total);
+        showIf('ldLoanExtra', !!(d.monthly || d.total));
+
+        const status = document.getElementById('ldLoanStatus');
+        if (status) {
+            status.className = 'bwl-ld-status ' + (d.statusClass || '');
+            status.textContent = d.statusLabel || '';
+        }
+
+        const link = document.getElementById('ldLoanOpen');
+        if (link) link.href = d.href || '#';
+
+        if (window.bootstrap && window.bootstrap.Modal) {
+            window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        } else if (d.href) {
+            // Walang Bootstrap JS — buksan na lang ang page.
+            window.location.href = d.href;
+        }
+    }
+
+    wrap.addEventListener('click', function (e) {
+        const row = e.target.closest('tr.bwl-ld-row-link');
+        if (!row) return;
+
+        // Huwag i-hijack ang click kung nagse-select ng text.
+        const sel = window.getSelection();
+        if (!e.target.closest('[data-ld-view-loan]') && sel && String(sel).length > 0) return;
+
+        openLoanModal(row);
+    });
 })();

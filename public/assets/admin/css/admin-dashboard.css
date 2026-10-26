@@ -34,6 +34,11 @@
    a "Recent Payments" card in that same col-lg-4 slot next to
    Recent Loan Applications. The 6-month trend chart moved back
    inside the Payment Overview card (under the 4 stat cells).
+
+   UPDATE 18: added "Void Requests Need Your Vote" card (full width,
+   under the 4 stat cards). Lalabas lang kapag may void request na
+   hinihintay ang boto ng admin na nakabukas. Gumagamit ng .adm-table
+   para pareho ang itsura at dark mode ng Loan Applications.
 ============================================================ */
 
 :root {
@@ -276,6 +281,33 @@ html body .main-content table.adm-table thead th {
 .adm-table tbody tr[data-href] { cursor: pointer; }
 .adm-table.table-hover tbody tr[data-href]:hover { background-color: var(--adm-dash-bg-soft); }
 
+/* ---------- Void Requests Need Your Vote ---------- */
+.adm-void-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: var(--adm-dash-orange-soft);
+    color: var(--adm-dash-orange);
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.adm-void-count i { font-size: 0.82rem; }
+.adm-void-more {
+    padding: 12px 22px;
+    border-top: 1px solid var(--adm-dash-border);
+    background: var(--adm-dash-bg-soft);
+    font-size: 0.78rem;
+    color: var(--adm-dash-gray);
+}
+
+@media (max-width: 575px) {
+    .adm-void-card .adm-panel-header { flex-direction: column; }
+}
+
 /* ---------- Payment Overview ---------- */
 .adm-overview-month {
     font-size: 0.82rem;
@@ -495,6 +527,17 @@ html.app-skin-dark .adm-stat-link {
 }
 html.app-skin-dark .adm-table.table-hover tbody tr[data-href]:hover {
     background-color: #1C1C1C;
+}
+
+/* ---------- Void Requests — dark mode ---------- */
+html.app-skin-dark .adm-void-count {
+    background: rgba(180, 83, 9, 0.20);
+    color: #FBBF24;
+}
+html.app-skin-dark .adm-void-more {
+    background: #0d0d0d;
+    border-color: #262626;
+    color: #9A9A9A;
 }
 
 /* ---------- Payment Overview — dark mode ---------- */

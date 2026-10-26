@@ -92,6 +92,103 @@
 }
 
 /* ══════════════════════════════════════════
+   Wizard — step progress + step visibility
+   (same idea as the register page wizard)
+   ══════════════════════════════════════════ */
+
+.aln-hide {
+    display: none !important;
+}
+
+.aln-progress {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.aln-progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-width: 96px;
+}
+
+.aln-progress-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid var(--aln-border);
+    background: #fff;
+    color: var(--aln-gray-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.aln-progress-label {
+    font-size: 0.74rem;
+    font-weight: 500;
+    color: var(--aln-gray-light);
+    white-space: nowrap;
+}
+
+.aln-progress-step.active .aln-progress-circle {
+    border-color: var(--aln-blue);
+    color: var(--aln-blue);
+}
+
+.aln-progress-step.active .aln-progress-label,
+.aln-progress-step.done .aln-progress-label {
+    color: var(--aln-navy);
+}
+
+.aln-progress-step.done .aln-progress-circle {
+    background: var(--aln-blue);
+    border-color: var(--aln-blue);
+    color: #fff;
+}
+
+.aln-progress-connector {
+    flex: 1;
+    max-width: 120px;
+    height: 2px;
+    background: var(--aln-border);
+    margin-bottom: 24px;
+    transition: background 0.2s;
+}
+
+.aln-progress-connector.done {
+    background: var(--aln-blue);
+}
+
+/* Only the active step is visible */
+.aln-step {
+    display: none;
+}
+.aln-step.is-active {
+    display: block;
+    animation: alnStepIn 0.25s ease;
+}
+@keyframes alnStepIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: none; }
+}
+
+@media (max-width: 576px) {
+    .aln-progress-step {
+        min-width: 72px;
+    }
+    .aln-progress-label {
+        font-size: 0.7rem;
+    }
+}
+
+/* ══════════════════════════════════════════
    Section — bordered box (matches bwl-ld-section
    from loan-details.css) instead of plain text.
    ══════════════════════════════════════════ */
@@ -185,7 +282,158 @@
 }
 
 /* ══════════════════════════════════════════
-   Valid ID upload preview
+   Custom dropdown (same idea as the register
+   page): rounded panel, search on long lists,
+   keyboard friendly. The native <select> stays
+   in the DOM, hidden.
+   ══════════════════════════════════════════ */
+
+.aln-native-select {
+    display: none !important;
+}
+
+.aln-dd {
+    position: relative;
+    width: 100%;
+}
+
+.aln-dd__trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    padding: 9px 12px;
+    text-align: left;
+    border: 1px solid var(--aln-border);
+    border-radius: var(--aln-radius-sm);
+    background: #fff;
+    color: var(--aln-navy);
+    font-size: 0.88rem;
+    line-height: 1.5;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.aln-dd__trigger::after {
+    content: "";
+    flex: none;
+    width: 7px;
+    height: 7px;
+    border-right: 1.6px solid var(--aln-gray-light);
+    border-bottom: 1.6px solid var(--aln-gray-light);
+    transform: rotate(45deg) translateY(-2px);
+    transition: transform 0.15s ease;
+}
+.aln-dd__trigger:focus-visible,
+.aln-dd.is-open .aln-dd__trigger {
+    border-color: var(--aln-blue);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+.aln-dd.is-open .aln-dd__trigger::after {
+    transform: rotate(-135deg) translateY(-2px);
+}
+.aln-dd__trigger.is-placeholder .aln-dd__label {
+    color: var(--aln-gray-light);
+}
+.aln-dd__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.aln-dd__panel {
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 6px);
+    z-index: 60;
+    background: #fff;
+    border: 1px solid var(--aln-border);
+    border-radius: 10px;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+    overflow: hidden;
+}
+.aln-dd.is-open .aln-dd__panel {
+    display: block;
+    animation: alnDdIn 0.12s ease;
+}
+.aln-dd.drop-up .aln-dd__panel {
+    top: auto;
+    bottom: calc(100% + 6px);
+}
+@keyframes alnDdIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: none; }
+}
+
+.aln-dd__search {
+    display: block;
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    border-bottom: 1px solid var(--aln-border);
+    background: transparent;
+    color: var(--aln-navy);
+    font-size: 0.84rem;
+    outline: none;
+}
+.aln-dd__search::placeholder {
+    color: var(--aln-gray-light);
+}
+
+.aln-dd__list {
+    list-style: none;
+    margin: 0;
+    padding: 4px;
+    max-height: 240px;
+    overflow-y: auto;
+}
+.aln-dd__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: var(--aln-radius-sm);
+    font-size: 0.86rem;
+    color: var(--aln-navy);
+    cursor: pointer;
+}
+.aln-dd__item[hidden] {
+    display: none;
+}
+.aln-dd__item.is-placeholder {
+    color: var(--aln-gray-light);
+}
+.aln-dd__item.is-active,
+.aln-dd__item:hover {
+    background: var(--aln-blue-soft);
+}
+.aln-dd__item.is-selected {
+    color: var(--aln-blue);
+    font-weight: 600;
+}
+.aln-dd__item.is-selected:not(.is-placeholder)::after {
+    content: "✓";
+    font-size: 0.8rem;
+}
+.aln-dd__empty {
+    padding: 10px 12px;
+    font-size: 0.82rem;
+    color: var(--aln-gray);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aln-step.is-active,
+    .aln-dd.is-open .aln-dd__panel {
+        animation: none;
+    }
+}
+
+/* ══════════════════════════════════════════
+   File upload preview (Valid ID + Pay Slip)
    ══════════════════════════════════════════ */
 
 .aln-file-preview {
@@ -336,6 +584,54 @@
     font-weight: 700;
 }
 
+/* Documents checklist + certification (Loan Summary modal) */
+.aln-doc-list {
+    list-style: none;
+    margin: 4px 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 6px 16px;
+}
+.aln-doc-list li {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--aln-navy);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.aln-doc-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #fff;
+}
+.aln-doc-list .is-ok .aln-doc-mark { background: #16a34a; }
+.aln-doc-list .is-missing .aln-doc-mark { background: #dc2626; }
+.aln-agree {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding-left: 0;
+    margin: 0;
+}
+.aln-agree .form-check-input {
+    float: none;
+    margin: 3px 0 0;
+    flex-shrink: 0;
+}
+.aln-agree .form-check-label {
+    font-size: 0.86rem;
+    color: var(--aln-navy);
+    cursor: pointer;
+}
+
 /* ══════════════════════════════════════════
    Buttons — pill-shaped, auto-width, side by
    side (not stretched full-width equally).
@@ -348,6 +644,10 @@
     gap: 12px;
     margin-top: 8px;
     margin-bottom: 32px;
+}
+/* Cancel / Back sit on the left, Next / Submit on the right */
+.aln-actions__left {
+    margin-right: auto;
 }
 .aln-btn {
     display: inline-flex;
@@ -741,6 +1041,38 @@ html.app-skin-dark .aln-notice {
 }
 html.app-skin-dark .aln-notice__text { color: #CBD5E1; }
 
+/* ---------- Wizard progress ---------- */
+html.app-skin-dark .aln-progress-circle {
+    background: #141414;
+    border-color: #262626;
+}
+html.app-skin-dark .aln-progress-step.active .aln-progress-circle {
+    border-color: var(--aln-blue);
+    color: #60A5FA;
+}
+html.app-skin-dark .aln-progress-step.done .aln-progress-circle {
+    background: var(--aln-blue);
+    border-color: var(--aln-blue);
+    color: #fff;
+}
+
+/* ---------- Custom dropdown ---------- */
+html.app-skin-dark .aln-dd__trigger {
+    background: #0d0d0d;
+    border-color: #262626;
+    color: #F5F5F5;
+}
+html.app-skin-dark .aln-dd__panel {
+    background: #141414;
+    border-color: #262626;
+    box-shadow: 0 20px 50px -14px rgba(0, 0, 0, 0.6);
+}
+html.app-skin-dark .aln-dd__item.is-active,
+html.app-skin-dark .aln-dd__item:hover {
+    background: #1C1C1C;
+}
+html.app-skin-dark .aln-dd__item.is-selected { color: #60A5FA; }
+
 /* ---------- Form fields ---------- */
 html.app-skin-dark .aln-input,
 html.app-skin-dark .form-select.aln-input {
@@ -763,7 +1095,7 @@ html.app-skin-dark .aln-input-prefix {
     color: #9A9A9A;
 }
 
-/* ---------- Valid ID preview ---------- */
+/* ---------- File upload preview ---------- */
 html.app-skin-dark .aln-file-preview__item {
     background: #0d0d0d;
     border-color: #262626;
@@ -813,6 +1145,8 @@ html.app-skin-dark .aln-modal-footer {
     border-color: #262626;
 }
 html.app-skin-dark .aln-modal-footer .form-check-label { color: #9A9A9A; }
+html.app-skin-dark .aln-doc-list li,
+html.app-skin-dark .aln-agree .form-check-label { color: #E5E5E5; }
 html.app-skin-dark .aln-modal .form-check-input:not(:checked) {
     background-color: #0d0d0d;
     border-color: #404040;
@@ -894,4 +1228,106 @@ html.app-skin-dark .aln-spotlight-btn:hover {
 }
 html.app-skin-dark .aln-spotlight-btn__glow {
     background: radial-gradient(120px circle at var(--x, 50%) var(--y, 50%), rgba(96, 165, 250, 0.18), transparent 70%);
+}
+
+/* ══════════════════════════════════════════
+   Reusable file dropzone (click or drag & drop)
+   Pwedeng gamitin sa kahit anong upload field:
+     1. <input type="file" class="aln-file-hidden" id="xxx">
+     2. <label for="xxx" class="aln-dropzone" data-dropzone-for="xxx">...</label>
+     3. <div id="xxxPreview" class="aln-file-preview"></div>
+     4. setupFilePreview(input, "xxxPreview") sa apply-loan.js
+   ══════════════════════════════════════════ */
+
+/* Nakatago ang totoong input pero nasa form pa rin (para sa submit at validation) */
+.aln-file-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.aln-dropzone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    width: 100%;
+    margin: 0;
+    padding: 26px 16px;
+    border: 1.5px dashed #CBD5E1;
+    border-radius: 10px;
+    background: #F8FAFC;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.aln-dropzone:hover,
+.aln-dropzone.is-dragover {
+    border-color: #2563EB;
+    background: #EFF6FF;
+}
+
+.aln-dropzone__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    margin-bottom: 4px;
+    border-radius: 50%;
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    color: #2563EB;
+}
+
+.aln-dropzone__title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #0F172A;
+}
+
+.aln-dropzone__title span {
+    color: #2563EB;
+}
+
+.aln-dropzone__hint {
+    font-size: 0.76rem;
+    color: #94A3B8;
+}
+
+/* Keyboard focus (kapag Tab papunta sa hidden input) */
+.aln-file-hidden:focus-visible + .aln-dropzone {
+    border-color: #2563EB;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* ---------- Dark mode ---------- */
+html.app-skin-dark .aln-dropzone {
+    background: #0d0d0d;
+    border-color: #404040;
+}
+
+html.app-skin-dark .aln-dropzone:hover,
+html.app-skin-dark .aln-dropzone.is-dragover {
+    background: rgba(37, 99, 235, 0.12);
+    border-color: #60A5FA;
+}
+
+html.app-skin-dark .aln-dropzone__icon {
+    background: #141414;
+    border-color: #262626;
+    color: #60A5FA;
+}
+
+html.app-skin-dark .aln-dropzone__title {
+    color: #F5F5F5;
+}
+
+html.app-skin-dark .aln-dropzone__title span {
+    color: #60A5FA;
 }

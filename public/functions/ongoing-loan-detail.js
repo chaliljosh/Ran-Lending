@@ -650,6 +650,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Proof of Release. Kapag sent na, walang #olsSendProofBtn sa page
+    // (ang blade ang nagtatago), kaya hindi tatakbo ang code na ito.
     const proofModalEl = document.getElementById('olsSendProofModal');
     const proofOpenBtn = document.getElementById('olsSendProofBtn');
     if (proofModalEl && proofOpenBtn) {
@@ -747,21 +749,16 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(({ ok, data }) => {
                 if (!ok || !data.success) {
                     showProofError(firstMessage(data, 'Failed to send the proof.'));
+                    setBtnLoading(proofSendBtn, false);
                     return;
                 }
 
-                const modal = bootstrap.Modal.getInstance(proofModalEl);
-                if (modal) modal.hide();
-
-                if (typeof window.showAdminToast === 'function') {
-                    window.showAdminToast('success', 'Proof Sent', data.message || 'Proof sent to the borrower.');
-                }
+                // Mag-reload para lumabas na ang "already sent" na card
+                flashAndReload('Proof Sent', data.message || 'Proof sent to the borrower.');
             })
             .catch(err => {
                 console.error('[ongoing-loan-detail.js] send-proof error:', err);
                 showProofError('Something went wrong. Please try again.');
-            })
-            .finally(() => {
                 setBtnLoading(proofSendBtn, false);
             });
         });

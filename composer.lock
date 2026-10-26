@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "aaf2db28a9eaf2036730e30fa1cae2c4",
+    "content-hash": "dd0ad3e7dc252d02d4b4bef7936a7ac8",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -2972,6 +2972,54 @@
                 }
             ],
             "time": "2024-11-21T10:36:35+00:00"
+        },
+        {
+            "name": "phdevutils/postal",
+            "version": "v0.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/kon2raya24/ph-postal-php.git",
+                "reference": "ebbe98bf255ae61a7ed892587a8f8b8ced5b4362"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/kon2raya24/ph-postal-php/zipball/ebbe98bf255ae61a7ed892587a8f8b8ced5b4362",
+                "reference": "ebbe98bf255ae61a7ed892587a8f8b8ced5b4362",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.1"
+            },
+            "require-dev": {
+                "phdevutils/core": "^0.4.0",
+                "phpunit/phpunit": "^10.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "PhDevUtils\\Postal\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Philippine ZIP/postal codes with zero-dependency lookup helpers. Joins to phdevutils/core cities/municipalities. Data from GeoNames (CC BY 4.0).",
+            "keywords": [
+                "address",
+                "filipino",
+                "philippines",
+                "postal-code",
+                "postcode",
+                "psgc",
+                "zip",
+                "zipcode"
+            ],
+            "support": {
+                "issues": "https://github.com/kon2raya24/ph-postal-php/issues",
+                "source": "https://github.com/kon2raya24/ph-postal-php/tree/v0.2.0"
+            },
+            "time": "2026-05-28T06:25:08+00:00"
         },
         {
             "name": "phpoption/phpoption",
@@ -8923,5 +8971,5 @@
         "php": "^8.2"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }

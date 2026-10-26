@@ -1,15 +1,3 @@
-/* ============================================================
-   admin-header.js
-   Handles:
-   1. "Mark all as read" for the notification dropdown.
-   2. Mutual exclusion between the header <details> dropdowns
-      (notifications + admin profile) — clicking one summary
-      force-closes any other open header dropdown FIRST, before
-      the browser opens the clicked one.
-   3. Click-outside-to-close for both dropdowns.
-   4. aria-expanded sync for accessibility.
-   ============================================================ */
-
 document.addEventListener('DOMContentLoaded', function () {
     var headerDropdowns = Array.prototype.slice.call(
         document.querySelectorAll('.nxl-header-notif, .nxl-header-admin')
@@ -19,14 +7,10 @@ document.addEventListener('DOMContentLoaded', function () {
         console.warn('[admin-header.js] No .nxl-header-notif / .nxl-header-admin elements found on this page.');
     }
 
-    // 1 & 2. Mutual exclusion — listen on each <summary>'s click directly
-    // (capturing phase, before the browser's native open/close toggle
-    // runs) and force-close every OTHER open dropdown at that moment.
     headerDropdowns.forEach(function (el) {
         var summary = el.querySelector('summary');
         if (!summary) return;
 
-        // Initialize aria-expanded state
         summary.setAttribute('aria-expanded', el.hasAttribute('open'));
 
         summary.addEventListener('click', function () {
@@ -37,15 +21,11 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
 
-        // Keep aria-expanded in sync whenever <details> opens/closes,
-        // whether triggered by click, keyboard, or the mutual-exclusion
-        // logic above.
         el.addEventListener('toggle', function () {
             summary.setAttribute('aria-expanded', el.hasAttribute('open'));
         });
     });
 
-    // 3. Click outside any open header dropdown closes it.
     document.addEventListener('click', function (e) {
         headerDropdowns.forEach(function (el) {
             if (el.hasAttribute('open') && !el.contains(e.target)) {
@@ -54,7 +34,30 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // 4. "Mark all as read"
+    var notifTabs = document.getElementById('nxlNotifTabs');
+    var notifList = document.getElementById('nxlNotifList');
+    var notifEmptyUnread = document.getElementById('nxlNotifEmptyUnread');
+    var activeNotifFilter = 'all';
+
+    var refreshNotifEmpty = function () {
+        if (!notifList || !notifEmptyUnread) return;
+        var hasUnread = notifList.querySelector('.nxl-notif-item.is-unread');
+        notifEmptyUnread.style.display = (activeNotifFilter === 'unread' && !hasUnread) ? 'block' : 'none';
+    };
+
+    if (notifTabs && notifList) {
+        notifTabs.addEventListener('click', function (e) {
+            var tab = e.target.closest('.nxl-notif-tab');
+            if (!tab) return;
+            activeNotifFilter = tab.getAttribute('data-filter');
+            notifTabs.querySelectorAll('.nxl-notif-tab').forEach(function (t) {
+                t.classList.toggle('is-active', t === tab);
+            });
+            notifList.classList.toggle('is-filter-unread', activeNotifFilter === 'unread');
+            refreshNotifEmpty();
+        });
+    }
+
     var btn = document.getElementById('nxlMarkAllReadBtn');
     if (!btn) return;
 
@@ -68,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function () {
     btn.addEventListener('click', function (e) {
         e.preventDefault();
 
-        if (btn.disabled) return; // guard against double-click / double-fire
+        if (btn.disabled) return;
 
         var url = btn.getAttribute('data-url');
         if (!url) {
@@ -93,7 +96,6 @@ document.addEventListener('DOMContentLoaded', function () {
             return res.json();
         })
         .then(function (data) {
-            console.log('[admin-header.js] mark-all-read response:', data);
             if (!data || !data.success) {
                 console.error('[admin-header.js] server did not return success:true');
                 btn.disabled = false;
@@ -110,6 +112,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (badge) badge.remove();
 
             btn.style.display = 'none';
+            refreshNotifEmpty();
         })
         .catch(function (err) {
             console.error('[admin-header.js] mark-all-read fetch error:', err);

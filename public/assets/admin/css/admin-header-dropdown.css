@@ -1,14 +1,8 @@
-/* ============================================================
-   HEADER DROPDOWNS — Admin profile menu + Notifications
-   (native <details>/<summary>, walang existing styling dati)
-============================================================ */
-
 .nxl-header-admin,
 .nxl-header-notif {
     position: relative;
 }
 
-/* Remove native <details> marker/arrow */
 .nxl-header-admin summary::-webkit-details-marker,
 .nxl-header-notif summary::-webkit-details-marker {
     display: none;
@@ -19,7 +13,6 @@
     cursor: pointer;
 }
 
-/* ---------- Admin profile trigger ---------- */
 .nxl-admin-trigger-header {
     display: flex;
     align-items: center;
@@ -46,7 +39,6 @@
     transform: rotate(180deg);
 }
 
-/* ---------- Dropdown panel (shared shape) ---------- */
 .nxl-admin-dropdown-menu,
 .nxl-notif-dropdown-menu {
     position: absolute;
@@ -61,9 +53,7 @@
     padding: 8px;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
-.nxl-notif-dropdown-menu { width: 340px; padding: 0; overflow: hidden; }
 
-/* ---------- Admin dropdown head ---------- */
 .nxl-admin-dropdown-head {
     display: flex;
     align-items: center;
@@ -74,7 +64,6 @@
 .nxl-admin-email { font-size: 0.78rem; color: #64748B; margin-top: 1px; }
 .nxl-admin-dropdown-divider { height: 1px; background: #E5E7EB; margin: 4px 0; }
 
-/* ---------- Admin dropdown items ---------- */
 .nxl-admin-dropdown-item {
     display: flex;
     align-items: center;
@@ -90,104 +79,210 @@
 .nxl-admin-dropdown-item:hover { background: rgba(37, 99, 235, 0.08); color: #0F172A; }
 .nxl-admin-dropdown-item.text-danger:hover { background: rgba(220, 38, 38, 0.08); }
 .nxl-admin-dropdown-item-icon {
-    width: 18px; display: flex; align-items: center; justify-content: center;
-    color: #64748B; font-size: 0.9rem;
+    width: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748B;
+    font-size: 0.9rem;
 }
 .nxl-admin-dropdown-item.text-danger .nxl-admin-dropdown-item-icon { color: inherit; }
 
-/* ---------- Notification dropdown ---------- */
 .nxl-notif-trigger {
     position: relative;
-    display: flex; align-items: center; justify-content: center;
-    width: 36px; height: 36px; border-radius: 50%;
-    color: #64748B; font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    color: #64748B;
+    font-size: 1.05rem;
     cursor: pointer;
 }
 .nxl-notif-trigger:hover { background: rgba(15, 23, 42, 0.04); }
 .nxl-notif-badge {
-    position: absolute; top: 2px; right: 2px;
-    min-width: 16px; height: 16px; padding: 0 3px;
-    border-radius: 999px; background: #DC2626; color: #fff;
-    font-size: 0.62rem; font-weight: 700;
-    display: flex; align-items: center; justify-content: center;
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 3px;
+    border-radius: 999px;
+    background: #DC2626;
+    color: #fff;
+    font-size: 0.62rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border: 2px solid #fff;
 }
+
+.nxl-notif-dropdown-menu {
+    width: 380px;
+    max-width: calc(100vw - 24px);
+    padding: 0;
+    overflow: hidden;
+    border-radius: 18px;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 20px 48px -16px rgba(15, 23, 42, 0.28);
+}
 .nxl-notif-dropdown-head {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 16px; border-bottom: 1px solid #E5E7EB;
-    font-size: 0.9rem; font-weight: 600; color: #0F172A;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 20px 4px;
+    border-bottom: none;
+}
+.nxl-notif-dropdown-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0F172A;
 }
 .nxl-notif-mark-all {
-    background: none; border: none; padding: 0;
-    font-size: 0.76rem; font-weight: 500; color: #2563EB; cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #0F172A;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
 }
-.nxl-notif-list { max-height: 340px; overflow-y: auto; }
+.nxl-notif-mark-all:hover { color: #2563EB; }
+
+.nxl-notif-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    margin: 16px 20px 8px;
+    padding: 4px;
+    border: 1px solid #E5E7EB;
+    border-radius: 999px;
+    background: #fff;
+}
+.nxl-notif-tab {
+    border: none;
+    background: transparent;
+    padding: 8px 0;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease;
+}
+.nxl-notif-tab.is-active {
+    background: #1F2937;
+    color: #fff;
+}
+
+.nxl-notif-list {
+    max-height: 360px;
+    overflow-y: auto;
+    padding: 4px 10px;
+}
+.nxl-notif-list.is-filter-unread .nxl-notif-item:not(.is-unread) { display: none; }
+
 .nxl-notif-item {
-    display: flex; align-items: flex-start; gap: 10px;
-    padding: 12px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 36px 14px 12px;
+    border-bottom: none;
+    border-radius: 12px;
     text-decoration: none;
-    border-bottom: 1px solid #F1F5F9;
     position: relative;
 }
 .nxl-notif-item:hover { background: #F8FAFC; }
-.nxl-notif-item.is-unread { background: rgba(37, 99, 235, 0.04); }
-.nxl-notif-icon {
-    width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center; font-size: 0.85rem;
-}
-.nxl-notif-body { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.nxl-notif-title { font-size: 0.82rem; font-weight: 600; color: #0F172A; }
-.nxl-notif-sub { font-size: 0.78rem; color: #64748B; }
-.nxl-notif-time { font-size: 0.7rem; color: #94A3B8; margin-top: 2px; }
-.nxl-notif-dot {
-    width: 7px; height: 7px; border-radius: 50%; background: #2563EB;
-    position: absolute; right: 14px; top: 16px;
-}
-.nxl-notif-empty { padding: 30px 16px; text-align: center; font-size: 0.85rem; color: #94A3B8; }
-.nxl-notif-dropdown-foot {
-    padding: 12px 16px; text-align: center;
-    border-top: 1px solid #E5E7EB;
-}
-.nxl-notif-dropdown-foot a { font-size: 0.8rem; font-weight: 500; color: #2563EB; text-decoration: none; }
+.nxl-notif-item.is-unread { background: transparent; }
+.nxl-notif-item.is-unread:hover { background: #F8FAFC; }
 
-/* ---------- Dark mode ---------- */
+.nxl-notif-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+}
+.nxl-notif-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+.nxl-notif-title { font-size: 0.86rem; font-weight: 600; color: #0F172A; }
+.nxl-notif-sub { font-size: 0.78rem; color: #64748B; }
+.nxl-notif-time { font-size: 0.72rem; color: #94A3B8; margin-top: 2px; }
+.nxl-notif-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #2563EB;
+    position: absolute;
+    right: 16px;
+    top: 20px;
+}
+.nxl-notif-empty {
+    padding: 32px 16px;
+    text-align: center;
+    font-size: 0.85rem;
+    color: #94A3B8;
+}
+
+.nxl-notif-dropdown-foot {
+    padding: 14px 20px 18px;
+    text-align: center;
+    border-top: none;
+}
+.nxl-notif-dropdown-foot a {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #0F172A;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+.nxl-notif-dropdown-foot a:hover { color: #2563EB; }
+
 html.app-skin-dark .nxl-admin-dropdown-menu,
 html.app-skin-dark .nxl-notif-dropdown-menu {
-    background: #0d0d0d; border-color: #262626;
-    box-shadow: 0 16px 40px -12px rgba(0,0,0,0.6);
+    background: #0d0d0d;
+    border-color: #262626;
+    box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.6);
 }
 html.app-skin-dark .nxl-admin-name,
 html.app-skin-dark .nxl-admin-dropdown-item,
 html.app-skin-dark .nxl-admin-name-header,
 html.app-skin-dark .nxl-notif-title,
-html.app-skin-dark .nxl-notif-dropdown-head { color: #EDEDED; }
+html.app-skin-dark .nxl-notif-dropdown-title,
+html.app-skin-dark .nxl-notif-mark-all,
+html.app-skin-dark .nxl-notif-dropdown-foot a { color: #EDEDED; }
 html.app-skin-dark .nxl-admin-email,
 html.app-skin-dark .nxl-notif-sub { color: #8A8A8A; }
 html.app-skin-dark .nxl-admin-dropdown-divider,
-html.app-skin-dark .nxl-notif-dropdown-head,
-html.app-skin-dark .nxl-notif-dropdown-foot,
-html.app-skin-dark .nxl-notif-item { border-color: #262626; }
+html.app-skin-dark .nxl-notif-dropdown-foot { border-color: #262626; }
+html.app-skin-dark .nxl-admin-dropdown-divider { background: #262626; }
+html.app-skin-dark .nxl-notif-tabs { background: #0d0d0d; border-color: #262626; }
+html.app-skin-dark .nxl-notif-tab { color: #8A8A8A; }
+html.app-skin-dark .nxl-notif-tab.is-active { background: #EDEDED; color: #0d0d0d; }
+html.app-skin-dark .nxl-notif-badge { border-color: #0d0d0d; }
 html.app-skin-dark .nxl-admin-trigger-header:hover,
 html.app-skin-dark .nxl-header-admin[open] .nxl-admin-trigger-header,
 html.app-skin-dark .nxl-notif-trigger:hover,
 html.app-skin-dark .nxl-admin-dropdown-item:hover,
-html.app-skin-dark .nxl-notif-item:hover { background: rgba(255,255,255,0.06); }
+html.app-skin-dark .nxl-notif-item:hover,
+html.app-skin-dark .nxl-notif-item.is-unread:hover { background: rgba(255, 255, 255, 0.06); }
 
-/* Remove backdrop blur — causes lag on modal open */
 .modal-backdrop {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
 }
 
-/* ============================================================
-   KILL PAGE-CONTENT BLUR ON MODAL OPEN
-   Ang theme.min.css ay may filter:blur() na naka-apply sa buong
-   page content (sidebar, header, main) kapag may .modal-open sa
-   <body>. Ito ang gumagawa ng unreadable/blurred na sidebar sa
-   likod ng modal AT malaking part ng lag (filter:blur() sa
-   malaking element ay mabigat i-repaint habang naa-animate ang
-   modal transform). I-override lahat ng posibleng target.
-============================================================ */
 body.modal-open,
 body.modal-open .nxl-container,
 body.modal-open .nxl-navigation,
@@ -201,31 +296,48 @@ body.modal-open .footer {
     -webkit-filter: none !important;
 }
 
-/* ---------- Header trigger avatar (small, top bar) ---------- */
 .nxl-admin-avatar-header {
-    width: 34px; height: 34px; border-radius: 50%;
-    overflow: hidden; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.8rem; font-weight: 600; color: #fff;
-    background: linear-gradient(135deg, #2563EB, #60A5FA);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #fff;
+    background: #2563EB;
 }
 .nxl-admin-avatar-header img {
-    width: 100%; height: 100%; object-fit: cover; display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
-/* ---------- Dropdown head avatar (bigger, inside the panel) ---------- */
 .nxl-admin-dropdown-avatar {
-    width: 44px; height: 44px; border-radius: 50%;
-    overflow: hidden; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.95rem; font-weight: 600; color: #fff;
-    background: linear-gradient(135deg, #2563EB, #60A5FA);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #fff;
+    background: #2563EB;
 }
 .nxl-admin-dropdown-avatar img {
-    width: 100%; height: 100%; object-fit: cover; display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
-/* ---------- Ensure trigger row aligns properly ---------- */
 .nxl-admin-trigger-header {
     display: flex;
     align-items: center;
@@ -239,12 +351,6 @@ body.modal-open .footer {
     padding: 14px 16px;
 }
 
-/* ============================================================
-   SIDEBAR SUBMENU BADGE — red count badge inside a submenu link
-   (e.g. "Pending Applications" under Loan Applications, "Pending"
-   under Borrower Verification), matching the same red pill used
-   on the parent nxl-item.
-============================================================ */
 .nxl-submenu-link-badge {
     display: flex !important;
     align-items: center;

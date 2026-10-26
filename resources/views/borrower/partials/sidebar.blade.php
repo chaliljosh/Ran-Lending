@@ -4,7 +4,7 @@
 
 <nav class="nxl-navigation">
     <div class="navbar-wrapper" style="position: relative;">
-               <div class="m-header">
+        <div class="m-header">
             <a href="{{ route('borrower.dashboard') }}" class="b-brand">
                 <img src="{{ asset('assets/landingpage/img/ranlogo.png') }}" alt="Ran Serenity" class="b-brand-icon">
                 <h3 class="fst-italic b-brand-text">Ran Serenity</h3>
@@ -12,7 +12,7 @@
         </div>
         <div class="navbar-content">
             <ul class="nxl-navbar">
-<li class="nxl-nav-label" style="display:block; box-sizing:border-box; width:100%; margin:0; padding:16px 14px 8px; font-size:0.68rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#94A3B8; white-space:nowrap;">General</li>
+                <li class="nxl-nav-label" style="display:block; box-sizing:border-box; width:100%; margin:0; padding:16px 14px 8px; font-size:0.68rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#94A3B8; white-space:nowrap;">General</li>
                 <li class="nxl-item {{ request()->routeIs('borrower.dashboard') ? 'active' : '' }}">
                     <a href="{{ route('borrower.dashboard') }}" class="nxl-link">
                         <span class="nxl-micon"><i class="feather-airplay"></i></span>
@@ -32,34 +32,20 @@
                 @if($isFullyApproved)
                 <li class="nxl-nav-label" style="display:block; box-sizing:border-box; width:100%; margin:0; padding:16px 14px 8px; font-size:0.68rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#94A3B8; white-space:nowrap;">Loan Management</li>
 
+                {{-- Nakatago habang may ongoing loan (pending / approved / active / on hold) --}}
+                @if(!($hasOngoingLoan ?? false))
                 <li class="nxl-item {{ request()->routeIs('borrower.apply-loan') ? 'active' : '' }}">
                     <a href="{{ route('borrower.apply-loan') }}" class="nxl-link">
                         <span class="nxl-micon"><i class="feather-file-plus"></i></span>
                         <span class="nxl-mtext">Apply for a Loan</span>
                     </a>
                 </li>
+                @endif
+
                 <li class="nxl-item {{ request()->routeIs('borrower.loan-details') ? 'active' : '' }}">
                     <a href="{{ route('borrower.loan-details') }}" class="nxl-link">
                         <span class="nxl-micon"><i class="feather-file-text"></i></span>
                         <span class="nxl-mtext">View Loan Details</span>
-                    </a>
-                </li>
-
-                <li class="nxl-nav-label" style="display:block; box-sizing:border-box; width:100%; margin:0; padding:16px 14px 8px; font-size:0.68rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#94A3B8; white-space:nowrap;">Account</li>
-
-                <li class="nxl-item {{ request()->routeIs('borrower.profile') ? 'active' : '' }}">
-                    <a href="{{ route('borrower.profile') }}" class="nxl-link">
-                        <span class="nxl-micon"><i class="feather-user"></i></span>
-                        <span class="nxl-mtext">My Profile</span>
-                    </a>
-                </li>
-
-                <li class="nxl-nav-label" style="display:block; box-sizing:border-box; width:100%; margin:0; padding:16px 14px 8px; font-size:0.68rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#94A3B8; white-space:nowrap;">Support</li>
-
-                <li class="nxl-item {{ request()->routeIs('borrower.faq') ? 'active' : '' }}">
-                    <a href="{{ route('borrower.faq') }}" class="nxl-link">
-                        <span class="nxl-micon"><i class="feather-help-circle"></i></span>
-                        <span class="nxl-mtext">Help & FAQ</span>
                     </a>
                 </li>
 

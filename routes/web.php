@@ -9,6 +9,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\BorrowerController;
 use App\Http\Controllers\PaymentReceiptController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ZipcodeController;
 
 Route::get('/', function () {
     $userProfilePictureUrl = null;
@@ -49,6 +50,12 @@ Route::middleware('guest')->group(function () {
 Route::post('/api/register',            [AuthController::class, 'register'])->middleware('throttle:5,10');
 Route::post('/api/register/verify-otp', [AuthController::class, 'verifyRegisterOtp'])->middleware('throttle:5,10');
 Route::post('/api/register/resend-otp', [AuthController::class, 'resendRegisterOtp'])->middleware('throttle:5,10');
+Route::post('/api/register/check-email', [AuthController::class, 'checkRegisterEmail'])->middleware('throttle:30,1,register-check');
+
+// Zipcode lookup para sa Register page (Step 3). Public, kasi guest ang user
+// habang nagre-register. Hiwalay ang throttle prefix para hindi maapektuhan
+// ang ibang register routes.
+Route::get('/api/zipcode', [ZipcodeController::class, 'show'])->middleware('throttle:60,1,zipcode');
 
 Route::post('/api/login',               [AuthController::class, 'login']);
 Route::post('/api/logout',              [AuthController::class, 'logout'])->name('logout');

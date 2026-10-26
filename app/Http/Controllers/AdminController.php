@@ -21,7 +21,7 @@ use App\Mail\PaymentVoided;
 
 class AdminController extends Controller
 {
-   public function dashboard(Request $request)
+     public function dashboard(Request $request)
 {
    
     $adminId = Session::get('user_id');
@@ -51,6 +51,40 @@ foreach ($recentApplications as $a) {
     $overdueApplicationsCount = $data->overdue_applications_count;
     $upcomingPaymentsRaw = collect($data->upcoming_payments);
 
+    // ---- Void requests na hinihintay ang boto ng admin na ito ----
+    // Hindi kasama: yung siya mismo ang nag-request, at yung naiboto na niya
+    // (parehong rules ng notifications).
+    $pendingVoidAll = DB::table('payment_void_requests as r')
+        ->join('users as req', 'r.requested_by', '=', 'req.user_id')
+        ->join('loan_payment_schedules as sch', 'r.schedule_id', '=', 'sch.id')
+        ->join('loan_applications as la', 'r.application_id', '=', 'la.application_id')
+        ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
+        ->where('r.status', 'pending')
+        ->where('r.requested_by', '!=', $adminId)
+        ->whereNotExists(function ($q) use ($adminId) {
+            $q->select(DB::raw(1))->from('payment_void_votes as v')
+                ->whereColumn('v.request_id', 'r.id')
+                ->where('v.admin_id', $adminId);
+        })
+        ->select(
+            'r.id', 'r.created_at', 'r.amount_snapshot',
+            'la.uuid as loan_uuid',
+            'req.name as requester_name',
+            'sch.installment_no',
+            'bpd.first_name', 'bpd.last_name'
+        )
+        ->orderByDesc('r.created_at')
+        ->get()
+        ->map(function ($row) {
+            $name = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? ''));
+            $row->borrower_name = $name !== '' ? $name : 'Borrower';
+            $row->url = route('admin.ongoing-loan-detail', $row->loan_uuid) . '?from=ongoing-loans';
+            return $row;
+        });
+
+    $pendingVoidCount = $pendingVoidAll->count();
+    $pendingVoidRequests = $pendingVoidAll->take(5);
+
     // I-share yung badge counts na ito sa cache para hindi na kailangan pang
     // mag-query ulit ang ibang pages (allBorrowers, loanApplications, atbp.)
     // sa loob ng 30s window.
@@ -73,6 +107,16 @@ foreach ($recentApplications as $a) {
             'count' => $pendingApplications,
             'action' => 'Review',
             'url' => route('admin.loan-applications'),
+        ],
+        [
+            'icon' => 'feather-rotate-ccw',
+            'color' => 'warning',
+            'label' => 'Void Requests Need Your Vote',
+            'count' => $pendingVoidCount,
+            'action' => 'Review',
+            'url' => $pendingVoidCount > 0
+                ? $pendingVoidRequests->first()->url
+                : route('admin.ongoing-loans'),
         ],
       
     ];
@@ -145,7 +189,8 @@ foreach ($recentApplications as $a) {
             'overviewMonth', 'collectedThisMonth', 'expectedThisMonth',
             'outstandingThisMonth', 'overdueThisMonth',
             'collectedPctChange', 'expectedPctChange', 'outstandingPctChange', 'overduePctChange',
-            'paymentTrend', 'recentPayments'
+            'paymentTrend', 'recentPayments',
+            'pendingVoidRequests', 'pendingVoidCount'
         )
     ));
 }
@@ -972,8 +1017,19 @@ public function ongoingLoans(Request $request)
         ->get()
         ->groupBy('request_id');
 
+    // ---- Bagong Apply for a Loan form: address, source of income, labels, at signed URLs
+    // ng ID / selfie / payslip. Parehong helpers ng loanApplicationDetail().
+    $address = $this->getBorrowerAddress($app->detail_id);
+    $work = $this->getBorrowerWork($app->detail_id);
+    $appDisplay = $this->applicationDisplayData($app, $work);
+    $appDocs = $this->applicationDocuments($app, $work);
+
     return view('admin.ongoing-loan-detail', [
         'app' => $app,
+        'address' => $address,
+        'work' => $work,
+        'appDisplay' => $appDisplay,
+        'appDocs' => $appDocs,
         'applicationId' => $applicationId,
         'adminId' => $adminId,
         'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
@@ -1251,23 +1307,29 @@ private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $i
         }
     }
 
-    // Signed URLs para sa Valid ID images (private bucket, 30 minutes validity)
-    $idFrontUrl = !empty($app->id_file_path)
-        ? Storage::disk('valid_ids')->temporaryUrl($app->id_file_path, now()->addMinutes(30))
-        : null;
-    $idBackUrl = !empty($app->id_file_path_back)
-        ? Storage::disk('valid_ids')->temporaryUrl($app->id_file_path_back, now()->addMinutes(30))
-        : null;
+    // Address at source of income ng borrower
+    $address = $this->getBorrowerAddress($app->detail_id);
+    $work = $this->getBorrowerWork($app->detail_id);
+
+    // Readable labels (galing sa config/loan_labels.php) imbes na raw codes
+    $appDisplay = $this->applicationDisplayData($app, $work);
+
+    // Signed URLs (private bucket, 30 minutes validity) para sa Front ID, Back ID,
+    // Selfie with ID at Pay Slip. Walang file = null, kaya hindi nag-e-error ang
+    // page sa mga lumang application.
+    $appDocs = $this->applicationDocuments($app, $work);
 
     return view('admin.loan-application-detail', [
         'app' => $app,
-        'address' => $this->getBorrowerAddress($app->detail_id),
-        'work' => $this->getBorrowerWork($app->detail_id),
+        'address' => $address,
+        'work' => $work,
+        'appDisplay' => $appDisplay,
+        'appDocs' => $appDocs,
         'applicationId' => $uuid, // uuid na para gumana ang route() sa Blade forms
         'adminId' => $adminId,
         'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
-        'idFrontUrl' => $idFrontUrl,
-        'idBackUrl' => $idBackUrl,
+        'idFrontUrl' => $appDocs['front']['url'] ?? null,
+        'idBackUrl' => $appDocs['back']['url'] ?? null,
         'myReview' => $this->getMyLoanReview($internalId, $adminId),
         'allReviews' => $this->getAllLoanReviews($internalId),
         'approvedCount' => $this->getLoanApprovedCount($internalId),
@@ -1942,7 +2004,7 @@ private function executeVoid($voidRequest)
      * resibo na na-release na ang loan na nirequest ng borrower; hindi na per installment).
      * Expects: proof (JPG/PNG, max 5MB).
      */
-    public function sendProofToBorrower(Request $request, $applicationId)
+       public function sendProofToBorrower(Request $request, $applicationId)
     {
         $request->validate([
             'proof' => 'required|file|mimes:jpg,jpeg,png|max:5120',
@@ -1958,6 +2020,11 @@ private function executeVoid($voidRequest)
 
         if (!$loan) {
             return response()->json(['success' => false, 'message' => 'Loan not found.'], 404);
+        }
+
+        // Isang beses lang per loan
+        if (!empty($loan->proof_sent_at)) {
+            return response()->json(['success' => false, 'message' => 'The proof of release was already sent for this loan.'], 422);
         }
 
         $borrower = DB::table('users as u')
@@ -1977,8 +2044,18 @@ private function executeVoid($voidRequest)
         // Parehong format ng admin page: LN- + unang 8 chars ng uuid (hal. LN-34782CDF)
         $loanCode = 'LN-' . strtoupper(substr($loan->uuid, 0, 8));
 
-        // Hindi tulad ng ibang emails, dito hindi natin nilulunok ang error:
-        // ang email mismo ang trabaho, kaya dapat malaman ng admin kung pumalya.
+        // Markahan muna bilang "sent" (kung walang laman pa lang ang proof_sent_at).
+        // Kapag dalawang admin ang sabay na nag-click, isa lang ang makakalusot.
+        $sentAt = now();
+        $claimed = DB::table('loan_applications')
+            ->where('application_id', (int) $applicationId)
+            ->whereNull('proof_sent_at')
+            ->update(['proof_sent_at' => $sentAt]);
+
+        if ($claimed === 0) {
+            return response()->json(['success' => false, 'message' => 'The proof of release was already sent for this loan.'], 422);
+        }
+
         try {
             Mail::to($borrower->email)->send(new LoanProofSent(
                 $loan,
@@ -1988,6 +2065,11 @@ private function executeVoid($voidRequest)
                 "proof-of-release-{$loanCode}.{$ext}"
             ));
         } catch (\Throwable $e) {
+            // Pumalya ang email, kaya ibalik sa "hindi pa sent" para makapag-send ulit
+            DB::table('loan_applications')
+                ->where('application_id', (int) $applicationId)
+                ->update(['proof_sent_at' => null]);
+
             Log::error("Send proof of release failed (loan {$applicationId}): " . $e->getMessage());
             return response()->json(['success' => false, 'message' => 'Failed to send the email. Please try again.'], 500);
         }
@@ -1997,8 +2079,10 @@ private function executeVoid($voidRequest)
         return response()->json([
             'success' => true,
             'message' => "Proof sent to {$borrower->email}.",
+            'sent_at_display' => $sentAt->format('M d, Y g:i A'),
         ]);
     }
+
     private function saveLoanComment($applicationId, $adminId, $comment)
     {
         DB::table('loan_approval_comments')->insert([
@@ -2155,7 +2239,8 @@ private function executeVoid($voidRequest)
                 'bpd.detail_id', 'bpd.first_name', 'bpd.last_name', 'bpd.middle_name', 'bpd.suffix',
                 'bpd.birthday', 'bpd.gender', 'bpd.civil_status', 'bpd.citizenship',
                 'bpd.cellphone_num', 'bpd.monthly_income',
-                'bpd.id_type', 'bpd.id_number', 'bpd.id_file_path', 'bpd.id_file_path_back',
+                'bpd.id_type', 'bpd.id_type_others', 'bpd.id_number',
+                'bpd.id_file_path', 'bpd.id_file_path_back', 'bpd.selfie_id_path',
                 'bpd.birth_country', 'bpd.birth_province', 'bpd.birth_city'
             )
             ->first();
@@ -2173,6 +2258,145 @@ private function executeVoid($voidRequest)
         if (!$detailId) return null;
 
         return DB::table('borrowerworkinfo')->where('detail_id', $detailId)->first();
+    }
+
+    // ================================================================
+    // Apply for a Loan form — labels at documents (para sa admin review)
+    // ================================================================
+
+    /**
+     * Gawing readable na label ang isang code galing sa config/loan_labels.php.
+     * Kung wala sa listahan (hal. lumang code), ipakita ang code na nilinis
+     * (underscores -> spaces). Walang laman = '—'.
+     */
+    private function labelFor(string $group, $code, string $fallback = '—'): string
+    {
+        if (is_string($code)) {
+            $code = trim($code);
+        }
+
+        if ($code === null || $code === '') {
+            return $fallback;
+        }
+
+        $labels = config("loan_labels.{$group}", []);
+
+        return $labels[$code] ?? ucfirst(str_replace('_', ' ', (string) $code));
+    }
+
+    /**
+     * Lahat ng readable na label/values na kailangan ng admin review page.
+     * $app = result ng getLoanApplication(), $work = result ng getBorrowerWork() (pwedeng null).
+     */
+    private function applicationDisplayData($app, $work): array
+    {
+        // ---- Loan: purpose (kasama ang "Others" na detalye) ----
+        $purpose = $this->labelFor('loan_purposes', $app->loan_purpose ?? null);
+        if (($app->loan_purpose ?? null) === 'others' && !empty($app->loan_purpose_other)) {
+            $purpose = 'Others — ' . $app->loan_purpose_other;
+        }
+
+        // ---- Loan: referral source at pangalan ng nag-refer ----
+        $referralSource = $app->referral_source ?? null;
+        $referral = $this->labelFor('referral_sources', $referralSource);
+        $referralName = !empty($app->referral_name) ? trim($app->referral_name) : null;
+
+        if ($referralName !== null) {
+            if ($referralSource === 'friend_family') {
+                $referral .= ' — referred by ' . $referralName;
+            } elseif ($referralSource === 'others') {
+                $referral = 'Others — ' . $referralName;
+            } else {
+                $referral .= ' — ' . $referralName;
+            }
+        }
+
+        // ---- Valid ID type (kasama ang "Others" na detalye) ----
+        $idType = $this->labelFor('id_types', $app->id_type ?? null);
+        if (($app->id_type ?? null) === 'others' && !empty($app->id_type_others)) {
+            $idType = 'Others — ' . $app->id_type_others;
+        }
+
+        // ---- Source of income ----
+        $status = $work->employment_status ?? null;
+
+        $isEmployed = $status === 'employed';
+        $isSelfEmployed = $status === 'self_employed';
+        $hasJob = $isEmployed || $isSelfEmployed;
+        $showFunds = in_array($status, ['student', 'unemployed', 'retired'], true);
+
+        $years = $work->years_in_company ?? null;
+        $yearsLabel = '—';
+        if ($years !== null && $years !== '') {
+            $configured = config('loan_labels.years_in_company', []);
+            if (isset($configured[$years])) {
+                $yearsLabel = $configured[$years];
+            } elseif (is_numeric($years)) {
+                // Lumang application: numero lang ang naka-save
+                $yearsLabel = $years . ' ' . ((int) $years === 1 ? 'year' : 'years');
+            } else {
+                $yearsLabel = (string) $years;
+            }
+        }
+
+        $workData = [
+            'has_data'       => !empty($work),
+            'status_label'   => $this->labelFor('employment_statuses', $status),
+            'show_company'   => $hasJob || $status === 'student',
+            'company_label'  => config("loan_labels.company_name_labels.{$status}", 'Company / School'),
+            'company'        => !empty($work->company_name ?? null) ? $work->company_name : '—',
+            'show_job'       => $hasJob,
+            'position_label' => config("loan_labels.position_labels.{$status}", 'Occupation'),
+            'position'       => !empty($work->position ?? null) ? $work->position : '—',
+            'years_label'    => config("loan_labels.years_labels.{$status}", 'Years'),
+            'years'          => $yearsLabel,
+            'show_funds'     => $showFunds,
+            'primary_source' => $this->labelFor('primary_sources', $work->primary_source ?? null),
+            'other_sources'  => !empty($work->other_sources ?? null) ? $work->other_sources : '—',
+            'show_payslip'   => $hasJob,
+        ];
+
+        return [
+            'purpose'  => $purpose,
+            'referral' => $referral,
+            'id_type'  => $idType,
+            'work'     => $workData,
+        ];
+    }
+
+    /**
+     * Signed URLs (30 minutes) para sa Front ID, Back ID, Selfie with ID at Pay Slip.
+     * Private ang disk 'valid_ids', kaya hindi pwedeng direktang URL.
+     * Walang file (o pumalya ang pag-sign) = null, para hindi mag-error ang page.
+     */
+    private function applicationDocuments($app, $work): array
+    {
+        $make = function ($path) {
+            if (empty($path)) {
+                return null;
+            }
+
+            try {
+                $url = Storage::disk('valid_ids')->temporaryUrl($path, now()->addMinutes(30));
+            } catch (\Throwable $e) {
+                Log::warning("Could not sign URL for document {$path}: " . $e->getMessage());
+                return null;
+            }
+
+            $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+
+            return [
+                'url'      => $url,
+                'is_image' => in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true),
+            ];
+        };
+
+        return [
+            'front'   => $make($app->id_file_path ?? null),
+            'back'    => $make($app->id_file_path_back ?? null),
+            'selfie'  => $make($app->selfie_id_path ?? null),
+            'payslip' => $make($work->payslip_path ?? null),
+        ];
     }
 
     private function getMyLoanReview($applicationId, $adminId)

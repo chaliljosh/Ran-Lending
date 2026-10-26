@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Session;
 use App\Http\Controllers\AdminController;
@@ -36,6 +37,22 @@ class AppServiceProvider extends ServiceProvider
             if (!empty($missingData)) {
                 $view->with($missingData);
             }
+        });
+
+        // Borrower sidebar: true kung may ongoing loan ang borrower, para
+        // itago ang "Apply for a Loan". Parehong statuses ang gamit sa
+        // applyLoan() at submitLoanApplication() ng BorrowerController.
+        View::composer('borrower.partials.sidebar', function ($view) {
+            $userId = Session::get('user_id');
+
+            $hasOngoingLoan = $userId
+                ? DB::table('loan_applications')
+                    ->where('user_id', $userId)
+                    ->whereIn('status', ['pending', 'approved', 'active', 'on_hold'])
+                    ->exists()
+                : false;
+
+            $view->with('hasOngoingLoan', $hasOngoingLoan);
         });
     }
 }

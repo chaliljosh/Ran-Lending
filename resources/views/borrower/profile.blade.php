@@ -4,10 +4,28 @@
 
 @section('page-head-links')
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/profile.css') }}?v={{ time() }}">
+    {{-- Para sa Loan History table, status pills, at modal (galing sa Loan Details) --}}
+    <link rel="stylesheet" href="{{ asset('assets/borrower/css/loan-details.css') }}?v={{ time() }}">
+    <link rel="stylesheet" href="{{ asset('assets/borrower/css/payment-receipt.css') }}?v={{ time() }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/avatar-placeholder.css') }}" />
 @endsection
 
 @section('content')
+    @php
+        $loans = $loans ?? collect();
+
+        // status => [badge class, label]
+        $historyStatus = [
+            'pending'   => ['bg-warning',   'Pending'],
+            'on_hold'   => ['bg-danger',    'On Hold'],
+            'approved'  => ['bg-primary',   'Approved'],
+            'active'    => ['bg-primary',   'Active'],
+            'completed' => ['bg-success',   'Completed'],
+            'rejected'  => ['bg-secondary', 'Rejected'],
+            'defaulted' => ['bg-danger',    'Defaulted'],
+        ];
+    @endphp
+
     <div class="page-header">
         <div class="page-header-left d-flex align-items-center">
             <div class="page-header-title">
@@ -130,11 +148,11 @@
 
                     <div class="section-actions d-none" id="sectionActions-personal">
                         <button class="btn btn-cancel-pill btn-sm" onclick="cancelSectionEdit('personal')">
-    <i class="bi bi-x-lg"></i>Cancel
-</button>
-<button class="btn btn-save-pill btn-sm" id="saveBtn-personal" onclick="saveSection('personal')">
-    <i class="bi bi-check2"></i>Save Changes
-</button>
+                            <i class="bi bi-x-lg"></i>Cancel
+                        </button>
+                        <button class="btn btn-save-pill btn-sm" id="saveBtn-personal" onclick="saveSection('personal')">
+                            <i class="bi bi-check2"></i>Save Changes
+                        </button>
                     </div>
                 </div>
             </div>
@@ -201,7 +219,7 @@
                 </div>
             </div>
 
-            <!-- Work + Co-Maker -->
+            <!-- Work Information -->
             <div class="col-lg-6">
                 <div class="profile-card">
                     <div class="profile-card__head">
@@ -241,41 +259,124 @@
                 </div>
             </div>
 
-            <div class="col-lg-6">
+            <!-- ============ LOAN HISTORY ============ -->
+            <div class="col-12">
                 <div class="profile-card">
                     <div class="profile-card__head">
                         <div class="profile-card__head-text">
-                            <i class="feather-users"></i>
-                            <span>Co-Maker Information</span>
+                            <i class="feather-file-text"></i>
+                            <span>Loan History</span>
                         </div>
                     </div>
 
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <div class="field-label-custom">Last Name</div>
-                            <div class="field-box">{{ $profileData['co_last'] ?? '—' }}</div>
+                    @if ($loans->count() > 0)
+                        <div class="table-responsive" id="profileLoanHistory">
+                            <table class="table bwl-ld-table mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Loan ID</th>
+                                        <th>Amount</th>
+                                        <th>Term</th>
+                                        <th>Date Applied</th>
+                                        <th>Status</th>
+                                        <th class="text-end"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($loans as $l)
+                                        @php
+                                            $ls = $historyStatus[$l->status]
+                                                ?? ['bg-secondary', ucfirst(str_replace('_', ' ', $l->status))];
+
+                                            $lMonthly = data_get($l, 'monthly_payment');
+                                            $lTotal   = data_get($l, 'total_amount');
+                                        @endphp
+                                        <tr class="bwl-ld-row-link"
+                                            data-loan-id="LN-{{ str_pad($l->application_id, 6, '0', STR_PAD_LEFT) }}"
+                                            data-amount="₱{{ number_format($l->loan_amount, 2) }}"
+                                            data-term="{{ (int) $l->loan_term }} Months"
+                                            data-applied="{{ \Carbon\Carbon::parse($l->applied_at)->format('F j, Y') }}"
+                                            data-status-class="{{ $ls[0] }}"
+                                            data-status-label="{{ $ls[1] }}"
+                                            data-monthly="{{ $lMonthly !== null ? '₱' . number_format($lMonthly, 2) : '' }}"
+                                            data-total="{{ $lTotal !== null ? '₱' . number_format($lTotal, 2) : '' }}"
+                                            data-href="{{ route('borrower.loan-details', ['loan' => $l->application_id]) }}">
+                                            <td>LN-{{ str_pad($l->application_id, 6, '0', STR_PAD_LEFT) }}</td>
+                                            <td class="bwl-ld-cell-strong">₱{{ number_format($l->loan_amount, 2) }}</td>
+                                            <td>{{ (int) $l->loan_term }} Months</td>
+                                            <td>{{ \Carbon\Carbon::parse($l->applied_at)->format('M j, Y') }}</td>
+                                            <td><span class="bwl-ld-status {{ $ls[0] }}">{{ $ls[1] }}</span></td>
+                                            <td class="text-end">
+                                                <button type="button" class="bwl-ld-link-btn" data-ld-view-loan>View</button>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="col-12">
-                            <div class="field-label-custom">First Name</div>
-                            <div class="field-box">{{ $profileData['co_first'] ?? '—' }}</div>
-                        </div>
-                        <div class="col-12">
-                            <div class="field-label-custom">Relationship</div>
-                            <div class="field-box">{{ ucfirst($profileData['relationship'] ?? '—') }}</div>
-                        </div>
-                        <div class="col-12">
-                            <div class="field-label-custom">Contact Number</div>
-                            <div class="field-box">{{ $profileData['co_contact'] ?? '—' }}</div>
-                        </div>
-                    </div>
+                    @else
+                        <p class="text-muted mb-0" style="font-size:0.85rem;">You have no loan history yet.</p>
+                    @endif
                 </div>
             </div>
 
-            {{-- Security Settings card REMOVED — moved to the Settings page
-                 (reachable now via the header profile dropdown). --}}
-
         </div>
     </div>
+
+    {{-- ============ LOAN VIEW MODAL ============ --}}
+    @push('modals')
+        <div class="modal fade bwl-ld-modal" id="ldLoanModal" tabindex="-1"
+            aria-labelledby="ldLoanTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div>
+                            <span class="bwl-ld-eyebrow" id="ldLoanId"></span>
+                            <h5 class="modal-title" id="ldLoanTitle">Loan Details</h5>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <span class="bwl-ld-status" id="ldLoanStatus"></span>
+                        </div>
+
+                        <div class="bwl-ld-stat-grid bwl-ld-stat-grid--three">
+                            <div class="bwl-ld-stat-card">
+                                <span class="bwl-ld-stat-label">Loan Amount</span>
+                                <div class="bwl-ld-stat-value bwl-ld-stat-value--sm" id="ldLoanAmount">—</div>
+                            </div>
+                            <div class="bwl-ld-stat-card">
+                                <span class="bwl-ld-stat-label">Loan Term</span>
+                                <div class="bwl-ld-stat-value bwl-ld-stat-value--sm" id="ldLoanTerm">—</div>
+                            </div>
+                            <div class="bwl-ld-stat-card">
+                                <span class="bwl-ld-stat-label">Date Applied</span>
+                                <div class="bwl-ld-stat-value bwl-ld-stat-value--sm" id="ldLoanApplied">—</div>
+                            </div>
+                        </div>
+
+                        <div class="bwl-ld-stat-grid bwl-ld-stat-grid--second mt-3" id="ldLoanExtra">
+                            <div class="bwl-ld-stat-card" id="ldLoanMonthlyWrap">
+                                <span class="bwl-ld-stat-label">Monthly Payment</span>
+                                <div class="bwl-ld-stat-value bwl-ld-stat-value--sm" id="ldLoanMonthly">—</div>
+                            </div>
+                            <div class="bwl-ld-stat-card" id="ldLoanTotalWrap">
+                                <span class="bwl-ld-stat-label">Total Amount to Pay</span>
+                                <div class="bwl-ld-stat-value bwl-ld-stat-value--sm" id="ldLoanTotal">—</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="bwl-ld-btn-ghost" data-bs-dismiss="modal">Close</button>
+                        <a class="bwl-ld-btn" id="ldLoanOpen" href="#">Open full page</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endpush
 @endsection
 
 @section('page-scripts')

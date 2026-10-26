@@ -1,162 +1,160 @@
-// Loan Details — tab switching (Loan Details / Loan History).
-//
-// Markup contract (see loan-details.blade.php):
-//   [data-ld-tabs]              the tablist wrapper
-//   [data-ld-tab="name"]        each tab button
-//   [data-ld-panel="name"]      each tab panel (inactive ones carry `hidden`)
-//
-// If the page has no tablist (e.g. the borrower has no loan history,
-// or no application at all), this script simply does nothing.
+// public/functions/loan-application-detail.js
+// Used by: resources/views/admin/loan-application-detail.blade.php
 
+function decisionShowConfirm(action) {
+    document.getElementById('decisionActionInput').value = action;
+
+    document.getElementById('decisionStep1').style.display = 'none';
+    document.getElementById('decisionStep2').style.display = 'block';
+    document.getElementById('decisionFooterStep1').style.display = 'none';
+    document.getElementById('decisionFooterStep2').style.display = 'flex';
+
+    const headerTitle = document.getElementById('decisionModalLabel');
+    const iconWrap = document.getElementById('decisionConfirmIconWrap');
+    const icon = document.getElementById('decisionConfirmIcon');
+    const text = document.getElementById('decisionConfirmText');
+    const subtext = document.getElementById('decisionConfirmSubtext');
+    const confirmBtn = document.getElementById('decisionConfirmBtn');
+
+    if (action === 'approved') {
+        headerTitle.textContent = 'Approve loan application';
+        iconWrap.className = 'modal-icon-circle icon-success';
+        icon.className = 'feather-check';
+        text.textContent = 'Approve loan application?';
+        subtext.textContent = 'Are you sure you want to approve this loan application? This action cannot be undone.';
+        confirmBtn.className = 'btn-decision btn-decision-approve'; // green #477553
+        confirmBtn.textContent = 'Approve';
+    } else {
+        headerTitle.textContent = 'Reject loan application';
+        iconWrap.className = 'modal-icon-circle icon-danger';
+        icon.className = 'feather-x';
+        text.textContent = 'Reject loan application?';
+        subtext.textContent = 'Are you sure you want to reject this loan application? This action cannot be undone.';
+        confirmBtn.className = 'btn-decision btn-decision-black';
+        confirmBtn.textContent = 'Reject';
+    }
+}
+
+function decisionBackToStep1() {
+    document.getElementById('decisionStep1').style.display = 'block';
+    document.getElementById('decisionStep2').style.display = 'none';
+    document.getElementById('decisionFooterStep1').style.display = 'flex';
+    document.getElementById('decisionFooterStep2').style.display = 'none';
+    document.getElementById('decisionActionInput').value = '';
+    document.getElementById('decisionModalLabel').textContent = 'Review Loan Application';
+
+    // Reset confirm button back to its default look
+    const confirmBtn = document.getElementById('decisionConfirmBtn');
+    if (confirmBtn) {
+        confirmBtn.className = 'btn-decision btn-decision-black';
+    }
+}
+
+// ============================================================
+// ID IMAGE VIEWER (Front ID, Back ID, Selfie with ID, Pay Slip)
+// Ginagamit ng thumbnails sa blade: onclick="openIdViewer(url)".
+// Kung may ibang file na nagde-define na ng mga function na ito
+// (hal. remove-blur.js), hindi na ito magde-define ulit.
+// ============================================================
 (function () {
-    "use strict";
-
-    const tablist = document.querySelector("[data-ld-tabs]");
-    if (!tablist) {
+    if (typeof window.openIdViewer === 'function') {
         return;
     }
 
-    const tabs = Array.from(tablist.querySelectorAll("[data-ld-tab]"));
-    const panels = {};
+    let zoom = 1;
+    let rotation = 0;
 
-    document.querySelectorAll("[data-ld-panel]").forEach(function (panel) {
-        panels[panel.dataset.ldPanel] = panel;
-    });
+    function viewerEls() {
+        return {
+            overlay: document.getElementById('idViewerOverlay'),
+            img: document.getElementById('idViewerImage'),
+        };
+    }
 
-    // =========================================================
-    // ACTIVATE A TAB
-    // =========================================================
-
-    function activate(name, options) {
-        const opts = options || {};
-
-        if (!panels[name]) {
-            return;
-        }
-
-        tabs.forEach(function (tab) {
-            const isActive = tab.dataset.ldTab === name;
-
-            tab.classList.toggle("is-active", isActive);
-            tab.setAttribute("aria-selected", isActive ? "true" : "false");
-            // Roving tabindex: only the active tab is in the tab order,
-            // arrow keys move between tabs.
-            tab.tabIndex = isActive ? 0 : -1;
-
-            if (isActive && opts.focus) {
-                tab.focus();
-            }
-        });
-
-        Object.keys(panels).forEach(function (key) {
-            panels[key].hidden = key !== name;
-        });
-
-        // Keep the chosen tab in the URL hash so a refresh (or a shared link)
-        // lands on the same tab. The default tab keeps a clean URL.
-        if (opts.updateUrl) {
-            try {
-                const base = window.location.pathname + window.location.search;
-                const url = name === tabs[0].dataset.ldTab ? base : base + "#" + name;
-                window.history.replaceState(null, "", url);
-            } catch (err) {
-                // history API unavailable — not critical.
-            }
+    function applyTransform() {
+        const { img } = viewerEls();
+        if (img) {
+            img.style.transform = 'rotate(' + rotation + 'deg) scale(' + zoom + ')';
         }
     }
 
-    // =========================================================
-    // CLICK
-    // =========================================================
+    window.openIdViewer = function (url) {
+        const { overlay, img } = viewerEls();
+        if (!overlay || !img || !url) return;
 
-    tabs.forEach(function (tab) {
-        tab.addEventListener("click", function () {
-            activate(tab.dataset.ldTab, { updateUrl: true });
-        });
-    });
+        zoom = 1;
+        rotation = 0;
+        img.src = url;
+        applyTransform();
+        overlay.classList.add('show');
+    };
 
-    // =========================================================
-    // KEYBOARD (Left / Right / Home / End)
-    // =========================================================
+    window.closeIdViewer = function () {
+        const { overlay, img } = viewerEls();
+        if (!overlay) return;
 
-    tablist.addEventListener("keydown", function (event) {
-        const currentIndex = tabs.findIndex(function (tab) {
-            return tab.classList.contains("is-active");
-        });
+        overlay.classList.remove('show');
+        if (img) img.src = '';
+    };
 
-        let nextIndex = null;
+    window.idViewerZoom = function (delta) {
+        zoom = Math.min(4, Math.max(0.4, zoom + delta));
+        applyTransform();
+    };
 
-        switch (event.key) {
-            case "ArrowRight":
-                nextIndex = (currentIndex + 1) % tabs.length;
-                break;
-            case "ArrowLeft":
-                nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
-                break;
-            case "Home":
-                nextIndex = 0;
-                break;
-            case "End":
-                nextIndex = tabs.length - 1;
-                break;
-            default:
-                return;
+    window.idViewerRotate = function () {
+        rotation = (rotation + 90) % 360;
+        applyTransform();
+    };
+
+    window.idViewerReset = function () {
+        zoom = 1;
+        rotation = 0;
+        applyTransform();
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const { overlay } = viewerEls();
+        if (overlay) {
+            // I-click ang madilim na bahagi para isara
+            overlay.addEventListener('click', function (e) {
+                if (e.target === overlay) window.closeIdViewer();
+            });
         }
 
-        event.preventDefault();
-        activate(tabs[nextIndex].dataset.ldTab, {
-            focus: true,
-            updateUrl: true,
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') window.closeIdViewer();
         });
     });
-
-    // =========================================================
-    // CLICKABLE HISTORY ROWS
-    // =========================================================
-    //
-    // The whole row is clickable, not just the "View" link. The link itself
-    // stays in the markup (keyboard / screen-reader / right-click friendly),
-    // this handler is only the mouse shortcut on top of it.
-    //   data-href     -> open that loan (Ctrl/Cmd-click opens a new tab)
-    //   data-ld-goto  -> the loan is already the one being viewed, so just
-    //                    switch to the Loan Details tab
-
-    if (panels.history) {
-        panels.history.addEventListener("click", function (event) {
-            // Real links / buttons do their own thing.
-            if (event.target.closest("a, button")) {
-                return;
-            }
-
-            // Don't hijack the click when the user is selecting text.
-            const selection = window.getSelection();
-            if (selection && String(selection).length > 0) {
-                return;
-            }
-
-            const row = event.target.closest("tr.bwl-ld-row-link");
-            if (!row) {
-                return;
-            }
-
-            if (row.dataset.href) {
-                if (event.ctrlKey || event.metaKey) {
-                    window.open(row.dataset.href, "_blank", "noopener");
-                } else {
-                    window.location.href = row.dataset.href;
-                }
-            } else if (row.dataset.ldGoto) {
-                activate(row.dataset.ldGoto, { updateUrl: true });
-            }
-        });
-    }
-
-    // =========================================================
-    // INITIAL STATE — honour #history / #details in the URL
-    // =========================================================
-
-    const initial = window.location.hash.replace("#", "");
-    if (initial && panels[initial]) {
-        activate(initial);
-    }
 })();
+
+document.addEventListener('DOMContentLoaded', function () {
+    const decisionModalEl = document.getElementById('decisionModal');
+    if (decisionModalEl) {
+        decisionModalEl.addEventListener('hidden.bs.modal', decisionBackToStep1);
+    }
+
+    // Live character counter for the remarks textarea.
+    const remarksInput = document.getElementById('decisionRemarks');
+    const remarksCount = document.getElementById('decisionRemarksCount');
+    if (remarksInput && remarksCount) {
+        remarksInput.addEventListener('input', function () {
+            remarksCount.textContent = remarksInput.value.length;
+        });
+    }
+
+    // ---- Loading state on submit: icon-only spinner, no text ----
+    // Normal form submit (not AJAX) — the button stays in this
+    // loading state until the page navigates away after the
+    // server responds/redirects.
+    const decisionForm = document.getElementById('decisionForm');
+    if (decisionForm) {
+        decisionForm.addEventListener('submit', function () {
+            const confirmBtn = document.getElementById('decisionConfirmBtn');
+            if (confirmBtn) {
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = '<i class="feather-loader spin-icon"></i>';
+            }
+        });
+    }
+});

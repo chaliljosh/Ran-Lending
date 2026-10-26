@@ -87,20 +87,35 @@
             </div>
         </div>
 
-        <div class="olr-card">
-            <div class="olr-icon"><i class="feather-send"></i></div>
-            <div class="olr-text">
-                <div class="olr-title">Proof of Release</div>
-                <div class="olr-sub">Email the borrower proof that the &#8369;{{ number_format($app->loan_amount ?? 0, 2) }} loan was released.</div>
+        {{-- Proof of Release: kapag may proof_sent_at na, "already sent" na ang ipapakita (wala nang button) --}}
+        @if (!empty($app->proof_sent_at))
+            <div class="olr-card is-sent">
+                <div class="olr-icon"><i class="feather-check"></i></div>
+                <div class="olr-text">
+                    <div class="olr-title">Proof of release was already sent</div>
+                    <div class="olr-sub">
+                        Emailed to {{ $app->email }} on
+                        {{ \Carbon\Carbon::parse($app->proof_sent_at)->format('M d, Y \a\t g:i A') }}.
+                    </div>
+                </div>
+                <span class="olr-sent-badge"><i class="feather-check-circle"></i> Sent</span>
             </div>
-            <button type="button" class="btn-send-release" id="olsSendProofBtn"
-                data-application-id="{{ $applicationId }}"
-                data-amount="{{ number_format($app->loan_amount ?? 0, 2) }}"
-                data-borrower-name="{{ $app->first_name }} {{ $app->last_name }}"
-                data-borrower-email="{{ $app->email }}">
-                Send Proof
-            </button>
-        </div>
+        @else
+            <div class="olr-card">
+                <div class="olr-icon"><i class="feather-send"></i></div>
+                <div class="olr-text">
+                    <div class="olr-title">Proof of Release</div>
+                    <div class="olr-sub">Email the borrower proof that the &#8369;{{ number_format($app->loan_amount ?? 0, 2) }} loan was released.</div>
+                </div>
+                <button type="button" class="btn-send-release" id="olsSendProofBtn"
+                    data-application-id="{{ $applicationId }}"
+                    data-amount="{{ number_format($app->loan_amount ?? 0, 2) }}"
+                    data-borrower-name="{{ $app->first_name }} {{ $app->last_name }}"
+                    data-borrower-email="{{ $app->email }}">
+                    Send Proof
+                </button>
+            </div>
+        @endif
 
         <div class="loan-detail-grid">
 
@@ -138,7 +153,7 @@
                         </div>
                         <div class="info-item2">
                             <label>Purpose</label>
-                            <span>{{ ucfirst(str_replace('_', ' ', $app->loan_purpose ?? '—')) }}</span>
+                    <span>{{ $appDisplay['purpose'] }}</span>
                         </div>
                         <div class="info-item2">
                             <label>Applied On</label>

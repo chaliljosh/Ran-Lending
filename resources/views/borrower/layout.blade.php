@@ -14,7 +14,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
 
- <link href="{{ asset('assets/landingpage/img/ranlogo1.jpg') }}" rel="icon">
+    <link href="{{ asset('assets/landingpage/img/ranlogo1.jpg') }}" rel="icon">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/borrower/css/bootstrap.min.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/borrower/vendors/css/vendors.min.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/borrower/css/theme.min.css') }}" />
@@ -28,17 +28,11 @@
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/avatar-placeholder.css') }}" />
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
-    {{-- Page-specific <link> stylesheets go here — e.g. borrower-dashboard.css,
-         Cropper.js CDN CSS, atbp. --}}
+    {{-- Page-specific <link> stylesheets go here --}}
     @yield('page-head-links')
-    {{-- Layout-level structural/performance fixes — MUST be last so it wins
-         the cascade over all the CSS files above (feather icon font fix
-         needs to override the wildcard font-family overrides in
-         borrower-sidebar.css, header-profile.css, borrower-dashboard.css). --}}
+    {{-- Layout-level structural/performance fixes — MUST be last --}}
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/layout-fixes.css') }}?v={{ time() }}">
-    {{-- TRUE BLACK dark mode — final override. Dapat ito ang PINAKA-HULING
-         <link> (kasunod ng layout-fixes.css) para matalo ang lahat ng
-         natitirang navy rules. --}}
+    {{-- TRUE BLACK dark mode — final override. Dapat PINAKA-HULING <link>. --}}
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/borrower-black-final.css') }}?v={{ time() }}">
 </head>
 
@@ -97,8 +91,7 @@
                                             <span class="bwl-notif-item-title">{{ $n['title'] }}</span>
                                             <span class="bwl-notif-item-sub">{{ $n['subtitle'] }}</span>
                                             @if (!empty($n['ts']))
-                                                <span
-                                             <span class="bwl-notif-item-time">{{ $n['ts']->format('M j, g:i A') }}</span>
+                                                <span class="bwl-notif-item-time">{{ $n['ts']->format('M j, g:i A') }}</span>
                                             @endif
                                         </span>
                                     </a>
@@ -144,6 +137,16 @@
                                 </div>
                             </div>
                             <div class="bwl-dropdown-divider"></div>
+
+                            {{-- MY PROFILE (dating nasa sidebar) — fully approved lang, same as dati --}}
+                            @if ($isFullyApproved ?? false)
+                                <a href="{{ route('borrower.profile') }}" class="bwl-dropdown-item"
+                                    style="text-decoration:none; width:100%; text-align:left;">
+                                    <span class="bwl-dropdown-item-icon"><i class="feather-user"></i></span>
+                                    My Profile
+                                </a>
+                            @endif
+
                             <button type="button" class="bwl-dropdown-item" data-bs-toggle="modal"
                                 data-bs-target="#bwlSettingsModal"
                                 style="border:none; background:none; width:100%; text-align:left;">
@@ -156,6 +159,8 @@
                                 <span class="bwl-dropdown-item-icon"><i class="feather-lock"></i></span>
                                 Change Password
                             </button>
+
+
                             <div class="bwl-dropdown-divider"></div>
                             <button type="button" class="bwl-dropdown-item text-danger" onclick="confirmLogout()">
                                 <span class="bwl-dropdown-item-icon"><i class="feather-log-out"></i></span>
@@ -185,14 +190,10 @@
         </footer>
     </main>
 
-    {{-- ACCOUNT SETTINGS MODAL — included dito para available saanman
-         sa borrower area, dahil ang trigger niya (header dropdown) ay
-         laging visible sa lahat ng pages. --}}
+    {{-- ACCOUNT SETTINGS MODAL --}}
     @include('borrower.partials.settings-modal')
 
-    {{-- Modals pushed from child pages render here — OUTSIDE .nxl-container,
-         same reasoning as the admin layout: avoids the blur-filter-on-modal-open
-         issue when a modal is nested inside a blurred container. --}}
+    {{-- Modals pushed from child pages render here --}}
     @stack('modals')
 
     <script src="{{ asset('assets/borrower/vendors/js/vendors.min.js') }}"></script>
@@ -207,8 +208,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
     <script src="{{ asset('functions/settings-modal.js') }}"></script>
 
-    {{-- Page-specific scripts go here --}}
-       <script>
+    <script>
         document.addEventListener('DOMContentLoaded', function () {
             var miniBtn = document.getElementById('menu-mini-button');
             var expandBtn = document.getElementById('menu-expend-button');

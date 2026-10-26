@@ -1368,6 +1368,20 @@ html.app-skin-dark .nxl-navigation .nxl-submenu .nxl-item.active > .nxl-link {
     box-shadow: 0 0 0 3px rgba(31, 41, 55, 0.18);
 }
 
+/* ── Proof of Release: sent state (wala nang button, "already sent" na) ── */
+.olr-card.is-sent { border-left-color: #16a34a; }
+.olr-card.is-sent .olr-icon { background: #16a34a; }
+.olr-sent-badge {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #16a34a;
+    white-space: nowrap;
+}
+
 @media (max-width: 575px) {
     .olr-card { flex-wrap: wrap; padding: 14px 18px; }
     .olr-text { flex: 1 1 calc(100% - 52px); }
@@ -1786,3 +1800,11 @@ html.app-skin-dark .btn-send-release:focus-visible {
     border-color: #6b6b6b !important;
     box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08) !important;
 }
+
+/* ── Proof of Release: sent state (dark mode) ── */
+html.app-skin-dark .olr-card.is-sent { border-left-color: #4ade80 !important; }
+html.app-skin-dark .olr-card.is-sent .olr-icon {
+    background: rgba(22, 163, 74, .2) !important;
+    color: #4ade80 !important;
+}
+html.app-skin-dark .olr-sent-badge { color: #4ade80 !important; }

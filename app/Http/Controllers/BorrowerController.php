@@ -13,6 +13,9 @@ use Illuminate\Validation\Rule;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use App\Mail\LoanApplicationReceived;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class BorrowerController extends Controller
 {
@@ -82,9 +85,9 @@ class BorrowerController extends Controller
 
     /**
      * Loan amount eligibility — first-time borrowers are capped at
-     * ₱10,000. Once they have at least one fully completed loan,
-     * they're eligible for up to ₱100,000. Used by both applyLoan()
-     * (to render the correct banner/input limits) and
+     * ₱5,000. Every fully completed loan raises the limit by ₱5,000
+     * (1st loan ₱5,000, 2nd ₱10,000, 3rd ₱15,000, and so on). Used by
+     * both applyLoan() (to render the correct banner/input limits) and
      * submitLoanApplication() (to enforce it server-side).
      */
     private function getLoanEligibility($userId)
@@ -95,7 +98,7 @@ class BorrowerController extends Controller
             ->count();
 
         $isFirstTime = $completedCount === 0;
-        $maxAmount = $isFirstTime ? 10000 : 100000;
+        $maxAmount = 5000 * ($completedCount + 1);
 
         return compact('isFirstTime', 'maxAmount');
     }
@@ -461,14 +464,9 @@ class BorrowerController extends Controller
             'home_address' => $request->input('homeAddress'),
         ];
 
-        $workData = [
-            'company_name'      => $request->input('companyName'),
-            'position'          => $request->input('position'),
-            'employment_status' => $request->input('employmentStatus'),
-            'monthly_income'    => $request->input('monthlyIncome'),
-            'years_in_company'  => $request->input('yearsInCompany'),
-        ];
-
+       $workData = [
+    'monthly_income' => $request->input('monthlyIncome'),
+];
         try {
             if ($existing) {
                 $detailId = $existing->detail_id;
@@ -531,8 +529,8 @@ class BorrowerController extends Controller
 
         $hasPendingApplication = (bool) $existingApplication;
 
-        // First-time borrowers are capped at ₱10,000; once they've
-        // completed at least one loan, they're eligible up to ₱100,000.
+        // First-time borrowers are capped at ₱5,000; every fully
+        // completed loan raises the limit by ₱5,000.
         $eligibility = $this->getLoanEligibility($userId);
         $isFirstTime = $eligibility['isFirstTime'];
         $maxLoanAmount = $eligibility['maxAmount'];
@@ -541,14 +539,19 @@ class BorrowerController extends Controller
         // Valid ID section ng loan form.
         $idDetails = DB::table('borrowerpersonaldetails')
             ->where('user_id', $userId)
-            ->select('id_type', 'id_type_others', 'id_number', 'id_file_path', 'id_file_path_back')
+            ->select('id_type', 'id_type_others', 'id_number', 'id_file_path', 'id_file_path_back', 'selfie_id_path')
             ->first();
+
+        // Naka-save na Source of Income (kung meron na) — para ma-prefill ang Step 3.
+        $work = $details
+            ? DB::table('borrowerworkinfo')->where('detail_id', $details->detail_id)->first()
+            : null;
 
         return view('borrower.apply-loan', compact(
             'userName', 'initials', 'profilePicture', 'isFullyApproved', 'hasPendingApplication', 'existingApplication',
             'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
             'headerNotifications', 'unreadNotifCount',
-            'isFirstTime', 'maxLoanAmount', 'idDetails'
+            'isFirstTime', 'maxLoanAmount', 'idDetails', 'work'
         ));
     }
 
@@ -585,31 +588,78 @@ class BorrowerController extends Controller
             return response()->json(['success' => false, 'message' => 'Personal details not found.'], 404);
         }
 
+        // Naka-save na work info (para sa pay slip na na-upload dati)
+        $existingWork = DB::table('borrowerworkinfo')->where('detail_id', $details->detail_id)->first();
+
         $validator = Validator::make($request->all(), [
+            // Purpose of the loan — kapag "others", kailangang may nakasulat na detalye.
+            'loanPurpose'      => 'required|in:business_capital,education,medical_expenses,home_improvement,debt_consolidation,emergency,travel,wedding,vehicle_purchase,appliance_purchase,personal_expenses,others',
+            'loanPurposeOther' => 'required_if:loanPurpose,others|nullable|string|max:100',
             'idType'       => 'required|in:national_id,passport,drivers_license,umid,sss,tin,postal,voters,prc,others',
             'idTypeOthers' => 'required_if:idType,others|nullable|string|max:100',
             'idNumber'     => [
-                'required', 'string', 'max:100',
+              'required', 'string', 'max:100', 'regex:/^[A-Za-z0-9\-]+$/',
+                
                 Rule::unique('borrowerpersonaldetails', 'id_number')
                     ->ignore($details->detail_id, 'detail_id'),
             ],
             'validIdFront' => 'nullable|file|mimes:jpg,jpeg,png|mimetypes:image/jpeg,image/png|max:5120',
             'validIdBack'  => 'nullable|file|mimes:jpg,jpeg,png|mimetypes:image/jpeg,image/png|max:5120',
+            'selfieWithId' => 'nullable|file|mimes:jpg,jpeg,png|mimetypes:image/jpeg,image/png|max:5120',
+
+            // Source of Income (Step 3)
+            //   employed / self_employed : companyName + position (+ pay slip)
+            //   student                  : companyName (School Name) + primarySource
+            //   unemployed / retired     : primarySource
+          'employmentStatus' => 'required|in:employed,self_employed,unemployed,student,retired,others',
+'employmentOther'  => 'required_if:employmentStatus,others|nullable|string|max:100',
+            'companyName'      => 'required_if:employmentStatus,employed,self_employed,student|nullable|string|max:100',
+            'position'         => 'required_if:employmentStatus,employed,self_employed|nullable|string|max:100',
+            'yearsInCompany'   => 'nullable|in:0-5,6-10,11-15,16-20,21+',
+            'primarySource'    => 'required_if:employmentStatus,unemployed,student,retired|nullable|in:family_support,savings,allowance,scholarship,pension,remittance,odd_jobs,rental_investments',
+            'otherSources'     => 'nullable|string|max:150',
+            'paySlip'          => 'nullable|file|mimes:jpg,jpeg,png|mimetypes:image/jpeg,image/png|max:5120',
         ], [
+            'loanPurpose.required'         => 'Please select the purpose of your loan.',
+            'loanPurpose.in'               => 'Please select a valid purpose for your loan.',
+            'loanPurposeOther.required_if' => 'Please specify the purpose of your loan.',
             'idType.required'          => 'Please select your type of ID.',
             'idTypeOthers.required_if' => 'Please specify your ID type.',
             'idNumber.required'        => 'Please enter your ID number.',
             'idNumber.unique'          => 'This ID number is already registered under another account.',
+            'idNumber.regex'           => 'ID number can only contain letters, numbers, and hyphens.',
             'validIdFront.mimes'       => 'Front ID must be a JPG or PNG picture.',
             'validIdFront.mimetypes'  => 'Front ID must be a JPG or PNG picture.',
             'validIdFront.max'        => 'Front ID must be less than 5MB.',
             'validIdBack.mimes'        => 'Back ID must be a JPG or PNG picture.',
             'validIdBack.mimetypes'   => 'Back ID must be a JPG or PNG picture.',
             'validIdBack.max'         => 'Back ID must be less than 5MB.',
+            'selfieWithId.mimes'      => 'Selfie with ID must be a JPG or PNG picture.',
+            'selfieWithId.mimetypes'  => 'Selfie with ID must be a JPG or PNG picture.',
+            'selfieWithId.max'        => 'Selfie with ID must be less than 5MB.',
+            'employmentStatus.required'   => 'Please select your employment status.',
+            'employmentStatus.in'         => 'Please select a valid employment status.',
+            'employmentOther.required_if' => 'Please specify your employment status.',
+            'companyName.required_if'     => 'Please enter your employer, business, or school name.',
+            'position.required_if'        => 'Please enter your occupation.',
+            'primarySource.required_if'   => 'Please select your primary source of funds.',
+            'primarySource.in'            => 'Please select a valid primary source of funds.',
+            'paySlip.mimes'               => 'Pay slip must be a JPG or PNG picture.',
+            'paySlip.mimetypes'           => 'Pay slip must be a JPG or PNG picture.',
+            'paySlip.max'                 => 'Pay slip must be less than 5MB.',
         ]);
 
-        if ($validator->fails()) {
+                if ($validator->fails()) {
             return response()->json(['success' => false, 'message' => $validator->errors()->first()], 422);
+        }
+
+        // PhilSys, UMID, SSS, TIN, PRC: numbers at hyphen lang
+        $digitOnlyIds = ['national_id', 'umid', 'sss', 'tin', 'prc'];
+        if (
+            in_array($request->input('idType'), $digitOnlyIds, true)
+            && !preg_match('/^[0-9\-]+$/', (string) $request->input('idNumber'))
+        ) {
+            return response()->json(['success' => false, 'message' => 'This ID number can only contain numbers and hyphens.'], 422);
         }
 
         if (!$request->hasFile('validIdFront') && empty($details->id_file_path)) {
@@ -617,6 +667,20 @@ class BorrowerController extends Controller
         }
         if (!$request->hasFile('validIdBack') && empty($details->id_file_path_back)) {
             return response()->json(['success' => false, 'message' => 'Please upload the back of your ID.'], 422);
+        }
+        if (!$request->hasFile('selfieWithId') && empty($details->selfie_id_path)) {
+            return response()->json(['success' => false, 'message' => 'Please upload a selfie holding your ID.'], 422);
+        }
+
+        // Ano ang kailangan ayon sa employment status
+        $employmentStatus = $request->input('employmentStatus');
+        $needsCompany  = in_array($employmentStatus, ['employed', 'self_employed', 'student'], true);
+        $needsPosition = in_array($employmentStatus, ['employed', 'self_employed'], true);
+        $needsPaySlip  = $needsPosition; // pay slip: Employed at Self-Employed lang
+        $needsFunds    = in_array($employmentStatus, ['unemployed', 'student', 'retired'], true);
+
+        if ($needsPaySlip && !$request->hasFile('paySlip') && empty($existingWork->payslip_path ?? null)) {
+            return response()->json(['success' => false, 'message' => 'Please upload your pay slip.'], 422);
         }
 
         $interestRate   = 5.00;
@@ -628,7 +692,11 @@ class BorrowerController extends Controller
             // Ang "check-then-insert" ay iisang atomic operation gamit ang
             // DB::transaction() + lockForUpdate(), para hindi makalusot ang
             // double-click o dalawang tabs.
-            $result = DB::transaction(function () use ($userId, $details, $loanAmount, $loanTerm, $interestRate, $totalInterest, $totalAmount, $monthlyPayment, $request) {
+            $result = DB::transaction(function () use (
+                $userId, $details, $existingWork, $loanAmount, $loanTerm, $interestRate,
+                $totalInterest, $totalAmount, $monthlyPayment, $request,
+                $employmentStatus, $needsCompany, $needsPosition, $needsPaySlip, $needsFunds
+            ) {
                 $existing = DB::table('loan_applications')
                     ->where('user_id', $userId)
                     ->whereIn('status', ['pending', 'approved', 'active', 'on_hold'])
@@ -660,6 +728,17 @@ class BorrowerController extends Controller
                     Storage::disk('valid_ids')->put($idFilePathBack, file_get_contents($file));
                 }
 
+                // ---- Selfie with ID ----
+                // Ang luma ay buburahin lang pagkatapos mag-commit ng transaction.
+                $selfiePath    = $details->selfie_id_path ?? null;
+                $oldSelfiePath = null;
+                if ($request->hasFile('selfieWithId')) {
+                    $oldSelfiePath = $selfiePath;
+                    $file = $request->file('selfieWithId');
+                    $selfiePath = 'selfies/' . uniqid() . '.' . $file->getClientOriginalExtension();
+                    Storage::disk('valid_ids')->put($selfiePath, file_get_contents($file));
+                }
+
                 DB::table('borrowerpersonaldetails')->where('user_id', $userId)->update([
                     'id_type'           => $request->input('idType'),
                     // Naka-save lang kapag "others" ang piniling ID type;
@@ -670,30 +749,92 @@ class BorrowerController extends Controller
                     'id_number'         => $request->input('idNumber'),
                     'id_file_path'      => $idFilePath,
                     'id_file_path_back' => $idFilePathBack,
+                    'selfie_id_path'    => $selfiePath,
                 ]);
 
+                // ---- Pay slip (Employed / Self-Employed lang) ----
+                $paySlipPath = $existingWork->payslip_path ?? null;
+
+                if (!$needsPaySlip) {
+                    // Hindi na kailangan ang pay slip sa bagong status — burahin ang luma.
+                    if ($paySlipPath) {
+                        Storage::disk('valid_ids')->delete($paySlipPath);
+                    }
+                    $paySlipPath = null;
+                } elseif ($request->hasFile('paySlip')) {
+                    if ($paySlipPath) {
+                        Storage::disk('valid_ids')->delete($paySlipPath);
+                    }
+                    $file = $request->file('paySlip');
+                    $paySlipPath = 'payslips/' . uniqid() . '.' . $file->getClientOriginalExtension();
+                    Storage::disk('valid_ids')->put($paySlipPath, file_get_contents($file));
+                }
+
+                // ---- Source of Income ----
+                // Ang field na hindi kailangan ng napiling status ay nagiging null,
+                // para walang naiiwang lumang value.
+                $otherSources = trim((string) $request->input('otherSources', ''));
+
+                DB::table('borrowerworkinfo')->updateOrInsert(
+                    ['detail_id' => $details->detail_id],
+                    [
+                        'employment_status'       => $employmentStatus,
+                       'employment_status_other' => $employmentStatus === 'others'
+                                ? trim($request->input('employmentOther', ''))
+                                : null,
+                        'company_name'      => $needsCompany ? trim($request->input('companyName', '')) : null,
+                        'position'          => $needsPosition ? trim($request->input('position', '')) : null,
+                        'years_in_company'  => $needsPosition ? ($request->input('yearsInCompany') ?: null) : null,
+                        'primary_source'    => $needsFunds ? $request->input('primarySource') : null,
+                        'other_sources'     => ($needsFunds && $otherSources !== '') ? $otherSources : null,
+                        'payslip_path'      => $paySlipPath,
+                    ]
+                );
+
                 $applicationId = DB::table('loan_applications')->insertGetId([
-                    'uuid'            => (string) Str::uuid(),
-                    'user_id'         => $userId,
-                    'loan_amount'     => $loanAmount,
-                    'loan_term'       => $loanTerm,
-                    'interest_rate'   => $interestRate,
-                    'total_interest'  => $totalInterest,
-                    'total_amount'    => $totalAmount,
-                    'monthly_payment' => $monthlyPayment,
-                    'loan_purpose'    => $request->input('loanPurpose'),
-                    'referral_source' => $request->input('referralSource'),
-                    'referral_name'   => $request->input('referralName'),
-                    'status'          => 'pending',
-                    'applied_at'      => now(),
+                    'uuid'               => (string) Str::uuid(),
+                    'user_id'            => $userId,
+                    'loan_amount'        => $loanAmount,
+                    'loan_term'          => $loanTerm,
+                    'interest_rate'      => $interestRate,
+                    'total_interest'     => $totalInterest,
+                    'total_amount'       => $totalAmount,
+                    'monthly_payment'    => $monthlyPayment,
+                    'loan_purpose'       => $request->input('loanPurpose'),
+                    // Naka-save lang kapag "others" ang purpose; kung hindi, null.
+                    'loan_purpose_other' => $request->input('loanPurpose') === 'others'
+                                            ? trim($request->input('loanPurposeOther', ''))
+                                            : null,
+                    'referral_source'    => $request->input('referralSource'),
+                    'referral_name'      => $request->input('referralName'),
+                    'status'             => 'pending',
+                    'applied_at'         => now(),
                 ], 'application_id');
 
-                return ['duplicate' => false, 'application_id' => $applicationId];
+                return ['duplicate' => false, 'application_id' => $applicationId, 'old_selfie' => $oldSelfiePath];
             });
 
             if ($result['duplicate']) {
                 return response()->json(['success' => false, 'message' => 'You already have an active or pending loan application.'], 422);
             }
+
+            // Burahin ang lumang selfie pagkatapos lang ng successful commit.
+            if (!empty($result['old_selfie'])) {
+                try {
+                    Storage::disk('valid_ids')->delete($result['old_selfie']);
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            }
+
+            // Email sa borrower: natanggap na ang application. Nasa labas ito ng
+            // transaction (pagkatapos lang ng commit) at hindi dapat pumalya
+            // ang pag-submit dahil lang dito.
+            $this->sendLoanSubmittedEmail(
+                (int) $result['application_id'],
+                (string) ($userEmail ?: ($details->email ?? '')),
+                (string) ($details->first_name ?? '')
+            );
 
             return response()->json([
                 'success' => true,
@@ -708,6 +849,38 @@ class BorrowerController extends Controller
             return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Ipinapadala ang "We received your loan application" email sa borrower.
+     * Tahimik na nagla-log ng warning kapag pumalya; hindi nito ibabagsak ang submit.
+     */
+    private function sendLoanSubmittedEmail(int $applicationId, string $email, string $firstName): void
+    {
+        try {
+            if ($email === '') {
+                return;
+            }
+
+            $loan = DB::table('loan_applications')->where('application_id', $applicationId)->first();
+            if (!$loan) {
+                return;
+            }
+
+            // Readable na label; kapag "others", ang isinulat ng borrower ang ipapakita.
+            $purposeLabel = $loan->loan_purpose === 'others' && !empty($loan->loan_purpose_other)
+                ? $loan->loan_purpose_other
+                : config('loan_labels.loan_purposes.' . $loan->loan_purpose, 'Others');
+
+            $displayName = $firstName !== '' ? ucwords(strtolower($firstName)) : 'there';
+
+            Mail::to($email)->send(new LoanApplicationReceived($loan, $displayName, $purposeLabel));
+        } catch (\Throwable $e) {
+            Log::warning('Loan submitted email failed', [
+                'application_id' => $applicationId,
+                'error'          => $e->getMessage(),
+            ]);
         }
     }
 
@@ -1064,7 +1237,7 @@ class BorrowerController extends Controller
 
         $t4 = microtime(true);
 
-        \Log::info('dashboardCalendar timing', [
+        Log::info('dashboardCalendar timing', [
             'bootstrap_to_method_ms' => round(($t0 - $requestStart) * 1000),
             'setup_ms'   => round(($t1 - $t0) * 1000),
             'query_ms'   => round(($t2 - $t1) * 1000),
@@ -1129,10 +1302,22 @@ class BorrowerController extends Controller
 
         $profileData = $profileRow ? (array) $profileRow : [];
 
+        // Loan History — lahat ng loan ng borrower, pinakabago sa taas.
+        // Dating nasa loanDetails() (galing sa RPC), dito direkta na.
+        $loans = DB::table('loan_applications')
+            ->where('user_id', $userId)
+            ->select(
+                'application_id', 'loan_amount', 'loan_term',
+                'monthly_payment', 'total_amount', 'status', 'applied_at'
+            )
+            ->orderByDesc('applied_at')
+            ->get();
+
         return view('borrower.profile', compact(
             'userName', 'initials', 'profilePicture', 'isFullyApproved', 'profileData',
             'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
-            'headerNotifications', 'unreadNotifCount'
+            'headerNotifications', 'unreadNotifCount',
+            'loans'
         ));
     }
 

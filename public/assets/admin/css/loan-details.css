@@ -342,10 +342,19 @@ body { background: #fff; }
    Same pattern as verification-detail.css, para consistent
    ang Valid ID display sa Loan Applications at Borrower
    Verification.
+
+   Ang thumbnail ay sumusunod sa lapad ng column nito (hanggang
+   300px), kaya kasya ang tatlong picture (Front, Back, Selfie)
+   na magkatabi at hindi lumalampas sa card.
    ============================================================ */
-.id-thumb-wrap { display: inline-block; cursor: zoom-in; }
+.id-thumb-wrap { display: block; max-width: 300px; cursor: zoom-in; }
 .id-thumb-wrap img {
-    max-width: 300px; border-radius: 10px; border: 1px solid var(--rs-border);
+    display: block;
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    border-radius: 10px;
+    border: 1px solid var(--rs-border);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .id-thumb-wrap:hover img {
@@ -879,3 +888,84 @@ body.modal-open .footer {
     opacity: 0.85;
     cursor: not-allowed;
 }
+
+/* Magkatabing cards: pantay ang taas */
+.ld-section-grid { margin-bottom: 24px; }
+.ld-section-grid > [class*="col-"] > .section-card {
+    height: 100%;
+    margin-bottom: 0;
+}
+
+/* Wala nang sticky (hindi na ginagamit ang left column) */
+.ld-sticky-col {
+    position: static;
+    transform: none;
+    will-change: auto;
+}
+
+/* ============================================================
+   COMPACT LAYOUT — mas maliit na padding at spacing
+   ============================================================ */
+
+/* Header card */
+.ld-header-card {
+    padding: 16px 22px;
+    margin-bottom: 16px;
+    gap: 16px;
+}
+.borrower-avatar { width: 50px; height: 50px; font-size: 0.95rem; }
+.ld-header-info h6 { font-size: 0.98rem; }
+.ld-header-meta { font-size: 0.78rem; }
+.ld-header-stats { gap: 26px; }
+.ld-stat { min-width: 76px; }
+.ld-stat-value { font-size: 1.05rem; }
+.ld-stat-label { font-size: 0.68rem; }
+
+/* Section cards */
+.section-card {
+    padding: 18px 20px;
+    margin-bottom: 16px;
+    border-radius: 12px;
+}
+.section-title {
+    font-size: 0.9rem;
+    margin: 0 0 12px;
+    padding-bottom: 10px;
+}
+
+/* Gaps sa pagitan ng magkatabing cards */
+.ld-section-grid {
+    --bs-gutter-x: 16px;
+    --bs-gutter-y: 16px;
+    margin-bottom: 16px;
+}
+
+/* Gaps sa loob ng cards */
+.section-card .row {
+    --bs-gutter-x: 14px;
+    --bs-gutter-y: 2px;
+}
+
+/* Fields */
+.ld-field { gap: 3px; padding: 6px 0; }
+.info-label { font-size: 0.7rem; }
+.info-value { font-size: 0.84rem; line-height: 1.35; }
+
+/* Valid ID pictures */
+.id-thumb-wrap,
+.id-thumb-wrap img { max-width: 220px; }
+
+/* Tables */
+.ld-review-table thead th,
+.ld-schedule-table thead th { padding: 8px 10px; }
+.ld-review-table tbody td,
+.ld-schedule-table tbody td { padding: 9px 10px; font-size: 0.8rem; }
+
+/* Discussion */
+.ld-discussion { gap: 12px; margin-bottom: 14px; }
+.ld-comment-body { padding: 9px 13px; }
+.ld-comment-avatar { width: 32px; height: 32px; }
+.ld-comment-form textarea { min-height: 64px; }
+
+/* Buttons sa baba */
+.btn.btn-decision-review { padding: 9px 20px; }
