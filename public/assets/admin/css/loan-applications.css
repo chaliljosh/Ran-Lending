@@ -82,6 +82,30 @@ html body .main-content i[class*="feather-"]::before {
 .la-stat-card.is-attention .la-stat-value { color: #B45309; }
 .la-stat-card.is-attention .la-stat-icon { color: #B45309; }
 
+/* ---------- Clickable stat card (Needs Attention) — hover/focus effect.
+   Tina-target ang card na may role="button" sa blade. ---------- */
+.la-stat-card[role="button"] {
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.la-stat-card[role="button"]:hover {
+    transform: translateY(-2px);
+    border-color: #F59E0B;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
+}
+.la-stat-card[role="button"]:active {
+    transform: translateY(0);
+}
+.la-stat-card[role="button"]:focus-visible {
+    outline: none;
+    border-color: #F59E0B;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .la-stat-card[role="button"] { transition: none; }
+    .la-stat-card[role="button"]:hover { transform: none; }
+}
+
 @media (max-width: 900px) {
     .la-stats-row { grid-template-columns: repeat(2, 1fr); }
 }
@@ -1137,3 +1161,36 @@ html.app-skin-dark .pm-item.is-rejected { background: rgba(220,38,38,.18) !impor
 
 html.app-skin-dark .la-empty-icon-lg { background: rgba(22,163,74,.18) !important; color: #4ade80 !important; }
 html.app-skin-dark .la-empty-icon-lg-muted { background: #262626 !important; color: #9A9A9A !important; }
+
+/* ---------- Dark mode: hover/focus ng clickable stat card (Needs Attention).
+   Nasa dulo para manalo sa ".la-stat-card:hover" sa taas. ---------- */
+html.app-skin-dark .la-stat-card[role="button"]:hover {
+    border-color: #f59e0b !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+}
+html.app-skin-dark .la-stat-card[role="button"]:focus-visible {
+    border-color: #f59e0b !important;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
+}
+
+/* ---------- Needs Attention view: 3 cards + critical (red) card ---------- */
+.la-stats-row.is-three { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 900px) {
+    .la-stats-row.is-three { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+    .la-stats-row.is-three { grid-template-columns: 1fr; }
+}
+
+.la-stat-card.is-critical { border-color: #FECACA; }
+.la-stat-card.is-critical .la-stat-value,
+.la-stat-card.is-critical .la-stat-icon { color: #B91C1C; }
+
+html.app-skin-dark .la-stat-card.is-critical {
+    background: rgba(220, 38, 38, 0.12) !important;
+    border-color: rgba(248, 113, 113, 0.4) !important;
+}
+html.app-skin-dark .la-stat-card.is-critical .la-stat-value,
+html.app-skin-dark .la-stat-card.is-critical .la-stat-icon {
+    color: #f87171 !important;
+}

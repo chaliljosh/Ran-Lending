@@ -30,13 +30,84 @@
             ->filter(fn($v) => !empty($v))
             ->implode(', ');
 
-        // Dagdag na address details mula sa bagong register form (kung meron)
-        $addressExtras = collect([
-            'House / Building No.' => $address->house_no ?? null,
-            'Street' => $address->street ?? null,
-            'Subdivision / Village' => $address->subdivision ?? null,
-            'Additional Details' => $address->address_details ?? null,
-        ])->filter(fn($v) => !empty($v));
+        // Dagdag na address details (lalabas lang sa view mode kung may laman; sa edit mode lahat)
+        $addressExtraFields = [
+            'house_no' => 'House / Building No.',
+            'street' => 'Street',
+            'subdivision' => 'Subdivision / Village',
+            'address_details' => 'Additional Details',
+        ];
+
+        // ---- Borrower info editing (galing sa AdminController) ----
+        $canEditInfo = $canEditInfo ?? false;
+        $infoEdits = $infoEdits ?? [];
+        $editOptions = $editOptions ?? [];
+
+        // Attributes ng isang field: class (may yellow kapag edited) + data-* para sa edit mode.
+        // $o: max, req (required), any (listahan ng ibang keys na nakaapekto sa combined field).
+        $fld = function (string $key, $raw = null, string $type = 'text', array $o = []) use ($canEditInfo, $infoEdits, $editOptions) {
+            $edited = $key !== '' && isset($infoEdits[$key]);
+            foreach (($o['any'] ?? []) as $k) {
+                $edited = $edited || isset($infoEdits[$k]);
+            }
+
+            $html = 'class="ld-field' . ($edited ? ' is-edited' : '') . '"';
+
+            if ($canEditInfo && $key !== '') {
+                $html .= ' data-edit="' . e($key) . '" data-type="' . e($type) . '" data-raw="' . e((string) $raw) . '"';
+                if (!empty($o['max'])) {
+                    $html .= ' data-max="' . (int) $o['max'] . '"';
+                }
+                if (!empty($o['req'])) {
+                    $html .= ' data-required="1"';
+                }
+                if ($type === 'select') {
+                    $html .= ' data-options="' . e(json_encode($editOptions[$key] ?? [])) . '"';
+                }
+            }
+
+            return $html;
+        };
+
+        // Maliit na note sa ilalim ng edited field: "Edited by Admin · Oct 28, 2026 · was: ..."
+        $editNote = function ($keys, bool $showOld = true) use ($infoEdits) {
+            $latest = null;
+            foreach ((array) $keys as $k) {
+                if (isset($infoEdits[$k]) && (!$latest || $infoEdits[$k]['ts'] > $latest['ts'])) {
+                    $latest = $infoEdits[$k];
+                }
+            }
+            if (!$latest) {
+                return '';
+            }
+
+            $text = 'Edited by ' . e($latest['admin']) . ' · ' . e($latest['at']);
+            if ($showOld) {
+                $text .= ' · was: ' . e($latest['old']);
+            }
+
+            return '<span class="ld-edited-note"><i class="feather-edit-2"></i> ' . $text . '</span>';
+        };
+
+        // Edit / Cancel / Save buttons sa title ng card
+        $editControls = function (string $section) use ($canEditInfo) {
+            if (!$canEditInfo) {
+                return '';
+            }
+
+            return '<span class="ld-edit-actions">'
+                . '<button type="button" class="ld-edit-btn js-edit-start" data-section="' . $section . '"><i class="feather-edit-2"></i> Edit</button>'
+                . '<span class="ld-edit-group">'
+                . '<button type="button" class="ld-edit-btn js-edit-cancel">Cancel</button>'
+                . '<button type="button" class="ld-edit-btn is-primary js-edit-save">Save</button>'
+                . '</span></span>';
+        };
+
+        $yearsType = !empty($editOptions['years_in_company']) ? 'select' : 'text';
+        $sourceType = !empty($editOptions['primary_source']) ? 'select' : 'text';
+        $birthdayRaw = !empty($app->birthday) ? \Carbon\Carbon::parse($app->birthday)->format('Y-m-d') : '';
+        $nameKeys = ['first_name', 'middle_name', 'last_name', 'suffix'];
+        $birthKeys = ['birth_city', 'birth_province', 'birth_country'];
     @endphp
 
     <div class="page-header">
@@ -137,6 +208,13 @@
             </div>
         </div>
 
+        @if (count($infoEdits) > 0)
+            <div class="ld-edited-legend">
+                <span class="ld-edited-dot"></span>
+                Highlighted fields were corrected by an admin. The borrower was notified by email.
+            </div>
+        @endif
+
         {{-- ═══════════ ROW 1: Loan Summary | Source of Income ═══════════ --}}
         <div class="row g-4 ld-section-grid">
 
@@ -191,8 +269,8 @@
 
             <!-- Source of Income (galing sa Apply for a Loan form, Step 3) -->
             <div class="col-lg-6">
-                <div class="section-card">
-                    <p class="section-title">Source of Income</p>
+                <div class="section-card" data-edit-section="income">
+                    <p class="section-title"><span>Source of Income</span>{!! $w['has_data'] ? $editControls('income') : '' !!}</p>
 
                     @if (!$w['has_data'])
                         <p class="ld-discussion-empty mb-0">No source of income on file.</p>
@@ -206,39 +284,39 @@
 
                             @if ($w['show_company'])
                                 <div class="col-6">
-                                    <div class="ld-field"><span
+                                    <div {!! $fld('company_name', $work->company_name ?? '', 'text', ['max' => 150]) !!}><span
                                             class="info-label">{{ $w['company_label'] }}</span><span
-                                            class="info-value">{{ $w['company'] }}</span></div>
+                                            class="info-value">{{ $w['company'] }}</span>{!! $editNote('company_name') !!}</div>
                                 </div>
                             @endif
 
                             @if ($w['show_job'])
                                 <div class="col-6">
-                                    <div class="ld-field"><span
+                                    <div {!! $fld('position', $work->position ?? '', 'text', ['max' => 100]) !!}><span
                                             class="info-label">{{ $w['position_label'] }}</span><span
-                                            class="info-value">{{ $w['position'] }}</span></div>
+                                            class="info-value">{{ $w['position'] }}</span>{!! $editNote('position') !!}</div>
                                 </div>
                                 <div class="col-6">
-                                    <div class="ld-field"><span
+                                    <div {!! $fld('years_in_company', $work->years_in_company ?? '', $yearsType, ['max' => 50]) !!}><span
                                             class="info-label">{{ $w['years_label'] }}</span><span
-                                            class="info-value">{{ $w['years'] }}</span></div>
+                                            class="info-value">{{ $w['years'] }}</span>{!! $editNote('years_in_company') !!}</div>
                                 </div>
                             @endif
 
                             @if ($w['show_funds'])
                                 <div class="col-6">
-                                    <div class="ld-field"><span class="info-label">Primary Source of
-                                            Funds</span><span class="info-value">{{ $w['primary_source'] }}</span></div>
+                                    <div {!! $fld('primary_source', $work->primary_source ?? '', $sourceType, ['max' => 100]) !!}><span class="info-label">Primary Source of
+                                            Funds</span><span class="info-value">{{ $w['primary_source'] }}</span>{!! $editNote('primary_source') !!}</div>
                                 </div>
                                 <div class="col-6">
-                                    <div class="ld-field"><span class="info-label">Other Sources of
-                                            Income</span><span class="info-value">{{ $w['other_sources'] }}</span></div>
+                                    <div {!! $fld('other_sources', $work->other_sources ?? '', 'text', ['max' => 255]) !!}><span class="info-label">Other Sources of
+                                            Income</span><span class="info-value">{{ $w['other_sources'] }}</span>{!! $editNote('other_sources') !!}</div>
                                 </div>
                             @endif
 
                             <div class="col-6">
-                                <div class="ld-field"><span class="info-label">Monthly Income</span><span
-                                        class="info-value text-success">{{ $app->monthly_income ?? null ? (is_numeric($app->monthly_income) ? '₱' . number_format($app->monthly_income, 2) : $app->monthly_income) : '—' }}</span>
+                                <div {!! $fld('monthly_income', $app->monthly_income ?? '', 'text', ['max' => 50]) !!}><span class="info-label">Monthly Income</span><span
+                                        class="info-value text-success">{{ $app->monthly_income ?? null ? (is_numeric($app->monthly_income) ? '₱' . number_format($app->monthly_income, 2) : $app->monthly_income) : '—' }}</span>{!! $editNote('monthly_income') !!}
                                 </div>
                             </div>
 
@@ -276,42 +354,72 @@
 
             <!-- Personal Information (galing sa Registration) -->
             <div class="col-lg-6">
-                <div class="section-card">
-                    <p class="section-title">Personal Information</p>
+                <div class="section-card" data-edit-section="personal">
+                    <p class="section-title"><span>Personal Information</span>{!! $editControls('personal') !!}</p>
                     <div class="row g-3">
-                        <div class="col-6">
-                            <div class="ld-field"><span class="info-label">Full Name</span><span
+                        {{-- View mode: combined full name --}}
+                        <div class="col-6 ld-view-only">
+                            <div {!! $fld('', null, 'text', ['any' => $nameKeys]) !!}><span class="info-label">Full Name</span><span
                                     class="info-value">{{ $app->first_name }} {{ $app->middle_name }}
-                                    {{ $app->last_name }}{{ $app->suffix ?? null ? ', ' . $app->suffix : '' }}</span>
+                                    {{ $app->last_name }}{{ $app->suffix ?? null ? ', ' . $app->suffix : '' }}</span>{!! $editNote($nameKeys, false) !!}
                             </div>
                         </div>
+
+                        {{-- Edit mode: separate name fields --}}
+                        <div class="col-6 ld-edit-only">
+                            <div {!! $fld('first_name', $app->first_name, 'text', ['max' => 50, 'req' => true]) !!}><span class="info-label">First Name</span></div>
+                        </div>
+                        <div class="col-6 ld-edit-only">
+                            <div {!! $fld('middle_name', $app->middle_name, 'text', ['max' => 50]) !!}><span class="info-label">Middle Name</span></div>
+                        </div>
+                        <div class="col-6 ld-edit-only">
+                            <div {!! $fld('last_name', $app->last_name, 'text', ['max' => 50, 'req' => true]) !!}><span class="info-label">Last Name</span></div>
+                        </div>
+                        <div class="col-6 ld-edit-only">
+                            <div {!! $fld('suffix', $app->suffix, 'text', ['max' => 10]) !!}><span class="info-label">Suffix</span></div>
+                        </div>
+
                         <div class="col-6">
-                            <div class="ld-field"><span class="info-label">Birthday</span><span
-                                    class="info-value">{{ $app->birthday ?? null ? \Carbon\Carbon::parse($app->birthday)->format('F d, Y') : '—' }}</span>
+                            <div {!! $fld('birthday', $birthdayRaw, 'date', ['req' => true]) !!}><span class="info-label">Birthday</span><span
+                                    class="info-value">{{ $app->birthday ?? null ? \Carbon\Carbon::parse($app->birthday)->format('F d, Y') : '—' }}</span>{!! $editNote('birthday') !!}
                             </div>
                         </div>
+
+                        {{-- View mode: combined place of birth --}}
+                        <div class="col-6 ld-view-only">
+                            <div {!! $fld('', null, 'text', ['any' => $birthKeys]) !!}><span class="info-label">Place of Birth</span><span
+                                    class="info-value">{{ $placeOfBirth !== '' ? $placeOfBirth : '—' }}</span>{!! $editNote($birthKeys, false) !!}</div>
+                        </div>
+
+                        {{-- Edit mode: separate place of birth fields --}}
+                        <div class="col-6 ld-edit-only">
+                            <div {!! $fld('birth_city', $app->birth_city ?? '', 'text', ['max' => 100]) !!}><span class="info-label">Birth City</span></div>
+                        </div>
+                        <div class="col-6 ld-edit-only">
+                            <div {!! $fld('birth_province', $app->birth_province ?? '', 'text', ['max' => 100]) !!}><span class="info-label">Birth Province</span></div>
+                        </div>
+                        <div class="col-6 ld-edit-only">
+                            <div {!! $fld('birth_country', $app->birth_country ?? '', 'text', ['max' => 100]) !!}><span class="info-label">Birth Country</span></div>
+                        </div>
+
                         <div class="col-6">
-                            <div class="ld-field"><span class="info-label">Place of Birth</span><span
-                                    class="info-value">{{ $placeOfBirth !== '' ? $placeOfBirth : '—' }}</span></div>
+                            <div {!! $fld('gender', $app->gender ?? '', 'select', ['req' => true]) !!}><span class="info-label">Gender</span><span
+                                    class="info-value">{{ ucfirst($app->gender ?? '—') }}</span>{!! $editNote('gender') !!}</div>
                         </div>
                         <div class="col-6">
-                            <div class="ld-field"><span class="info-label">Gender</span><span
-                                    class="info-value">{{ ucfirst($app->gender ?? '—') }}</span></div>
+                            <div {!! $fld('civil_status', $app->civil_status ?? '', 'select', ['req' => true]) !!}><span class="info-label">Civil Status</span><span
+                                    class="info-value">{{ ucfirst($app->civil_status ?? '—') }}</span>{!! $editNote('civil_status') !!}</div>
                         </div>
                         <div class="col-6">
-                            <div class="ld-field"><span class="info-label">Civil Status</span><span
-                                    class="info-value">{{ ucfirst($app->civil_status ?? '—') }}</span></div>
+                            <div {!! $fld('citizenship', $app->citizenship ?? '', 'text', ['max' => 60, 'req' => true]) !!}><span class="info-label">Citizenship</span><span
+                                    class="info-value">{{ $app->citizenship ?? '—' }}</span>{!! $editNote('citizenship') !!}</div>
                         </div>
                         <div class="col-6">
-                            <div class="ld-field"><span class="info-label">Citizenship</span><span
-                                    class="info-value">{{ $app->citizenship ?? '—' }}</span></div>
+                            <div {!! $fld('cellphone_num', $app->cellphone_num ?? '', 'tel', ['max' => 20, 'req' => true]) !!}><span class="info-label">Cellphone</span><span
+                                    class="info-value">{{ $app->cellphone_num ?? '—' }}</span>{!! $editNote('cellphone_num') !!}</div>
                         </div>
                         <div class="col-6">
-                            <div class="ld-field"><span class="info-label">Cellphone</span><span
-                                    class="info-value">{{ $app->cellphone_num ?? '—' }}</span></div>
-                        </div>
-                        <div class="col-6">
-                            <div class="ld-field"><span class="info-label">Email</span><span
+                            <div class="ld-field"><span class="info-label">Email @if ($canEditInfo)<i class="feather-lock ld-lock-icon" title="Email is the borrower's login, so it can't be edited here"></i>@endif</span><span
                                     class="info-value" style="word-break:break-all;">{{ $app->email }}</span></div>
                         </div>
                     </div>
@@ -320,38 +428,39 @@
 
             <!-- Present Address (galing sa Registration) -->
             <div class="col-lg-6">
-                <div class="section-card">
-                    <p class="section-title">Present Address</p>
+                <div class="section-card" data-edit-section="address">
+                    <p class="section-title"><span>Present Address</span>{!! $editControls('address') !!}</p>
                     <div class="row g-3">
                         <div class="col-6">
-                            <div class="ld-field"><span class="info-label">Region</span><span
-                                    class="info-value">{{ $address->region ?? '—' }}</span></div>
+                            <div {!! $fld('region', $address->region ?? '', 'text', ['max' => 100, 'req' => true]) !!}><span class="info-label">Region</span><span
+                                    class="info-value">{{ $address->region ?? '—' }}</span>{!! $editNote('region') !!}</div>
                         </div>
                         <div class="col-6">
-                            <div class="ld-field"><span class="info-label">Province</span><span
-                                    class="info-value">{{ $address->province ?? '—' }}</span></div>
+                            <div {!! $fld('province', $address->province ?? '', 'text', ['max' => 100, 'req' => true]) !!}><span class="info-label">Province</span><span
+                                    class="info-value">{{ $address->province ?? '—' }}</span>{!! $editNote('province') !!}</div>
                         </div>
                         <div class="col-6">
-                            <div class="ld-field"><span class="info-label">City / Municipality</span><span
-                                    class="info-value">{{ $address->city ?? '—' }}</span></div>
+                            <div {!! $fld('city', $address->city ?? '', 'text', ['max' => 100, 'req' => true]) !!}><span class="info-label">City / Municipality</span><span
+                                    class="info-value">{{ $address->city ?? '—' }}</span>{!! $editNote('city') !!}</div>
                         </div>
                         <div class="col-6">
-                            <div class="ld-field"><span class="info-label">Barangay</span><span
-                                    class="info-value">{{ $address->barangay ?? '—' }}</span></div>
+                            <div {!! $fld('barangay', $address->barangay ?? '', 'text', ['max' => 100, 'req' => true]) !!}><span class="info-label">Barangay</span><span
+                                    class="info-value">{{ $address->barangay ?? '—' }}</span>{!! $editNote('barangay') !!}</div>
                         </div>
                         <div class="col-6">
-                            <div class="ld-field"><span class="info-label">Zipcode</span><span
-                                    class="info-value">{{ !empty($address->zipcode ?? null) ? $address->zipcode : '—' }}</span></div>
+                            <div {!! $fld('zipcode', $address->zipcode ?? '', 'text', ['max' => 10]) !!}><span class="info-label">Zipcode</span><span
+                                    class="info-value">{{ !empty($address->zipcode ?? null) ? $address->zipcode : '—' }}</span>{!! $editNote('zipcode') !!}</div>
                         </div>
-                        @foreach ($addressExtras as $extraLabel => $extraValue)
-                            <div class="col-6">
-                                <div class="ld-field"><span class="info-label">{{ $extraLabel }}</span><span
-                                        class="info-value">{{ $extraValue }}</span></div>
+                        @foreach ($addressExtraFields as $extraKey => $extraLabel)
+                            @php $extraValue = $address->{$extraKey} ?? null; @endphp
+                            <div class="col-6 {{ empty($extraValue) ? 'ld-edit-only' : '' }}">
+                                <div {!! $fld($extraKey, $extraValue ?? '', 'text', ['max' => 255]) !!}><span class="info-label">{{ $extraLabel }}</span><span
+                                        class="info-value">{{ $extraValue }}</span>{!! $editNote($extraKey) !!}</div>
                             </div>
                         @endforeach
                         <div class="col-12">
-                            <div class="ld-field"><span class="info-label">Home Address</span><span
-                                    class="info-value">{{ !empty($address->home_address ?? null) ? $address->home_address : '—' }}</span></div>
+                            <div {!! $fld('home_address', $address->home_address ?? '', 'text', ['max' => 255]) !!}><span class="info-label">Home Address</span><span
+                                    class="info-value">{{ !empty($address->home_address ?? null) ? $address->home_address : '—' }}</span>{!! $editNote('home_address') !!}</div>
                         </div>
                     </div>
                 </div>
@@ -359,16 +468,16 @@
         </div>
 
         {{-- ═══════════ Valid ID (full width) ═══════════ --}}
-        <div class="section-card">
-            <p class="section-title">Submitted Valid ID</p>
+        <div class="section-card" data-edit-section="id">
+            <p class="section-title"><span>Submitted Valid ID</span>{!! $editControls('id') !!}</p>
             <div class="row g-3 mb-1">
                 <div class="col-md-6">
                     <div class="ld-field"><span class="info-label">ID Type</span><span
                             class="info-value">{{ $appDisplay['id_type'] }}</span></div>
                 </div>
                 <div class="col-md-6">
-                    <div class="ld-field"><span class="info-label">ID Number</span><span
-                            class="info-value">{{ !empty($app->id_number) ? $app->id_number : '—' }}</span></div>
+                    <div {!! $fld('id_number', $app->id_number ?? '', 'text', ['max' => 50, 'req' => true]) !!}><span class="info-label">ID Number</span><span
+                            class="info-value">{{ !empty($app->id_number) ? $app->id_number : '—' }}</span>{!! $editNote('id_number') !!}</div>
                 </div>
             </div>
 
@@ -570,6 +679,78 @@
 
 @push('modals')
 
+    {{-- ============================================
+         EDIT BORROWER INFO — confirm + reason
+    ============================================ --}}
+    @if ($canEditInfo)
+        <div class="modal fade modal-modern" id="editInfoModal" tabindex="-1" aria-labelledby="editInfoTitle"
+            aria-hidden="true" data-save-url="{{ route('admin.loan-application-borrower-info', $applicationId) }}">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header-clean">
+                        <div class="header-left">
+                            <h6 id="editInfoTitle">Save changes</h6>
+                        </div>
+                        <button type="button" class="btn-close-clean" data-bs-dismiss="modal"
+                            aria-label="Close">&times;</button>
+                    </div>
+
+                    <div class="modal-body">
+                        <p class="ld-edit-modal-desc">The borrower will be emailed about these changes.</p>
+
+                        <div class="ld-change-list" id="editInfoChanges"></div>
+
+                        <label class="form-label fw-semibold" for="editInfoReason" style="font-size:0.85rem;">Reason for
+                            the change <span class="text-danger">*</span></label>
+                        <textarea id="editInfoReason" class="form-control" rows="3" maxlength="255"
+                            placeholder="e.g. Borrower mistyped the barangay"></textarea>
+                        <div class="decision-char-counter"><span id="editInfoReasonCount">0</span>/255</div>
+
+                        <div class="ld-edit-error" id="editInfoError" style="display:none;"></div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn-decision btn-decision-cancel"
+                            data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn-decision btn-decision-black" id="editInfoConfirmBtn">Save
+                            &amp; notify borrower</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- ============================================
+             EDIT BORROWER INFO — success (lalabas pagkatapos ma-save)
+        ============================================ --}}
+        <div class="modal fade modal-modern" id="editInfoSuccessModal" tabindex="-1"
+            aria-labelledby="editInfoSuccessTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header-clean">
+                        <div class="header-left">
+                            <h6 id="editInfoSuccessTitle">Information updated</h6>
+                        </div>
+                        <button type="button" class="btn-close-clean" data-bs-dismiss="modal"
+                            aria-label="Close">&times;</button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="modal-icon-circle icon-success">
+                            <i class="feather-check"></i>
+                        </div>
+                        <p class="modal-title-text">Changes saved</p>
+                        <p class="modal-subtext-text" id="editInfoSuccessMessage"></p>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn-decision btn-decision-black"
+                            data-bs-dismiss="modal">Done</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
     @if ($app->status !== 'rejected' && $app->status !== 'approved' && $app->status !== 'active' && !$myReview)
         <div class="modal fade modal-modern" id="decisionModal" tabindex="-1" aria-labelledby="decisionModalLabel"
             aria-hidden="true">
@@ -651,6 +832,6 @@
 @endpush
 
 @section('page-scripts')
-    <script src="{{ asset('functions/loan-application-detail.js') }}"></script>
+    <script src="{{ asset('functions/loan-application-detail.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('functions/remove-blur.js') }}"></script>
 @endsection

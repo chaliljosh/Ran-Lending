@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const table = document.getElementById('olsScheduleTable');
-    if (!table) return;
+    const table = document.getElementById('olsScheduleTable') || document.createElement('table');
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     const confirmModalEl = document.getElementById('olsMarkPaidConfirmModal');
@@ -327,19 +326,25 @@ document.addEventListener('DOMContentLoaded', function () {
         window.location.reload();
     }
 
-    table.addEventListener('click', function (e) {
-        const btn = e.target.closest('.btn-record-payment');
-        if (!btn) return;
+    // Para sa "Loan Released": modal ang ipapakita pagka-reload, hindi toast
+    function flashReleasedAndReload(message) {
+        sessionStorage.setItem('olsReleasedModal', JSON.stringify({ message: message }));
+        window.location.reload();
+    }
 
-        pendingScheduleId = btn.dataset.scheduleId;
-        pendingBtn = btn;
-        confirmInstallmentNo.textContent = '#' + btn.dataset.installmentNo;
-        confirmAmount.textContent = btn.dataset.amountDue;
+    function openRecordModal(info) {
+        pendingScheduleId = info.scheduleId;
+        pendingBtn = table.querySelector(`tr[data-schedule-row="${info.scheduleId}"]`);
+        confirmInstallmentNo.textContent = '#' + info.installmentNo;
+        confirmAmount.textContent = info.amountDue;
         resetForm();
 
-        const modal = bootstrap.Modal.getOrCreateInstance(confirmModalEl);
-        modal.show();
-    });
+        if (info.paidYmd && info.paidYmd <= todayLocal()) {
+            datePicker.setValue(info.paidYmd);
+        }
+
+        bootstrap.Modal.getOrCreateInstance(confirmModalEl).show();
+    }
 
     const detailsModalEl = document.getElementById('olsPaymentDetailsModal');
     if (detailsModalEl) {
@@ -375,6 +380,38 @@ document.addEventListener('DOMContentLoaded', function () {
             dStatus.className = 'ols-status-pill ' + cls;
             dStatus.textContent = label;
 
+            // Listahan ng lahat ng bayad ng installment (partial + full)
+            let payments = [];
+            try { payments = JSON.parse(d.payments || '[]'); } catch (err) {}
+
+            const paySection = el('olsPdPaymentsSection');
+            const payList = el('olsPdPaymentsList');
+            const recSection = el('olsPdReceiptSection');
+
+            if (payments.length) {
+                payList.innerHTML = payments.map(function (p) {
+                    const kind = p.kind === 'partial' ? 'Partial' : 'Full';
+                    const label = '#' + d.installmentNo + ' \u00B7 ' + kind + ' \u00B7 \u20B1' + p.amount + ' \u00B7 ' + p.date;
+                    // Button (hindi link) para sa modal viewer ang bubukas, hindi bagong tab
+                    const link = p.url
+                        ? '<button type="button" class="ols-pd-pay-link js-pd-view-receipt"' +
+                          ' data-url="' + escapeHtml(p.url) + '"' +
+                          ' data-label="' + escapeHtml(label) + '">View receipt</button>'
+                        : '<span class="ols-pd-pay-none">No receipt</span>';
+                    return '<div class="ols-pd-pay-row">' +
+                        '<div class="ols-pd-pay-main">' +
+                        '<span class="ols-pd-pay-amount">&#8369;' + escapeHtml(p.amount) +
+                        '<span class="ols-pd-pay-kind is-' + escapeHtml(p.kind) + '">' + kind + '</span></span>' +
+                        '<span class="ols-pd-pay-meta">' + escapeHtml(p.date) + '</span>' +
+                        '</div>' + link + '</div>';
+                }).join('');
+                paySection.style.display = '';
+                recSection.style.display = 'none';
+            } else {
+                paySection.style.display = 'none';
+                recSection.style.display = '';
+            }
+
             dFull.style.display = 'none';
             if (d.receiptUrl) {
                 dFull.href = d.receiptUrl;
@@ -403,6 +440,61 @@ document.addEventListener('DOMContentLoaded', function () {
             dImg.onerror = null;
             dImg.removeAttribute('src');
         });
+
+        // ----- Receipt viewer: modal imbes na bagong tab -----
+        // Isasara muna ang Payment Details, tapos bubuksan ang viewer.
+        // Pagsara ng viewer, babalik sa Payment Details.
+        const rvModalEl = document.getElementById('olsReceiptViewerModal');
+        if (rvModalEl) {
+            const rvImg = el('olsRvImg');
+            const rvLoading = el('olsRvLoading');
+            const rvError = el('olsRvError');
+            const rvSub = el('olsRvSub');
+            const rvFull = el('olsRvFullLink');
+
+            function resetReceiptViewer() {
+                rvImg.onload = null;
+                rvImg.onerror = null;
+                rvImg.removeAttribute('src');
+                rvImg.style.display = 'none';
+                rvError.style.display = 'none';
+                rvLoading.style.display = '';
+            }
+
+            el('olsPdPaymentsList').addEventListener('click', function (e) {
+                const link = e.target.closest('.js-pd-view-receipt');
+                if (!link) return;
+
+                const url = link.dataset.url;
+                if (!url) return;
+
+                rvSub.textContent = link.dataset.label || '';
+                rvFull.href = url;
+
+                detailsModalEl.addEventListener('hidden.bs.modal', function () {
+                    resetReceiptViewer();
+
+                    rvImg.onload = function () {
+                        rvLoading.style.display = 'none';
+                        rvImg.style.display = '';
+                    };
+                    rvImg.onerror = function () {
+                        rvLoading.style.display = 'none';
+                        rvError.style.display = '';
+                    };
+                    rvImg.src = url;
+
+                    bootstrap.Modal.getOrCreateInstance(rvModalEl).show();
+                }, { once: true });
+
+                bootstrap.Modal.getOrCreateInstance(detailsModalEl).hide();
+            });
+
+            rvModalEl.addEventListener('hidden.bs.modal', function () {
+                resetReceiptViewer();
+                bootstrap.Modal.getOrCreateInstance(detailsModalEl).show();
+            });
+        }
     }
 
     const brModalEl = document.getElementById('olsBorrowerReceiptModal');
@@ -415,7 +507,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const brError = br('olsBrError');
         const brDownload = br('olsBrDownload');
         const brRecordBtn = br('olsBrRecordBtn');
-        let brScheduleId = null;
+        let brInfo = null;
         let brFileUrl = null;
 
         function resetBorrowerReceipt() {
@@ -433,12 +525,20 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!btn) return;
             const d = btn.dataset;
 
-            brScheduleId = d.scheduleId;
+            brInfo = {
+                scheduleId: d.scheduleId,
+                installmentNo: d.installmentNo,
+                amountDue: (d.balance || d.amountDue || '').replace(/,/g, ''),
+                paidYmd: d.paidYmd || '',
+            };
             brFileUrl = d.fileUrl;
             br('olsBrInstallment').textContent = '#' + d.installmentNo;
-            br('olsBrAmount').textContent = d.amountDue || '0.00';
+            br('olsBrAmount').textContent = d.balance || d.amountDue || '0.00';
+            br('olsBrTotal').textContent = d.amountDue || '0.00';
+            br('olsBrReceived').textContent = d.amountPaid || '0.00';
             br('olsBrDue').textContent = d.due || '—';
             br('olsBrSubmitted').textContent = d.submitted || '—';
+            br('olsBrPaidDate').textContent = d.paidDate || '—';
             brDownload.href = d.downloadUrl || '#';
             brImgLink.href = d.fileUrl || '#';
 
@@ -459,17 +559,142 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         brRecordBtn.addEventListener('click', function () {
-            const rowBtn = table.querySelector(`.btn-record-payment[data-schedule-id="${brScheduleId}"]`);
-            if (!rowBtn) return;
+            if (!brInfo) return;
 
+            const info = brInfo;
             const fileUrl = brFileUrl;
             brModalEl.addEventListener('hidden.bs.modal', function () {
-                rowBtn.click();
+                openRecordModal(info);
                 setBorrowerReceiptMode(fileUrl);
             }, { once: true });
 
             bootstrap.Modal.getOrCreateInstance(brModalEl).hide();
         });
+
+        // ----- Partial payment / Reject receipt -----
+        const partialModalEl = document.getElementById('olsPartialModal');
+        const rejectModalEl = document.getElementById('olsRejectModal');
+
+        // Isara muna ang receipt modal, tapos buksan ang susunod na modal
+        function openAfterReceiptModal(openFn) {
+            brModalEl.addEventListener('hidden.bs.modal', openFn, { once: true });
+            bootstrap.Modal.getOrCreateInstance(brModalEl).hide();
+        }
+
+        if (partialModalEl) {
+            const partialAmount = br('olsPartialAmount');
+            const partialRemarks = br('olsPartialRemarks');
+            const partialError = br('olsPartialError');
+            const partialConfirmBtn = br('olsPartialConfirmBtn');
+            let partialInfo = null;
+
+            function showPartialError(msg) {
+                partialError.textContent = msg || '';
+                partialError.style.display = msg ? '' : 'none';
+            }
+
+            br('olsBrPartialBtn').addEventListener('click', function () {
+                if (!brInfo) return;
+                const info = brInfo;
+                openAfterReceiptModal(function () {
+                    partialInfo = info;
+                    br('olsPartialInstallmentNo').textContent = '#' + info.installmentNo;
+                    br('olsPartialBalance').textContent = Number(info.amountDue).toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                    });
+                    partialAmount.value = '';
+                    partialRemarks.value = '';
+                    showPartialError('');
+                    bootstrap.Modal.getOrCreateInstance(partialModalEl).show();
+                });
+            });
+
+            partialConfirmBtn.addEventListener('click', function () {
+                if (!partialInfo) return;
+
+                const amount = parseFloat(partialAmount.value);
+                const balance = parseFloat(partialInfo.amountDue);
+
+                if (!amount || amount <= 0) { showPartialError('Please enter the amount received.'); return; }
+                if (amount >= balance) {
+                    showPartialError('This amount covers the full balance. Use Record Payment instead.');
+                    return;
+                }
+
+                showPartialError('');
+                setBtnLoading(partialConfirmBtn, true);
+
+                const body = { amount: amount, remarks: partialRemarks.value.trim() };
+                if (partialInfo.paidYmd && partialInfo.paidYmd <= todayLocal()) {
+                    body.paid_date = partialInfo.paidYmd;
+                }
+
+                postJson('/admin/installments/' + partialInfo.scheduleId + '/record-partial', body)
+                    .then(function (res) {
+                        if (!res.ok || !res.data.success) {
+                            showPartialError(firstMessage(res.data, 'Failed to record the partial payment.'));
+                            setBtnLoading(partialConfirmBtn, false);
+                            return;
+                        }
+                        flashAndReload('Partial Payment Recorded', res.data.message);
+                    })
+                    .catch(function (err) {
+                        console.error('[ongoing-loan-detail.js] partial payment error:', err);
+                        showPartialError('Something went wrong. Please try again.');
+                        setBtnLoading(partialConfirmBtn, false);
+                    });
+            });
+        }
+
+        if (rejectModalEl) {
+            const rejectReason = br('olsRejectReason');
+            const rejectError = br('olsRejectError');
+            const rejectConfirmBtn = br('olsRejectConfirmBtn');
+            let rejectInfo = null;
+
+            function showRejectError(msg) {
+                rejectError.textContent = msg || '';
+                rejectError.style.display = msg ? '' : 'none';
+            }
+
+            br('olsBrRejectBtn').addEventListener('click', function () {
+                if (!brInfo) return;
+                const info = brInfo;
+                openAfterReceiptModal(function () {
+                    rejectInfo = info;
+                    br('olsRejectInstallmentNo').textContent = '#' + info.installmentNo;
+                    rejectReason.value = '';
+                    showRejectError('');
+                    bootstrap.Modal.getOrCreateInstance(rejectModalEl).show();
+                });
+            });
+
+            rejectConfirmBtn.addEventListener('click', function () {
+                if (!rejectInfo) return;
+
+                const reason = rejectReason.value.trim();
+                if (reason.length < 5) { showRejectError('Please enter a reason (at least 5 characters).'); return; }
+
+                showRejectError('');
+                setBtnLoading(rejectConfirmBtn, true);
+
+                postJson('/admin/installments/' + rejectInfo.scheduleId + '/reject-receipt', { remarks: reason })
+                    .then(function (res) {
+                        if (!res.ok || !res.data.success) {
+                            showRejectError(firstMessage(res.data, 'Failed to reject the receipt.'));
+                            setBtnLoading(rejectConfirmBtn, false);
+                            return;
+                        }
+                        flashAndReload('Receipt Rejected', res.data.message);
+                    })
+                    .catch(function (err) {
+                        console.error('[ongoing-loan-detail.js] reject receipt error:', err);
+                        showRejectError('Something went wrong. Please try again.');
+                        setBtnLoading(rejectConfirmBtn, false);
+                    });
+            });
+        }
 
         brModalEl.addEventListener('hidden.bs.modal', resetBorrowerReceipt);
     }
@@ -481,6 +706,19 @@ document.addEventListener('DOMContentLoaded', function () {
         try { flash = JSON.parse(flashRaw); } catch (e) {}
         if (flash && typeof window.showAdminToast === 'function') {
             window.showAdminToast('success', flash.title, flash.message);
+        }
+    }
+
+    // "Loan Released" modal: lalabas pagka-reload pagkatapos ma-send ang release confirmation
+    const releasedModalEl = document.getElementById('olsReleasedModal');
+    const releasedRaw = sessionStorage.getItem('olsReleasedModal');
+    if (releasedRaw) {
+        sessionStorage.removeItem('olsReleasedModal');
+        let released = null;
+        try { released = JSON.parse(releasedRaw); } catch (e) {}
+        if (released && releasedModalEl) {
+            document.getElementById('olsReleasedMessage').textContent = released.message || '';
+            bootstrap.Modal.getOrCreateInstance(releasedModalEl).show();
         }
     }
 
@@ -650,8 +888,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Proof of Release. Kapag sent na, walang #olsSendProofBtn sa page
-    // (ang blade ang nagtatago), kaya hindi tatakbo ang code na ito.
     const proofModalEl = document.getElementById('olsSendProofModal');
     const proofOpenBtn = document.getElementById('olsSendProofBtn');
     if (proofModalEl && proofOpenBtn) {
@@ -712,6 +948,41 @@ document.addEventListener('DOMContentLoaded', function () {
             showProofError('');
         });
 
+        const proofLightbox = document.createElement('div');
+        proofLightbox.className = 'olrm-lightbox';
+        proofLightbox.innerHTML =
+            '<button type="button" class="olrm-lightbox-close" aria-label="Close"><i class="feather-x"></i></button>' +
+            '<img class="olrm-lightbox-img" alt="Proof of release">';
+        document.body.appendChild(proofLightbox);
+        const proofLightboxImg = proofLightbox.querySelector('.olrm-lightbox-img');
+
+        function openProofLightbox() {
+            if (!proofPreviewUrl) return;
+            proofLightboxImg.src = proofPreviewUrl;
+            proofLightbox.classList.add('is-open');
+        }
+
+        function closeProofLightbox() {
+            proofLightbox.classList.remove('is-open');
+            proofLightboxImg.removeAttribute('src');
+        }
+
+        proofPreview.title = 'Click to view full size';
+        proofPreview.addEventListener('click', function (e) {
+            if (e.target.closest('#olsProofRemove')) return;
+            openProofLightbox();
+        });
+
+        proofLightbox.addEventListener('click', closeProofLightbox);
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && proofLightbox.classList.contains('is-open')) {
+                e.stopPropagation();
+                e.preventDefault();
+                closeProofLightbox();
+            }
+        }, true);
+
         proofOpenBtn.addEventListener('click', function () {
             document.getElementById('olsProofAmount').textContent = proofOpenBtn.dataset.amount;
             document.getElementById('olsProofBorrowerName').textContent = proofOpenBtn.dataset.borrowerName;
@@ -722,6 +993,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         proofModalEl.addEventListener('hidden.bs.modal', function () {
+            closeProofLightbox();
             clearProof();
             showProofError('');
         });
@@ -753,8 +1025,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     return;
                 }
 
-                // Mag-reload para lumabas na ang "already sent" na card
-                flashAndReload('Proof Sent', data.message || 'Proof sent to the borrower.');
+                // Success: "Loan Released" modal na ang ipapakita (hindi na toast)
+                flashReleasedAndReload(
+                    data.message || ('Release confirmation was emailed to ' + proofOpenBtn.dataset.borrowerEmail + '.')
+                );
             })
             .catch(err => {
                 console.error('[ongoing-loan-detail.js] send-proof error:', err);
@@ -801,8 +1075,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (row) {
                 row.querySelector('[data-field="amount_paid"]').textContent = '₱' + data.amount_paid_display;
-                row.querySelector('[data-field="progress_fill"]').style.width = '100%';
-                row.querySelector('[data-field="progress_pct"]').textContent = '100%';
+                // Alisin ang lumang "Balance ₱..." na text (may partial na dati)
+                const staleBalance = row.querySelector('.ols-amount-paid-cell .ols-due-sub');
+                if (staleBalance) staleBalance.remove();
                 row.querySelector('[data-field="paid_on"]').textContent = data.paid_on_display;
                 row.querySelector('[data-field="due_sub"]').textContent = 'Paid';
                 row.querySelector('[data-field="status"]').innerHTML =
@@ -823,6 +1098,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     detailsBtn.dataset.paid = longDate(new Date(y, m - 1, dd));
                     detailsBtn.dataset.recorded = longDate(new Date());
                     detailsBtn.dataset.receiptUrl = data.receipt_url || '';
+                    detailsBtn.dataset.payments = JSON.stringify(data.payments || []);
                 }
 
                 const voidItem = row.querySelector('.js-void-item');

@@ -10,6 +10,9 @@ use App\Http\Controllers\BorrowerController;
 use App\Http\Controllers\PaymentReceiptController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ZipcodeController;
+use App\Http\Controllers\BorrowerAccountController;
+use App\Http\Controllers\ReceiptReviewController;
+
 
 Route::get('/', function () {
     $userProfilePictureUrl = null;
@@ -68,7 +71,7 @@ Route::middleware(['borrower', 'no-cache'])->group(function () {
     Route::get('/borrower/dashboard', [BorrowerController::class, 'dashboard'])->name('borrower.dashboard');
     Route::get('/borrower/dashboard/calendar', [BorrowerController::class, 'dashboardCalendar'])->name('borrower.dashboard.calendar');
     Route::get('/dashboard-calendar-data', [BorrowerController::class, 'dashboardCalendarData'])
-    ->name('borrower.dashboard-calendar-data');
+        ->name('borrower.dashboard-calendar-data');
     Route::get('/borrower/personal-details', [BorrowerController::class, 'personalDetails'])->name('borrower.personal-details');
     Route::get('/borrower/apply-loan', [BorrowerController::class, 'applyLoan'])->name('borrower.apply-loan');
     Route::get('/borrower/loan-details', [BorrowerController::class, 'loanDetails'])->name('borrower.loan-details');
@@ -83,15 +86,23 @@ Route::middleware(['borrower', 'no-cache'])->group(function () {
         ->whereNumber('id')
         ->name('borrower.installment-receipt');
 
+    // BAGO: resibo ng isang recorded payment (ledger) — View at Download (?download=1)
+    // Ito ang tinatawag ng route('borrower.installment-payment-receipt', $p->id)
+    // sa BorrowerController::loanDetails().
+    Route::get('/borrower/installment-payments/{id}/receipt', [BorrowerController::class, 'installmentPaymentReceipt'])
+        ->whereNumber('id')
+        ->name('borrower.installment-payment-receipt');
+
     Route::get('/borrower/notifications', [BorrowerController::class, 'notifications'])->name('borrower.notifications');
-    Route::get('/borrower/profile', [BorrowerController::class, 'profile'])->name('borrower.profile');
+    Route::get('/borrower/profile', [BorrowerAccountController::class, 'profile'])->name('borrower.profile');
+    Route::get('/borrower/settings', [BorrowerAccountController::class, 'settings'])->name('borrower.settings');
     Route::get('/borrower/faq', [BorrowerController::class, 'faq'])->name('borrower.faq');
     Route::get('/borrower/terms', [BorrowerController::class, 'terms'])->name('borrower.terms');
-Route::get('/borrower/privacy', [BorrowerController::class, 'privacy'])->name('borrower.privacy');
+    Route::get('/borrower/privacy', [BorrowerController::class, 'privacy'])->name('borrower.privacy');
     Route::get('/notifications/open/{key}', [BorrowerController::class, 'openNotification'])
-    ->name('borrower.notification-open');
-Route::post('/notifications/mark-all-read', [BorrowerController::class, 'markAllNotificationsRead'])
-    ->name('borrower.notifications.mark-all-read');
+        ->name('borrower.notification-open');
+    Route::post('/notifications/mark-all-read', [BorrowerController::class, 'markAllNotificationsRead'])
+        ->name('borrower.notifications.mark-all-read');
 });
 
 // Borrower API — save actions, protected by 'borrower' middleware.
@@ -104,7 +115,10 @@ Route::middleware(['borrower', 'no-cache', 'throttle:20,1'])->prefix('api/borrow
     Route::post('/personal-details', [BorrowerController::class, 'savePersonalDetails']);
     Route::post('/apply-loan', [BorrowerController::class, 'submitLoanApplication']);
     Route::post('/payment-receipt', [PaymentReceiptController::class, 'submit']);
-    Route::post('/profile/update-section', [BorrowerController::class, 'updateProfileSection']);
+    Route::post('/settings/details', [BorrowerAccountController::class, 'updateDetails']);
+    Route::post('/settings/contact/send-otp', [BorrowerAccountController::class, 'sendContactOtp'])->middleware('throttle:5,10');
+    Route::post('/settings/contact/verify-otp', [BorrowerAccountController::class, 'verifyContactOtp'])->middleware('throttle:10,10');
+    Route::post('/settings/change-request', [BorrowerAccountController::class, 'submitChangeRequest'])->middleware('throttle:5,10');
     Route::post('/profile/change-password', [BorrowerController::class, 'changePassword']);
     Route::post('/profile/upload-picture', [BorrowerController::class, 'updateProfilePicture'])->name('borrower.profile.upload-picture');
     Route::post('/profile/remove-picture', [BorrowerController::class, 'removeProfilePicture'])->name('borrower.profile.remove-picture');
@@ -121,23 +135,30 @@ Route::middleware(['admin', 'no-cache', 'throttle:60,1'])->prefix('admin')->name
     Route::get('/reports/monthly/pdf', [ReportController::class, 'monthlyPdf'])->name('monthly-reports.pdf');
 
     // Notifications (header bell dropdown)
-       Route::get('/notifications/{key}/open', [AdminController::class, 'notificationOpen'])
+    Route::get('/notifications/{key}/open', [AdminController::class, 'notificationOpen'])
         ->name('notification-open');
     Route::post('/notifications/mark-all-read', [AdminController::class, 'notificationsMarkAllRead'])
         ->name('notifications-mark-all-read');
-            Route::get('/notifications', [AdminController::class, 'notificationsIndex'])
+    Route::get('/notifications', [AdminController::class, 'notificationsIndex'])
         ->name('notifications');
 
     // Account Settings (header profile dropdown)
     Route::get('/account-settings', [AdminController::class, 'accountSettings'])->name('account-settings');
     Route::post('/account-settings/password', [AdminController::class, 'updateAccountPassword'])->name('account-settings.password');
     Route::post('/account-settings/profile-picture', [AdminController::class, 'updateProfilePicture'])->name('account-settings.profile-picture');
-Route::post('/account-settings/profile-picture/remove', [AdminController::class, 'removeProfilePicture'])->name('account-settings.profile-picture.remove');
+    Route::post('/account-settings/profile-picture/remove', [AdminController::class, 'removeProfilePicture'])->name('account-settings.profile-picture.remove');
 
     Route::match(['get', 'post'], '/loan-applications', [AdminController::class, 'loanApplications'])->name('loan-applications');
-       Route::match(['get', 'post'], '/loan-application-detail/{id}', [AdminController::class, 'loanApplicationDetail'])
+    Route::match(['get', 'post'], '/loan-application-detail/{id}', [AdminController::class, 'loanApplicationDetail'])
         ->whereUuid('id')
         ->name('loan-application-detail');
+
+    // Save ng borrower info galing sa modal sa Loan Application Detail.
+    // Ito ang tinatawag ng data-save-url sa loan-application-detail.blade.php
+    // (route name: admin.loan-application-borrower-info).
+    Route::post('/loan-application-detail/{id}/borrower-info', [AdminController::class, 'updateBorrowerInfo'])
+        ->whereUuid('id')
+        ->name('loan-application-borrower-info');
 
     // Borrower Verification detail (used from All Borrowers > View Details)
     Route::match(['get', 'post'], '/verification-detail/{id}', [AdminController::class, 'verificationDetail'])->name('verification-detail');
@@ -151,15 +172,15 @@ Route::post('/account-settings/profile-picture/remove', [AdminController::class,
     Route::post('/penalty-tracking/{id}/mark-paid', [AdminController::class, 'markPenaltyPaid'])->name('penalty-mark-paid');
     Route::post('/penalty-tracking/{id}/waive', [AdminController::class, 'waivePenalty'])->name('penalty-waive');
     Route::get('/penalty-tracking-detail/{uuid}/{installment}', [AdminController::class, 'penaltyTrackingDetail'])
-    ->whereUuid('uuid')
-    ->whereNumber('installment')
-    ->name('penalty-tracking-detail');
+        ->whereUuid('uuid')
+        ->whereNumber('installment')
+        ->name('penalty-tracking-detail');
 
     // Active Loans > Ongoing Loans
     Route::get('/active-loans/ongoing', [AdminController::class, 'ongoingLoans'])->name('ongoing-loans');
 
     // Active Loans
-      Route::get('/ongoing-loan-detail/{id}', [AdminController::class, 'ongoingLoanDetail'])
+    Route::get('/ongoing-loan-detail/{id}', [AdminController::class, 'ongoingLoanDetail'])
         ->whereUuid('id')
         ->name('ongoing-loan-detail');
 
@@ -176,22 +197,38 @@ Route::post('/account-settings/profile-picture/remove', [AdminController::class,
         ->whereUuid('uuid')
         ->name('overdue-payment-detail');
 
-
+    // Record ng bayad (full) para sa isang installment
     Route::post('/installments/{id}/mark-paid', [AdminController::class, 'markInstallmentPaid'])
         ->name('installment-mark-paid');
-        Route::get('/installments/{id}/receipt', [AdminController::class, 'installmentReceipt'])
-    ->name('installment-receipt');
-        Route::get('/payment-receipts/{id}/file', [AdminController::class, 'borrowerReceiptFile'])
+
+    Route::get('/installment-payments/{id}/receipt', [AdminController::class, 'installmentPaymentReceipt'])
+        ->name('installment-payment-receipt');
+
+    // Reject ang receipt (malabo/mali/peke), may remarks
+    Route::post('/installments/{id}/reject-receipt', [ReceiptReviewController::class, 'reject'])
+        ->whereNumber('id')
+        ->name('installment-reject-receipt');
+
+    // Partial payment: i-record ang halagang nasa receipt, hindi pa fully paid
+    Route::post('/installments/{id}/record-partial', [ReceiptReviewController::class, 'recordPartial'])
+        ->whereNumber('id')
+        ->name('installment-record-partial');
+
+    Route::get('/installments/{id}/receipt', [AdminController::class, 'installmentReceipt'])
+        ->name('installment-receipt');
+
+    Route::get('/payment-receipts/{id}/file', [AdminController::class, 'borrowerReceiptFile'])
         ->name('borrower-receipt-file');
-   Route::post('/installments/{id}/void-request', [AdminController::class, 'requestVoid'])
-    ->whereNumber('id')
-    ->name('installment-void-request');
-Route::post('/void-requests/{id}/vote', [AdminController::class, 'voteVoid'])
-    ->whereNumber('id')
-    ->name('void-request-vote');
-Route::post('/void-requests/{id}/cancel', [AdminController::class, 'cancelVoid'])
-    ->whereNumber('id')
-    ->name('void-request-cancel');
+
+    Route::post('/installments/{id}/void-request', [AdminController::class, 'requestVoid'])
+        ->whereNumber('id')
+        ->name('installment-void-request');
+    Route::post('/void-requests/{id}/vote', [AdminController::class, 'voteVoid'])
+        ->whereNumber('id')
+        ->name('void-request-vote');
+    Route::post('/void-requests/{id}/cancel', [AdminController::class, 'cancelVoid'])
+        ->whereNumber('id')
+        ->name('void-request-cancel');
 
     // Send proof (na naibigay na ang pinautang) sa borrower via email.
     // Ang buong URL ay /admin/loans/{applicationId}/send-proof — ito ang tinatawag ng JS.
@@ -201,9 +238,9 @@ Route::post('/void-requests/{id}/cancel', [AdminController::class, 'cancelVoid']
 
     // Active Loans > Completed Loans
     Route::get('/active-loans/completed', [AdminController::class, 'completedLoans'])->name('completed-loans');
-  Route::get('/completed-loan-detail/{uuid}', [AdminController::class, 'completedLoanDetail'])
-    ->whereUuid('uuid')
-    ->name('completed-loan-detail');
+    Route::get('/completed-loan-detail/{uuid}', [AdminController::class, 'completedLoanDetail'])
+        ->whereUuid('uuid')
+        ->name('completed-loan-detail');
 
     // Active Loans > Defaulted
     // A loan is "defaulted" once its oldest unpaid installment has been

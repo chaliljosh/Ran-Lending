@@ -1,10 +1,3 @@
-// public/functions/overdue-payment-detail.js
-// Used by: resources/views/admin/overdue-payment-detail.blade.php
-//
-// Reads its URLs/CSRF token from the #opd-config element's data
-// attributes (set by the blade) instead of having them embedded as
-// inline PHP-generated JS values.
-
 (function () {
     const config = document.getElementById('opd-config');
     if (!config) return;
@@ -14,18 +7,35 @@
     const waivePenaltyUrl = config.dataset.waiveUrl || null;
 
     const confirmPaidModalEl = document.getElementById('opdConfirmPaidModal');
+    const partialModalEl = document.getElementById('opdPartialModal');
     const waiveModalEl = document.getElementById('opdWaiveModal');
 
-    const confirmPaidBtn = document.getElementById('opdConfirmPaidBtn');
-    const confirmPaidText = document.getElementById('opdConfirmPaidText');
-    const confirmPaidSpinner = document.getElementById('opdConfirmPaidSpinner');
+    const fullEls = {
+        btn: document.getElementById('opdConfirmPaidBtn'),
+        text: document.getElementById('opdConfirmPaidText'),
+        spinner: document.getElementById('opdConfirmPaidSpinner'),
+        error: document.getElementById('opdPaidError'),
+        dateInput: document.getElementById('opdPaidDate'),
+        dateDisplay: document.getElementById('opdPaidDateDisplay'),
+        receiptWrap: document.getElementById('opdUsingBorrowerReceipt'),
+        receiptThumb: document.getElementById('opdUsingBorrowerThumb'),
+        receiptRemove: document.getElementById('opdUseNoReceiptBtn'),
+    };
 
-    // ---- Mga field ng "Mark as Paid" modal (Date Paid lang) ----
-    const paidDateInput = document.getElementById('opdPaidDate');            // hidden (Y-m-d)
-    const paidDateDisplay = document.getElementById('opdPaidDateDisplay');   // nakikita (MM/DD/YYYY)
-    const paidError = document.getElementById('opdPaidError');
+    const partialEls = {
+        btn: document.getElementById('opdPartialBtn'),
+        text: document.getElementById('opdPartialBtnText'),
+        spinner: document.getElementById('opdPartialSpinner'),
+        error: document.getElementById('opdPartialError'),
+        dateInput: document.getElementById('opdPartialDate'),
+        dateDisplay: document.getElementById('opdPartialDateDisplay'),
+        amount: document.getElementById('opdPartialAmount'),
+        hint: document.getElementById('opdPartialHint'),
+        receiptWrap: document.getElementById('opdPUsingBorrowerReceipt'),
+        receiptThumb: document.getElementById('opdPUsingBorrowerThumb'),
+        receiptRemove: document.getElementById('opdPUseNoReceiptBtn'),
+    };
 
-    // ---- Receipt na in-upload ng borrower (wala ang mga ito kapag walang receipt) ----
     const brModalEl = document.getElementById('opdBorrowerReceiptModal');
     const brLoading = document.getElementById('opdBrLoading');
     const brError = document.getElementById('opdBrError');
@@ -33,16 +43,12 @@
     const brImgLink = document.getElementById('opdBrImgLink');
     const brHint = document.getElementById('opdBrHint');
     const brRecordBtn = document.getElementById('opdBrRecordBtn');
+    const brPartialBtn = document.getElementById('opdBrPartialBtn');
     const brFileUrl = brModalEl ? (brModalEl.dataset.fileUrl || '') : '';
 
-    const usingBorrowerWrap = document.getElementById('opdUsingBorrowerReceipt');
-    const usingBorrowerThumb = document.getElementById('opdUsingBorrowerThumb');
-    const removeBorrowerBtn = document.getElementById('opdUseNoReceiptBtn');
-
-    // true kapag galing sa "View Receipt" > "Record Payment"
-    // (gagamitin ang receipt ng borrower bilang receipt ng payment)
-    let pendingBorrowerReceipt = false;
-    let useBorrowerReceipt = false;
+    let pendingTarget = null;
+    let fullUsesReceipt = false;
+    let partialUsesReceipt = false;
 
     function showSuccessThenReload(title, desc) {
         if (window.showAdminToast) {
@@ -53,16 +59,16 @@
         }, 3500);
     }
 
-    function showPaidError(message) {
-        if (!paidError) return;
-        paidError.textContent = message;
-        paidError.classList.remove('d-none');
+    function showError(el, message) {
+        if (!el) return;
+        el.textContent = message;
+        el.classList.remove('d-none');
     }
 
-    function clearPaidError() {
-        if (!paidError) return;
-        paidError.textContent = '';
-        paidError.classList.add('d-none');
+    function clearError(el) {
+        if (!el) return;
+        el.textContent = '';
+        el.classList.add('d-none');
     }
 
     function todayLocal() {
@@ -71,19 +77,17 @@
         return d.toISOString().slice(0, 10);
     }
 
-    // ============================================================
-    // Custom date picker (calendar + year grid)
-    // displayEl = nakikitang text field (MM/DD/YYYY)
-    // hiddenEl  = tunay na value (YYYY-MM-DD)
-    // hostEl    = modal element kung saan ilalagay ang popup
-    // ============================================================
+    function formatPeso(value) {
+        return value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
     function createDatePicker(displayEl, hiddenEl, hostEl) {
         const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
             'July', 'August', 'September', 'October', 'November', 'December'];
         const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
         const pad = n => String(n).padStart(2, '0');
-        const toYmd = (y, m, d) => y + '-' + pad(m + 1) + '-' + pad(d); // m = 0-based
+        const toYmd = (y, m, d) => y + '-' + pad(m + 1) + '-' + pad(d);
         const parseYmd = str => {
             const parts = str.split('-').map(Number);
             return { y: parts[0], m: parts[1] - 1, d: parts[2] };
@@ -91,7 +95,7 @@
 
         let minYmd = '';
         let maxYmd = '';
-        let view = 'days'; // 'days' o 'years'
+        let view = 'days';
         let viewYear = 0;
         let viewMonth = 0;
         let isOpen = false;
@@ -186,7 +190,6 @@
             html += '</div>';
             pop.innerHTML = html;
 
-            // I-scroll ang listahan para nasa gitna ang napiling taon
             const grid = pop.querySelector('.ols-dp-years');
             const current = pop.querySelector('.ols-dp-year.is-selected');
             if (grid && current) {
@@ -201,7 +204,7 @@
 
             let top = r.bottom + 6;
             if (top + h > window.innerHeight - 8) {
-                top = Math.max(8, r.top - h - 6); // kapag kulang ang espasyo sa baba, sa taas ilalabas
+                top = Math.max(8, r.top - h - 6);
             }
             const left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8));
 
@@ -239,7 +242,6 @@
 
         function pickYear(year) {
             viewYear = year;
-            // Siguraduhing nasa loob ng pinapayagang buwan
             if (minYmd && (viewYear * 12 + viewMonth) < monthIndex(minYmd)) viewMonth = parseYmd(minYmd).m;
             if (maxYmd && (viewYear * 12 + viewMonth) > monthIndex(maxYmd)) viewMonth = parseYmd(maxYmd).m;
             view = 'days';
@@ -274,14 +276,12 @@
             }
         });
 
-        // Click sa labas -> isara
         document.addEventListener('mousedown', function (e) {
             if (!isOpen) return;
             if (pop.contains(e.target) || displayEl.parentElement.contains(e.target)) return;
             close();
         });
 
-        // Escape -> isara lang ang calendar (hindi ang buong modal)
         hostEl.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && isOpen) {
                 e.stopImmediatePropagation();
@@ -297,50 +297,109 @@
         return { setValue: setValue, setRange: setRange, close: close };
     }
 
-    // Wala ang mga elementong ito kapag walang overdue installment
-    const datePicker = (paidDateDisplay && paidDateInput)
-        ? createDatePicker(paidDateDisplay, paidDateInput, confirmPaidModalEl)
+    const fullPicker = (confirmPaidModalEl && fullEls.dateDisplay && fullEls.dateInput)
+        ? createDatePicker(fullEls.dateDisplay, fullEls.dateInput, confirmPaidModalEl)
         : null;
 
-    // Ipakita o itago ang receipt ng borrower sa loob ng Mark as Paid modal
-    function setReceiptMode(on) {
-        useBorrowerReceipt = !!on && !!usingBorrowerWrap;
-        if (usingBorrowerWrap) {
-            usingBorrowerWrap.style.display = useBorrowerReceipt ? '' : 'none';
-            if (useBorrowerReceipt && usingBorrowerThumb) {
-                usingBorrowerThumb.src = brFileUrl;
+    const partialPicker = (partialModalEl && partialEls.dateDisplay && partialEls.dateInput)
+        ? createDatePicker(partialEls.dateDisplay, partialEls.dateInput, partialModalEl)
+        : null;
+
+    function applyReceipt(wrap, thumb, on) {
+        const active = !!on && !!wrap;
+        if (wrap) {
+            wrap.style.display = active ? '' : 'none';
+            if (active && thumb) {
+                thumb.src = brFileUrl;
             }
         }
+        return active;
     }
 
-    function resetForm() {
-        clearPaidError();
-        if (datePicker) {
-            const today = todayLocal();
-            datePicker.close();
-            datePicker.setRange('', today);   // hindi puwede sa hinaharap
-            datePicker.setValue(today);
+    function partialBalance() {
+        return partialEls.amount ? parseFloat(partialEls.amount.dataset.balance || '0') : 0;
+    }
+
+    function refreshPartialHint() {
+        if (!partialEls.amount || !partialEls.hint) return;
+        const balance = partialBalance();
+        const value = parseFloat(partialEls.amount.value);
+
+        if (!value || value <= 0) {
+            partialEls.hint.textContent = 'Enter the amount the borrower paid.';
+            return;
         }
-        // Ginagamit lang ang receipt ng borrower kapag galing sa "Record Payment"
-        // ng View Receipt modal. Sa direktang "Mark as Paid", walang receipt.
-        setReceiptMode(pendingBorrowerReceipt);
-        pendingBorrowerReceipt = false;
+        if (value >= balance) {
+            partialEls.hint.textContent = 'This covers the full balance. Use Mark as Paid instead.';
+            return;
+        }
+        partialEls.hint.textContent = '\u20B1' + formatPeso(balance - value) + ' will remain due after this payment.';
     }
 
-    // Tuwing bubuksan o isasara ang modal -> fresh na form (today ang default na date)
-    confirmPaidModalEl.addEventListener('show.bs.modal', resetForm);
-    confirmPaidModalEl.addEventListener('hidden.bs.modal', resetForm);
+    function resetFull() {
+        clearError(fullEls.error);
+        if (fullPicker) {
+            const today = todayLocal();
+            fullPicker.close();
+            fullPicker.setRange('', today);
+            fullPicker.setValue(today);
+        }
+        fullUsesReceipt = applyReceipt(fullEls.receiptWrap, fullEls.receiptThumb, pendingTarget === 'full');
+        if (pendingTarget === 'full') pendingTarget = null;
+    }
 
-    // X button: ire-record ang payment nang walang receipt
-    if (removeBorrowerBtn) {
-        removeBorrowerBtn.addEventListener('click', function () {
-            setReceiptMode(false);
+    function resetPartial() {
+        clearError(partialEls.error);
+        if (partialPicker) {
+            const today = todayLocal();
+            partialPicker.close();
+            partialPicker.setRange('', today);
+            partialPicker.setValue(today);
+        }
+        if (partialEls.amount) {
+            partialEls.amount.value = '';
+        }
+        refreshPartialHint();
+        partialUsesReceipt = applyReceipt(partialEls.receiptWrap, partialEls.receiptThumb, pendingTarget === 'partial');
+        if (pendingTarget === 'partial') pendingTarget = null;
+    }
+
+    if (confirmPaidModalEl) {
+        confirmPaidModalEl.addEventListener('show.bs.modal', resetFull);
+        confirmPaidModalEl.addEventListener('hidden.bs.modal', resetFull);
+    }
+
+    if (partialModalEl) {
+        partialModalEl.addEventListener('show.bs.modal', resetPartial);
+        partialModalEl.addEventListener('hidden.bs.modal', resetPartial);
+    }
+
+    if (partialEls.amount) {
+        partialEls.amount.addEventListener('input', refreshPartialHint);
+    }
+
+    if (fullEls.receiptRemove) {
+        fullEls.receiptRemove.addEventListener('click', function () {
+            fullUsesReceipt = applyReceipt(fullEls.receiptWrap, fullEls.receiptThumb, false);
         });
     }
 
-    // ============================================================
-    // View Receipt modal (receipt na in-upload ng borrower)
-    // ============================================================
+    if (partialEls.receiptRemove) {
+        partialEls.receiptRemove.addEventListener('click', function () {
+            partialUsesReceipt = applyReceipt(partialEls.receiptWrap, partialEls.receiptThumb, false);
+        });
+    }
+
+    function openAfterReceipt(target, modalEl) {
+        if (!modalEl) return;
+        brModalEl.addEventListener('hidden.bs.modal', function openNext() {
+            brModalEl.removeEventListener('hidden.bs.modal', openNext);
+            pendingTarget = target;
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        });
+        bootstrap.Modal.getInstance(brModalEl).hide();
+    }
+
     if (brModalEl && brImg) {
         brModalEl.addEventListener('show.bs.modal', function () {
             brLoading.style.display = '';
@@ -362,53 +421,67 @@
             brImg.src = brFileUrl;
         });
 
-        // Record Payment -> isara ang receipt modal, tapos buksan ang Mark as Paid
-        // na kasama ang receipt ng borrower
         if (brRecordBtn) {
             brRecordBtn.addEventListener('click', function () {
-                brModalEl.addEventListener('hidden.bs.modal', function openPaid() {
-                    brModalEl.removeEventListener('hidden.bs.modal', openPaid);
-                    pendingBorrowerReceipt = true;
-                    bootstrap.Modal.getOrCreateInstance(confirmPaidModalEl).show();
-                });
-                bootstrap.Modal.getInstance(brModalEl).hide();
+                openAfterReceipt('full', confirmPaidModalEl);
+            });
+        }
+
+        if (brPartialBtn) {
+            brPartialBtn.addEventListener('click', function () {
+                openAfterReceipt('partial', partialModalEl);
             });
         }
     }
 
-    // Tingnan kung okay na ang date bago mag-send.
-    // Return: error message, o '' kung okay na.
-    function validatePaidForm() {
-        if (!paidDateInput || !paidDateInput.value) {
+    function validateFull() {
+        if (!fullEls.dateInput || !fullEls.dateInput.value) {
             return 'Please select the date the payment was made.';
         }
-        if (paidDateInput.value > todayLocal()) {
+        if (fullEls.dateInput.value > todayLocal()) {
             return 'The payment date cannot be in the future.';
         }
         return '';
     }
 
-    confirmPaidBtn.addEventListener('click', function () {
+    function validatePartial() {
+        if (!partialEls.dateInput || !partialEls.dateInput.value) {
+            return 'Please select the date the payment was made.';
+        }
+        if (partialEls.dateInput.value > todayLocal()) {
+            return 'The payment date cannot be in the future.';
+        }
+        const value = parseFloat(partialEls.amount ? partialEls.amount.value : '');
+        if (!value || value <= 0) {
+            return 'Please enter the amount received.';
+        }
+        if (value >= partialBalance()) {
+            return 'A partial payment must be less than the installment balance. Use Mark as Paid for a full payment.';
+        }
+        return '';
+    }
+
+    function submitPayment(opts) {
         if (!markPaidUrl) return;
 
-        clearPaidError();
+        clearError(opts.els.error);
 
-        const errorMessage = validatePaidForm();
+        const errorMessage = opts.validate();
         if (errorMessage) {
-            showPaidError(errorMessage);
+            showError(opts.els.error, errorMessage);
             return;
         }
 
-        // Loading state — spinner lang, naka-disable ang button
-        confirmPaidBtn.disabled = true;
-        confirmPaidText.classList.add('d-none');
-        confirmPaidSpinner.classList.remove('d-none');
+        opts.els.btn.disabled = true;
+        opts.els.text.classList.add('d-none');
+        opts.els.spinner.classList.remove('d-none');
 
-        // Walang receipt upload ang admin. Date lang ang ipinapadala, at kung galing
-        // sa View Receipt, ipinapaalam sa server na gamitin ang receipt ng borrower.
         const formData = new FormData();
-        formData.append('paid_date', paidDateInput.value);
-        if (useBorrowerReceipt) {
+        formData.append('paid_date', opts.els.dateInput.value);
+        if (opts.amount) {
+            formData.append('amount', opts.amount());
+        }
+        if (opts.useReceipt()) {
             formData.append('use_borrower_receipt', '1');
         }
 
@@ -429,62 +502,92 @@
                 const data = result.data;
 
                 if (data.success) {
-                    bootstrap.Modal.getInstance(confirmPaidModalEl).hide();
-                    showSuccessThenReload('Payment Marked as Paid', 'The overdue payment has been successfully recorded as paid.');
+                    bootstrap.Modal.getInstance(opts.modalEl).hide();
+                    showSuccessThenReload(opts.successTitle, opts.successDesc);
                     return;
                 }
 
-                // 422 galing sa validation — ipakita sa loob ng modal
                 if (result.status === 422 && data.errors) {
                     const firstKey = Object.keys(data.errors)[0];
-                    showPaidError(data.errors[firstKey][0]);
+                    showError(opts.els.error, data.errors[firstKey][0]);
                     return;
                 }
 
-                showPaidError(data.message || 'Please try again.');
+                showError(opts.els.error, data.message || 'Please try again.');
             })
             .catch(function () {
-                showPaidError('Something went wrong. Please try again.');
+                showError(opts.els.error, 'Something went wrong. Please try again.');
             })
             .finally(function () {
-                confirmPaidBtn.disabled = false;
-                confirmPaidText.classList.remove('d-none');
-                confirmPaidSpinner.classList.add('d-none');
+                opts.els.btn.disabled = false;
+                opts.els.text.classList.remove('d-none');
+                opts.els.spinner.classList.add('d-none');
             });
-    });
+    }
 
-    document.getElementById('opdConfirmWaiveBtn').addEventListener('click', function () {
-        if (!waivePenaltyUrl) return;
+    if (fullEls.btn) {
+        fullEls.btn.addEventListener('click', function () {
+            submitPayment({
+                els: fullEls,
+                modalEl: confirmPaidModalEl,
+                validate: validateFull,
+                amount: null,
+                useReceipt: function () { return fullUsesReceipt; },
+                successTitle: 'Payment Marked as Paid',
+                successDesc: 'The overdue payment has been successfully recorded as paid.',
+            });
+        });
+    }
 
-        const reason = document.getElementById('opdWaiveReason').value.trim();
-        if (!reason) {
-            document.getElementById('opdWaiveReason').focus();
-            return;
-        }
+    if (partialEls.btn) {
+        partialEls.btn.addEventListener('click', function () {
+            submitPayment({
+                els: partialEls,
+                modalEl: partialModalEl,
+                validate: validatePartial,
+                amount: function () { return partialEls.amount.value; },
+                useReceipt: function () { return partialUsesReceipt; },
+                successTitle: 'Partial Payment Recorded',
+                successDesc: 'The partial payment was recorded. The remaining balance is still due.',
+            });
+        });
+    }
 
-        fetch(waivePenaltyUrl, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': csrfToken,
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ waived_reason: reason }),
-        })
-            .then(function (res) { return res.json(); })
-            .then(function (data) {
-                bootstrap.Modal.getInstance(waiveModalEl).hide();
-                if (data.success) {
-                    showSuccessThenReload('Penalty Waived', 'The penalty has been successfully waived.');
-                } else if (window.showAdminToast) {
-                    showAdminToast('error', 'Failed', data.message || 'Please try again.');
-                }
+    const waiveBtn = document.getElementById('opdConfirmWaiveBtn');
+    if (waiveBtn) {
+        waiveBtn.addEventListener('click', function () {
+            if (!waivePenaltyUrl) return;
+
+            const reason = document.getElementById('opdWaiveReason').value.trim();
+            if (!reason) {
+                document.getElementById('opdWaiveReason').focus();
+                return;
+            }
+
+            fetch(waivePenaltyUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ waived_reason: reason }),
             })
-            .catch(function () {
-                bootstrap.Modal.getInstance(waiveModalEl).hide();
-                if (window.showAdminToast) {
-                    showAdminToast('error', 'Something went wrong', 'Please try again.');
-                }
-            });
-    });
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    bootstrap.Modal.getInstance(waiveModalEl).hide();
+                    if (data.success) {
+                        showSuccessThenReload('Penalty Waived', 'The penalty has been successfully waived.');
+                    } else if (window.showAdminToast) {
+                        showAdminToast('error', 'Failed', data.message || 'Please try again.');
+                    }
+                })
+                .catch(function () {
+                    bootstrap.Modal.getInstance(waiveModalEl).hide();
+                    if (window.showAdminToast) {
+                        showAdminToast('error', 'Something went wrong', 'Please try again.');
+                    }
+                });
+        });
+    }
 })();

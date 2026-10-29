@@ -1,0 +1,76 @@
+/* ── Loan Released success modal ── */
+#olsReleasedModal .modal-dialog { max-width: 400px; }
+
+.olrd-modal.modal-content {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.18);
+    overflow: hidden;
+}
+.olrd-body {
+    padding: 32px 28px 18px;
+    text-align: center;
+}
+.olrd-icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #dcfce7;
+    color: #16a34a;
+    font-size: 1.4rem;
+}
+.olrd-title {
+    margin: 0 0 8px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1a2a3a;
+}
+.olrd-message {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    color: #64748b;
+    overflow-wrap: anywhere;
+}
+.olrd-footer {
+    padding: 8px 28px 26px;
+}
+.olrd-btn-done {
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid #1f2937;
+    background: #1f2937;
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s ease, border-color .15s ease;
+}
+.olrd-btn-done:hover {
+    background: #111827;
+    border-color: #111827;
+}
+
+/* ── Dark mode ── */
+html.app-skin-dark .olrd-modal.modal-content { background: #141414 !important; }
+html.app-skin-dark .olrd-icon {
+    background: rgba(22, 163, 74, .2) !important;
+    color: #4ade80 !important;
+}
+html.app-skin-dark .olrd-title { color: #F5F5F5 !important; }
+html.app-skin-dark .olrd-message { color: #9A9A9A !important; }
+html.app-skin-dark .olrd-btn-done {
+    background: #F5F5F5 !important;
+    border-color: #F5F5F5 !important;
+    color: #0A0A0A !important;
+}
+html.app-skin-dark .olrd-btn-done:hover {
+    background: #D4D4D4 !important;
+    border-color: #D4D4D4 !important;
+}

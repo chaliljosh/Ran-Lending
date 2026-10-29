@@ -1808,3 +1808,98 @@ html.app-skin-dark .olr-card.is-sent .olr-icon {
     color: #4ade80 !important;
 }
 html.app-skin-dark .olr-sent-badge { color: #4ade80 !important; }
+
+/* ============================================================
+   NEW: Borrower Receipt modal: Reject / Partial buttons
+   ============================================================ */
+.ols-br-btn-partial,
+.ols-br-btn-reject {
+    padding: 9px 16px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    color: #0f172a;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s ease;
+}
+.ols-br-btn-partial:hover { border-color: #4a7cf7; color: #4a7cf7; background: #eef3ff; }
+.ols-br-btn-reject { border-color: #fecaca; color: #dc2626; }
+.ols-br-btn-reject:hover { background: #fef2f2; }
+html.app-skin-dark .ols-br-btn-partial { background: #141414 !important; border-color: #262626 !important; color: #F5F5F5 !important; }
+html.app-skin-dark .ols-br-btn-reject { background: #141414 !important; border-color: rgba(220,38,38,.35) !important; color: #f87171 !important; }
+
+/* ============================================================
+   NEW: Payment Details: listahan ng mga bayad (Payments)
+   ============================================================ */
+.ols-pd-pay-list { display: flex; flex-direction: column; gap: 8px; }
+.ols-pd-pay-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff;
+}
+.ols-pd-pay-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ols-pd-pay-amount { font-weight: 700; color: #0f172a; font-size: 0.9rem; }
+.ols-pd-pay-meta { font-size: 0.76rem; color: #64748b; }
+.ols-pd-pay-kind {
+    font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+    background: #eef3ff; color: #4a7cf7; margin-left: 6px; text-transform: uppercase;
+}
+.ols-pd-pay-kind.is-full { background: #ecfdf3; color: #16a34a; }
+.ols-pd-pay-link {
+    font-family: inherit; font-size: 0.8rem; font-weight: 600; color: #4a7cf7;
+    white-space: nowrap; text-decoration: none; cursor: pointer;
+    background: none; border: none; padding: 0;
+}
+.ols-pd-pay-link:hover { text-decoration: underline; }
+.ols-pd-pay-none { font-size: 0.78rem; color: #94a3b8; white-space: nowrap; }
+html.app-skin-dark .ols-pd-pay-row { background: #141414 !important; border-color: #262626 !important; }
+html.app-skin-dark .ols-pd-pay-amount { color: #F5F5F5 !important; }
+html.app-skin-dark .ols-pd-pay-meta { color: #9A9A9A !important; }
+html.app-skin-dark .ols-pd-pay-link { color: #9db8ff !important; }
+html.app-skin-dark .ols-pd-pay-none { color: #6b6b6b !important; }
+html.app-skin-dark .ols-pd-pay-kind { background: #262626 !important; color: #C4C4C4 !important; }
+html.app-skin-dark .ols-pd-pay-kind.is-full { background: rgba(22,163,74,.18) !important; color: #4ade80 !important; }
+
+/* ============================================================
+   NEW: Receipt viewer modal (View receipt sa Payment Details)
+   ============================================================ */
+.ols-rv-modal.modal-content {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+    overflow: hidden;
+}
+.ols-rv-modal .modal-header {
+    align-items: flex-start;
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid #eef1f6;
+}
+.ols-rv-modal .modal-title { font-size: 1rem; font-weight: 700; color: #1a2a3a; }
+.ols-rv-sub { font-size: 0.8rem; color: #94a3b8; margin-top: 2px; }
+.ols-rv-body {
+    padding: 18px 22px;
+    background: #f8fafc;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 240px;
+}
+.ols-rv-body img {
+    display: block;
+    max-width: 100%; max-height: 65vh; object-fit: contain;
+    border-radius: 10px; border: 1px solid #e5e7eb; background: #fff;
+}
+.ols-rv-state { font-size: 0.85rem; color: #94a3b8; }
+.ols-rv-modal .modal-footer { padding: 12px 22px; border-top: 1px solid #eef1f6; gap: 8px; }
+.ols-rv-fulllink { font-size: 0.82rem; font-weight: 600; color: #4a7cf7; text-decoration: none; margin-right: auto; }
+.ols-rv-fulllink:hover { text-decoration: underline; }
+html.app-skin-dark .ols-rv-modal.modal-content { background: #141414 !important; border-color: #262626 !important; }
+html.app-skin-dark .ols-rv-modal .modal-header,
+html.app-skin-dark .ols-rv-modal .modal-footer { border-color: #262626 !important; }
+html.app-skin-dark .ols-rv-modal .modal-title { color: #F5F5F5 !important; }
+html.app-skin-dark .ols-rv-sub,
+html.app-skin-dark .ols-rv-state { color: #9A9A9A !important; }
+html.app-skin-dark .ols-rv-body { background: #0d0d0d !important; }
+html.app-skin-dark .ols-rv-body img { border-color: #262626 !important; }
+html.app-skin-dark .ols-rv-modal .btn-close { filter: invert(1) grayscale(1); }
+html.app-skin-dark .ols-rv-fulllink { color: #9db8ff !important; }

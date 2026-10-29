@@ -1,7 +1,7 @@
 // public/functions/ongoing-loans.js
 // Used by: resources/views/admin/ongoing-loans.blade.php
 //
-// Handles search + month filter, sorting (dropdown AT click sa column header),
+// Handles search + month filter + status filter, sorting (dropdown AT click sa column header),
 // rows-per-page pagination, at clickable rows.
 // Ang mga click ay naka-inline onclick sa blade (hindi document listener),
 // para hindi ma-block ng ibang scripts sa layout.
@@ -13,13 +13,16 @@ let olRowsPerPage = 10;
 let olSortKey = 'applied';
 let olSortDir = 'desc';
 
-// Rows na tumutugma sa search box at month, sa current DOM order.
+// Rows na tumutugma sa search box, month at status, sa current DOM order.
 function olGetMatchingRows() {
     const searchInput = document.getElementById('filterSearchInput');
     const query = (searchInput?.value || '').trim().toLowerCase();
 
     // Napiling buwan (hal. "09" = September). Walang laman = All Months
     const month = document.getElementById('monthFilter')?.value || '';
+
+    // Napiling status: "awaiting" o "ongoing". Walang laman = All Status
+    const status = document.getElementById('statusFilter')?.value || '';
 
     const allRows = Array.from(
         document.querySelectorAll('#loanTableWrap table tbody tr[data-search]')
@@ -28,7 +31,8 @@ function olGetMatchingRows() {
     return allRows.filter(function (row) {
         const matchSearch = !query || row.dataset.search.includes(query);
         const matchMonth = !month || row.dataset.month === month;
-        return matchSearch && matchMonth;
+        const matchStatus = !status || row.dataset.status === status;
+        return matchSearch && matchMonth && matchStatus;
     });
 }
 

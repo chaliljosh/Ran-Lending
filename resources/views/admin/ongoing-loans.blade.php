@@ -77,6 +77,12 @@
                             </option>
                         @endforeach
                     </select>
+                    {{-- Awaiting Release = wala pang schedule. Ongoing = may schedule na. --}}
+                    <select class="sort-select-v2" id="statusFilter" onchange="filterOngoingLoans()" aria-label="Filter by status">
+                        <option value="">All Status</option>
+                        <option value="awaiting">Awaiting Release</option>
+                        <option value="ongoing">Ongoing</option>
+                    </select>
                     <select class="sort-select-v2" id="sortFilter" onchange="sortOngoingLoans()">
                         <option value="newest" {{ $sort === 'newest' ? 'selected' : '' }}>Newest First</option>
                         <option value="oldest" {{ $sort === 'oldest' ? 'selected' : '' }}>Oldest First</option>
@@ -104,7 +110,10 @@
                         <tbody>
                             @foreach ($ongoingLoans as $loan)
                                 @php
-                                    $progressPercent = $loan['total_count'] ? round(($loan['paid_count'] / $loan['total_count']) * 100) : 0;
+                                    // Walang schedule = hindi pa nare-release (hindi pa na-send ang proof)
+                                    $hasSchedule = $loan['total_count'] > 0;
+
+                                    $progressPercent = $hasSchedule ? round(($loan['paid_count'] / $loan['total_count']) * 100) : 0;
                                     $nextDueStamp = $loan['next_due_date'] ? \Carbon\Carbon::parse($loan['next_due_date'])->timestamp : 9999999999;
                                 @endphp
                                 <tr data-search="{{ strtolower($loan['name'] . ' ' . $loan['email'] . ' ' . $loan['borrower_id']) }}"
@@ -115,6 +124,7 @@
                                     data-collected="{{ $loan['amount_collected'] }}"
                                     data-applied="{{ \Carbon\Carbon::parse($loan['applied_at'])->timestamp }}"
                                     data-month="{{ \Carbon\Carbon::parse($loan['applied_at'])->format('m') }}"
+                                    data-status="{{ $hasSchedule ? 'ongoing' : 'awaiting' }}"
                                     data-href="{{ route('admin.ongoing-loan-detail', $loan['uuid']) }}?from=ongoing-loans"
                                     onclick="olGoToRow(event, this)"
                                     class="rs-clickable-row">
@@ -133,11 +143,19 @@
                                             <div class="progress-bar-track-v2">
                                                 <div class="progress-bar-fill-v2" style="width: {{ $progressPercent }}%"></div>
                                             </div>
-                                            <span class="progress-label-v2">{{ $loan['paid_count'] }}/{{ $loan['total_count'] }} paid</span>
+                                            <span class="progress-label-v2">
+                                                @if ($hasSchedule)
+                                                    {{ $loan['paid_count'] }}/{{ $loan['total_count'] }} paid
+                                                @else
+                                                    Not started
+                                                @endif
+                                            </span>
                                         </div>
                                     </td>
                                     <td class="loan-meta-v2">
-                                        @if ($loan['next_due_date'])
+                                        @if (!$hasSchedule)
+                                            <span class="purpose-pill">Awaiting Release</span>
+                                        @elseif ($loan['next_due_date'])
                                             {{ \Carbon\Carbon::parse($loan['next_due_date'])->format('M d, Y') }}
                                             <div class="next-due-amount-v2">
                                                 ₱{{ number_format($loan['next_due_amount'], 2) }}</div>

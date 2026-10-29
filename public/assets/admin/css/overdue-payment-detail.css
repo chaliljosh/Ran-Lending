@@ -1,9 +1,3 @@
-/* ============================================================
-   overdue-payment-detail.css
-   Flat redesign: walang gradient / tint / shadow, mas manipis na font weights
-============================================================ */
-
-/* ---------- Inter font ---------- */
 html body .main-content,
 html body .main-content * {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
@@ -20,7 +14,6 @@ html body .main-content i[class*="feather-"]::before {
 
 .opd-page { width: 100%; }
 
-/* ---------- Shared card shell ---------- */
 .opd-card {
     background: #FFFFFF;
     border: 1px solid #e5e7eb;
@@ -40,9 +33,6 @@ html body .main-content i[class*="feather-"]::before {
 }
 .opd-card-title i { color: #64748B; font-size: 0.95rem; }
 
-/* ============================================================
-   OVERDUE PAYMENT SUMMARY
-============================================================ */
 .opd-overdue-card {
     background: #FFFFFF;
     border: 1px solid #e5e7eb;
@@ -122,9 +112,6 @@ html body .main-content i[class*="feather-"]::before {
 .opd-btn-waive:hover { border-color: #94a3b8; color: #0f172a; background: #f8fafc; }
 .opd-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* ============================================================
-   PAYMENT SCHEDULE TABLE
-============================================================ */
 .opd-table-scroll {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -137,10 +124,10 @@ html body .main-content i[class*="feather-"]::before {
     table-layout: fixed;
 }
 .opd-table th:nth-child(1), .opd-table td:nth-child(1) { width: 8%; }
-.opd-table th:nth-child(2), .opd-table td:nth-child(2) { width: 22%; }
-.opd-table th:nth-child(3), .opd-table td:nth-child(3) { width: 22%; }
-.opd-table th:nth-child(4), .opd-table td:nth-child(4) { width: 22%; }
-.opd-table th:nth-child(5), .opd-table td:nth-child(5) { width: 26%; }
+.opd-table th:nth-child(2), .opd-table td:nth-child(2) { width: 20%; }
+.opd-table th:nth-child(3), .opd-table td:nth-child(3) { width: 28%; }
+.opd-table th:nth-child(4), .opd-table td:nth-child(4) { width: 20%; }
+.opd-table th:nth-child(5), .opd-table td:nth-child(5) { width: 24%; }
 .opd-table thead th {
     text-align: left;
     font-size: 0.72rem;
@@ -159,10 +146,16 @@ html body .main-content i[class*="feather-"]::before {
 }
 .opd-table tbody tr:last-child td { border-bottom: none; }
 .opd-table tbody tr:hover { background: #f8fafc; }
-/* current overdue row: red line lang sa gilid, walang pink background */
 .opd-table tbody tr.is-current-overdue { background: transparent; box-shadow: inset 3px 0 0 #DC2626; }
 
-/* ---------- Badges (outline style, walang kulay na background) ---------- */
+.opd-cell-sub {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.72rem;
+    font-weight: 400;
+    color: #94a3b8;
+}
+
 .opd-badge {
     display: inline-block;
     font-size: 0.72rem;
@@ -174,11 +167,9 @@ html body .main-content i[class*="feather-"]::before {
 }
 .opd-badge-paid { border-color: #86efac; color: #16a34a; }
 .opd-badge-overdue { border-color: #fca5a5; color: #dc2626; }
+.opd-badge-partial { border-color: #fcd34d; color: #b45309; }
 .opd-badge-upcoming { border-color: #e5e7eb; color: #64748B; }
 
-/* ============================================================
-   LOAN SUMMARY
-============================================================ */
 .opd-summary-card { background: #FFFFFF; }
 .opd-summary-card .opd-card-title { color: #1a2a3a; font-size: 0.85rem; font-weight: 600; }
 .opd-summary-card .opd-card-title i { color: #64748B; }
@@ -197,9 +188,6 @@ html body .main-content i[class*="feather-"]::before {
 .opd-summary-label { font-size: 0.8rem; font-weight: 400; color: #64748B; }
 .opd-summary-value { font-size: 0.9rem; font-weight: 500; color: #0f172a; text-align: right; }
 
-/* ============================================================
-   MODALS (shared)
-============================================================ */
 .opd-modal .modal-content { border: none; border-radius: 12px; box-shadow: 0 10px 30px rgba(15,23,42,0.12); }
 .opd-modal .modal-header { border-bottom: none; padding: 22px 24px 0; }
 .opd-modal .modal-body { padding: 8px 24px 4px; text-align: center; }
@@ -218,9 +206,6 @@ html body .main-content i[class*="feather-"]::before {
 }
 .opd-modal-textarea:focus { outline: none; border-color: #94a3b8; box-shadow: none; }
 
-/* ============================================================
-   PAGE CONTAINER + BORROWER HEADER
-============================================================ */
 .opd-content { max-width: 100%; margin: 0; width: 100%; }
 
 .opd-borrower-header {
@@ -246,7 +231,6 @@ html body .main-content i[class*="feather-"]::before {
 .opd-borrower-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
 .opd-days-overdue-text { font-size: 0.78rem; color: #DC2626; font-weight: 500; }
 
-/* "Overdue" badge sa header — outline din, para match sa table badges */
 .opd-borrower-meta .badge {
     background: #FFFFFF !important;
     border: 1px solid #fca5a5 !important;
@@ -255,7 +239,6 @@ html body .main-content i[class*="feather-"]::before {
     border-radius: 6px !important;
 }
 
-/* ---------- Payment Schedule — extra variants ---------- */
 .ld-schedule-badge.ld-schedule-overdue {
     background: #FFFFFF;
     color: #DC2626;
@@ -265,7 +248,6 @@ tr.ld-schedule-row-current {
     box-shadow: inset 3px 0 0 #DC2626;
 }
 
-/* ---------- Borrower avatar ---------- */
 .borrower-avatar {
     width: 84px;
     height: 84px;
@@ -282,9 +264,6 @@ tr.ld-schedule-row-current {
     object-fit: cover;
 }
 
-/* ============================================================
-   RESPONSIVE
-============================================================ */
 @media (max-width: 575.98px) {
     .opd-overdue-strip { column-gap: 20px; }
     .opd-overdue-footer { flex-direction: column; align-items: flex-start; }
@@ -298,7 +277,6 @@ tr.ld-schedule-row-current {
 @media (max-width: 767.98px) {
     .opd-summary-grid { grid-template-columns: 1fr; }
 
-    /* Payment Schedule — stacked cards sa mobile */
     .opd-table-scroll { overflow-x: visible; }
     .opd-table { min-width: 0; table-layout: auto; }
     .opd-table th, .opd-table td { width: auto; }
@@ -334,9 +312,6 @@ tr.ld-schedule-row-current {
     }
 }
 
-/* ============================================================
-   MARK AS PAID MODAL — details grid + breakdown
-============================================================ */
 .opd-confirm-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -365,7 +340,6 @@ tr.ld-schedule-row-current {
 }
 .opd-confirm-sub.is-danger { color: #DC2626; }
 
-/* ---------- Breakdown: Amount Due + Penalty = Total Outstanding ---------- */
 .opd-breakdown {
     margin-top: 4px;
     padding: 6px 16px 14px;
@@ -419,12 +393,9 @@ tr.ld-schedule-row-current {
     .opd-confirm-grid { grid-template-columns: 1fr; gap: 12px; }
 }
 
-/* ============================================================
-   MARK AS PAID MODAL: Date Paid + Receipt preview
-   (kapareho ng Ongoing Loan Detail)
-============================================================ */
 .ols-field { margin-top: 18px; text-align: left; }
 .ols-field-label { display: block; font-size: 0.78rem; font-weight: 600; color: #475569; margin-bottom: 6px; }
+.ols-field-hint { margin-top: 6px; font-size: 0.72rem; font-weight: 400; color: #94a3b8; }
 .ols-req { color: #dc2626; }
 .ols-input {
     width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 10px;
@@ -457,7 +428,6 @@ tr.ld-schedule-row-current {
 .ols-form-error { margin-top: 14px; padding: 9px 12px; border-radius: 10px; background: #fee2e2; color: #b91c1c; font-size: 0.78rem; text-align: left; }
 .ols-form-error.d-none { display: none; }
 
-/* ---------- Date picker ---------- */
 .ols-date-wrap { position: relative; }
 .ols-date-input { cursor: pointer; padding-right: 40px; }
 .ols-date-icon { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); font-size: 1rem; color: #64748b; pointer-events: none; }
@@ -498,7 +468,6 @@ tr.ld-schedule-row-current {
 .ols-dp-year:hover:not(.is-selected) { background: #f1f3f8; }
 .ols-dp-year.is-selected { background: #1e3a8a; color: #fff; font-weight: 700; }
 
-/* ===== "View Receipt" / "Download" button (secondary, outline) ===== */
 .opd-btn-view {
     background: transparent;
     border: 1px solid rgba(128, 128, 128, 0.35);
@@ -514,7 +483,6 @@ tr.ld-schedule-row-current {
     color: inherit;
 }
 
-/* ===== Borrower Receipt modal ===== */
 #opdBorrowerReceiptModal .modal-dialog {
     max-width: 780px;
 }
@@ -625,16 +593,8 @@ tr.ld-schedule-row-current {
     }
 }
 
-/* ══════════════════════════════════════════
-   DARK MODE — TRUE BLACK PALETTE
-   #0A0A0A bg, #141414 cards, #262626 borders,
-   #F5F5F5 text, #9A9A9A muted text.
-   Flat din: walang tint, walang shadow.
-   ══════════════════════════════════════════ */
-
 html.app-skin-dark .nxl-content { background: #0A0A0A !important; }
 
-/* ---------- Overdue summary card ---------- */
 html.app-skin-dark .opd-overdue-card {
     background: #141414 !important;
     border-color: #262626 !important;
@@ -652,7 +612,6 @@ html.app-skin-dark .opd-overdue-strip { border-bottom-color: #262626 !important;
 html.app-skin-dark .opd-outstanding-inline .opd-outstanding-label { color: #9A9A9A !important; }
 html.app-skin-dark .opd-outstanding-inline .opd-outstanding-value { color: #f87171 !important; }
 
-/* ---------- Buttons ---------- */
 html.app-skin-dark .opd-btn-mark-paid {
     background: #262626 !important;
     color: #fff !important;
@@ -672,7 +631,6 @@ html.app-skin-dark .opd-btn-waive:hover {
 }
 html.app-skin-dark .opd-btn:disabled { opacity: 0.4 !important; }
 
-/* ---------- Borrower header ---------- */
 html.app-skin-dark .opd-borrower-header h6 { color: #F5F5F5 !important; }
 html.app-skin-dark .opd-borrower-email { color: #9A9A9A !important; }
 html.app-skin-dark .opd-borrower-email strong { color: #F5F5F5 !important; }
@@ -683,7 +641,6 @@ html.app-skin-dark .opd-borrower-meta .badge {
     color: #f87171 !important;
 }
 
-/* ---------- Card shells ---------- */
 html.app-skin-dark .opd-card {
     background: #141414 !important;
     border-color: #262626 !important;
@@ -699,7 +656,6 @@ html.app-skin-dark .opd-summary-row { border-color: #262626 !important; }
 html.app-skin-dark .opd-summary-label { color: #9A9A9A !important; }
 html.app-skin-dark .opd-summary-value { color: #F5F5F5 !important; }
 
-/* ---------- Table ---------- */
 html.app-skin-dark .opd-table thead th {
     color: #9A9A9A !important;
     border-bottom-color: #262626 !important;
@@ -710,14 +666,14 @@ html.app-skin-dark .opd-table tbody td {
 }
 html.app-skin-dark .opd-table tbody tr:hover { background: #1a1a1a !important; }
 html.app-skin-dark .opd-table tbody tr.is-current-overdue { background: transparent !important; }
+html.app-skin-dark .opd-cell-sub { color: #9A9A9A !important; }
 
-/* ---------- Badges ---------- */
 html.app-skin-dark .opd-badge { background: transparent !important; }
 html.app-skin-dark .opd-badge-paid { border-color: #166534 !important; color: #4ade80 !important; }
 html.app-skin-dark .opd-badge-overdue { border-color: #7F1D1D !important; color: #f87171 !important; }
+html.app-skin-dark .opd-badge-partial { border-color: #78350f !important; color: #fbbf24 !important; }
 html.app-skin-dark .opd-badge-upcoming { border-color: #262626 !important; color: #C4C4C4 !important; }
 
-/* ---------- Back button ---------- */
 html.app-skin-dark .btn-light {
     background: #141414 !important;
     border-color: #262626 !important;
@@ -729,7 +685,6 @@ html.app-skin-dark .btn-light:hover {
     background: #262626 !important;
 }
 
-/* ---------- Modals ---------- */
 html.app-skin-dark .opd-modal .modal-content { background: #141414 !important; }
 html.app-skin-dark .opd-modal-title { color: #F5F5F5 !important; }
 html.app-skin-dark .opd-modal-desc { color: #9A9A9A !important; }
@@ -754,7 +709,6 @@ html.app-skin-dark .opd-modal-textarea:focus {
     box-shadow: none !important;
 }
 
-/* ---------- Mark as Paid modal ---------- */
 html.app-skin-dark .opd-confirm-label { color: #9A9A9A !important; }
 html.app-skin-dark .opd-confirm-value { color: #F5F5F5 !important; }
 html.app-skin-dark .opd-confirm-sub.is-danger { color: #f87171 !important; }
@@ -771,8 +725,8 @@ html.app-skin-dark .opd-confirm-total-value { color: #f87171 !important; }
     html.app-skin-dark .opd-table tbody td::before { color: #6b6b6b !important; }
 }
 
-/* ---------- Date Paid + receipt preview (dark) ---------- */
 html.app-skin-dark .ols-field-label { color: #C4C4C4 !important; }
+html.app-skin-dark .ols-field-hint { color: #9A9A9A !important; }
 html.app-skin-dark .ols-input { background: #0d0d0d !important; border-color: #262626 !important; color: #F5F5F5 !important; color-scheme: dark; }
 html.app-skin-dark .ols-date-icon { color: #9A9A9A !important; }
 html.app-skin-dark .ols-input:focus { border-color: #4a4a4a !important; box-shadow: 0 0 0 3px rgba(255,255,255,0.06) !important; }

@@ -32,7 +32,12 @@
 @elseif(!$app)
     @php
         $isRejectedLoan  = $latestLoan && $latestLoan->status === 'rejected';
-        $isApprovedLoan  = $latestLoan && $latestLoan->status === 'approved';
+
+        // Pag walang $app, ibig sabihin wala pang schedule. Kaya ang approved/active
+        // dito ay "approved na, hindi pa nare-release" (ginagawang 'active' ng
+        // activate() ang status pagka-approve, kaya isinama ang 'active').
+        $isApprovedLoan  = $latestLoan && in_array($latestLoan->status, ['approved', 'active'], true);
+
         $isCompletedLoan = $latestLoan && $latestLoan->status === 'completed';
     @endphp
 
@@ -339,7 +344,8 @@
                             Your loan application was not approved. You may review your application details or apply
                             again when eligible.
                         @elseif ($isApprovedLoan)
-                            Your application has been approved. Your loan will be activated shortly.
+                            Your application has been approved. Your payment schedule will be available once your loan
+                            has been released.
                         @else
                             Your application is currently being reviewed. We'll notify you once a decision has been
                             made.

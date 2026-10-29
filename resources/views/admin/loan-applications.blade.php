@@ -10,13 +10,44 @@
 
 @section('content')
 
+    @php
+        // True kapag galing sa sidebar na "Needs Attention" (?filter=attention)
+        $isAttentionView = ($viewStatus ?? 'pending') === 'pending' && request('filter') === 'attention';
+
+        // Stats para sa Needs Attention cards (galing sa $pendingApplications na,
+        // kaya walang kailangang baguhin sa controller)
+        $attentionApps = collect($pendingApplications ?? [])
+            ->filter(fn($a) => ($a['waiting_days'] ?? 0) >= 3);
+        $attentionTotal = $attentionApps->count();
+        $criticalTotal = $attentionApps->filter(fn($a) => ($a['waiting_days'] ?? 0) >= 7)->count();
+        $longestApp = $attentionApps->sortByDesc('waiting_days')->first();
+        $longestDays = $longestApp['waiting_days'] ?? 0;
+
+        // Stats para sa Approved / Rejected / On Hold cards (galing sa $filteredApplications)
+        $filteredCol = collect($filteredApplications ?? []);
+        $filteredTotal = $filteredCol->count();
+        $filteredAmount = $filteredCol->sum('loan_amount');
+        $filteredAverage = $filteredTotal > 0 ? $filteredAmount / $filteredTotal : 0;
+
+        $purposeCounts = $filteredCol->countBy('loan_purpose')->sortDesc();
+        $topPurposeKey = $purposeCounts->keys()->first();
+        $topPurpose = $topPurposeKey ? ucfirst(str_replace('_', ' ', $topPurposeKey)) : '—';
+        $topPurposeCount = $purposeCounts->first() ?? 0;
+
+        $oldestFiltered = $filteredCol->sortBy('applied_at')->first();
+        $oldestFilteredDays = $oldestFiltered
+            ? (int) \Carbon\Carbon::parse($oldestFiltered->applied_at)->diffInDays(now())
+            : 0;
+    @endphp
 
     <div class="page-header">
         <div class="page-header-left d-flex align-items-center">
             <div class="page-header-title">
                 <h5 class="m-b-10">
                     Loan Applications
-                    @if (($viewStatus ?? 'pending') !== 'pending')
+                    @if ($isAttentionView)
+                        &mdash; Needs Attention
+                    @elseif (($viewStatus ?? 'pending') !== 'pending')
                         &mdash; {{ ucfirst(str_replace('_', ' ', $viewStatus)) }}
                     @endif
                 </h5>
@@ -33,46 +64,87 @@
         @if (($viewStatus ?? 'pending') === 'pending')
             {{-- ================= PENDING VIEW ================= --}}
 
-                   {{-- ---- Summary cards ---- --}}
-<div class="la-stats-row">
-    <div class="la-stat-card">
-        <div class="la-stat-top">
-            <span class="la-stat-label">
-                Total Pending
-                @if (($pendingLoanCount ?? 0) > 0)
-                    <span class="la-stat-badge">{{ $pendingLoanCount }}</span>
-                @endif
-            </span>
-            <i class="feather-clock la-stat-icon"></i>
-        </div>
-        <div class="la-stat-value">{{ count($pendingApplications) }}</div>
-        <div class="la-stat-sub">applications waiting for approval</div>
-    </div>
-    <div class="la-stat-card">
-        <div class="la-stat-top">
-            <span class="la-stat-label">New Applications</span>
-            <i class="feather-file-plus la-stat-icon"></i>
-        </div>
-        <div class="la-stat-value">{{ $newApplicationsCount ?? 0 }}</div>
-        <div class="la-stat-sub">submitted within 24 hours</div>
-    </div>
-    <div class="la-stat-card {{ ($needsAttentionCount ?? 0) > 0 ? 'is-attention' : '' }}">
-        <div class="la-stat-top">
-            <span class="la-stat-label">Needs Attention</span>
-            <i class="feather-alert-triangle la-stat-icon"></i>
-        </div>
-        <div class="la-stat-value">{{ $needsAttentionCount ?? 0 }}</div>
-        <div class="la-stat-sub">waiting 3+ days</div>
-    </div>
-    <div class="la-stat-card">
-        <div class="la-stat-top">
-            <span class="la-stat-label">Total Approved</span>
-            <i class="feather-check-circle la-stat-icon"></i>
-        </div>
-        <div class="la-stat-value">{{ $totalApprovedCount ?? 0 }}</div>
-        <div class="la-stat-sub">this month</div>
-    </div>
-</div>
+            {{-- ---- Summary cards ---- --}}
+            @if ($isAttentionView)
+                {{-- Needs Attention view: 3 cards na pang-attention lang --}}
+                <div class="la-stats-row is-three">
+                    <div class="la-stat-card {{ $attentionTotal > 0 ? 'is-attention' : '' }}">
+                        <div class="la-stat-top">
+                            <span class="la-stat-label">Needs Attention</span>
+                            <i class="feather-alert-triangle la-stat-icon"></i>
+                        </div>
+                        <div class="la-stat-value">{{ $attentionTotal }}</div>
+                        <div class="la-stat-sub">waiting 3+ days</div>
+                    </div>
+                    <div class="la-stat-card">
+                        <div class="la-stat-top">
+                            <span class="la-stat-label">Longest Waiting</span>
+                            <i class="feather-clock la-stat-icon"></i>
+                        </div>
+                        @if ($longestApp)
+                            <div class="la-stat-value">{{ $longestDays }} {{ $longestDays == 1 ? 'day' : 'days' }}</div>
+                            <div class="la-stat-sub">oldest pending application</div>
+                        @else
+                            <div class="la-stat-value">&mdash;</div>
+                            <div class="la-stat-sub">no applications waiting</div>
+                        @endif
+                    </div>
+                    <div class="la-stat-card {{ $criticalTotal > 0 ? 'is-critical' : '' }}">
+                        <div class="la-stat-top">
+                            <span class="la-stat-label">Waiting 7+ Days</span>
+                            <i class="feather-alert-octagon la-stat-icon"></i>
+                        </div>
+                        <div class="la-stat-value">{{ $criticalTotal }}</div>
+                        <div class="la-stat-sub">needs urgent review</div>
+                    </div>
+                </div>
+            @else
+                {{-- Regular Pending view: 4 cards --}}
+                <div class="la-stats-row">
+                    <div class="la-stat-card">
+                        <div class="la-stat-top">
+                            <span class="la-stat-label">
+                                Total Pending
+                                @if (($pendingLoanCount ?? 0) > 0)
+                                    <span class="la-stat-badge">{{ $pendingLoanCount }}</span>
+                                @endif
+                            </span>
+                            <i class="feather-clock la-stat-icon"></i>
+                        </div>
+                        <div class="la-stat-value">{{ count($pendingApplications) }}</div>
+                        <div class="la-stat-sub">applications waiting for approval</div>
+                    </div>
+                    <div class="la-stat-card">
+                        <div class="la-stat-top">
+                            <span class="la-stat-label">New Applications</span>
+                            <i class="feather-file-plus la-stat-icon"></i>
+                        </div>
+                        <div class="la-stat-value">{{ $newApplicationsCount ?? 0 }}</div>
+                        <div class="la-stat-sub">submitted within 24 hours</div>
+                    </div>
+                    {{-- Clickable: i-filter agad ang table sa "Needs Attention (3+ days)" --}}
+                    <div class="la-stat-card {{ ($needsAttentionCount ?? 0) > 0 ? 'is-attention' : '' }}"
+                        role="button" tabindex="0" style="cursor: pointer;"
+                        title="Show applications waiting 3+ days"
+                        onclick="var f = document.getElementById('pendingStatusFilter'); if (f) { f.value = 'attention'; filterLoanPending(); }"
+                        onkeydown="if (event.key === 'Enter') this.click();">
+                        <div class="la-stat-top">
+                            <span class="la-stat-label">Needs Attention</span>
+                            <i class="feather-alert-triangle la-stat-icon"></i>
+                        </div>
+                        <div class="la-stat-value">{{ $needsAttentionCount ?? 0 }}</div>
+                        <div class="la-stat-sub">waiting 3+ days</div>
+                    </div>
+                    <div class="la-stat-card">
+                        <div class="la-stat-top">
+                            <span class="la-stat-label">Total Approved</span>
+                            <i class="feather-check-circle la-stat-icon"></i>
+                        </div>
+                        <div class="la-stat-value">{{ $totalApprovedCount ?? 0 }}</div>
+                        <div class="la-stat-sub">this month</div>
+                    </div>
+                </div>
+            @endif
 
             @if (count($pendingApplications) === 0)
                 <div class="la-empty-large">
@@ -95,11 +167,17 @@
                                 onkeyup="filterLoanPending()">
                         </div>
                         <div class="reviewed-toolbar-meta">
-                            <select id="pendingStatusFilter" class="reviewed-decision-filter" onchange="filterLoanPending()">
-                                <option value="all" selected>All Pending</option>
-                                <option value="new">New Applications</option>
-                                <option value="attention">Needs Attention (3+ days)</option>
-                            </select>
+                            @if ($isAttentionView)
+                                {{-- Needs Attention view: naka-lock sa "attention", walang dropdown.
+                                     Hidden input para gumana pa rin ang JS (same id). --}}
+                                <input type="hidden" id="pendingStatusFilter" value="attention">
+                            @else
+                                <select id="pendingStatusFilter" class="reviewed-decision-filter" onchange="filterLoanPending()">
+                                    <option value="all" selected>All Pending</option>
+                                    <option value="new">New Applications</option>
+                                    <option value="attention">Needs Attention (3+ days)</option>
+                                </select>
+                            @endif
                             <select id="pendingSortSelect" class="reviewed-decision-filter" onchange="filterLoanPending()">
                                 <option value="applied_desc" selected>Newest First</option>
                                 <option value="applied_asc">Oldest First</option>
@@ -171,7 +249,11 @@
                             </tbody>
                         </table>
                         <div id="pendingEmptyState" class="reviewed-empty" style="display:none;">
-                            No applications match your search.
+                            @if ($isAttentionView)
+                                No applications need attention right now.
+                            @else
+                                No applications match your search.
+                            @endif
                         </div>
                     </div>
 
@@ -339,6 +421,86 @@
                     <p class="la-empty-desc">{{ $emptyDesc }}</p>
                 </div>
             @else
+                {{-- ---- Summary cards (Approved / Rejected / On Hold) ---- --}}
+                <div class="la-stats-row is-three">
+                    @if ($viewStatus === 'approved')
+                        <div class="la-stat-card">
+                            <div class="la-stat-top">
+                                <span class="la-stat-label">Total Approved</span>
+                                <i class="feather-check-circle la-stat-icon"></i>
+                            </div>
+                            <div class="la-stat-value">{{ $filteredTotal }}</div>
+                            <div class="la-stat-sub">approved by all administrators</div>
+                        </div>
+                        <div class="la-stat-card">
+                            <div class="la-stat-top">
+                                <span class="la-stat-label">Total Amount Approved</span>
+                                <i class="feather-dollar-sign la-stat-icon"></i>
+                            </div>
+                            <div class="la-stat-value">&#8369;{{ number_format($filteredAmount, 0) }}</div>
+                            <div class="la-stat-sub">total loan value</div>
+                        </div>
+                        <div class="la-stat-card">
+                            <div class="la-stat-top">
+                                <span class="la-stat-label">Average Loan</span>
+                                <i class="feather-bar-chart-2 la-stat-icon"></i>
+                            </div>
+                            <div class="la-stat-value">&#8369;{{ number_format($filteredAverage, 0) }}</div>
+                            <div class="la-stat-sub">per approved application</div>
+                        </div>
+                    @elseif ($viewStatus === 'rejected')
+                        <div class="la-stat-card">
+                            <div class="la-stat-top">
+                                <span class="la-stat-label">Total Rejected</span>
+                                <i class="feather-x-circle la-stat-icon"></i>
+                            </div>
+                            <div class="la-stat-value">{{ $filteredTotal }}</div>
+                            <div class="la-stat-sub">rejected by all administrators</div>
+                        </div>
+                        <div class="la-stat-card">
+                            <div class="la-stat-top">
+                                <span class="la-stat-label">Amount Rejected</span>
+                                <i class="feather-dollar-sign la-stat-icon"></i>
+                            </div>
+                            <div class="la-stat-value">&#8369;{{ number_format($filteredAmount, 0) }}</div>
+                            <div class="la-stat-sub">total loan value</div>
+                        </div>
+                        <div class="la-stat-card">
+                            <div class="la-stat-top">
+                                <span class="la-stat-label">Top Purpose</span>
+                                <i class="feather-tag la-stat-icon"></i>
+                            </div>
+                            <div class="la-stat-value">{{ $topPurpose }}</div>
+                            <div class="la-stat-sub">{{ $topPurposeCount }} {{ $topPurposeCount == 1 ? 'application' : 'applications' }}</div>
+                        </div>
+                    @else
+                        <div class="la-stat-card">
+                            <div class="la-stat-top">
+                                <span class="la-stat-label">Total On Hold</span>
+                                <i class="feather-pause-circle la-stat-icon"></i>
+                            </div>
+                            <div class="la-stat-value">{{ $filteredTotal }}</div>
+                            <div class="la-stat-sub">waiting for admin agreement</div>
+                        </div>
+                        <div class="la-stat-card">
+                            <div class="la-stat-top">
+                                <span class="la-stat-label">Amount On Hold</span>
+                                <i class="feather-dollar-sign la-stat-icon"></i>
+                            </div>
+                            <div class="la-stat-value">&#8369;{{ number_format($filteredAmount, 0) }}</div>
+                            <div class="la-stat-sub">total loan value</div>
+                        </div>
+                        <div class="la-stat-card {{ $oldestFilteredDays >= 3 ? 'is-attention' : '' }}">
+                            <div class="la-stat-top">
+                                <span class="la-stat-label">Oldest On Hold</span>
+                                <i class="feather-clock la-stat-icon"></i>
+                            </div>
+                            <div class="la-stat-value">{{ $oldestFilteredDays }} {{ $oldestFilteredDays == 1 ? 'day' : 'days' }}</div>
+                            <div class="la-stat-sub">since application date</div>
+                        </div>
+                    @endif
+                </div>
+
                 <div class="reviewed-card">
 
                     <div class="reviewed-toolbar">
@@ -377,14 +539,14 @@
                             <tbody id="filteredLoanList">
                                 @foreach ($filteredApplications as $app)
                          <tr
-    data-search="{{ strtolower($app->last_name . ' ' . $app->first_name . ' ' . $app->email) }}"
+    data-search="{{ strtolower($app->last_name . ' ' . $app->first_name . ' ' . $app->email . ' ' . $app->uuid . ' LN-' . substr($app->uuid, 0, 8)) }}"
     data-href="{{ route('admin.loan-application-detail', $app->uuid) }}"
     class="la-clickable-row">
                                         <td>
                                             <div class="rt-name">{{ $app->last_name }}, {{ $app->first_name }}</div>
                                             <div class="rt-email">{{ $app->email }}</div>
                                         </td>
-                                        <td class="rt-date">#{{ $app->application_id }}</td>
+                                        <td class="rt-date" title="{{ $app->uuid }}">LN-{{ strtoupper(substr($app->uuid, 0, 8)) }}</td>
                                         <td class="text-end rt-date">&#8369;{{ number_format($app->loan_amount, 0) }}</td>
                                         <td class="rt-date">{{ $app->loan_term }} months</td>
                                         <td class="rt-remarks"

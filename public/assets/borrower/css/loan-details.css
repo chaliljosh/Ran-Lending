@@ -15,7 +15,7 @@
     background: #fff !important;
     border: 1px solid #e5e7eb !important;
     border-radius: 14px !important;
-    padding: 24px !important;
+    padding: 18px 20px !important;
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15) !important;
     margin-bottom: 20px;
 }
@@ -24,30 +24,29 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 14px;
-    margin-bottom: 20px;
+    margin-bottom: 14px;
 }
 .bwl-ld-eyebrow {
     display: block;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-weight: 600;
     color: #8a9bb0;
     text-transform: uppercase;
     letter-spacing: 0.6px;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 .bwl-ld-section__head-text h5 {
     font-weight: 700;
-    font-size: 1.15rem;
+    font-size: 1.05rem;
     color: #0f172a;
     line-height: 1.3;
 }
 
-/* ---------- Status pill ---------- */
+/* ---------- Status pill (walang bullet na tuldok) ---------- */
 .bwl-ld-status {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 4px 12px 4px 10px;
+    padding: 4px 12px;
     border-radius: 20px;
     font-size: 0.72rem;
     font-weight: 600;
@@ -55,18 +54,13 @@
     letter-spacing: 0.5px;
     flex: none;
 }
-.bwl-ld-status::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: currentColor;
-}
 .bwl-ld-status.bg-warning   { background: #fef3c7 !important; color: #b45309 !important; }
 .bwl-ld-status.bg-success   { background: #dcfce7 !important; color: #16a34a !important; }
 .bwl-ld-status.bg-primary   { background: #dbeafe !important; color: #2563eb !important; }
 .bwl-ld-status.bg-danger    { background: #fee2e2 !important; color: #dc2626 !important; }
 .bwl-ld-status.bg-secondary { background: #f1f5f9 !important; color: #64748b !important; }
+/* Awaiting Release: kalmadong indigo, hiwalay sa ibang status */
+.bwl-ld-status.is-awaiting  { background: #eef2ff !important; color: #4f46e5 !important; }
 
 /* ---------- Tabs (Loan Details / Loan History) ---------- */
 .bwl-ld-tabs {
@@ -171,34 +165,32 @@
     color: #fff;
 }
 
-/* ---------- Stat grid (Loan Summary numbers) ---------- */
+/* ---------- Stat grid (Loan Summary numbers) ----------
+   Isang grid na lang. Kusang nag-aadjust ang bilang ng columns
+   (5 o 6 na cards), kaya walang bakanteng espasyo. */
 .bwl-ld-stat-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-}
-/* First row has only 3 cards, so it uses 3 columns */
-.bwl-ld-stat-grid--three {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
 }
 .bwl-ld-stat-card {
     background: #ffffff !important;
     border: 1px solid #e5e7eb !important;
-    border-radius: 12px !important;
-    padding: 18px 20px;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+    border-radius: 10px !important;
+    padding: 12px 16px;
+    box-shadow: none !important;
 }
 .bwl-ld-stat-label {
     display: block;
-    font-size: 0.75rem;
+    font-size: 0.68rem;
     font-weight: 600;
     color: #8a9bb0;
     text-transform: uppercase;
     letter-spacing: 0.4px;
-    margin-bottom: 10px;
+    margin-bottom: 6px;
 }
 .bwl-ld-stat-value {
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: #0f172a;
     line-height: 1.2;
@@ -209,8 +201,9 @@
 }
 .bwl-ld-stat-value.is-danger  { color: #e63946; }
 .bwl-ld-stat-value.is-success { color: #16a34a; }
-.bwl-ld-stat-grid--second {
-    margin-top: 20px;
+.bwl-ld-stat-card .bwl-ld-info-sub {
+    font-size: 0.74rem;
+    margin-top: 2px;
 }
 
 /* ---------- Bordered card (Payment Schedule / Loan Info / Timeline) ---------- */
@@ -612,11 +605,8 @@
 }
 
 /* ---------- Responsive ---------- */
-@media (max-width: 991.98px) {
-    .bwl-ld-stat-grid { grid-template-columns: repeat(2, 1fr); }
-}
 @media (max-width: 640px) {
-    .bwl-ld-stat-grid { grid-template-columns: 1fr; }
+    .bwl-ld-section { padding: 16px !important; }
     .bwl-ld-section__head { flex-wrap: wrap; }
     .bwl-ld-banner { padding: 14px 16px; }
 }
@@ -755,6 +745,10 @@ html.app-skin-dark .bwl-ld-status.bg-secondary {
     background: #1C1C1C !important;
     color: #9A9A9A !important;
 }
+html.app-skin-dark .bwl-ld-status.is-awaiting {
+    background: rgba(99, 102, 241, 0.16) !important;
+    color: #A5B4FC !important;
+}
 
 /* ---------- Reminders ---------- */
 html.app-skin-dark .bwl-ld-reminders { background: rgba(37, 99, 235, 0.12); }
@@ -785,4 +779,116 @@ html.app-skin-dark .bwl-ld-empty-step-label {
 }
 html.app-skin-dark .bwl-ld-empty-step-line {
     background: #262626;
+}
+
+/* ============================================================
+   Borrower Receipt modal: Reject / Partial buttons
+   ============================================================ */
+.ols-br-btn-partial,
+.ols-br-btn-reject {
+    padding: 9px 16px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    color: #0f172a;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s ease;
+}
+.ols-br-btn-partial:hover { border-color: #4a7cf7; color: #4a7cf7; background: #eef3ff; }
+.ols-br-btn-reject { border-color: #fecaca; color: #dc2626; }
+.ols-br-btn-reject:hover { background: #fef2f2; }
+html.app-skin-dark .ols-br-btn-partial { background: #141414 !important; border-color: #262626 !important; color: #F5F5F5 !important; }
+html.app-skin-dark .ols-br-btn-reject { background: #141414 !important; border-color: rgba(220,38,38,.35) !important; color: #f87171 !important; }
+
+/* ============================================================
+   Payment Details: listahan ng mga bayad
+   ============================================================ */
+.ols-pd-pay-list { display: flex; flex-direction: column; gap: 8px; }
+.ols-pd-pay-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff;
+}
+.ols-pd-pay-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ols-pd-pay-amount { font-weight: 700; color: #0f172a; font-size: 0.9rem; }
+.ols-pd-pay-meta { font-size: 0.76rem; color: #64748b; }
+.ols-pd-pay-kind {
+    font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+    background: #eef3ff; color: #4a7cf7; margin-left: 6px; text-transform: uppercase;
+}
+.ols-pd-pay-kind.is-full { background: #ecfdf3; color: #16a34a; }
+.ols-pd-pay-link {
+    font-size: 0.8rem; font-weight: 600; color: #4a7cf7; white-space: nowrap;
+    text-decoration: none; cursor: pointer; background: none; border: none; padding: 0;
+}
+.ols-pd-pay-link:hover { text-decoration: underline; }
+.ols-pd-pay-none { font-size: 0.78rem; color: #94a3b8; white-space: nowrap; }
+html.app-skin-dark .ols-pd-pay-row { background: #141414 !important; border-color: #262626 !important; }
+html.app-skin-dark .ols-pd-pay-amount { color: #F5F5F5 !important; }
+
+/* ============================================================
+   Receipt viewer modal (View receipt sa Payment Details)
+   ============================================================ */
+.ols-rv-modal { border: 1px solid #e5e7eb; border-radius: 14px; overflow: hidden; }
+.ols-rv-modal .modal-header { padding: 18px 22px 14px; border-bottom: 1px solid #e5e7eb; align-items: flex-start; }
+.ols-rv-sub { font-size: 0.8rem; color: #94a3b8; margin-top: 2px; }
+.ols-rv-body {
+    padding: 18px 22px;
+    background: #f8fafc;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 240px;
+}
+.ols-rv-body img {
+    max-width: 100%; max-height: 65vh; object-fit: contain;
+    border-radius: 10px; border: 1px solid #e5e7eb; background: #fff;
+}
+.ols-rv-state { font-size: 0.85rem; color: #94a3b8; }
+.ols-rv-modal .modal-footer { padding: 14px 22px; border-top: 1px solid #e5e7eb; gap: 8px; }
+.ols-rv-fulllink { font-size: 0.82rem; font-weight: 600; color: #4a7cf7; text-decoration: none; margin-right: auto; }
+.ols-rv-fulllink:hover { text-decoration: underline; }
+html.app-skin-dark .ols-rv-modal { background: #141414 !important; border-color: #262626 !important; }
+html.app-skin-dark .ols-rv-modal .modal-header,
+html.app-skin-dark .ols-rv-modal .modal-footer { border-color: #262626 !important; }
+html.app-skin-dark .ols-rv-body { background: #0d0d0d !important; }
+html.app-skin-dark .ols-rv-body img { border-color: #262626 !important; }
+
+/* ============================================================
+   Payment Details button (Action column, paid rows)
+   ============================================================ */
+.bwl-ld-btn-details {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    color: #0f172a;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: border-color .15s ease, color .15s ease, background .15s ease;
+}
+.bwl-ld-btn-details:hover {
+    border-color: #2563eb;
+    color: #2563eb;
+    background: #eff6ff;
+}
+.bwl-ld-btn-details:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+html.app-skin-dark .bwl-ld-btn-details {
+    background: #141414;
+    border-color: #262626;
+    color: #F5F5F5;
+}
+html.app-skin-dark .bwl-ld-btn-details:hover {
+    background: rgba(37, 99, 235, 0.14);
+    border-color: #60A5FA;
+    color: #60A5FA;
 }

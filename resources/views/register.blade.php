@@ -56,7 +56,7 @@
           <div class="form-grid reg-step">
 
             <div class="field col-span-2">
-              <div class="name-row">
+              <div class="name-row name-row-4">
                 <div>
                   <label for="firstName">First Name<span class="required-asterisk">*</span></label>
                   <div class="input-wrap">
@@ -79,6 +79,20 @@
                     <i class="bi bi-person field-icon"></i>
                     <input type="text" id="lastName" placeholder="Enter last name"
                       oninput="this.value = this.value.replace(/\b\w/g, c => c.toUpperCase())">
+                  </div>
+                </div>
+                <div>
+                  <label for="suffix">Suffix</label>
+                  <div class="input-wrap no-icon">
+                    <select id="suffix">
+                      <option value="">None</option>
+                      <option value="Jr.">Jr.</option>
+                      <option value="Sr.">Sr.</option>
+                      <option value="II">II</option>
+                      <option value="III">III</option>
+                      <option value="IV">IV</option>
+                      <option value="V">V</option>
+                    </select>
                   </div>
                 </div>
               </div>
@@ -171,20 +185,6 @@
             <div class="field col-span-2">
               <div class="name-row">
                 <div>
-                  <label for="suffix">Suffix</label>
-                  <div class="input-wrap no-icon">
-                    <select id="suffix">
-                      <option value="">None</option>
-                      <option value="Jr.">Jr.</option>
-                      <option value="Sr.">Sr.</option>
-                      <option value="II">II</option>
-                      <option value="III">III</option>
-                      <option value="IV">IV</option>
-                      <option value="V">V</option>
-                    </select>
-                  </div>
-                </div>
-                <div>
                   <label for="age">Age</label>
                   <div class="input-wrap no-icon">
                     <input type="text" id="age" placeholder="Auto-calculated" readonly>
@@ -200,11 +200,6 @@
                     </select>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            <div class="field col-span-2">
-              <div class="name-row">
                 <div>
                   <label for="civilStatus">Civil Status<span class="required-asterisk">*</span></label>
                   <div class="input-wrap no-icon">
@@ -217,6 +212,11 @@
                     </select>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            <div class="field col-span-2">
+              <div class="name-row name-row-2">
                 <div>
                   <label for="citizenship">Citizenship<span class="required-asterisk">*</span></label>
                   <div class="input-wrap no-icon">

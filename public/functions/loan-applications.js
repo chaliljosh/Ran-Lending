@@ -1,4 +1,4 @@
-    // public/functions/loan-applications.js
+// public/functions/loan-applications.js
     // Used by: resources/views/admin/loan-applications.blade.php
     //
     // PENDING TAB: search box, status filter, and sort dropdown all
@@ -389,6 +389,14 @@
     // and paginated correctly even before the user types anything.
     document.addEventListener('DOMContentLoaded', function () {
         if (document.getElementById('pendingLoanTable')) {
+            // Galing sa sidebar na "Needs Attention" (?filter=attention):
+            // piliin na agad ang "Needs Attention (3+ days)" sa dropdown.
+            const urlParams = new URLSearchParams(window.location.search);
+            const pendingFilterSelect = document.getElementById('pendingStatusFilter');
+            if (pendingFilterSelect && urlParams.get('filter') === 'attention') {
+                pendingFilterSelect.value = 'attention';
+            }
+
             filterLoanPending();
         }
         if (document.getElementById('loanReviewedTable')) {

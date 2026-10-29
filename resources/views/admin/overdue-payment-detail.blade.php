@@ -3,11 +3,7 @@
 @section('title', 'Overdue Payment Detail')
 
 @section('page-styles')
-    {{-- Borrower header now reuses the shared section-card / borrower-avatar
-         components from loan-details.css (same ones Completed Loan Detail
-         uses), so that stylesheet needs to load here too. --}}
     <link rel="stylesheet" href="{{ asset('assets/admin/css/loan-details.css') }}">
-    {{-- Standalone stylesheet for this page only — not shared with loan-details.css --}}
     <link rel="stylesheet" href="{{ asset('assets/admin/css/overdue-payment-detail.css') }}?v={{ time() }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/darkmode-global.css') }}?v={{ time() }}" />
     <link rel="stylesheet" href="{{ asset('assets/admin/css/avatar-placeholder.css') }}">
@@ -15,7 +11,6 @@
 
 @section('content')
     @php
-        // Short, readable loan code galing sa uuid (hal. LN-A1B2C3D4)
         $loanCode = 'LN-' . strtoupper(substr($loanUuid, 0, 8));
     @endphp
 
@@ -46,7 +41,6 @@
 
         <div class="opd-content">
 
-            {{-- ============ 1. BORROWER HEADER ============ --}}
             <div class="section-card opd-borrower-header mb-3">
                 <div class="borrower-avatar js-borrower-avatar"
                     data-initials="{{ strtoupper(substr($app->first_name ?? '', 0, 1) . substr($app->last_name ?? '', 0, 1)) }}">
@@ -67,7 +61,6 @@
                 </div>
             </div>
 
-            {{-- ============ 2 & 3. OVERDUE PAYMENT SUMMARY + ACTIONS ============ --}}
             <div class="opd-card opd-overdue-card">
                 <div class="opd-card-title"> Overdue Payment</div>
 
@@ -103,18 +96,20 @@
                         </div>
 
                         <div class="opd-actions">
-                            {{-- Lalabas lang kapag may in-upload na receipt ang borrower para sa installment na ito --}}
                             @if ($borrowerReceipt)
                                 <button type="button" class="opd-btn opd-btn-view" data-bs-toggle="modal"
                                     data-bs-target="#opdBorrowerReceiptModal">
                                     <i class="feather-file-text"></i> View Receipt
                                 </button>
                             @endif
+                            <button type="button" class="opd-btn opd-btn-waive" data-bs-toggle="modal"
+                                data-bs-target="#opdPartialModal">
+                                Record Partial Payment
+                            </button>
                             <button type="button" class="opd-btn opd-btn-mark-paid" data-bs-toggle="modal"
                                 data-bs-target="#opdConfirmPaidModal">
                                  Mark as Paid
                             </button>
-                        
                         </div>
                     </div>
                 @else
@@ -122,7 +117,6 @@
                 @endif
             </div>
 
-            {{-- ============ 4. PAYMENT SCHEDULE ============ --}}
             <div class="opd-card">
                 <div class="opd-card-title">Payment Schedule</div>
                 <div class="opd-table-scroll">
@@ -140,20 +134,34 @@
                             @foreach ($paymentSchedule as $s)
                                 @php
                                     $isPaid = !is_null($s->paid_at);
+                                    $paidSoFar = (float) $s->amount_paid;
+                                    $isPartial = !$isPaid && $paidSoFar > 0;
                                     $isOverdue = !$isPaid && \Carbon\Carbon::parse($s->due_date)->isPast();
                                     $badgeClass = $isPaid
                                         ? 'opd-badge-paid'
                                         : ($isOverdue
                                             ? 'opd-badge-overdue'
-                                            : 'opd-badge-upcoming');
-                                    $badgeLabel = $isPaid ? 'Paid' : ($isOverdue ? 'Overdue' : 'Upcoming');
+                                            : ($isPartial ? 'opd-badge-partial' : 'opd-badge-upcoming'));
+                                    $badgeLabel = $isPaid
+                                        ? 'Paid'
+                                        : ($isOverdue
+                                            ? ($isPartial ? 'Partial · Overdue' : 'Overdue')
+                                            : ($isPartial ? 'Partial' : 'Upcoming'));
                                     $isCurrentRow = $oldestOverdue && $s->id === $oldestOverdue->id;
                                 @endphp
                                 <tr class="{{ $isCurrentRow ? 'is-current-overdue' : '' }}">
                                     <td data-label="#">{{ $s->installment_no }}</td>
                                     <td data-label="Due Date">{{ \Carbon\Carbon::parse($s->due_date)->format('M d, Y') }}
                                     </td>
-                                    <td data-label="Amount Due">₱{{ number_format($s->amount_due, 2) }}</td>
+                                    <td data-label="Amount Due">
+                                        <div>
+                                            ₱{{ number_format($s->amount_due, 2) }}
+                                            @if ($isPartial)
+                                                <span class="opd-cell-sub">₱{{ number_format($paidSoFar, 2) }} paid ·
+                                                    ₱{{ number_format($s->amount_due - $paidSoFar, 2) }} left</span>
+                                            @endif
+                                        </div>
+                                    </td>
                                     <td data-label="Paid On">
                                         {{ $s->paid_at ? \Carbon\Carbon::parse($s->paid_at)->format('M d, Y') : '—' }}</td>
                                     <td data-label="Status"><span
@@ -165,7 +173,6 @@
                 </div>
             </div>
 
-            {{-- ============ 5. LOAN SUMMARY (compact, secondary) ============ --}}
             <div class="opd-card opd-summary-card">
                 <div class="opd-card-title">Loan Summary</div>
                 <div class="opd-summary-grid">
@@ -181,7 +188,6 @@
                         <span class="opd-summary-label">Term</span>
                         <span class="opd-summary-value">{{ $app->loan_term }} months</span>
                     </div>
-
                     <div class="opd-summary-row">
                         <span class="opd-summary-label">Total Interest</span>
                         <span class="opd-summary-value">₱{{ number_format($app->total_interest ?? 0, 2) }}</span>
@@ -211,14 +217,11 @@
 @endsection
 
 @push('modals')
-    {{-- Config for overdue-payment-detail.js — reads URLs/CSRF from here
-         instead of having them embedded as inline PHP-generated JS. --}}
     <div id="opd-config"
         data-mark-paid-url="{{ $oldestOverdue ? route('admin.installment-mark-paid', $oldestOverdue->id) : '' }}"
         data-waive-url="{{ $penaltyId ? route('admin.penalty-waive', $penaltyId) : '' }}"
         data-csrf="{{ csrf_token() }}" style="display:none;"></div>
 
-    {{-- ============ CONFIRM: Mark as Paid (Date Paid lang, walang receipt upload) ============ --}}
     <div class="modal fade opd-modal" id="opdConfirmPaidModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
@@ -253,7 +256,6 @@
                             </div>
                         </div>
 
-                        {{-- Amount Due + Penalty = Total Outstanding --}}
                         <div class="opd-breakdown">
                             <div class="opd-breakdown-row">
                                 <span>Amount Due</span>
@@ -281,7 +283,6 @@
                             </div>
                         </div>
 
-                        {{-- Date Paid (kapareho ng Ongoing Loans) --}}
                         <div class="ols-field">
                             <label for="opdPaidDateDisplay" class="ols-field-label">Date Paid <span class="ols-req">*</span></label>
                             <div class="ols-date-wrap">
@@ -289,11 +290,9 @@
                                     placeholder="MM/DD/YYYY" readonly autocomplete="off">
                                 <i class="feather-calendar ols-date-icon"></i>
                             </div>
-                            {{-- Tunay na value (Y-m-d) na binabasa ng JS --}}
                             <input type="hidden" id="opdPaidDate">
                         </div>
 
-                        {{-- Lalabas lang kapag galing sa "View Receipt" > "Record Payment" --}}
                         @if ($borrowerReceipt)
                             <div class="ols-field" id="opdUsingBorrowerReceipt" style="display:none;">
                                 <label class="ols-field-label">Receipt</label>
@@ -303,7 +302,6 @@
                                         <span>Receipt from the borrower</span>
                                         <span>Will be saved as the payment receipt</span>
                                     </div>
-                                    {{-- X button: ire-record na lang ang payment nang walang receipt --}}
                                     <button type="button" class="ols-preview-remove" id="opdUseNoReceiptBtn"
                                         aria-label="Remove borrower receipt" title="Remove">
                                         <i class="feather-x"></i>
@@ -326,9 +324,86 @@
         </div>
     </div>
 
-    {{-- ============ BORROWER RECEIPT (View Receipt) ============
-         Tinitingnan muna ng admin ang receipt na in-upload ng borrower bago i-record ang payment.
-         Ang route ay kapareho ng ginagamit ng Ongoing Loan Detail. --}}
+    <div class="modal fade opd-modal" id="opdPartialModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header justify-content-end">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="opd-modal-title">Record Partial Payment</div>
+                    <div class="opd-modal-desc">Use this when the borrower paid less than the amount due.</div>
+
+                    @if ($oldestOverdue)
+                        <div class="opd-breakdown" style="margin-top:18px;">
+                            <div class="opd-breakdown-row">
+                                <span>Installment</span>
+                                <span class="opd-breakdown-amount">#{{ $oldestOverdue->installment_no }}</span>
+                            </div>
+                            <div class="opd-breakdown-row">
+                                <span>
+                                    Penalty
+                                    <small>Not included. It stays unpaid until the installment is fully paid.</small>
+                                </span>
+                                <span class="opd-breakdown-amount {{ $currentPenalty > 0 ? 'is-orange' : '' }}">
+                                    ₱{{ number_format($currentPenalty, 2) }}
+                                </span>
+                            </div>
+                            <div class="opd-breakdown-total">
+                                <span class="opd-confirm-total-label">Installment Balance</span>
+                                <span class="opd-confirm-total-value">₱{{ number_format($amountDue, 2) }}</span>
+                            </div>
+                        </div>
+
+                        <div class="ols-field">
+                            <label for="opdPartialDateDisplay" class="ols-field-label">Date Paid <span class="ols-req">*</span></label>
+                            <div class="ols-date-wrap">
+                                <input type="text" id="opdPartialDateDisplay" class="ols-input ols-date-input"
+                                    placeholder="MM/DD/YYYY" readonly autocomplete="off">
+                                <i class="feather-calendar ols-date-icon"></i>
+                            </div>
+                            <input type="hidden" id="opdPartialDate">
+                        </div>
+
+                        <div class="ols-field">
+                            <label for="opdPartialAmount" class="ols-field-label">Amount Received <span class="ols-req">*</span></label>
+                            <input type="number" id="opdPartialAmount" class="ols-input" min="0.01" step="0.01"
+                                placeholder="0.00"
+                                data-balance="{{ number_format($amountDue, 2, '.', '') }}">
+                            <div class="ols-field-hint" id="opdPartialHint"></div>
+                        </div>
+
+                        @if ($borrowerReceipt)
+                            <div class="ols-field" id="opdPUsingBorrowerReceipt" style="display:none;">
+                                <label class="ols-field-label">Receipt</label>
+                                <div class="ols-preview">
+                                    <img id="opdPUsingBorrowerThumb" alt="Borrower receipt">
+                                    <div class="ols-preview-meta">
+                                        <span>Receipt from the borrower</span>
+                                        <span>Will be saved as the payment receipt</span>
+                                    </div>
+                                    <button type="button" class="ols-preview-remove" id="opdPUseNoReceiptBtn"
+                                        aria-label="Remove borrower receipt" title="Remove">
+                                        <i class="feather-x"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        @endif
+
+                        <div id="opdPartialError" class="ols-form-error d-none"></div>
+                    @endif
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="opd-btn opd-btn-waive" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="opd-btn opd-btn-mark-paid" id="opdPartialBtn">
+                        <span id="opdPartialBtnText">Record Partial Payment</span>
+                        <span id="opdPartialSpinner" class="spinner-border spinner-border-sm d-none"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @if ($borrowerReceipt && $oldestOverdue)
         <div class="modal fade opd-modal" id="opdBorrowerReceiptModal" tabindex="-1" aria-labelledby="opdBrTitle"
             aria-hidden="true"
@@ -344,7 +419,6 @@
                     </div>
 
                     <div class="modal-body opd-br-body">
-                        {{-- Kaliwa: receipt image --}}
                         <div class="opd-br-preview">
                             <div class="opd-br-state" id="opdBrLoading">Loading receipt...</div>
                             <div class="opd-br-state" id="opdBrError" style="display:none;">Unable to load the receipt.</div>
@@ -355,7 +429,6 @@
                             <div class="opd-br-hint" id="opdBrHint" style="display:none;">Click the image to open it full size</div>
                         </div>
 
-                        {{-- Kanan: halagang dapat bayaran at kailan na-submit --}}
                         <div class="opd-br-details">
                             <div class="opd-br-amount-label">Total Outstanding</div>
                             <div class="opd-br-amount">₱{{ number_format($totalOutstanding, 2) }}</div>
@@ -389,6 +462,7 @@
                             class="opd-btn opd-btn-view">
                             <i class="feather-download"></i> Download
                         </a>
+                        <button type="button" class="opd-btn opd-btn-waive" id="opdBrPartialBtn">Record Partial</button>
                         <button type="button" class="opd-btn opd-btn-mark-paid" id="opdBrRecordBtn">Record Payment</button>
                     </div>
                 </div>
@@ -396,7 +470,6 @@
         </div>
     @endif
 
-    {{-- ============ WAIVE PENALTY ============ --}}
     <div class="modal fade opd-modal" id="opdWaiveModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">

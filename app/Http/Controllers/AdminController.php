@@ -18,6 +18,9 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use App\Mail\LoanProofSent;
 use App\Mail\PaymentVoided;
+use App\Mail\BorrowerInfoEdited;
+use Illuminate\Support\Facades\Validator;
+use App\Mail\PaymentPartiallyRecorded;
 
 class AdminController extends Controller
 {
@@ -851,27 +854,30 @@ private function computePaymentOverview(\Carbon\Carbon $month)
 {
     $start = $month->copy()->startOfMonth();
     $end = $month->copy()->endOfMonth();
-
-    $collected = (float) DB::table('loan_payment_schedules')
-        ->whereBetween('paid_at', [$start, $end])
-        ->sum('amount_paid');
-
+ 
+    // Ledger: lahat ng natanggap na bayad (partial + full) sa buwan na ito,
+    // hindi kasama ang na-void na.
+    $collected = (float) DB::table('installment_payments')
+        ->whereNull('voided_at')
+        ->whereBetween('paid_on', [$start->toDateString(), $end->toDateString()])
+        ->sum('amount');
+ 
     $expected = (float) DB::table('loan_payment_schedules')
         ->whereBetween('due_date', [$start, $end])
         ->sum('amount_due');
-
+ 
     $outstanding = (float) DB::table('loan_payment_schedules')
         ->whereNull('paid_at')
         ->where('due_date', '<=', $end)
         ->selectRaw('COALESCE(SUM(amount_due - amount_paid), 0) as total')
         ->value('total');
-
+ 
     $overdue = (float) DB::table('loan_payment_schedules')
         ->whereNull('paid_at')
         ->where('due_date', '<', $end->copy()->min(now()))
         ->selectRaw('COALESCE(SUM(amount_due - amount_paid), 0) as total')
         ->value('total');
-
+ 
     return compact('collected', 'expected', 'outstanding', 'overdue');
 }
 
@@ -952,7 +958,7 @@ public function ongoingLoans(Request $request)
         'pendingLoanCount' => $this->getPendingLoanCount($adminId),
     ]);
 }
-    public function ongoingLoanDetail(Request $request, $uuid)
+     public function ongoingLoanDetail(Request $request, $uuid)
 {
     $adminId = Session::get('user_id');
 
@@ -1024,6 +1030,16 @@ public function ongoingLoans(Request $request)
     $appDisplay = $this->applicationDisplayData($app, $work);
     $appDocs = $this->applicationDocuments($app, $work);
 
+    // B2: Lahat ng bayad (partial + full) kada installment, para sa Payment Details
+    $paymentsBySchedule = DB::table('installment_payments')
+        ->where('application_id', $applicationId)
+        ->whereNull('voided_at')
+        ->orderBy('paid_on')
+        ->orderBy('id')
+        ->get()
+        ->groupBy('schedule_id')
+        ->map(fn ($rows) => $this->ledgerPayload($rows));
+
     return view('admin.ongoing-loan-detail', [
         'app' => $app,
         'address' => $address,
@@ -1037,6 +1053,7 @@ public function ongoingLoans(Request $request)
         'comments' => $this->getLoanComments($applicationId),
         'paymentSchedule' => $schedule,
         'borrowerReceipts' => $borrowerReceipts,
+        'paymentsBySchedule' => $paymentsBySchedule, // B2
         'totalCount' => $totalCount,
         'paidCount' => $paidCount,
         'amountCollected' => $amountCollected,
@@ -1047,6 +1064,7 @@ public function ongoingLoans(Request $request)
         'voidHistory' => $voidHistory,
         'voidVotes' => $voidVotes,
         'requiredVoidApprovals' => self::REQUIRED_VOID_APPROVALS,
+        'voidWindowDays' => self::VOID_WINDOW_DAYS,
         'pendingCount' => $this->getPendingVerificationCount($adminId),
         'pendingLoanCount' => $this->getPendingLoanCount($adminId),
     ]);
@@ -1183,42 +1201,47 @@ private function sendLoanStatusEmail(int $applicationId, string $status): void
     }
 }
 
-private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $isFullyPaid): void
+private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $isFullyPaid, ?float $receivedNow = null): void
 {
     try {
         $loan = DB::table('loan_applications')
             ->where('application_id', $applicationId)
             ->first();
-
+ 
         if (!$loan) {
             return;
         }
-
+ 
         $borrower = DB::table('users as u')
             ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'u.user_id')
             ->where('u.user_id', $loan->user_id)
             ->select('u.email', 'u.name', 'bpd.first_name')
             ->first();
-
+ 
         if (!$borrower || empty($borrower->email)) {
             return;
         }
-
+ 
         $displayName = $borrower->first_name ?: ($borrower->name ?: 'Borrower');
-
+ 
         // Susunod na unpaid installment (null kung fully paid na)
         $nextUnpaid = DB::table('loan_payment_schedules')
             ->where('application_id', $applicationId)
             ->whereNull('paid_at')
             ->orderBy('installment_no')
             ->first();
-
+ 
+        // Kung walang ibinigay na amount, balik sa buong amount_due (lumang behavior)
+        $amountForEmail = $receivedNow !== null && $receivedNow > 0
+            ? $receivedNow
+            : (float) $schedule->amount_due;
+ 
         Mail::to($borrower->email)->send(
             new PaymentRecorded(
                 $loan,
                 $displayName,
                 (int) $schedule->installment_no,
-                (float) $schedule->amount_due,
+                $amountForEmail,
                 $isFullyPaid,
                 $nextUnpaid ? (string) $nextUnpaid->due_date : null,
                 $nextUnpaid ? (float) $nextUnpaid->amount_due : null,
@@ -1264,7 +1287,7 @@ private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $i
         ]
     ));
 }
-   public function loanApplicationDetail(Request $request, $uuid)
+     public function loanApplicationDetail(Request $request, $uuid)
 {
     $adminId = Session::get('user_id');
 
@@ -1338,6 +1361,10 @@ private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $i
         'pendingCount' => $this->getPendingVerificationCount($adminId),
         'pendingLoanCount' => $this->getPendingLoanCount($adminId),
         'viewStatus' => $app->status,
+        // Borrower info editing
+        'canEditInfo' => $this->canEditBorrowerInfo($app),
+        'infoEdits' => $this->buildBorrowerInfoEdits($app->detail_id, $app, $address, $work),
+        'editOptions' => $this->borrowerEditOptions(),
     ]);
 }
     public function activeBorrowerDetail(Request $request, $id)
@@ -1498,204 +1525,262 @@ private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $i
     ]);
 }
 
-        public function markInstallmentPaid(Request $request, $id)
-{
-    $wantsJson = $request->ajax() || $request->wantsJson();
-
-    $schedule = DB::table('loan_payment_schedules')->where('id', $id)->first();
-
-    if (!$schedule) {
-        if ($wantsJson) {
-            return response()->json(['success' => false, 'message' => 'Installment not found.'], 404);
-        }
-        return back()->with('error', 'Installment not found.');
-    }
-
-    // Iwas double-record (hal. dalawang admin na sabay nag-click)
-    if (!is_null($schedule->paid_at)) {
-        if ($wantsJson) {
-            return response()->json(['success' => false, 'message' => 'This installment is already marked as paid.'], 422);
-        }
-        return back()->with('error', 'This installment is already marked as paid.');
-    }
-
-    // Galing sa "View Receipt" modal: gagamitin ang receipt na in-upload ng borrower
-    $useBorrowerReceipt = $request->boolean('use_borrower_receipt');
-
-    // Walang receipt upload ang admin. Date na lang ang kailangan.
-    // Nullable pa rin ang paid_date para gumana pa rin ang ibang pages na
-    // tumatawag sa endpoint na ito nang walang date (gagamitin ang now()).
-    $request->validate([
-        'paid_date' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
-    ], [
-        'paid_date.before_or_equal' => 'The payment date cannot be in the future.',
-    ]);
-
-    // startOfDay para hindi mabilang na "late" ang bayad na on-time sa due date
-    // (ang computeBorrowerPerformance ay nagko-compare ng paid_at > due_date).
-    $paidAt = $request->filled('paid_date')
-        ? \Carbon\Carbon::createFromFormat('Y-m-d', $request->input('paid_date'))->startOfDay()
-        : now();
-
-    // ---- Receipt: galing lang sa borrower (kung "View Receipt" ang pinanggalingan) ----
-    // Kokopyahin sa valid_ids disk para pareho ang ayos ng lahat ng recorded payments
-    // (View Payment Details, Void, atbp.)
-    $receiptPath = null;
-    if ($useBorrowerReceipt) {
-        $borrowerReceipt = DB::table('payment_receipts')
-            ->where('schedule_id', $id)
-            ->where('status', 'submitted')
-            ->first();
-
-        if (!$borrowerReceipt || empty($borrowerReceipt->user_file_path)) {
-            $msg = 'The borrower receipt was not found.';
+     public function markInstallmentPaid(Request $request, $id)
+    {
+        $wantsJson = $request->ajax() || $request->wantsJson();
+ 
+        $schedule = DB::table('loan_payment_schedules')->where('id', $id)->first();
+ 
+        if (!$schedule) {
             if ($wantsJson) {
-                return response()->json(['success' => false, 'message' => $msg], 422);
+                return response()->json(['success' => false, 'message' => 'Installment not found.'], 404);
             }
-            return back()->with('error', $msg);
+            return back()->with('error', 'Installment not found.');
         }
-
-        $ext = pathinfo($borrowerReceipt->user_file_path, PATHINFO_EXTENSION) ?: 'jpg';
-        $receiptPath = 'payment-receipts/' . $schedule->application_id . '/'
-            . $id . '-' . Str::random(12) . '.' . $ext;
-
-        try {
-            $contents = Storage::disk(self::BORROWER_RECEIPT_DISK)->get($borrowerReceipt->user_file_path);
-            Storage::disk(self::RECEIPT_DISK)->put($receiptPath, $contents);
-        } catch (\Throwable $e) {
-            Log::error("Borrower receipt copy failed (schedule {$id}): " . $e->getMessage());
-            $msg = 'Failed to attach the borrower receipt. Please try again.';
+ 
+        if (!is_null($schedule->paid_at)) {
             if ($wantsJson) {
-                return response()->json(['success' => false, 'message' => $msg], 500);
+                return response()->json(['success' => false, 'message' => 'This installment is already marked as paid.'], 422);
             }
-            return back()->with('error', $msg);
+            return back()->with('error', 'This installment is already marked as paid.');
         }
-    }
-
-    $applicationId = $schedule->application_id;
-    $adminId = Session::get('user_id');
-
-    try {
-        DB::transaction(function () use ($id, $schedule, $paidAt, $receiptPath, $adminId) {
-            $update = [
-                'paid_at' => $paidAt,
-                'amount_paid' => $schedule->amount_due,
-                // Ito ang "Recorded" date sa Payment Details. Hindi ito kusang
-                // nag-a-update kapag DB::table()->update() ang gamit.
-                'updated_at' => now(),
-            ];
-            if ($receiptPath) {
-                $update['receipt_path'] = $receiptPath;
-            }
-
-            DB::table('loan_payment_schedules')->where('id', $id)->update($update);
-
-            DB::table('loan_penalties')
-                ->where('schedule_id', $id)
-                ->where('status', 'unpaid')
-                ->update([
-                    'status' => 'paid',
-                    'updated_at' => now(),
-                ]);
-
-            // I-mark na verified ang receipt na in-upload ng borrower (kung meron)
-            DB::table('payment_receipts')
+ 
+        $useBorrowerReceipt = $request->boolean('use_borrower_receipt');
+ 
+        $request->validate([
+            'paid_date' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'amount'    => ['nullable', 'numeric', 'gt:0'],
+        ], [
+            'paid_date.before_or_equal' => 'The payment date cannot be in the future.',
+            'amount.gt'                 => 'The amount must be greater than zero.',
+        ]);
+ 
+        $requestedAmount = $request->filled('amount') ? round((float) $request->input('amount'), 2) : null;
+ 
+        $paidAt = $request->filled('paid_date')
+            ? \Carbon\Carbon::createFromFormat('Y-m-d', $request->input('paid_date'))->startOfDay()
+            : now();
+ 
+        $receiptPath = null;
+        if ($useBorrowerReceipt) {
+            $borrowerReceipt = DB::table('payment_receipts')
                 ->where('schedule_id', $id)
                 ->where('status', 'submitted')
-                ->update([
-                    'status' => 'verified',
-                    'amount_recorded' => $schedule->amount_due,
-                    'recorded_paid_date' => $paidAt->toDateString(),
-                    'reviewed_by' => $adminId,
-                    'reviewed_at' => now(),
-                    'updated_at' => now(),
-                ]);
-        });
-    } catch (\Throwable $e) {
-        // Huwag mag-iwan ng "orphan" file kapag pumalya ang DB
-        if ($receiptPath) {
-            try { Storage::disk(self::RECEIPT_DISK)->delete($receiptPath); } catch (\Throwable $ignored) {}
-        }
-        throw $e;
-    }
-
-    $hasUnpaid = DB::table('loan_payment_schedules')
-        ->where('application_id', $applicationId)
-        ->whereNull('paid_at')
-        ->exists();
-
-    if (!$hasUnpaid) {
-        DB::table('loan_applications')
-            ->where('application_id', $applicationId)
-            ->update(['status' => 'completed']);
-    }
-
-    $this->sendPaymentRecordedEmail($schedule, (int) $applicationId, !$hasUnpaid);
-
-    if ($wantsJson) {
-        $app = DB::table('loan_applications')->where('application_id', $applicationId)->first();
-        $allSchedules = DB::table('loan_payment_schedules')
-            ->where('application_id', $applicationId)
-            ->orderBy('installment_no')
-            ->get();
-
-        $paidCount = $allSchedules->filter(fn($s) => !is_null($s->paid_at))->count();
-        $totalCount = $allSchedules->count();
-        $amountCollected = (float) $allSchedules->sum('amount_paid');
-        $remaining = max(0, ($app->total_amount ?? 0) - $amountCollected);
-        $nextUnpaid = $allSchedules->first(fn($s) => is_null($s->paid_at));
-        $progressPct = $totalCount > 0 ? round(($paidCount / $totalCount) * 100) : 0;
-
-        $dueInLabel = '—';
-        if ($nextUnpaid) {
-            $dueDate = \Carbon\Carbon::parse($nextUnpaid->due_date);
-            if ($dueDate->isPast()) {
-                $dueInLabel = 'Overdue';
-            } else {
-                $days = (int) now()->diffInDays($dueDate);
-                $dueInLabel = $days . ' ' . ($days == 1 ? 'day' : 'days');
+                ->first();
+ 
+            if (!$borrowerReceipt || empty($borrowerReceipt->user_file_path)) {
+                $msg = 'The borrower receipt was not found.';
+                if ($wantsJson) {
+                    return response()->json(['success' => false, 'message' => $msg], 422);
+                }
+                return back()->with('error', $msg);
+            }
+ 
+            $ext = pathinfo($borrowerReceipt->user_file_path, PATHINFO_EXTENSION) ?: 'jpg';
+            $receiptPath = 'payment-receipts/' . $schedule->application_id . '/'
+                . $id . '-' . Str::random(12) . '.' . $ext;
+ 
+            try {
+                $contents = Storage::disk(self::BORROWER_RECEIPT_DISK)->get($borrowerReceipt->user_file_path);
+                Storage::disk(self::RECEIPT_DISK)->put($receiptPath, $contents);
+            } catch (\Throwable $e) {
+                Log::error("Borrower receipt copy failed (schedule {$id}): " . $e->getMessage());
+                $msg = 'Failed to attach the borrower receipt. Please try again.';
+                if ($wantsJson) {
+                    return response()->json(['success' => false, 'message' => $msg], 500);
+                }
+                return back()->with('error', $msg);
             }
         }
-
-        // ---- Para sa Defaulted Loan Detail stat cards ----
-        $overdueSchedulesNow = $allSchedules->filter(function ($s) {
-            return is_null($s->paid_at) && \Carbon\Carbon::parse($s->due_date)->isPast();
-        })->sortBy('due_date')->values();
-
-        $oldestOverdueNow = $overdueSchedulesNow->first();
-        $daysLateNow = $oldestOverdueNow
-            ? \Carbon\Carbon::parse($oldestOverdueNow->due_date)->diffInDays(now())
-            : 0;
-        $outstandingAmountNow = $overdueSchedulesNow->sum(fn($s) => $s->amount_due - $s->amount_paid);
-        $unpaidPenaltiesNow = (float) DB::table('loan_penalties')
+ 
+        $applicationId = $schedule->application_id;
+        $adminId = Session::get('user_id');
+ 
+        $receivedNow = 0.0;
+        $isPartial = false;
+        $newAmountPaid = 0.0;
+        $remainingBalance = 0.0;
+ 
+        try {
+            DB::transaction(function () use ($id, $paidAt, $receiptPath, $adminId, $requestedAmount, &$receivedNow, &$isPartial, &$newAmountPaid, &$remainingBalance, &$schedule) {
+                $locked = DB::table('loan_payment_schedules')
+                    ->where('id', $id)
+                    ->lockForUpdate()
+                    ->first();
+ 
+                if (!$locked || !is_null($locked->paid_at)) {
+                    throw new \RuntimeException('This installment is already marked as paid.');
+                }
+ 
+                $schedule = $locked;
+ 
+                $balance = max(0.0, round((float) $locked->amount_due - (float) $locked->amount_paid, 2));
+                $receivedNow = $requestedAmount ?? $balance;
+ 
+                if ($receivedNow > $balance) {
+                    throw new \RuntimeException('The amount cannot be more than the remaining balance of ₱' . number_format($balance, 2) . '.');
+                }
+ 
+                $isPartial = $receivedNow < $balance;
+                $newAmountPaid = round((float) $locked->amount_paid + $receivedNow, 2);
+                $remainingBalance = round($balance - $receivedNow, 2);
+ 
+                $update = [
+                    'amount_paid' => $newAmountPaid,
+                    'updated_at'  => now(),
+                ];
+ 
+                if (!$isPartial) {
+                    $update['paid_at'] = $paidAt;
+                    $update['amount_paid'] = $locked->amount_due;
+                    if ($receiptPath) {
+                        $update['receipt_path'] = $receiptPath;
+                    }
+                }
+ 
+                DB::table('loan_payment_schedules')->where('id', $id)->update($update);
+ 
+                if ($receivedNow > 0) {
+                    DB::table('installment_payments')->insert([
+                        'schedule_id'    => $locked->id,
+                        'application_id' => $locked->application_id,
+                        'amount'         => $receivedNow,
+                        'paid_on'        => $paidAt->toDateString(),
+                        'kind'           => $isPartial ? 'partial' : 'full',
+                        'receipt_path'   => $receiptPath,
+                        'admin_id'       => $adminId,
+                        'created_at'     => now(),
+                    ]);
+                }
+ 
+                if (!$isPartial) {
+                    DB::table('loan_penalties')
+                        ->where('schedule_id', $id)
+                        ->where('status', 'unpaid')
+                        ->update([
+                            'status'     => 'paid',
+                            'updated_at' => now(),
+                        ]);
+                }
+ 
+                DB::table('payment_receipts')
+                    ->where('schedule_id', $id)
+                    ->where('status', 'submitted')
+                    ->update([
+                        'status'             => 'verified',
+                        'amount_recorded'    => $receivedNow,
+                        'recorded_paid_date' => $paidAt->toDateString(),
+                        'reviewed_by'        => $adminId,
+                        'reviewed_at'        => now(),
+                        'updated_at'         => now(),
+                    ]);
+            });
+        } catch (\RuntimeException $e) {
+            if ($receiptPath) {
+                try { Storage::disk(self::RECEIPT_DISK)->delete($receiptPath); } catch (\Throwable $ignored) {}
+            }
+            if ($wantsJson) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            }
+            return back()->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            if ($receiptPath) {
+                try { Storage::disk(self::RECEIPT_DISK)->delete($receiptPath); } catch (\Throwable $ignored) {}
+            }
+            throw $e;
+        }
+ 
+        $hasUnpaid = DB::table('loan_payment_schedules')
             ->where('application_id', $applicationId)
-            ->where('status', 'unpaid')
-            ->sum('penalty_amount');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Payment marked as paid.',
-            'schedule_id' => (int) $id,
-            'amount_paid_display' => number_format((float) $schedule->amount_due, 2),
-            'paid_on_display' => $paidAt->format('M d, Y'),
-            'receipt_url' => $receiptPath ? route('admin.installment-receipt', $id) : null,
-            'paid_count' => $paidCount,
-            'total_count' => $totalCount,
-            'amount_collected_display' => number_format($amountCollected, 2),
-            'remaining_display' => number_format($remaining, 2),
-            'progress_pct' => $progressPct,
-            'next_due_date_display' => $nextUnpaid ? \Carbon\Carbon::parse($nextUnpaid->due_date)->format('M d, Y') : '—',
-            'due_in_label' => $dueInLabel,
-            'is_fully_paid' => is_null($nextUnpaid),
-            'loan_status' => $app->status ?? null,
-            'days_late' => $daysLateNow,
-            'outstanding_amount_display' => number_format($outstandingAmountNow, 2),
-            'unpaid_penalties_display' => number_format($unpaidPenaltiesNow, 2),
-        ]);
+            ->whereNull('paid_at')
+            ->exists();
+ 
+        if (!$hasUnpaid) {
+            DB::table('loan_applications')
+                ->where('application_id', $applicationId)
+                ->update(['status' => 'completed']);
+        }
+ 
+        if ($isPartial) {
+            $this->sendPartialPaymentEmail($schedule, (int) $applicationId, $receivedNow, $remainingBalance);
+        } else {
+            $this->sendPaymentRecordedEmail($schedule, (int) $applicationId, !$hasUnpaid, $receivedNow);
+        }
+ 
+        if ($wantsJson) {
+            $app = DB::table('loan_applications')->where('application_id', $applicationId)->first();
+            $allSchedules = DB::table('loan_payment_schedules')
+                ->where('application_id', $applicationId)
+                ->orderBy('installment_no')
+                ->get();
+ 
+            $paidCount = $allSchedules->filter(fn($s) => !is_null($s->paid_at))->count();
+            $totalCount = $allSchedules->count();
+            $amountCollected = (float) $allSchedules->sum('amount_paid');
+            $remaining = max(0, ($app->total_amount ?? 0) - $amountCollected);
+            $nextUnpaid = $allSchedules->first(fn($s) => is_null($s->paid_at));
+            $progressPct = $totalCount > 0 ? round(($paidCount / $totalCount) * 100) : 0;
+ 
+            $dueInLabel = '—';
+            if ($nextUnpaid) {
+                $dueDate = \Carbon\Carbon::parse($nextUnpaid->due_date);
+                if ($dueDate->isPast()) {
+                    $dueInLabel = 'Overdue';
+                } else {
+                    $days = (int) now()->diffInDays($dueDate);
+                    $dueInLabel = $days . ' ' . ($days == 1 ? 'day' : 'days');
+                }
+            }
+ 
+            $overdueSchedulesNow = $allSchedules->filter(function ($s) {
+                return is_null($s->paid_at) && \Carbon\Carbon::parse($s->due_date)->isPast();
+            })->sortBy('due_date')->values();
+ 
+            $oldestOverdueNow = $overdueSchedulesNow->first();
+            $daysLateNow = $oldestOverdueNow
+                ? \Carbon\Carbon::parse($oldestOverdueNow->due_date)->diffInDays(now())
+                : 0;
+            $outstandingAmountNow = $overdueSchedulesNow->sum(fn($s) => $s->amount_due - $s->amount_paid);
+            $unpaidPenaltiesNow = (float) DB::table('loan_penalties')
+                ->where('application_id', $applicationId)
+                ->where('status', 'unpaid')
+                ->sum('penalty_amount');
+ 
+            return response()->json([
+                'success' => true,
+                'message' => $isPartial ? 'Partial payment recorded.' : 'Payment marked as paid.',
+                'is_partial' => $isPartial,
+                'remaining_balance_display' => number_format($remainingBalance, 2),
+                'schedule_id' => (int) $id,
+                'amount_paid_display' => number_format($isPartial ? $newAmountPaid : (float) $schedule->amount_due, 2),
+                'received_now_display' => number_format($receivedNow, 2),
+                'payments' => $this->ledgerPayload(
+                    DB::table('installment_payments')
+                        ->where('schedule_id', $id)
+                        ->whereNull('voided_at')
+                        ->orderBy('paid_on')
+                        ->orderBy('id')
+                        ->get()
+                ),
+                'paid_on_display' => $paidAt->format('M d, Y'),
+                'receipt_url' => $receiptPath ? route('admin.installment-receipt', $id) : null,
+                'paid_count' => $paidCount,
+                'total_count' => $totalCount,
+                'amount_collected_display' => number_format($amountCollected, 2),
+                'remaining_display' => number_format($remaining, 2),
+                'progress_pct' => $progressPct,
+                'next_due_date_display' => $nextUnpaid ? \Carbon\Carbon::parse($nextUnpaid->due_date)->format('M d, Y') : '—',
+                'due_in_label' => $dueInLabel,
+                'is_fully_paid' => is_null($nextUnpaid),
+                'loan_status' => $app->status ?? null,
+                'days_late' => $daysLateNow,
+                'outstanding_amount_display' => number_format($outstandingAmountNow, 2),
+                'unpaid_penalties_display' => number_format($unpaidPenaltiesNow, 2),
+            ]);
+        }
+ 
+        return back()->with('success', $isPartial ? 'Partial payment recorded.' : 'Payment marked as paid.');
     }
-
-    return back()->with('success', 'Payment marked as paid.');
-}
 
 public function installmentReceipt($id)
 {
@@ -1709,6 +1794,32 @@ public function installmentReceipt($id)
         Storage::disk(self::RECEIPT_DISK)->temporaryUrl($path, now()->addMinutes(10))
     );
 }
+
+public function installmentPaymentReceipt($id)
+{
+    $path = DB::table('installment_payments')->where('id', $id)->value('receipt_path');
+
+    if (!$path) {
+        abort(404);
+    }
+
+    return redirect(
+        Storage::disk(self::RECEIPT_DISK)->temporaryUrl($path, now()->addMinutes(10))
+    );
+}
+
+/** Ledger rows -> array para sa Payment Details modal. */
+private function ledgerPayload($rows): array
+{
+    return collect($rows)->map(function ($p) {
+        return [
+            'date'   => \Carbon\Carbon::parse($p->paid_on)->format('M d, Y'),
+            'amount' => number_format((float) $p->amount, 2),
+            'kind'   => $p->kind,
+            'url'    => !empty($p->receipt_path) ? route('admin.installment-payment-receipt', $p->id) : '',
+        ];
+    })->values()->all();
+}   
 
 public function borrowerReceiptFile(Request $request, $id)
 {
@@ -1751,10 +1862,18 @@ public function requestVoid(Request $request, $id)
             if (!$schedule) {
                 throw new \RuntimeException('Installment not found.');
             }
-            if (is_null($schedule->paid_at)) {
+                        if (is_null($schedule->paid_at)) {
                 throw new \RuntimeException('This installment is not recorded as paid.');
             }
 
+            // Sa unang 7 araw lang pagkatapos i-record ang payment pwedeng mag-request ng void.
+            $windowEnd = $this->voidWindowEnd($schedule);
+            if (now()->gt($windowEnd)) {
+                throw new \RuntimeException(
+                    'The ' . self::VOID_WINDOW_DAYS . '-day period to void this payment ended on '
+                    . $windowEnd->format('M d, Y') . '.'
+                );
+            }
             $hasPending = DB::table('payment_void_requests')
                 ->where('schedule_id', $id)
                 ->where('status', 'pending')
@@ -1948,14 +2067,14 @@ private function executeVoid($voidRequest)
         ->where('id', $voidRequest->schedule_id)
         ->lockForUpdate()
         ->first();
-
+ 
     if (!$schedule) {
         throw new \RuntimeException('Installment not found.');
     }
-   if (is_null($schedule->paid_at)) {
-    throw new \RuntimeException('This installment is no longer recorded as paid.');
-}
-
+    if (is_null($schedule->paid_at)) {
+        throw new \RuntimeException('This installment is no longer recorded as paid.');
+    }
+ 
     DB::table('installment_payment_logs')->insert([
         'installment_id' => $schedule->id,
         'action'         => 'voided',
@@ -1967,7 +2086,7 @@ private function executeVoid($voidRequest)
         'request_id'     => $voidRequest->id,
         'created_at'     => now(),
     ]);
-
+ 
     DB::table('loan_payment_schedules')
         ->where('id', $schedule->id)
         ->update([
@@ -1975,20 +2094,41 @@ private function executeVoid($voidRequest)
             'amount_paid'  => 0,
             'receipt_path' => null,
         ]);
-
+ 
+    // Ledger: i-void ang lahat ng rows ng installment na ito (partial + full),
+    // kasi ibinabalik sa 0 ang amount_paid.
+    DB::table('installment_payments')
+        ->where('schedule_id', $schedule->id)
+        ->whereNull('voided_at')
+        ->update([
+            'voided_at'       => now(),
+            'void_request_id' => $voidRequest->id,
+        ]);
+ 
     DB::table('loan_applications')
         ->where('application_id', $schedule->application_id)
         ->where('status', 'completed')
         ->update(['status' => 'active']);
-
+ 
     DB::table('payment_void_requests')->where('id', $voidRequest->id)->update([
         'status'      => 'approved',
         'resolved_at' => now(),
         'updated_at'  => now(),
     ]);
-
+ 
     return $schedule;
 }
+    /**
+     * Kailan nagtatapos ang pwedeng pag-void ng isang recorded na payment.
+     * Nagsisimula ang bilang sa "Recorded" date (updated_at, na sine-set ng
+     * markInstallmentPaid()), hindi sa Date Paid na pinili ng admin.
+     */
+    private function voidWindowEnd($schedule): \Carbon\Carbon
+    {
+        $recordedAt = $schedule->updated_at ?? $schedule->paid_at;
+
+        return \Carbon\Carbon::parse($recordedAt)->addDays(self::VOID_WINDOW_DAYS);
+    }
 
     private function getPaymentSchedule($applicationId)
     {
@@ -2014,12 +2154,19 @@ private function executeVoid($voidRequest)
             'proof.max'      => 'The proof may not be larger than 5MB.',
         ]);
 
+        $applicationId = (int) $applicationId;
+
         $loan = DB::table('loan_applications')
-            ->where('application_id', (int) $applicationId)
+            ->where('application_id', $applicationId)
             ->first();
 
         if (!$loan) {
             return response()->json(['success' => false, 'message' => 'Loan not found.'], 404);
+        }
+
+        // Approved na dapat ang loan bago ma-release
+        if (!in_array($loan->status, ['approved', 'active'], true)) {
+            return response()->json(['success' => false, 'message' => 'This loan is not approved yet.'], 422);
         }
 
         // Isang beses lang per loan
@@ -2044,18 +2191,37 @@ private function executeVoid($voidRequest)
         // Parehong format ng admin page: LN- + unang 8 chars ng uuid (hal. LN-34782CDF)
         $loanCode = 'LN-' . strtoupper(substr($loan->uuid, 0, 8));
 
-        // Markahan muna bilang "sent" (kung walang laman pa lang ang proof_sent_at).
+        // ---- STEP 1: markahan na "sent" AT gawin ang payment schedule ----
+        // Iisang transaction ito. Kapag pumalya ang isa, walang maiiwan.
         // Kapag dalawang admin ang sabay na nag-click, isa lang ang makakalusot.
         $sentAt = now();
-        $claimed = DB::table('loan_applications')
-            ->where('application_id', (int) $applicationId)
-            ->whereNull('proof_sent_at')
-            ->update(['proof_sent_at' => $sentAt]);
 
-        if ($claimed === 0) {
+        try {
+            $claimed = DB::transaction(function () use ($applicationId, $sentAt) {
+                $updated = DB::table('loan_applications')
+                    ->where('application_id', $applicationId)
+                    ->whereNull('proof_sent_at')
+                    ->update(['proof_sent_at' => $sentAt]);
+
+                if ($updated === 0) {
+                    return false;
+                }
+
+                // Ang petsa ng release (ngayon) ang simula ng schedule
+                \App\Services\LoanActivationService::createSchedule($applicationId, $sentAt);
+
+                return true;
+            });
+        } catch (\Throwable $e) {
+            Log::error("Create payment schedule failed (loan {$applicationId}): " . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Failed to create the payment schedule. Please try again.'], 500);
+        }
+
+        if (!$claimed) {
             return response()->json(['success' => false, 'message' => 'The proof of release was already sent for this loan.'], 422);
         }
 
+        // ---- STEP 2: ipadala ang email ----
         try {
             Mail::to($borrower->email)->send(new LoanProofSent(
                 $loan,
@@ -2065,20 +2231,27 @@ private function executeVoid($voidRequest)
                 "proof-of-release-{$loanCode}.{$ext}"
             ));
         } catch (\Throwable $e) {
-            // Pumalya ang email, kaya ibalik sa "hindi pa sent" para makapag-send ulit
-            DB::table('loan_applications')
-                ->where('application_id', (int) $applicationId)
-                ->update(['proof_sent_at' => null]);
-
             Log::error("Send proof of release failed (loan {$applicationId}): " . $e->getMessage());
+
+            // Pumalya ang email, kaya ibalik sa dati para makapag-send ulit:
+            // burahin ang schedule (bago pa lang, wala pang bayad) at i-null ang proof_sent_at.
+            try {
+                DB::transaction(function () use ($applicationId) {
+                    DB::table('loan_payment_schedules')->where('application_id', $applicationId)->delete();
+                    DB::table('loan_applications')->where('application_id', $applicationId)->update(['proof_sent_at' => null]);
+                });
+            } catch (\Throwable $undoError) {
+                Log::error("Undo after failed proof email also failed (loan {$applicationId}): " . $undoError->getMessage());
+            }
+
             return response()->json(['success' => false, 'message' => 'Failed to send the email. Please try again.'], 500);
         }
 
-        Log::info("Proof of release emailed (loan {$applicationId}) by admin " . Session::get('user_id'));
+        Log::info("Proof of release emailed + schedule created (loan {$applicationId}) by admin " . Session::get('user_id'));
 
         return response()->json([
             'success' => true,
-            'message' => "Proof sent to {$borrower->email}.",
+            'message' => "Proof sent to {$borrower->email}. The payment schedule is now created.",
             'sent_at_display' => $sentAt->format('M d, Y g:i A'),
         ]);
     }
@@ -2246,6 +2419,356 @@ private function executeVoid($voidRequest)
             ->first();
     }
 
+    
+    // ================================================================
+    // Edit borrower info (Loan Application Detail)
+    // ================================================================
+
+    /**
+     * Fields an admin may correct. Locked on purpose: email (it is the borrower's
+     * login), employment status (it decides which fields apply), ID type and documents.
+     * 'src' tells us where the CURRENT value lives: app = result of getLoanApplication(),
+     * address = borroweraddress row, work = borrowerworkinfo row.
+     */
+    private const BORROWER_INFO_FIELDS = [
+        // ---- personal ----
+        'first_name'     => ['table' => 'borrowerpersonaldetails', 'src' => 'app', 'section' => 'personal', 'label' => 'First name',       'rules' => ['required', 'string', 'max:50']],
+        'middle_name'    => ['table' => 'borrowerpersonaldetails', 'src' => 'app', 'section' => 'personal', 'label' => 'Middle name',      'rules' => ['nullable', 'string', 'max:50']],
+        'last_name'      => ['table' => 'borrowerpersonaldetails', 'src' => 'app', 'section' => 'personal', 'label' => 'Last name',        'rules' => ['required', 'string', 'max:50']],
+        'suffix'         => ['table' => 'borrowerpersonaldetails', 'src' => 'app', 'section' => 'personal', 'label' => 'Suffix',           'rules' => ['nullable', 'string', 'max:10']],
+        'birthday'       => ['table' => 'borrowerpersonaldetails', 'src' => 'app', 'section' => 'personal', 'label' => 'Birthday',         'rules' => ['required', 'date_format:Y-m-d', 'before:today']],
+        'birth_city'     => ['table' => 'borrowerpersonaldetails', 'src' => 'app', 'section' => 'personal', 'label' => 'Birth city',       'rules' => ['nullable', 'string', 'max:100']],
+        'birth_province' => ['table' => 'borrowerpersonaldetails', 'src' => 'app', 'section' => 'personal', 'label' => 'Birth province',   'rules' => ['nullable', 'string', 'max:100']],
+        'birth_country'  => ['table' => 'borrowerpersonaldetails', 'src' => 'app', 'section' => 'personal', 'label' => 'Birth country',    'rules' => ['nullable', 'string', 'max:100']],
+        'gender'         => ['table' => 'borrowerpersonaldetails', 'src' => 'app', 'section' => 'personal', 'label' => 'Gender',           'rules' => ['required', 'string', 'max:30']],
+        'civil_status'   => ['table' => 'borrowerpersonaldetails', 'src' => 'app', 'section' => 'personal', 'label' => 'Civil status',     'rules' => ['required', 'string', 'max:30']],
+        'citizenship'    => ['table' => 'borrowerpersonaldetails', 'src' => 'app', 'section' => 'personal', 'label' => 'Citizenship',      'rules' => ['required', 'string', 'max:60']],
+        'cellphone_num'  => ['table' => 'borrowerpersonaldetails', 'src' => 'app', 'section' => 'personal', 'label' => 'Cellphone',        'rules' => ['required', 'string', 'regex:/^[0-9+\-\s()]{7,20}$/']],
+
+        // ---- address ----
+        'region'          => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'Region',               'rules' => ['required', 'string', 'max:100']],
+        'province'        => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'Province',             'rules' => ['required', 'string', 'max:100']],
+        'city'            => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'City / Municipality', 'rules' => ['required', 'string', 'max:100']],
+        'barangay'        => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'Barangay',             'rules' => ['required', 'string', 'max:100']],
+        'zipcode'         => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'Zipcode',              'rules' => ['nullable', 'string', 'max:10']],
+        'house_no'        => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'House / Building No.', 'rules' => ['nullable', 'string', 'max:255']],
+        'street'          => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'Street',               'rules' => ['nullable', 'string', 'max:255']],
+        'subdivision'     => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'Subdivision / Village', 'rules' => ['nullable', 'string', 'max:255']],
+        'address_details' => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'Additional details',  'rules' => ['nullable', 'string', 'max:255']],
+        'home_address'    => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'Home address',        'rules' => ['nullable', 'string', 'max:255']],
+
+        // ---- source of income ----
+        'company_name'     => ['table' => 'borrowerworkinfo',        'src' => 'work', 'section' => 'income', 'label' => 'Company / School',        'rules' => ['nullable', 'string', 'max:150']],
+        'position'         => ['table' => 'borrowerworkinfo',        'src' => 'work', 'section' => 'income', 'label' => 'Position / Occupation',   'rules' => ['nullable', 'string', 'max:100']],
+        'years_in_company' => ['table' => 'borrowerworkinfo',        'src' => 'work', 'section' => 'income', 'label' => 'Length of employment',    'rules' => ['nullable', 'string', 'max:50']],
+        'primary_source'   => ['table' => 'borrowerworkinfo',        'src' => 'work', 'section' => 'income', 'label' => 'Primary source of funds', 'rules' => ['nullable', 'string', 'max:100']],
+        'other_sources'    => ['table' => 'borrowerworkinfo',        'src' => 'work', 'section' => 'income', 'label' => 'Other sources of income', 'rules' => ['nullable', 'string', 'max:255']],
+        'monthly_income'   => ['table' => 'borrowerpersonaldetails', 'src' => 'app',  'section' => 'income', 'label' => 'Monthly income',          'rules' => ['nullable', 'string', 'max:50']],
+
+        // ---- valid ID ----
+        'id_number' => ['table' => 'borrowerpersonaldetails', 'src' => 'app', 'section' => 'id', 'label' => 'ID number', 'rules' => ['required', 'string', 'max:50']],
+    ];
+
+    /** Only applications that are still being reviewed can be corrected. */
+    private function canEditBorrowerInfo($app): bool
+    {
+        return in_array($app->status, ['pending', 'on_hold'], true);
+    }
+
+    /** Dropdown options for the edit mode (value => label). */
+    private function borrowerEditOptions(): array
+    {
+        return [
+            'gender' => ['male' => 'Male', 'female' => 'Female'],
+            'civil_status' => [
+                'single' => 'Single',
+                'married' => 'Married',
+                'widowed' => 'Widowed',
+                'separated' => 'Separated',
+                'divorced' => 'Divorced',
+            ],
+            'years_in_company' => config('loan_labels.years_in_company', []),
+            'primary_source'   => config('loan_labels.primary_sources', []),
+        ];
+    }
+
+    /** Current stored value of one editable field (normalized for comparison). */
+    private function borrowerInfoCurrentValue(string $key, $app, $address, $work)
+    {
+        $src = self::BORROWER_INFO_FIELDS[$key]['src'];
+        $row = $src === 'address' ? $address : ($src === 'work' ? $work : $app);
+
+        $value = $row->{$key} ?? null;
+
+        if ($key === 'birthday' && !empty($value)) {
+            try {
+                return \Carbon\Carbon::parse($value)->format('Y-m-d');
+            } catch (\Throwable $e) {
+                return $value;
+            }
+        }
+
+        return $value;
+    }
+
+    /** Human-readable value for the page note and the email. */
+    private function borrowerInfoDisplay(string $key, $value, bool $mask = false): string
+    {
+        $v = trim((string) $value);
+
+        if ($v === '') {
+            return '—';
+        }
+
+        switch ($key) {
+            case 'birthday':
+                try {
+                    return \Carbon\Carbon::parse($v)->format('F d, Y');
+                } catch (\Throwable $e) {
+                    return $v;
+                }
+            case 'gender':
+            case 'civil_status':
+                return ucfirst($v);
+            case 'years_in_company':
+                return config('loan_labels.years_in_company', [])[$v] ?? $v;
+            case 'primary_source':
+                return $this->labelFor('primary_sources', $v);
+            case 'id_number':
+                return $mask ? str_repeat('*', max(0, strlen($v) - 3)) . substr($v, -3) : $v;
+            default:
+                return $v;
+        }
+    }
+
+    /**
+     * Latest admin edit per field of this borrower, for the yellow highlight.
+     * A field is only highlighted while its current value still equals what the
+     * admin saved (if the borrower changed it again later, the highlight goes away).
+     */
+    private function buildBorrowerInfoEdits($detailId, $app, $address, $work): array
+    {
+        if (!$detailId) {
+            return [];
+        }
+
+        try {
+            $rows = DB::table('borrower_info_edits as e')
+                ->join('users as u', 'e.admin_id', '=', 'u.user_id')
+                ->where('e.detail_id', $detailId)
+                ->orderBy('e.id')
+                ->select('e.field', 'e.old_value', 'e.new_value', 'e.created_at', 'u.name as admin_name')
+                ->get();
+        } catch (\Throwable $e) {
+            Log::warning('Could not load borrower_info_edits: ' . $e->getMessage());
+            return [];
+        }
+
+        $latest = [];
+        foreach ($rows as $r) {
+            $latest[$r->field] = $r; // later rows overwrite earlier ones
+        }
+
+        $out = [];
+        foreach ($latest as $key => $r) {
+            if (!isset(self::BORROWER_INFO_FIELDS[$key])) {
+                continue;
+            }
+
+            $current = trim((string) $this->borrowerInfoCurrentValue($key, $app, $address, $work));
+            if ($current !== trim((string) $r->new_value)) {
+                continue;
+            }
+
+            $out[$key] = [
+                'admin' => $r->admin_name,
+                'at'    => \Carbon\Carbon::parse($r->created_at)->format('M d, Y'),
+                'ts'    => strtotime($r->created_at),
+                'old'   => $this->borrowerInfoDisplay($key, $r->old_value),
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
+     * POST /admin/loan-application-detail/{uuid}/borrower-info
+     * Expects: section (personal|address|income|id), fields {key: value}, reason.
+     */
+    public function updateBorrowerInfo(Request $request, $uuid)
+    {
+        $request->validate([
+            'section' => 'required|in:personal,address,income,id',
+            'fields'  => 'required|array|min:1',
+            'reason'  => 'required|string|min:5|max:255',
+        ], [
+            'reason.required' => 'Please enter a reason for the change.',
+            'reason.min'      => 'Please enter a reason (at least 5 characters).',
+        ]);
+
+        $adminId = Session::get('user_id');
+
+        $applicationId = (int) DB::table('loan_applications')->where('uuid', $uuid)->value('application_id');
+        $app = $applicationId ? $this->getLoanApplication($applicationId) : null;
+
+        if (!$app) {
+            return response()->json(['success' => false, 'message' => 'Application not found.'], 404);
+        }
+
+        if (!$this->canEditBorrowerInfo($app)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Borrower information can only be edited while the application is pending or on hold.',
+            ], 422);
+        }
+
+        $section = $request->input('section');
+        $reason = trim((string) $request->input('reason'));
+
+        // Keep only known fields that belong to this section
+        $values = [];
+        $rules = [];
+        foreach ((array) $request->input('fields') as $key => $value) {
+            $def = self::BORROWER_INFO_FIELDS[$key] ?? null;
+            if (!$def || $def['section'] !== $section) {
+                continue;
+            }
+            $values[$key] = is_string($value) ? trim($value) : $value;
+            $rules[$key] = $def['rules'];
+        }
+
+        if (!$values) {
+            return response()->json(['success' => false, 'message' => 'Nothing to save.'], 422);
+        }
+
+        // Dropdown fields: only accept the configured options (when options exist)
+        $options = $this->borrowerEditOptions();
+        foreach (['years_in_company', 'primary_source'] as $selectKey) {
+            if (isset($rules[$selectKey]) && !empty($options[$selectKey])) {
+                $rules[$selectKey][] = Rule::in(array_keys($options[$selectKey]));
+            }
+        }
+
+        // Same rule as savePersonalDetails(): an ID number can only belong to one borrower
+        if (isset($rules['id_number'])) {
+            $rules['id_number'][] = Rule::unique('borrowerpersonaldetails', 'id_number')
+                ->ignore($app->detail_id, 'detail_id');
+        }
+
+        $validator = Validator::make($values, $rules, [
+            'birthday.before'     => 'The birthday must be a date in the past.',
+            'cellphone_num.regex' => 'Please enter a valid cellphone number.',
+            'id_number.unique'    => 'This ID number is already used by another borrower.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+                'errors'  => $validator->errors(),
+            ], 422);
+        }
+
+        // Work out what really changed
+        $address = $this->getBorrowerAddress($app->detail_id);
+        $work = $this->getBorrowerWork($app->detail_id);
+
+        $changes = [];
+        foreach ($values as $key => $new) {
+            $old = trim((string) $this->borrowerInfoCurrentValue($key, $app, $address, $work));
+            $new = trim((string) $new);
+
+            if ($old === $new) {
+                continue;
+            }
+
+            $changes[$key] = ['def' => self::BORROWER_INFO_FIELDS[$key], 'old' => $old, 'new' => $new];
+        }
+
+        if (!$changes) {
+            return response()->json(['success' => false, 'message' => 'No changes to save.'], 422);
+        }
+
+        $batchId = (string) Str::uuid();
+
+        try {
+            DB::transaction(function () use ($changes, $app, $applicationId, $adminId, $section, $reason, $batchId) {
+                $byTable = [];
+                foreach ($changes as $key => $c) {
+                    $byTable[$c['def']['table']][$key] = $c['new'] !== '' ? $c['new'] : null;
+                }
+
+                foreach ($byTable as $table => $data) {
+                    if ($table === 'borrowerpersonaldetails') {
+                        DB::table($table)->where('detail_id', $app->detail_id)->update($data);
+                    } else {
+                        DB::table($table)->updateOrInsert(['detail_id' => $app->detail_id], $data);
+                    }
+                }
+
+                $now = now();
+                $logRows = [];
+                foreach ($changes as $key => $c) {
+                    $logRows[] = [
+                        'batch_id'       => $batchId,
+                        'application_id' => $applicationId,
+                        'detail_id'      => $app->detail_id,
+                        'user_id'        => $app->user_id,
+                        'admin_id'       => $adminId,
+                        'section'        => $section,
+                        'field'          => $key,
+                        'field_label'    => $c['def']['label'],
+                        'old_value'      => $c['old'] !== '' ? $c['old'] : null,
+                        'new_value'      => $c['new'] !== '' ? $c['new'] : null,
+                        'reason'         => $reason,
+                        'created_at'     => $now,
+                    ];
+                }
+                DB::table('borrower_info_edits')->insert($logRows);
+            });
+        } catch (\Throwable $e) {
+            Log::error("Borrower info edit failed (application {$applicationId}): " . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Failed to save the changes. Please try again.'], 500);
+        }
+
+        Log::info("Borrower info edited (application {$applicationId}) by admin {$adminId}: " . implode(', ', array_keys($changes)));
+
+        $emailed = $this->sendBorrowerInfoEditedEmail($app, $changes, $reason);
+
+        $count = count($changes);
+        $message = $count . ' ' . ($count === 1 ? 'field' : 'fields') . ' updated. '
+            . ($emailed ? 'The borrower was notified by email.' : 'The email to the borrower could not be sent.');
+
+        return response()->json(['success' => true, 'message' => $message]);
+    }
+
+    private function sendBorrowerInfoEditedEmail($app, array $changes, string $reason): bool
+    {
+        try {
+            if (empty($app->email)) {
+                return false;
+            }
+
+            $rows = [];
+            foreach ($changes as $key => $c) {
+                $rows[] = [
+                    'label' => $c['def']['label'],
+                    'old'   => $this->borrowerInfoDisplay($key, $c['old'], true),
+                    'new'   => $this->borrowerInfoDisplay($key, $c['new'], true),
+                ];
+            }
+
+            $displayName = ($changes['first_name']['new'] ?? null) ?: ($app->first_name ?: 'Borrower');
+
+            Mail::to($app->email)->send(new BorrowerInfoEdited($app, $displayName, $rows, $reason));
+
+            return true;
+        } catch (\Throwable $e) {
+            // The edit must not fail just because the email failed.
+            Log::warning("Borrower info edited email failed (application {$app->application_id}): " . $e->getMessage());
+            return false;
+        }
+    }
     private function getBorrowerAddress($detailId)
     {
         if (!$detailId) return null;
@@ -2659,7 +3182,7 @@ private function executeVoid($voidRequest)
     // errors for $interestRate, then $monthlyPayment.
     $totalCount = $schedule->count();
     $paidCount = $schedule->filter(fn($s) => !is_null($s->paid_at))->count();
-    $monthlyPayment = $totalCount > 0 ? ($app->total_amount / $totalCount) : 0;
+    $monthlyPayment = $totalCount > 0 ? ($app->total_amount / $totalCount) : (float) $app->monthly_payment;
     $totalInterest = max(0, $app->total_amount - $app->loan_amount);
     $interestRate = $app->loan_amount > 0
         ? round(($totalInterest / $app->loan_amount) * 100, 2)
@@ -2694,6 +3217,8 @@ private function executeVoid($voidRequest)
      */
     private const DEFAULT_DAYS_LATE = 90;
     private const REQUIRED_VOID_APPROVALS = 3;
+
+       private const VOID_WINDOW_DAYS = 7;
 
     private const RECEIPT_DISK = 'valid_ids'; 
 

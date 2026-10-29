@@ -6,10 +6,10 @@
 //                            data-src          URL of the picture (required)
 //                            data-title        modal title (optional, default "Receipt")
 //                            data-file-prefix  download filename prefix (optional)
-//                            data-summary      line shown above the picture (optional),
-//                                              e.g. "Received by Admin · ₱7,005.27 · October 6, 2026"
+//                            data-summary      line shown above the picture (optional)
 //   tr[data-installment]   the schedule row; also carries data-amount and data-due
 //   #ldReceiptModal        the Bootstrap modal with the form inside
+//   #ldReceiptPaidDateDisplay / #ldReceiptPaidDate   date picker (display + hidden "paid_date")
 //
 // If the page has no modal (no loan, or the loan is not approved/active),
 // only the success toast logic runs and everything else is skipped.
@@ -59,9 +59,6 @@
     // =========================================================
     // VIEW RECEIPT MODAL
     // Runs on its own, so it works even when uploading is closed.
-    // Used for two kinds of receipts:
-    //   1. the receipt the borrower uploaded (unpaid installment)
-    //   2. the official receipt the admin recorded (paid installment)
     // =========================================================
 
     const viewModalEl = document.getElementById("ldViewModal");
@@ -74,7 +71,6 @@
         const viewError = document.getElementById("ldViewError");
         const downloadBtn = document.getElementById("ldViewDownload");
 
-        // Ang receipt na kasalukuyang nakabukas sa modal
         let currentUrl = "";
         let currentMonth = "";
         let currentPrefix = "receipt-month-";
@@ -118,11 +114,9 @@
             currentMonth = row ? row.dataset.installment : "";
             currentPrefix = button.dataset.filePrefix || "receipt-month-";
 
-            // "Received by ..." line (only for the admin's receipt)
             viewSummary.textContent = summary ? "✓ " + summary : "";
             viewSummary.hidden = !summary;
 
-            // Reset, then load the picture
             viewImg.hidden = true;
             viewError.hidden = true;
             viewLoading.hidden = false;
@@ -190,6 +184,8 @@
     const amountEl = document.getElementById("ldReceiptAmount");
     const dueEl = document.getElementById("ldReceiptDue");
     const installmentInput = document.getElementById("ldReceiptInstallment");
+    const paidDateDisplay = document.getElementById("ldReceiptPaidDateDisplay");
+    const paidDateInput = document.getElementById("ldReceiptPaidDate");
     const fileInput = document.getElementById("ldReceiptFile");
     const dropEl = document.getElementById("ldReceiptDrop");
     const dropEmpty = document.getElementById("ldReceiptDropEmpty");
@@ -209,6 +205,235 @@
 
     let previewUrl = null;
     let isSending = false;
+
+    // =========================================================
+    // DATE PICKER (same picker as the admin "Record Payment" modal)
+    // =========================================================
+
+    function todayLocal() {
+        const d = new Date();
+        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+        return d.toISOString().slice(0, 10);
+    }
+
+    function createDatePicker(displayEl, hiddenEl, hostEl) {
+        const MONTHS = ["January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"];
+        const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
+
+        const pad = function (n) { return String(n).padStart(2, "0"); };
+        const toYmd = function (y, m, d) { return y + "-" + pad(m + 1) + "-" + pad(d); };
+        const parseYmd = function (str) {
+            const parts = str.split("-").map(Number);
+            return { y: parts[0], m: parts[1] - 1, d: parts[2] };
+        };
+
+        let minYmd = "";
+        let maxYmd = "";
+        let view = "days";
+        let viewYear = 0;
+        let viewMonth = 0;
+        let isOpen = false;
+
+        const pop = document.createElement("div");
+        pop.className = "bwl-ld-dp";
+        pop.style.display = "none";
+        pop.setAttribute("role", "dialog");
+        hostEl.appendChild(pop);
+
+        function setValue(ymd) {
+            hiddenEl.value = ymd || "";
+            if (ymd) {
+                const p = parseYmd(ymd);
+                displayEl.value = pad(p.m + 1) + "/" + pad(p.d) + "/" + p.y;
+            } else {
+                displayEl.value = "";
+            }
+        }
+
+        function setRange(min, max) {
+            minYmd = min || "";
+            maxYmd = max || "";
+        }
+
+        function isDisabled(ymd) {
+            return (minYmd && ymd < minYmd) || (maxYmd && ymd > maxYmd);
+        }
+
+        function monthIndex(ymd) {
+            const p = parseYmd(ymd);
+            return p.y * 12 + p.m;
+        }
+
+        function headerHtml(showNav) {
+            const prevOff = minYmd && (viewYear * 12 + viewMonth) <= monthIndex(minYmd);
+            const nextOff = maxYmd && (viewYear * 12 + viewMonth) >= monthIndex(maxYmd);
+            const caret = view === "years" ? "feather-chevron-up" : "feather-chevron-down";
+            let html = '<div class="bwl-ld-dp-head">' +
+                '<button type="button" class="bwl-ld-dp-title" data-act="toggle-view">' +
+                MONTHS[viewMonth] + " " + viewYear + ' <i class="' + caret + '"></i></button>';
+            if (showNav) {
+                html += '<div class="bwl-ld-dp-nav">' +
+                    '<button type="button" class="bwl-ld-dp-navbtn" data-act="prev" aria-label="Previous month"' + (prevOff ? " disabled" : "") + '><i class="feather-chevron-left"></i></button>' +
+                    '<button type="button" class="bwl-ld-dp-navbtn" data-act="next" aria-label="Next month"' + (nextOff ? " disabled" : "") + '><i class="feather-chevron-right"></i></button>' +
+                    "</div>";
+            }
+            return html + "</div>";
+        }
+
+        function render() {
+            if (view === "years") {
+                renderYears();
+            } else {
+                renderDays();
+            }
+            if (isOpen) position();
+        }
+
+        function renderDays() {
+            const firstWeekday = new Date(viewYear, viewMonth, 1).getDay();
+            const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+            const selected = hiddenEl.value;
+            const today = todayLocal();
+
+            let html = headerHtml(true);
+            html += '<div class="bwl-ld-dp-weekdays">' + WEEKDAYS.map(function (w) { return "<span>" + w + "</span>"; }).join("") + "</div>";
+            html += '<div class="bwl-ld-dp-grid">';
+            for (let i = 0; i < firstWeekday; i++) html += "<span></span>";
+            for (let d = 1; d <= daysInMonth; d++) {
+                const ymd = toYmd(viewYear, viewMonth, d);
+                let cls = "bwl-ld-dp-day";
+                if (ymd === today) cls += " is-today";
+                if (ymd === selected) cls += " is-selected";
+                html += '<button type="button" class="' + cls + '" data-ymd="' + ymd + '"' +
+                    (isDisabled(ymd) ? " disabled" : "") + ">" + d + "</button>";
+            }
+            html += "</div>";
+            pop.innerHTML = html;
+        }
+
+        function renderYears() {
+            const thisYear = new Date().getFullYear();
+            const minY = minYmd ? parseYmd(minYmd).y : thisYear - 10;
+            const maxY = maxYmd ? parseYmd(maxYmd).y : thisYear + 20;
+
+            let html = headerHtml(false) + '<div class="bwl-ld-dp-years">';
+            for (let y = minY; y <= maxY; y++) {
+                html += '<button type="button" class="bwl-ld-dp-year' + (y === viewYear ? " is-selected" : "") +
+                    '" data-year="' + y + '">' + y + "</button>";
+            }
+            html += "</div>";
+            pop.innerHTML = html;
+
+            const grid = pop.querySelector(".bwl-ld-dp-years");
+            const current = pop.querySelector(".bwl-ld-dp-year.is-selected");
+            if (grid && current) {
+                grid.scrollTop = current.offsetTop - (grid.clientHeight / 2) + (current.clientHeight / 2);
+            }
+        }
+
+        function position() {
+            const r = displayEl.getBoundingClientRect();
+            const w = pop.offsetWidth;
+            const h = pop.offsetHeight;
+
+            let top = r.bottom + 6;
+            if (top + h > window.innerHeight - 8) {
+                top = Math.max(8, r.top - h - 6);
+            }
+            const left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8));
+
+            pop.style.top = top + "px";
+            pop.style.left = left + "px";
+        }
+
+        function open() {
+            if (isOpen) return;
+            const base = hiddenEl.value || todayLocal();
+            let p = parseYmd(base);
+            if (isDisabled(base)) {
+                p = parseYmd(maxYmd && base > maxYmd ? maxYmd : minYmd);
+            }
+            viewYear = p.y;
+            viewMonth = p.m;
+            view = "days";
+            isOpen = true;
+            pop.style.display = "block";
+            render();
+        }
+
+        function close() {
+            if (!isOpen) return;
+            isOpen = false;
+            pop.style.display = "none";
+        }
+
+        function shiftMonth(delta) {
+            const idx = viewYear * 12 + viewMonth + delta;
+            viewYear = Math.floor(idx / 12);
+            viewMonth = idx % 12;
+            render();
+        }
+
+        function pickYear(year) {
+            viewYear = year;
+            if (minYmd && (viewYear * 12 + viewMonth) < monthIndex(minYmd)) viewMonth = parseYmd(minYmd).m;
+            if (maxYmd && (viewYear * 12 + viewMonth) > monthIndex(maxYmd)) viewMonth = parseYmd(maxYmd).m;
+            view = "days";
+            render();
+        }
+
+        pop.addEventListener("click", function (e) {
+            const actBtn = e.target.closest("[data-act]");
+            if (actBtn) {
+                const act = actBtn.dataset.act;
+                if (act === "toggle-view") { view = view === "days" ? "years" : "days"; render(); }
+                if (act === "prev") shiftMonth(-1);
+                if (act === "next") shiftMonth(1);
+                return;
+            }
+            const dayBtn = e.target.closest(".bwl-ld-dp-day");
+            if (dayBtn && !dayBtn.disabled) {
+                setValue(dayBtn.dataset.ymd);
+                close();
+                displayEl.focus();
+                return;
+            }
+            const yearBtn = e.target.closest(".bwl-ld-dp-year");
+            if (yearBtn) pickYear(Number(yearBtn.dataset.year));
+        });
+
+        displayEl.addEventListener("click", function () { isOpen ? close() : open(); });
+        displayEl.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
+                e.preventDefault();
+                open();
+            }
+        });
+
+        document.addEventListener("mousedown", function (e) {
+            if (!isOpen) return;
+            if (pop.contains(e.target) || displayEl.parentElement.contains(e.target)) return;
+            close();
+        });
+
+        // Escape closes the picker first, not the whole modal.
+        hostEl.addEventListener("keydown", function (e) {
+            if (e.key === "Escape" && isOpen) {
+                e.stopImmediatePropagation();
+                e.preventDefault();
+                close();
+            }
+        }, true);
+
+        hostEl.addEventListener("hide.bs.modal", close);
+        hostEl.addEventListener("scroll", close);
+        window.addEventListener("resize", close);
+
+        return { setValue: setValue, setRange: setRange, close: close };
+    }
+
+    const datePicker = createDatePicker(paidDateDisplay, paidDateInput, modalEl);
 
     // =========================================================
     // HELPERS
@@ -251,6 +476,12 @@
         clearPreview();
         clearError();
         setSending(false);
+
+        // Default: today. Future dates are blocked.
+        const today = todayLocal();
+        datePicker.close();
+        datePicker.setRange("", today);
+        datePicker.setValue(today);
     }
 
     // =========================================================
@@ -326,8 +557,7 @@
         setSending(false);
     });
 
-    // Highlight the box while an image is dragged over it. The drop itself is
-    // handled by the browser (it fills the input and fires "change" above).
+    // Highlight the box while an image is dragged over it.
     ["dragenter", "dragover"].forEach(function (name) {
         dropEl.addEventListener(name, function () {
             dropEl.classList.add("is-dragover");
@@ -351,16 +581,25 @@
         }
 
         clearError();
+
+        const paidDate = paidDateInput.value;
+        if (!paidDate) {
+            showError("Please select the date you made the payment.");
+            return;
+        }
+        if (paidDate > todayLocal()) {
+            showError("The payment date cannot be in the future.");
+            return;
+        }
+
         setSending(true);
 
         try {
             const response = await fetch(modalEl.dataset.submitUrl, {
                 method: "POST",
-                body: new FormData(form), // includes the CSRF token from @csrf
+                body: new FormData(form), // includes @csrf and paid_date
                 credentials: "same-origin",
                 headers: {
-                    // Without Accept: application/json, Laravel answers
-                    // validation errors with an HTML redirect.
                     Accept: "application/json",
                     "X-Requested-With": "XMLHttpRequest",
                 },

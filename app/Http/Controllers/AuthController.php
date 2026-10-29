@@ -173,14 +173,27 @@ class AuthController extends Controller
         'birthCountry'    => ['required', 'string', 'max:100'],
         'birthProvince'   => ['required', 'string', 'max:100'],
         'birthCity'       => ['required', 'string', 'max:100'],
-        'monthlyIncome'   => ['required', Rule::in([
+        'monthlyIncome'   => [
+    'required', 'string', 'max:50',
+    function ($attribute, $value, $fail) {
+        $ranges = [
             'Below ₱10,000',
             '₱10,000 - ₱20,000',
             '₱20,001 - ₱30,000',
             '₱30,001 - ₱50,000',
             '₱50,001 - ₱100,000',
             'Above ₱100,000',
-        ])],
+        ];
+
+        if (in_array($value, $ranges, true)) {
+            return;
+        }
+
+        if (!preg_match('/\d/', $value)) {
+            $fail('Please enter a valid monthly income.');
+        }
+    },
+],
         'region'          => ['required', 'string', 'max:150'],
         'province'        => ['required', 'string', 'max:150'],
         'city'            => ['required', 'string', 'max:150'],

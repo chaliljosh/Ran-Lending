@@ -37,6 +37,26 @@ class AppServiceProvider extends ServiceProvider
             if (!empty($missingData)) {
                 $view->with($missingData);
             }
+
+            // Bilang para sa "Needs Attention" sa sidebar (Loan Applications).
+            // PAREHONG rules ng admin_loan_applications_list_data() sa database:
+            //   - status = 'pending'
+            //   - hindi pa nakaboto ang admin na ito
+            //   - 3 araw o higit nang naghihintay (galing sa applied_at)
+            // Isang mabilis na COUNT lang, walang cache, para laging tama ang bilang
+            // pagkatapos mag-desisyon ng admin.
+            $needsAttentionCount = DB::table('loan_applications as la')
+                ->where('la.status', 'pending')
+                ->whereRaw("la.applied_at <= now() - interval '3 days'")
+                ->whereNotExists(function ($q) use ($adminId) {
+                    $q->select(DB::raw(1))
+                        ->from('loan_approvals as lap')
+                        ->whereColumn('lap.application_id', 'la.application_id')
+                        ->where('lap.admin_id', $adminId);
+                })
+                ->count();
+
+            $view->with('needsAttentionCount', $needsAttentionCount);
         });
 
         // Borrower sidebar: true kung may ongoing loan ang borrower, para

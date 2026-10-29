@@ -5,6 +5,8 @@
 @section('page-styles')
     <link rel="stylesheet" href="{{ asset('assets/admin/css/modals-modern.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/admin/css/ongoing-loan-detail.css') }}?v={{ time() }}">
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/ongoing-loan-release-modal.css') }}?v={{ time() }}">
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/ongoing-loan-released-modal.css') }}?v={{ time() }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/darkmode-global.css') }}?v={{ time() }}" />
 @endsection
 
@@ -17,6 +19,12 @@
         $nextIsOverdue = $nextDue && \Carbon\Carbon::parse($nextDue->due_date)->isPast();
         $dueInDays = $nextDue ? (int) now()->diffInDays(\Carbon\Carbon::parse($nextDue->due_date)) : null;
         $loanCode = strtoupper(substr($app->uuid, 0, 8));
+
+        // Ilang araw pagkatapos i-record ang payment pwede pang i-void (galing sa AdminController)
+        $voidWindowDays = $voidWindowDays ?? 7;
+
+        // Lahat ng bayad (partial + full) kada installment, galing sa ledger (AdminController)
+        $paymentsBySchedule = $paymentsBySchedule ?? collect();
     @endphp
 
     <div class="page-header">
@@ -47,7 +55,8 @@
                 <div class="olh-info">
                     <div class="olh-name-row">
                         <span class="olh-name">{{ $app->first_name }} {{ $app->last_name }}</span>
-                        <span class="badge badge-active olh-status-badge">Active</span>
+                        {{-- Hindi pa na-send ang Proof of Release = hindi pa na-release ang loan --}}
+                        <span class="badge badge-active olh-status-badge">{{ empty($app->proof_sent_at) ? 'Awaiting Release' : 'Active' }}</span>
                     </div>
                     <div class="olh-meta-row">
                         <span><strong>Loan ID:</strong> LN-{{ $loanCode }}</span>
@@ -92,9 +101,9 @@
             <div class="olr-card is-sent">
                 <div class="olr-icon"><i class="feather-check"></i></div>
                 <div class="olr-text">
-                    <div class="olr-title">Proof of release was already sent</div>
+                    <div class="olr-title">Loan was already released</div>
                     <div class="olr-sub">
-                        Emailed to {{ $app->email }} on
+                        Release confirmation emailed to {{ $app->email }} on
                         {{ \Carbon\Carbon::parse($app->proof_sent_at)->format('M d, Y \a\t g:i A') }}.
                     </div>
                 </div>
@@ -105,14 +114,14 @@
                 <div class="olr-icon"><i class="feather-send"></i></div>
                 <div class="olr-text">
                     <div class="olr-title">Proof of Release</div>
-                    <div class="olr-sub">Email the borrower proof that the &#8369;{{ number_format($app->loan_amount ?? 0, 2) }} loan was released.</div>
+                    <div class="olr-sub">Email the borrower proof that the &#8369;{{ number_format($app->loan_amount ?? 0, 2) }} loan was released. The payment schedule will be created once the proof is sent.</div>
                 </div>
                 <button type="button" class="btn-send-release" id="olsSendProofBtn"
                     data-application-id="{{ $applicationId }}"
                     data-amount="{{ number_format($app->loan_amount ?? 0, 2) }}"
                     data-borrower-name="{{ $app->first_name }} {{ $app->last_name }}"
                     data-borrower-email="{{ $app->email }}">
-                    Send Proof
+                    Release Loan
                 </button>
             </div>
         @endif
@@ -153,7 +162,7 @@
                         </div>
                         <div class="info-item2">
                             <label>Purpose</label>
-                    <span>{{ $appDisplay['purpose'] }}</span>
+                            <span>{{ $appDisplay['purpose'] }}</span>
                         </div>
                         <div class="info-item2">
                             <label>Applied On</label>
@@ -262,11 +271,6 @@
                         <div class="ols-sched-title">Payment Schedule</div>
                     </div>
                 </div>
-                <div class="ols-sched-count-pill">
-                    <i class="feather-calendar"></i>
-                    <span><strong id="olsScheduledCount">{{ $paymentSchedule->count() }}</strong> of <strong
-                            id="olsScheduledTotal">{{ $totalCount }}</strong> payments scheduled</span>
-                </div>
             </div>
 
             @if ($paymentSchedule->count() > 0)
@@ -303,12 +307,11 @@
                                     } else {
                                         $dueSubtext = 'in ' . $daysDiff . ' ' . ($daysDiff == 1 ? 'day' : 'days');
                                     }
-                                    $paidPct =
-                                        $s->amount_due > 0
-                                            ? min(100, round(($s->amount_paid / $s->amount_due) * 100))
-                                            : 0;
 
                                     $borrowerReceipt = $isPaid ? null : $borrowerReceipts->get($s->id);
+
+                                    // Natitirang babayaran (kung may partial na natanggap na)
+                                    $balance = max(0, round((float) $s->amount_due - (float) $s->amount_paid, 2));
 
                                     $voidReq = $voidRequests->get($s->id);
                                     $voidVoteRows = $voidReq ? $voidVotes->get($voidReq->id, collect()) : collect();
@@ -322,6 +325,13 @@
                                             'me' => (int) $v->admin_id === (int) $adminId,
                                         ])
                                         ->values();
+
+                                    // 7-day void window: nagsisimula sa "Recorded" date (updated_at) ng payment.
+                                    // Pagkalipas nito, hindi na pwedeng mag-request ng void.
+                                    $voidWindowEnd = $isPaid
+                                        ? \Carbon\Carbon::parse($s->updated_at ?? $s->paid_at)->addDays($voidWindowDays)
+                                        : null;
+                                    $voidWindowOpen = $isPaid && now()->lte($voidWindowEnd);
                                 @endphp
                                 <tr data-schedule-row="{{ $s->id }}" data-page-row>
                                     <td><span class="ols-row-num">{{ $s->installment_no }}</span></td>
@@ -333,12 +343,9 @@
                                     <td class="ols-amount-paid-cell">
                                         <div class="ols-amount-paid-value" data-field="amount_paid">
                                             &#8369;{{ number_format($s->amount_paid, 2) }}</div>
-                                        <div class="ols-mini-progress-track">
-                                            <div class="ols-mini-progress-fill" data-field="progress_fill"
-                                                style="width: {{ $paidPct }}%;"></div>
-                                        </div>
-                                        <div class="ols-mini-progress-pct" data-field="progress_pct">{{ $paidPct }}%
-                                        </div>
+                                        @if (!$isPaid && (float) $s->amount_paid > 0)
+                                            <div class="ols-due-sub">Balance &#8369;{{ number_format(max(0, $s->amount_due - $s->amount_paid), 2) }}</div>
+                                        @endif
                                     </td>
                                     <td data-field="paid_on">
                                         {{ $s->paid_at ? \Carbon\Carbon::parse($s->paid_at)->format('M d, Y') : '—' }}</td>
@@ -359,20 +366,19 @@
                                                         data-schedule-id="{{ $s->id }}"
                                                         data-installment-no="{{ $s->installment_no }}"
                                                         data-amount-due="{{ number_format($s->amount_due, 2) }}"
+                                                        data-amount-paid="{{ number_format($s->amount_paid, 2) }}"
+                                                        data-balance="{{ number_format($balance, 2) }}"
                                                         data-due="{{ $dueCarbon->format('F j, Y') }}"
                                                         data-submitted="{{ !empty($borrowerReceipt->submitted_at) ? \Carbon\Carbon::parse($borrowerReceipt->submitted_at)->format('F j, Y \a\t g:i A') : '' }}"
+                                                        data-paid-date="{{ !empty($borrowerReceipt->user_paid_date) ? \Carbon\Carbon::parse($borrowerReceipt->user_paid_date)->format('F j, Y') : '' }}"
+                                                        data-paid-ymd="{{ !empty($borrowerReceipt->user_paid_date) ? \Carbon\Carbon::parse($borrowerReceipt->user_paid_date)->format('Y-m-d') : '' }}"
                                                         data-file-url="{{ route('admin.borrower-receipt-file', $borrowerReceipt->receipt_id) }}"
                                                         data-download-url="{{ route('admin.borrower-receipt-file', ['id' => $borrowerReceipt->receipt_id, 'download' => 1]) }}">
                                                         <i class="feather-file-text"></i> View Receipt
                                                     </button>
+                                                @else
+                                                    <span class="sched-paid-note">{{ (float) $s->amount_paid > 0 ? 'Awaiting receipt for balance' : 'Awaiting receipt' }}</span>
                                                 @endif
-
-                                                <button type="button" class="btn-record-payment"
-                                                    data-schedule-id="{{ $s->id }}"
-                                                    data-installment-no="{{ $s->installment_no }}"
-                                                    data-amount-due="{{ $s->amount_due }}">
-                                                    <i class="feather-credit-card"></i> Record Payment
-                                                </button>
                                             @else
                                                 @if ($voidReq)
                                                     <span class="ols-void-pending"><i class="feather-clock"></i> Void Pending {{ $voidApprovals }}/{{ $requiredVoidApprovals }}</span>
@@ -396,6 +402,7 @@
                                                             data-status="{{ $rowStatus }}"
                                                             data-paid="{{ $isPaid ? \Carbon\Carbon::parse($s->paid_at)->format('F j, Y') : '' }}"
                                                             data-recorded="{{ $isPaid && !empty($s->updated_at) ? \Carbon\Carbon::parse($s->updated_at)->format('F j, Y') : '' }}"
+                                                            data-payments="{{ json_encode($paymentsBySchedule->get($s->id, [])) }}"
                                                             data-receipt-url="{{ !empty($s->receipt_path) ? route('admin.installment-receipt', $s->id) : '' }}">
                                                             View Payment Details
                                                         </button>
@@ -421,7 +428,8 @@
                                                         </li>
                                                     @endif
 
-                                                    <li class="js-void-item {{ $isPaid && !$voidReq ? '' : 'd-none' }}">
+                                                    {{-- Request Void: sa unang {{ $voidWindowDays }} araw lang pagkatapos i-record ang payment --}}
+                                                    <li class="js-void-item {{ $isPaid && !$voidReq && $voidWindowOpen ? '' : 'd-none' }}">
                                                         <hr class="dropdown-divider">
                                                         <button type="button"
                                                             class="dropdown-item ols-item-danger js-void-payment"
@@ -430,6 +438,24 @@
                                                             data-amount="{{ number_format($s->amount_paid, 2) }}">
                                                             Request Void
                                                         </button>
+                                                        @if ($voidWindowEnd)
+                                                            <span class="dropdown-item-text text-muted"
+                                                                style="font-size:0.74rem; padding-top:0;">
+                                                                Void allowed until {{ $voidWindowEnd->format('M d, Y') }}
+                                                            </span>
+                                                        @endif
+                                                    </li>
+
+                                                    {{-- Lumipas na ang void period: hindi na pwedeng mag-request --}}
+                                                    <li class="{{ $isPaid && !$voidReq && !$voidWindowOpen ? '' : 'd-none' }}">
+                                                        <hr class="dropdown-divider">
+                                                        <span class="dropdown-item-text text-muted"
+                                                            style="font-size:0.78rem;">
+                                                            Void period ended
+                                                            @if ($voidWindowEnd)
+                                                                on {{ $voidWindowEnd->format('M d, Y') }}
+                                                            @endif
+                                                        </span>
                                                     </li>
                                                 </ul>
                                             </div>
@@ -450,7 +476,13 @@
                 </div>
             @else
                 <div class="panel-body">
-                    <p class="text-muted empty-note">No payment schedule found for this loan.</p>
+                    <p class="text-muted empty-note">
+                        @if (empty($app->proof_sent_at))
+                            The payment schedule will be created once the proof of release is sent.
+                        @else
+                            No payment schedule found for this loan.
+                        @endif
+                    </p>
                 </div>
             @endif
         </div>
@@ -549,26 +581,52 @@
         </div>
     </div>
 
-    <div class="modal fade nxl-account-modal" id="olsSendProofModal" tabindex="-1" aria-hidden="true">
+    {{-- RELEASE CONFIRMATION (Proof of Release). Ang JS ang pumupuno ng pangalan, amount at email
+         (data-* ng #olsSendProofBtn). Ang Loan Account ay galing na sa server. --}}
+    <div class="modal fade nxl-account-modal" id="olsSendProofModal" tabindex="-1"
+        aria-labelledby="olsProofTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content ols-confirm-modal">
-                <div class="modal-body py-4">
-                    <div class="text-center">
-                        <div class="ols-confirm-title">Send proof of release?</div>
-                        <div class="ols-confirm-desc">
-                            Attach the proof that the loan of
-                            <strong>&#8369;<span id="olsProofAmount">0.00</span></strong>
-                            has been released to <strong id="olsProofBorrowerName"></strong>.
-                            It will be emailed to <strong id="olsProofBorrowerEmail"></strong>.
+            <div class="modal-content olrm-modal">
+
+                <div class="olrm-body">
+                    <div class="olrm-head">
+                        <h5 class="olrm-title" id="olsProofTitle">Release Confirmation</h5>
+                        <button type="button" class="olrm-close" data-bs-dismiss="modal" aria-label="Close">
+                            <i class="feather-x"></i>
+                        </button>
+                    </div>
+
+                    <p class="olrm-desc">
+                        Please verify the borrower and loan details before proceeding.
+                        Attaching the proof <strong>of release</strong> will initiate the payment schedule.
+                    </p>
+
+                    <div class="olrm-summary">
+                        <div class="olrm-summary-item">
+                            <span class="olrm-label">Borrower</span>
+                            <span class="olrm-value" id="olsProofBorrowerName"></span>
+                        </div>
+                        <div class="olrm-summary-item">
+                            <span class="olrm-label">Loan Amount</span>
+                            <span class="olrm-value">&#8369;<span id="olsProofAmount">0.00</span></span>
+                        </div>
+                        <div class="olrm-summary-item">
+                            <span class="olrm-label">Loan Account</span>
+                            <span class="olrm-value">LN-{{ $loanCode }}</span>
+                        </div>
+                        <div class="olrm-summary-item">
+                            <span class="olrm-label">Recipient Email</span>
+                            <span class="olrm-value" id="olsProofBorrowerEmail"></span>
                         </div>
                     </div>
 
-                    <div class="ols-field">
-                        <label class="ols-field-label">Proof of Release <span class="ols-req">*</span></label>
-                        <label for="olsProofInput" class="ols-dropzone" id="olsProofDropzone">
+                    <div class="olrm-field">
+                        <span class="olrm-field-label">Attach proof of release <span class="ols-req">*</span></span>
+
+                        <label for="olsProofInput" class="ols-dropzone olrm-dropzone" id="olsProofDropzone">
                             <i class="feather-upload-cloud"></i>
-                            <span class="ols-dropzone-text">Click to upload proof</span>
-                            <span class="ols-dropzone-hint">JPG or PNG, up to 5MB</span>
+                            <span class="ols-dropzone-text">Click to upload image</span>
+                            <span class="ols-dropzone-hint">JPG or PNG (up to 5MB)</span>
                         </label>
                         <input type="file" id="olsProofInput" accept="image/jpeg,image/png" hidden>
 
@@ -578,23 +636,38 @@
                                 <span id="olsProofFileName"></span>
                                 <span id="olsProofFileSize"></span>
                             </div>
-                            <button type="button" class="ols-preview-remove" id="olsProofRemove" aria-label="Remove proof">
+                            <button type="button" class="ols-preview-remove" id="olsProofRemove"
+                                aria-label="Remove proof">
                                 <i class="feather-x"></i>
                             </button>
                         </div>
                     </div>
 
                     <div class="ols-form-error" id="olsProofError" style="display:none;"></div>
+
+                    <div class="olrm-note">
+                        <span class="olrm-note-icon" aria-hidden="true">i</span>
+                        <div class="olrm-note-text">
+                            <strong>Important</strong>
+                            <p>This action can only be completed once for this loan. Please ensure that all
+                                details and the attached proof are correct before confirming.</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-footer nxl-pw-modal-footer">
-                    <button type="button" class="nxl-pw-btn-discard" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="nxl-pw-btn-apply" id="olsProofSendBtn">
-                        <span class="ols-confirm-btn-label">Send Proof</span>
+
+                <div class="olrm-footer">
+                    <button type="button" class="olrm-btn olrm-btn-cancel" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="olrm-btn olrm-btn-confirm" id="olsProofSendBtn">
+                        <span class="ols-confirm-btn-label">Confirm &amp; Send</span>
                     </button>
                 </div>
+
             </div>
         </div>
     </div>
+
+    {{-- LOAN RELEASED (success modal pagkatapos ma-send ang release confirmation) --}}
+    @include('admin.partials.loan-released-modal')
 
     <div class="modal fade nxl-account-modal" id="olsVoidModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -607,6 +680,7 @@
                             <strong>&#8369;<span id="olsVoidAmount">0.00</span></strong>
                             will only be voided once all {{ $requiredVoidApprovals }} admins approve.
                             Your request counts as the first approval. The payment stays recorded until then.
+                            A payment can only be voided within {{ $voidWindowDays }} days after it was recorded.
                         </div>
                     </div>
 
@@ -695,7 +769,16 @@
                     </dl>
                 </div>
 
-                <div class="ols-details-section">
+                {{-- Lahat ng bayad ng installment (partial + full), galing sa ledger --}}
+                <div class="ols-details-section" id="olsPdPaymentsSection" style="display:none;">
+                    <div class="ols-details-section-head">
+                        <span class="ols-details-section-title">Payments</span>
+                    </div>
+                    <div class="ols-pd-pay-list" id="olsPdPaymentsList"></div>
+                </div>
+
+                {{-- Fallback: isang receipt lang (kapag walang ledger rows) --}}
+                <div class="ols-details-section" id="olsPdReceiptSection">
                     <div class="ols-details-section-head">
                         <span class="ols-details-section-title">Payment Receipt</span>
                         <a href="#" target="_blank" rel="noopener" class="ols-details-fulllink" id="olsPdFullLink"
@@ -709,6 +792,33 @@
 
                 <div class="modal-footer">
                     <button type="button" class="ols-details-close" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- RECEIPT VIEWER: bubukas kapag na-click ang "View receipt" sa Payment Details.
+         Pagsara nito, babalik sa Payment Details. --}}
+    <div class="modal fade" id="olsReceiptViewerModal" tabindex="-1" aria-labelledby="olsRvTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content ols-rv-modal">
+                <div class="modal-header">
+                    <div>
+                        <h6 class="modal-title" id="olsRvTitle">Payment Receipt</h6>
+                        <div class="ols-rv-sub" id="olsRvSub"></div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="ols-rv-body">
+                    <span class="ols-rv-state" id="olsRvLoading">Loading receipt...</span>
+                    <span class="ols-rv-state" id="olsRvError" style="display:none;">Unable to load the receipt.</span>
+                    <img id="olsRvImg" alt="Payment receipt" style="display:none;">
+                </div>
+
+                <div class="modal-footer">
+                    <a href="#" target="_blank" rel="noopener" class="ols-rv-fulllink" id="olsRvFullLink">Open in new tab</a>
+                    <button type="button" class="ols-details-close" data-bs-dismiss="modal">Back</button>
                 </div>
             </div>
         </div>
@@ -737,12 +847,15 @@
                     </div>
 
                     <div class="ols-br-details">
-                        <div class="ols-br-amount-label">Amount Due</div>
+                        <div class="ols-br-amount-label">Balance Due</div>
                         <div class="ols-br-amount">&#8369;<span id="olsBrAmount"></span></div>
 
                         <dl class="ols-br-list">
+                            <div><dt>Installment Amount</dt><dd>&#8369;<span id="olsBrTotal"></span></dd></div>
+                            <div><dt>Received So Far</dt><dd>&#8369;<span id="olsBrReceived"></span></dd></div>
                             <div><dt>Due Date</dt><dd id="olsBrDue"></dd></div>
                             <div><dt>Submitted</dt><dd id="olsBrSubmitted"></dd></div>
+                            <div><dt>Date Paid</dt><dd id="olsBrPaidDate"></dd></div>
                         </dl>
                     </div>
                 </div>
@@ -752,7 +865,79 @@
                     <a href="#" class="ols-br-btn-download" id="olsBrDownload">
                         <i class="feather-download"></i> Download
                     </a>
+                    <button type="button" class="ols-br-btn-reject" id="olsBrRejectBtn">Reject</button>
+                    <button type="button" class="ols-br-btn-partial" id="olsBrPartialBtn">Partial Payment</button>
                     <button type="button" class="ols-br-btn-record" id="olsBrRecordBtn">Record Payment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- PARTIAL PAYMENT: kulang ang binayad. Ire-record ang natanggap, hindi pa Paid, at maie-email si borrower. --}}
+    <div class="modal fade nxl-account-modal" id="olsPartialModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content ols-confirm-modal">
+                <div class="modal-body py-4">
+                    <div class="text-center">
+                        <div class="ols-confirm-title">Record a partial payment?</div>
+                        <div class="ols-confirm-desc">
+                            Installment <strong id="olsPartialInstallmentNo">#1</strong> still has a balance of
+                            <strong>&#8369;<span id="olsPartialBalance">0.00</span></strong>.
+                            Enter the amount that is actually shown on the receipt. The installment stays unpaid,
+                            the borrower is emailed, and they can upload another receipt for the balance.
+                        </div>
+                    </div>
+
+                    <div class="ols-field">
+                        <label for="olsPartialAmount" class="ols-field-label">Amount received <span class="ols-req">*</span></label>
+                        <input type="number" id="olsPartialAmount" class="ols-input" min="0.01" step="0.01"
+                            placeholder="e.g. 1500.00">
+                    </div>
+
+                    <div class="ols-field">
+                        <label for="olsPartialRemarks" class="ols-field-label">Remarks (optional)</label>
+                        <textarea id="olsPartialRemarks" class="ols-input" rows="2" maxlength="500"
+                            placeholder="e.g. Please pay the remaining balance by Friday"></textarea>
+                    </div>
+
+                    <div class="ols-form-error" id="olsPartialError" style="display:none;"></div>
+                </div>
+                <div class="modal-footer nxl-pw-modal-footer">
+                    <button type="button" class="nxl-pw-btn-discard" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="nxl-pw-btn-apply" id="olsPartialConfirmBtn">
+                        <span class="ols-confirm-btn-label">Record &amp; Notify</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- REJECT RECEIPT: malabo, mali, o peke ang receipt. Walang amount na nare-record. --}}
+    <div class="modal fade nxl-account-modal" id="olsRejectModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content ols-confirm-modal">
+                <div class="modal-body py-4">
+                    <div class="text-center">
+                        <div class="ols-confirm-title">Reject this receipt?</div>
+                        <div class="ols-confirm-desc">
+                            The receipt for installment <strong id="olsRejectInstallmentNo">#1</strong> will be rejected
+                            and no payment will be recorded. The borrower is emailed the reason and can upload a new receipt.
+                        </div>
+                    </div>
+
+                    <div class="ols-field">
+                        <label for="olsRejectReason" class="ols-field-label">Reason <span class="ols-req">*</span></label>
+                        <textarea id="olsRejectReason" class="ols-input" rows="3" maxlength="500"
+                            placeholder="e.g. The receipt is blurry, please upload a clearer photo"></textarea>
+                    </div>
+
+                    <div class="ols-form-error" id="olsRejectError" style="display:none;"></div>
+                </div>
+                <div class="modal-footer nxl-pw-modal-footer">
+                    <button type="button" class="nxl-pw-btn-discard" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="nxl-pw-btn-apply ols-btn-danger" id="olsRejectConfirmBtn">
+                        <span class="ols-confirm-btn-label">Reject Receipt</span>
+                    </button>
                 </div>
             </div>
         </div>

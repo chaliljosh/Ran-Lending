@@ -75,7 +75,7 @@ class BorrowerController extends Controller
         );
     }
 
-    private function commonData($userId)
+    protected function commonData($userId)
     {
         $row = DB::selectOne('select borrower_common_data(?) as data', [$userId]);
         $data = json_decode($row->data, true);
@@ -149,7 +149,7 @@ class BorrowerController extends Controller
 
             $items->push([
                 'key'      => $key,
-                'url'      => route('borrower.loan-details'),
+                'url'      => route('borrower.loan-details', ['loan' => $app['application_id']]),
                 'icon'     => $isApproved ? 'feather-check-circle' : 'feather-x-circle',
                 'color'    => $isApproved ? 'success' : 'danger',
                 'title'    => $isApproved ? 'Loan Application Approved' : 'Loan Application Rejected',
@@ -163,10 +163,17 @@ class BorrowerController extends Controller
 
         $details = $data['details'] ? (object) $data['details'] : null;
 
-        // Wala nang 3-admin approval count — direktang trinu-trigger na
-        // lang base sa status === 'approved'.
-        if ($details && $details->status === 'approved') {
+        // "Eligible to Apply" — para lang sa borrower na WALA pang kahit isang loan.
+        // Kapag may loan na (pending, active, completed, atbp.), hindi na ito kailangan.
+        $hasAnyLoan = $applications->isNotEmpty();
+
+        if ($details && $details->status === 'approved' && !$hasAnyLoan) {
             $key = 'eligible:' . $details->detail_id;
+
+            // Stable na oras: hindi na magbabago kada login.
+            $eligibleAt = !empty($data['eligible_decided_at'])
+                ? Carbon::parse($data['eligible_decided_at'])
+                : (!empty($details->created_at) ? Carbon::parse($details->created_at) : now());
 
             $items->push([
                 'key'      => $key,
@@ -176,7 +183,7 @@ class BorrowerController extends Controller
                 'title'    => "You're Now Eligible to Apply",
                 'subtitle' => 'Your details are complete — you can now apply for a loan.',
                 'read'     => $readKeys->has($key),
-                'ts'       => $data['eligible_decided_at'] ? Carbon::parse($data['eligible_decided_at']) : now(),
+                'ts'       => $eligibleAt,
             ]);
         }
 
@@ -185,7 +192,7 @@ class BorrowerController extends Controller
 
             $items->push([
                 'key'      => $key,
-                'url'      => route('borrower.loan-details'),
+                'url'      => route('borrower.loan-details', ['loan' => $s['application_id']]),
                 'icon'     => 'feather-check-circle',
                 'color'    => 'success',
                 'title'    => 'Payment Received',
@@ -208,7 +215,7 @@ class BorrowerController extends Controller
 
             $items->push([
                 'key'      => $key,
-                'url'      => route('borrower.loan-details'),
+                'url'      => route('borrower.loan-details', ['loan' => $v['application_id']]),
                 'icon'     => 'feather-slash',
                 'color'    => 'danger',
                 'title'    => 'Payment Voided',
@@ -247,7 +254,7 @@ class BorrowerController extends Controller
 
             $items->push([
                 'key'      => $key,
-                'url'      => route('borrower.loan-details'),
+                'url'      => route('borrower.loan-details', ['loan' => $s['application_id']]),
                 'icon'     => $isLate ? 'feather-alert-circle' : 'feather-clock',
                 'color'    => $isLate ? 'danger' : 'primary',
                 'title'    => $isLate ? 'Payment Overdue' : 'Upcoming Payment',
@@ -464,9 +471,10 @@ class BorrowerController extends Controller
             'home_address' => $request->input('homeAddress'),
         ];
 
-       $workData = [
-    'monthly_income' => $request->input('monthlyIncome'),
-];
+        $workData = [
+            'monthly_income' => $request->input('monthlyIncome'),
+        ];
+
         try {
             if ($existing) {
                 $detailId = $existing->detail_id;
@@ -598,8 +606,8 @@ class BorrowerController extends Controller
             'idType'       => 'required|in:national_id,passport,drivers_license,umid,sss,tin,postal,voters,prc,others',
             'idTypeOthers' => 'required_if:idType,others|nullable|string|max:100',
             'idNumber'     => [
-              'required', 'string', 'max:100', 'regex:/^[A-Za-z0-9\-]+$/',
-                
+                'required', 'string', 'max:100', 'regex:/^[A-Za-z0-9\-]+$/',
+
                 Rule::unique('borrowerpersonaldetails', 'id_number')
                     ->ignore($details->detail_id, 'detail_id'),
             ],
@@ -611,8 +619,8 @@ class BorrowerController extends Controller
             //   employed / self_employed : companyName + position (+ pay slip)
             //   student                  : companyName (School Name) + primarySource
             //   unemployed / retired     : primarySource
-          'employmentStatus' => 'required|in:employed,self_employed,unemployed,student,retired,others',
-'employmentOther'  => 'required_if:employmentStatus,others|nullable|string|max:100',
+            'employmentStatus' => 'required|in:employed,self_employed,unemployed,student,retired,others',
+            'employmentOther'  => 'required_if:employmentStatus,others|nullable|string|max:100',
             'companyName'      => 'required_if:employmentStatus,employed,self_employed,student|nullable|string|max:100',
             'position'         => 'required_if:employmentStatus,employed,self_employed|nullable|string|max:100',
             'yearsInCompany'   => 'nullable|in:0-5,6-10,11-15,16-20,21+',
@@ -649,7 +657,7 @@ class BorrowerController extends Controller
             'paySlip.max'                 => 'Pay slip must be less than 5MB.',
         ]);
 
-                if ($validator->fails()) {
+        if ($validator->fails()) {
             return response()->json(['success' => false, 'message' => $validator->errors()->first()], 422);
         }
 
@@ -779,7 +787,7 @@ class BorrowerController extends Controller
                     ['detail_id' => $details->detail_id],
                     [
                         'employment_status'       => $employmentStatus,
-                       'employment_status_other' => $employmentStatus === 'others'
+                        'employment_status_other' => $employmentStatus === 'others'
                                 ? trim($request->input('employmentOther', ''))
                                 : null,
                         'company_name'      => $needsCompany ? trim($request->input('companyName', '')) : null,
@@ -889,20 +897,20 @@ class BorrowerController extends Controller
         $userId = Session::get('user_id');
         $common = $this->commonData($userId);
         extract($common);
-
+ 
         if (!$isFullyApproved) {
             return redirect()->route('borrower.dashboard');
         }
-
+ 
         $requestedLoanId = $request->query('loan');
-
+ 
         $row = DB::selectOne('select borrower_loan_details_data(?, ?) as data', [$userId, $requestedLoanId]);
         $ldData = json_decode($row->data, true);
-
+ 
         $loans = collect($ldData['loans'])->map(fn($l) => (object) $l);
         $app = $ldData['selected_app'] ? (object) $ldData['selected_app'] : null;
         $realSchedule = collect($ldData['schedule'])->map(fn($s) => (object) $s);
-
+ 
         $statusMap = [
             'pending'   => ['label' => 'Pending Review', 'badge' => 'bg-warning', 'icon' => 'feather-clock',          'icon_color' => 'text-warning'],
             'approved'  => ['label' => 'Approved',       'badge' => 'bg-success', 'icon' => 'feather-check-circle',   'icon_color' => 'text-success'],
@@ -912,29 +920,45 @@ class BorrowerController extends Controller
             'on_hold'   => ['label' => 'On Hold',        'badge' => 'bg-secondary', 'icon' => 'feather-pause-circle', 'icon_color' => 'text-secondary'],
             'defaulted' => ['label' => 'Defaulted',      'badge' => 'bg-danger',  'icon' => 'feather-alert-triangle', 'icon_color' => 'text-danger'],
         ];
-
+ 
         $status = $app
             ? ($statusMap[$app->status] ?? ['label' => 'Unknown', 'badge' => 'bg-secondary', 'icon' => 'feather-help-circle', 'icon_color' => 'text-secondary'])
             : null;
-
-        $loanId = $app ? 'LN-' . str_pad($app->application_id, 6, '0', STR_PAD_LEFT) : null;
-
+ 
+        // Approved na ang loan pero wala pang schedule = hindi pa nare-release.
+        // (Sa Send Proof lang nagagawa ang schedule.)
+        $awaitingRelease = $app
+            && in_array($app->status, ['approved', 'active'], true)
+            && $realSchedule->isEmpty();
+ 
+        if ($awaitingRelease) {
+            $status = ['label' => 'Awaiting Release', 'badge' => 'bg-info', 'icon' => 'feather-clock', 'icon_color' => 'text-info'];
+        }
+ 
+        // Parehong format ng admin page: LN- + unang 8 chars ng uuid (hal. LN-8D32BB5C)
+        $loanUuid = $app
+            ? DB::table('loan_applications')->where('application_id', $app->application_id)->value('uuid')
+            : null;
+        $loanId = $loanUuid ? 'LN-' . strtoupper(substr($loanUuid, 0, 8)) : null;
+ 
         $totalCount = 0;
         $paidCount = 0;
         $amountCollected = 0;
         $remainingBalance = $app->total_amount ?? 0;
         $nextUnpaid = null;
         $isOverdue = false;
-
-        // Receipt uploads are only allowed while the loan is approved or active.
+ 
+        // Receipt uploads are only allowed while the loan is approved or active,
+        // at kung nare-release na (may schedule na).
         $canUploadReceipts = $app
+            && !$awaitingRelease
             && in_array($app->status, PaymentReceiptController::UPLOADABLE_LOAN_STATUSES, true);
-
+ 
         if ($realSchedule->isNotEmpty()) {
             // First unpaid installment (used for the next-payment card and, if
             // PaymentReceiptController::NEXT_UNPAID_ONLY is on, as the only upload target).
             $nextUnpaidRow = $realSchedule->first(fn($s) => is_null($s->paid_at));
-
+ 
             // Latest open receipt (submitted or rejected) per installment.
             // Skipped when there is nothing to show, to save a database round trip.
             $receiptsByInstallment = collect();
@@ -947,7 +971,7 @@ class BorrowerController extends Controller
                     ->groupBy('installment_no')
                     ->map(fn($group) => $group->first());
             }
-
+ 
             // Paid installments that have an official receipt recorded by the admin
             // (schedule id keyed by installment number).
             $paidReceiptIds = collect();
@@ -959,7 +983,7 @@ class BorrowerController extends Controller
                     ->where('receipt_path', '<>', '')
                     ->pluck('id', 'installment_no');
             }
-
+ 
             // Sino at kailan kinumpirma ng admin ang bawat paid installment.
             // (Walang row dito kung cash na binayad nang personal, kaya may fallback sa paid_at.)
             $confirmations = collect();
@@ -973,25 +997,60 @@ class BorrowerController extends Controller
                     ->get()
                     ->keyBy('installment_no'); // pinakahuli ang nananalo
             }
-
-            $paymentSchedule = $realSchedule->map(function ($s) use ($canUploadReceipts, $nextUnpaidRow, $receiptsByInstallment, $paidReceiptIds, $confirmations) {
+ 
+            // Schedule id kada installment_no. Hindi garantisadong may `id`
+            // ang schedule rows galing sa RPC, kaya hiwalay ang query.
+            $scheduleIdByInstallment = DB::table('loan_payment_schedules')
+                ->where('application_id', $app->application_id)
+                ->pluck('id', 'installment_no');
+ 
+            // Lahat ng recorded payments (hindi void) kada schedule row.
+            // Ginagamit para sa "Payment Details" (paid) at sa tabi ng "Upload Balance" (partial).
+            // May try/catch para hindi mag-500 ang buong page kung may mali dito.
+            $paymentsBySchedule = collect();
+            try {
+                $paymentsBySchedule = DB::table('installment_payments')
+                    ->where('application_id', $app->application_id)
+                    ->whereNull('voided_at')
+                    ->orderBy('paid_on')
+                    ->orderBy('id')
+                    ->get()
+                    ->groupBy('schedule_id')
+                    ->map(fn ($rows) => $rows->map(fn ($p) => [
+                        'date'   => Carbon::parse($p->paid_on)->format('M d, Y'),
+                        'amount' => number_format((float) $p->amount, 2),
+                        'kind'   => $p->kind,
+                        'url'    => !empty($p->receipt_path)
+                            ? route('borrower.installment-payment-receipt', $p->id)
+                            : '',
+                    ])->values()->all());
+            } catch (\Throwable $e) {
+                Log::warning('installment_payments query failed', ['error' => $e->getMessage()]);
+            }
+ 
+            $paymentSchedule = $realSchedule->map(function ($s) use (
+                $canUploadReceipts, $nextUnpaidRow, $receiptsByInstallment,
+                $paidReceiptIds, $confirmations, $paymentsBySchedule, $scheduleIdByInstallment
+            ) {
                 $due = Carbon::parse($s->due_date);
                 $rowStatus = !is_null($s->paid_at)
                     ? 'paid'
                     : ($due->isPast() ? 'overdue' : 'pending');
-
+ 
                 $receipt = $receiptsByInstallment->get($s->installment_no);
-
+ 
                 $confirm = $confirmations->get($s->installment_no);
                 $confirmedOn = ($confirm && $confirm->reviewed_at)
                     ? Carbon::parse($confirm->reviewed_at)->timezone(config('app.timezone'))
                     : (!is_null($s->paid_at) ? Carbon::parse($s->paid_at) : null);
-
+ 
                 $isUploadTarget = $canUploadReceipts
                     && $rowStatus !== 'paid'
                     && (!PaymentReceiptController::NEXT_UNPAID_ONLY
                         || ($nextUnpaidRow && (int) $s->installment_no === (int) $nextUnpaidRow->installment_no));
-
+ 
+                $scheduleId = $scheduleIdByInstallment->get($s->installment_no);
+ 
                 return [
                     'month'      => $s->installment_no,
                     'due'        => $due,
@@ -1016,38 +1075,44 @@ class BorrowerController extends Controller
                             'reference_no' => $receipt->reference_no,
                         ]
                         : null,
+                    // Listahan ng recorded payments ng schedule row na ito
+                    'payments'   => $scheduleId ? $paymentsBySchedule->get($scheduleId, []) : [],
                 ];
             })->all();
-
+ 
             $totalCount = $realSchedule->count();
             $paidCount = $realSchedule->filter(fn($s) => !is_null($s->paid_at))->count();
             $amountCollected = (float) $realSchedule->sum('amount_paid');
             $remainingBalance = max(0, (float) $app->total_amount - $amountCollected);
-
+ 
             if ($nextUnpaidRow) {
                 $nextUnpaid = $nextUnpaidRow;
                 $isOverdue = Carbon::parse($nextUnpaidRow->due_date)->isPast();
             }
+        } elseif ($awaitingRelease) {
+            // Walang estimated schedule pag approved na pero hindi pa nare-release.
+            $paymentSchedule = [];
         } else {
+            // Pending / on hold / rejected: estimate lang (galing sa applied_at)
             $paymentSchedule = array_map(function ($row) {
                 $row['status'] = 'pending';
                 $row['can_upload'] = false;
                 $row['receipt'] = null;
                 $row['official_receipt_url'] = null;
                 $row['confirmation'] = null;
+                $row['payments'] = [];
                 return $row;
             }, $this->buildPaymentSchedule($app));
         }
-
+ 
         return view('borrower.loan-details', compact(
             'userName', 'initials', 'profilePicture', 'isFullyApproved', 'app', 'status', 'loanId', 'paymentSchedule',
             'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
             'headerNotifications', 'unreadNotifCount',
             'totalCount', 'paidCount', 'amountCollected', 'remainingBalance', 'nextUnpaid', 'isOverdue',
-            'loans', 'canUploadReceipts'
+            'loans', 'canUploadReceipts', 'awaitingRelease'
         ));
     }
-
     public function installmentReceipt($id)
     {
         $userId = Session::get('user_id');
@@ -1076,6 +1141,40 @@ class BorrowerController extends Controller
         }
     }
 
+    // BAGO: resibo ng isang recorded payment (ledger) — view o download (?download=1)
+    public function installmentPaymentReceipt(Request $request, $id)
+    {
+        $userId = Session::get('user_id');
+
+        // Sariling loan lang ng borrower ang pwedeng buksan, at hindi void.
+        $path = DB::table('installment_payments as ip')
+            ->join('loan_applications as la', 'ip.application_id', '=', 'la.application_id')
+            ->where('ip.id', $id)
+            ->where('la.user_id', $userId)
+            ->whereNull('ip.voided_at')
+            ->value('ip.receipt_path');
+
+        if (!$path) {
+            abort(404);
+        }
+
+        try {
+            $disk = Storage::disk('valid_ids');
+
+            if ($request->boolean('download')) {
+                $ext = pathinfo($path, PATHINFO_EXTENSION);
+                return $disk->download($path, 'payment-receipt-' . $id . ($ext ? '.' . $ext : ''), [
+                    'Cache-Control' => 'private, no-store',
+                ]);
+            }
+
+            return $disk->response($path, null, ['Cache-Control' => 'private, no-store']);
+        } catch (\Throwable $e) {
+            report($e);
+            abort(404);
+        }
+    }
+
     public function notifications(Request $request)
     {
         $userId = Session::get('user_id');
@@ -1088,7 +1187,7 @@ class BorrowerController extends Controller
 
         $app = DB::table('loan_applications')
             ->where('user_id', $userId)
-            ->where('status', 'approved')
+            ->whereIn('status', ['approved', 'active'])
             ->orderByDesc('applied_at')
             ->first();
 
@@ -1096,27 +1195,39 @@ class BorrowerController extends Controller
 
         if ($app) {
             $today = Carbon::today();
-            foreach ($this->buildPaymentSchedule($app) as $row) {
-                $daysUntilDue = $today->diffInDays($row['due'], false);
 
-                if ($daysUntilDue <= 14) {
-                    if ($daysUntilDue < 0) {
-                        $notifications[] = [
-                            'type'    => 'danger',
-                            'icon'    => 'feather-alert-circle',
-                            'title'   => 'Payment Overdue',
-                            'message' => 'Your payment of ₱' . number_format($row['amount'], 2) . ' was due on ' . $row['due']->format('F j, Y') . '.',
-                            'sort'    => $daysUntilDue,
-                        ];
-                    } else {
-                        $notifications[] = [
-                            'type'    => 'warning',
-                            'icon'    => 'feather-clock',
-                            'title'   => 'Upcoming Payment',
-                            'message' => 'Your payment of ₱' . number_format($row['amount'], 2) . ' is due on ' . $row['due']->format('F j, Y') . '.',
-                            'sort'    => $daysUntilDue,
-                        ];
-                    }
+            // Totoong schedule lang. Kung wala pa (hindi pa nare-release), walang lalabas.
+            $unpaidRows = DB::table('loan_payment_schedules')
+                ->where('application_id', $app->application_id)
+                ->whereNull('paid_at')
+                ->orderBy('installment_no')
+                ->get();
+
+            foreach ($unpaidRows as $row) {
+                $due = Carbon::parse($row->due_date);
+                $amount = (float) $row->amount_due;
+                $daysUntilDue = $today->diffInDays($due, false);
+
+                if ($daysUntilDue > 14) {
+                    continue;
+                }
+
+                if ($daysUntilDue < 0) {
+                    $notifications[] = [
+                        'type'    => 'danger',
+                        'icon'    => 'feather-alert-circle',
+                        'title'   => 'Payment Overdue',
+                        'message' => 'Your payment of ₱' . number_format($amount, 2) . ' was due on ' . $due->format('F j, Y') . '.',
+                        'sort'    => $daysUntilDue,
+                    ];
+                } else {
+                    $notifications[] = [
+                        'type'    => 'warning',
+                        'icon'    => 'feather-clock',
+                        'title'   => 'Upcoming Payment',
+                        'message' => 'Your payment of ₱' . number_format($amount, 2) . ' is due on ' . $due->format('F j, Y') . '.',
+                        'sort'    => $daysUntilDue,
+                    ];
                 }
             }
 
@@ -1134,9 +1245,8 @@ class BorrowerController extends Controller
     {
         $userId = Session::get('user_id');
 
-        // Isang query na lang (insertOrIgnore). Dati updateOrInsert = 2 queries
-        // (select tapos insert/update). Kung nasa read table na ang key, walang
-        // kailangang baguhin, kaya okay lang na i-ignore.
+        // Isang query na lang (insertOrIgnore). Kung nasa read table na ang key,
+        // walang kailangang baguhin, kaya okay lang na i-ignore.
         DB::table('borrower_notification_reads')->insertOrIgnore([
             'user_id'          => $userId,
             'notification_key' => $key,
@@ -1145,11 +1255,20 @@ class BorrowerController extends Controller
             'created_at'       => now(),
         ]);
 
-        // Naka-block ang "//evil.com" protocol-relative bypass.
-        $redirect = $request->query('redirect');
+        $redirect = (string) $request->query('redirect', '');
 
-        if ($redirect && str_starts_with($redirect, '/') && !str_starts_with($redirect, '//')) {
-            return redirect($redirect);
+        if ($redirect !== '') {
+            $parts = parse_url($redirect);
+
+            if ($parts !== false) {
+                $path = $parts['path'] ?? '/';
+
+                // Path at query lang ang kukunin. Ang host ay tinatapon.
+                // Naka-block pa rin ang "//evil.com" at mga path na hindi nagsisimula sa "/".
+                if (str_starts_with($path, '/') && !str_starts_with($path, '//')) {
+                    return redirect($path . (isset($parts['query']) ? '?' . $parts['query'] : ''));
+                }
+            }
         }
 
         return redirect()->route('borrower.dashboard');
@@ -1302,16 +1421,56 @@ class BorrowerController extends Controller
 
         $profileData = $profileRow ? (array) $profileRow : [];
 
-        // Loan History — lahat ng loan ng borrower, pinakabago sa taas.
-        // Dating nasa loanDetails() (galing sa RPC), dito direkta na.
         $loans = DB::table('loan_applications')
             ->where('user_id', $userId)
             ->select(
-                'application_id', 'loan_amount', 'loan_term',
-                'monthly_payment', 'total_amount', 'status', 'applied_at'
+                'application_id', 'uuid', 'loan_amount', 'loan_term',
+                'monthly_payment', 'total_amount', 'total_interest',
+                'status', 'applied_at', 'proof_sent_at'
             )
             ->orderByDesc('applied_at')
             ->get();
+
+        $schedulesByLoan = DB::table('loan_payment_schedules')
+            ->whereIn('application_id', $loans->pluck('application_id')->all())
+            ->orderBy('installment_no')
+            ->get()
+            ->groupBy('application_id');
+
+        $loans = $loans->map(function ($loan) use ($schedulesByLoan) {
+            $rows = $schedulesByLoan->get($loan->application_id, collect())->values();
+            $count = $rows->count();
+            $totalInterest = (float) ($loan->total_interest ?? 0);
+            $interestEach = $count > 0 ? round($totalInterest / $count, 2) : 0.0;
+            $interestUsed = 0.0;
+
+            $schedule = $rows->map(function ($s, $i) use ($count, $interestEach, $totalInterest, &$interestUsed) {
+                $interest = ($i === $count - 1)
+                    ? round($totalInterest - $interestUsed, 2)
+                    : $interestEach;
+                $interestUsed += $interest;
+
+                return (object) [
+                    'installment_no' => $s->installment_no,
+                    'due_date'       => $s->due_date,
+                    'amount_due'     => (float) $s->amount_due,
+                    'principal'      => round((float) $s->amount_due - $interest, 2),
+                    'interest'       => $interest,
+                    'paid_at'        => $s->paid_at,
+                ];
+            });
+
+            $nextUnpaid = $rows->first(fn ($s) => is_null($s->paid_at));
+
+            $loan->schedule = $schedule;
+            $loan->schedule_count = $count;
+            $loan->paid_count = $rows->filter(fn ($s) => !is_null($s->paid_at))->count();
+            $loan->amount_paid = (float) $rows->sum('amount_paid');
+            $loan->next_due_date = $nextUnpaid->due_date ?? null;
+            $loan->released_at = $loan->proof_sent_at;
+
+            return $loan;
+        });
 
         return view('borrower.profile', compact(
             'userName', 'initials', 'profilePicture', 'isFullyApproved', 'profileData',

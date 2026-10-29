@@ -42,6 +42,12 @@
 
         $rawLoanStatus = $isLoanApplicationsSection ? $viewStatus ?? 'pending' : null;
         $loanStatusTab = in_array($rawLoanStatus, ['approved', 'active'], true) ? 'approved' : $rawLoanStatus;
+
+        // "Needs Attention" = Pending list na naka-filter sa 3+ days (?filter=attention).
+        // Sa list page lang ito, hindi sa detail page.
+        $isAttentionTab = $currentRouteName === 'admin.loan-applications'
+            && $loanStatusTab === 'pending'
+            && request()->query('filter') === 'attention';
     @endphp
 
     <nav class="nxl-navigation">
@@ -93,14 +99,22 @@
                         <ul class="nxl-flat-submenu" id="nxlLoanSubmenu">
                             <li class="nxl-flat-sub-item">
                                 <a href="{{ route('admin.loan-applications') }}"
-                                    class="nxl-sublink {{ $loanStatusTab === 'pending' ? 'active' : '' }}">
+                                    class="nxl-sublink {{ $loanStatusTab === 'pending' && !$isAttentionTab ? 'active' : '' }}">
                                     <span class="nxl-sub-label">Pending Applications</span>
                                     @if (($pendingLoanCount ?? 0) > 0)
                                         <span class="nxl-badge-circle nxl-badge-sm">{{ $pendingLoanCount }}</span>
                                     @endif
                                 </a>
                             </li>
-                          
+                            <li class="nxl-flat-sub-item">
+                                <a href="{{ route('admin.loan-applications', ['filter' => 'attention']) }}"
+                                    class="nxl-sublink {{ $isAttentionTab ? 'active' : '' }}">
+                                    <span class="nxl-sub-label">Needs Attention</span>
+                                    @if (($needsAttentionCount ?? 0) > 0)
+                                        <span class="nxl-badge-circle nxl-badge-sm">{{ $needsAttentionCount }}</span>
+                                    @endif
+                                </a>
+                            </li>
                             <li class="nxl-flat-sub-item">
                                 <a href="{{ route('admin.loan-applications', ['status' => 'approved']) }}"
                                     class="nxl-sublink {{ $loanStatusTab === 'approved' ? 'active' : '' }}">
@@ -143,13 +157,7 @@
                             <span class="nxl-mtext">Completed Loans</span>
                         </a>
                     </li>
-                    <li class="nxl-item">
-                        <a href="{{ route('admin.defaulted-loans') }}"
-                            class="nxl-link {{ request()->routeIs('admin.defaulted-loans') ? 'active' : '' }}">
-                            <span class="nxl-micon"><i class="feather-x-circle"></i></span>
-                            <span class="nxl-mtext">Defaulted</span>
-                        </a>
-                    </li>
+                    
 
                     <li class="nxl-flat-label">Borrowers</li>
                     <li class="nxl-item">
