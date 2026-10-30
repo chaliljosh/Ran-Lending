@@ -157,6 +157,13 @@
                             <span class="nxl-mtext">Completed Loans</span>
                         </a>
                     </li>
+                    <li class="nxl-item">
+                        <a href="{{ route('admin.payment-methods') }}"
+                            class="nxl-link {{ request()->routeIs('admin.payment-methods*') ? 'active' : '' }}">
+                            <span class="nxl-micon"><i class="feather-credit-card"></i></span>
+                            <span class="nxl-mtext">Payment Methods</span>
+                        </a>
+                    </li>
                     
 
                     <li class="nxl-flat-label">Borrowers</li>

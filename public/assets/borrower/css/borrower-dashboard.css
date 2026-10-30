@@ -1803,3 +1803,162 @@ html.app-skin-dark .bwl-dash-journey-step.is-done .bwl-dash-journey-dot,
 html.app-skin-dark .bwl-dash-journey-step.is-current .bwl-dash-journey-dot { background: #F5F5F5; color: #0A0A0A; }
 html.app-skin-dark .bwl-dash-journey-line.is-done { background: #F5F5F5; }
 html.app-skin-dark .bwl-dash-activity-item { border-top-color: #262626; }
+
+/* ============================================================
+   LOAN ELIGIBILITY CARD (green, pill badges, icon stats)
+   Papalitan nito ang buong "-- Loan eligibility --" block
+   (.bwl-dash-elig ... .bwl-dash-elig-note) sa borrower-dashboard.css
+============================================================ */
+
+.bwl-dash-elig {
+    background: #ffffff !important;
+    border: 1px solid var(--bwl-dash-border) !important;
+    border-left: 5px solid var(--bwl-dash-green) !important;
+    border-radius: 16px !important;
+    box-shadow: var(--bwl-dash-shadow) !important;
+    padding: 24px 28px 26px;
+}
+
+.bwl-dash-elig-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+.bwl-dash-elig-eyebrow,
+.bwl-dash-elig-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 16px;
+    border-radius: 999px;
+    background: var(--bwl-dash-green-soft);
+    color: var(--bwl-dash-green);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    line-height: 1;
+}
+.bwl-dash-elig-badge { padding: 6px 16px 6px 8px; }
+.bwl-dash-elig-badge svg { flex-shrink: 0; }
+
+.bwl-dash-elig-title {
+    font-size: 1.45rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--bwl-dash-ink);
+    margin: 0 0 6px;
+}
+.bwl-dash-elig-sub {
+    font-size: 0.9rem;
+    color: var(--bwl-dash-gray);
+    margin: 0 0 24px;
+}
+
+.bwl-dash-elig-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--bwl-dash-border);
+}
+.bwl-dash-elig-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+}
+.bwl-dash-elig-stat-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.bwl-dash-elig-stat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bwl-dash-green-soft);
+    color: var(--bwl-dash-green);
+    font-size: 17px;
+}
+.bwl-dash-elig-stat-icon--peso {
+    font-size: 1.05rem;
+    font-weight: 800;
+    line-height: 1;
+}
+.bwl-dash-elig-stat-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--bwl-dash-gray);
+}
+.bwl-dash-elig-stat-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--bwl-dash-ink);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.15;
+}
+
+.bwl-dash-elig-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    height: 52px;
+    border-radius: 12px;
+    background: var(--bwl-dash-green);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    margin-bottom: 14px;
+    transition: background 0.15s ease;
+}
+.bwl-dash-elig-btn i {
+    font-size: 18px;
+    transition: transform 0.15s ease;
+}
+.bwl-dash-elig-btn:hover {
+    background: #15803D;
+    color: #fff;
+}
+.bwl-dash-elig-btn:hover i { transform: translateX(3px); }
+
+.bwl-dash-elig-note {
+    font-size: 0.8rem;
+    color: var(--bwl-dash-gray);
+    margin: 0;
+    line-height: 1.5;
+}
+
+@media (max-width: 575.98px) {
+    .bwl-dash-elig { padding: 20px 18px 22px; }
+    .bwl-dash-elig-stats { grid-template-columns: 1fr; gap: 18px; }
+    .bwl-dash-elig-title { font-size: 1.25rem; }
+}
+
+/* ---------- Dark mode (ito ang papalit sa dating .bwl-dash-elig dark rules) ---------- */
+html.app-skin-dark .bwl-dash-elig {
+    background: #141414 !important;
+    border-color: #262626 !important;
+    border-left-color: #22C55E !important;
+}
+html.app-skin-dark .bwl-dash-elig-eyebrow,
+html.app-skin-dark .bwl-dash-elig-badge,
+html.app-skin-dark .bwl-dash-elig-stat-icon {
+    background: rgba(34, 197, 94, 0.16);
+    color: #4ADE80;
+}
+html.app-skin-dark .bwl-dash-elig-btn { background: #16A34A; color: #fff; }
+html.app-skin-dark .bwl-dash-elig-btn:hover { background: #22C55E; color: #fff; }

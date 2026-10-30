@@ -8,6 +8,7 @@ use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\BorrowerController;
 use App\Http\Controllers\PaymentReceiptController;
+use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ZipcodeController;
 use App\Http\Controllers\BorrowerAccountController;
@@ -183,6 +184,24 @@ Route::middleware(['admin', 'no-cache', 'throttle:60,1'])->prefix('admin')->name
     Route::get('/ongoing-loan-detail/{id}', [AdminController::class, 'ongoingLoanDetail'])
         ->whereUuid('id')
         ->name('ongoing-loan-detail');
+
+    // Loans > Payment Methods (add / edit / activate / deactivate / delete)
+    Route::get('/payment-methods', [PaymentMethodController::class, 'index'])->name('payment-methods');
+    Route::post('/payment-methods', [PaymentMethodController::class, 'store'])->name('payment-methods.store');
+    Route::post('/payment-methods/{id}/update', [PaymentMethodController::class, 'update'])
+        ->whereNumber('id')
+        ->name('payment-methods.update');
+    Route::post('/payment-methods/{id}/toggle', [PaymentMethodController::class, 'toggle'])
+        ->whereNumber('id')
+        ->name('payment-methods.toggle');
+    Route::post('/payment-methods/{id}/delete', [PaymentMethodController::class, 'destroy'])
+        ->whereNumber('id')
+        ->name('payment-methods.destroy');
+
+    // Ongoing Loan Detail > Assigned Payment Method (assign / change)
+    Route::post('/loans/{uuid}/payment-method', [PaymentMethodController::class, 'assign'])
+        ->whereUuid('uuid')
+        ->name('loan-payment-method-assign');
 
     // Active Loans > Overdue Payments
     Route::get('/active-loans/overdue', [AdminController::class, 'overduePayments'])->name('overdue-payments');

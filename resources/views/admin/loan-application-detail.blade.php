@@ -308,7 +308,10 @@
                                     <div {!! $fld('primary_source', $work->primary_source ?? '', $sourceType, ['max' => 100]) !!}><span class="info-label">Primary Source of
                                             Funds</span><span class="info-value">{{ $w['primary_source'] }}</span>{!! $editNote('primary_source') !!}</div>
                                 </div>
-                                <div class="col-6">
+
+                                {{-- Other Sources of Income: lalabas lang kapag "Others" ang Primary Source.
+                                     Sa edit mode, laging may input para pwedeng punan kapag ginawang "Others". --}}
+                                <div class="col-6 {{ $w['show_other_sources'] ? '' : 'ld-edit-only' }}">
                                     <div {!! $fld('other_sources', $work->other_sources ?? '', 'text', ['max' => 255]) !!}><span class="info-label">Other Sources of
                                             Income</span><span class="info-value">{{ $w['other_sources'] }}</span>{!! $editNote('other_sources') !!}</div>
                                 </div>
@@ -340,6 +343,30 @@
                                         @endif
                                     @else
                                         <span class="info-value text-muted">No pay slip on file</span>
+                                    @endif
+                                </div>
+                            @endif
+
+                            {{-- Proof of Billing: Unemployed, Retired, at Others lang --}}
+                            @if ($w['show_billing'])
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold"
+                                        style="font-size:0.7rem; color:#8a9bb0; text-transform:uppercase; letter-spacing:0.4px;">Proof
+                                        of Billing</label><br>
+                                    @if (!empty($appDocs['billing']))
+                                        @if ($appDocs['billing']['is_image'])
+                                            <span class="id-thumb-wrap"
+                                                onclick="openIdViewer('{{ $appDocs['billing']['url'] }}')">
+                                                <img src="{{ $appDocs['billing']['url'] }}" alt="Proof of Billing">
+                                            </span>
+                                        @else
+                                            <a href="{{ $appDocs['billing']['url'] }}" target="_blank"
+                                                class="btn btn-sm btn-outline-primary">
+                                                <i class="feather-file me-1"></i> View Proof of Billing
+                                            </a>
+                                        @endif
+                                    @else
+                                        <span class="info-value text-muted">No proof of billing on file</span>
                                     @endif
                                 </div>
                             @endif

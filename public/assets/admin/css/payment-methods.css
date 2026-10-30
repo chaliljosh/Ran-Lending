@@ -1,0 +1,545 @@
+/* ============================================================
+   PAYMENT METHODS — admin page + Payment Account panel (Ongoing Loan Detail)
+   Used by: admin/payment-methods.blade.php
+            admin/partials/assigned-payment-method.blade.php
+   Typography, colors, buttons and modals follow ongoing-loan-detail.css.
+   ============================================================ */
+
+:root {
+    --pm-ink: #0f172a;
+    --pm-title: #1a2a3a;
+    --pm-body: #475569;
+    --pm-soft: #64748b;
+    --pm-muted: #94a3b8;
+    --pm-border: #e5e7eb;
+    --pm-line: #eef1f6;
+    --pm-line-soft: #f1f3f8;
+    --pm-dark: #1f2937;
+    --pm-dark-hover: #111827;
+    --pm-focus: #1e3a8a;
+    --pm-link: #4a7cf7;
+    --pm-brand: #4a7cf7;
+    --pm-brand-hover: #3a6ae0;
+    --pm-brand-soft: #eef3ff;
+    --pm-gray: #f3f4f6;
+    --pm-gray-hover: #e5e7eb;
+    --pm-green: #16a34a;
+    --pm-green-soft: #dcfce7;
+    --pm-red: #dc2626;
+    --pm-red-text: #b91c1c;
+    --pm-red-soft: #fee2e2;
+    --pm-red-border: #fecaca;
+}
+
+/* ---------- Page: footer stays at the bottom on short pages ---------- */
+/* CSS px: top bar 80 + page header ~66 + footer ~78 = ~224. Any leftover is white. */
+.pm-page { min-height: calc(100vh - 230px); }
+
+/* ---------- All-white page (light mode) ---------- */
+html:not(.app-skin-dark):has(.pm-page),
+html:not(.app-skin-dark):has(.pm-page) body,
+html:not(.app-skin-dark):has(.pm-page) .nxl-container,
+html:not(.app-skin-dark):has(.pm-page) .nxl-content,
+html:not(.app-skin-dark):has(.pm-page) .main-content,
+html:not(.app-skin-dark):has(.pm-page) .page-header,
+html:not(.app-skin-dark):has(.pm-page) .footer { background: #fff !important; }
+
+/* ---------- Buttons (same family as Record Payment / View Receipt) ---------- */
+.pm-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px 18px;
+    border-radius: 10px;
+    border: 1px solid var(--pm-border);
+    background: var(--pm-gray);
+    color: var(--pm-dark);
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    text-transform: none;
+    cursor: pointer;
+    transition: all .15s ease;
+}
+.pm-btn:hover { background: var(--pm-brand-soft); border-color: var(--pm-brand); color: var(--pm-brand); }
+.pm-btn:disabled { opacity: .6; cursor: not-allowed; }
+.pm-btn:disabled:hover { background: var(--pm-gray); border-color: var(--pm-border); color: var(--pm-dark); }
+
+.pm-btn-primary { background: var(--pm-brand); border-color: var(--pm-brand); color: #fff; }
+.pm-btn-primary:hover { background: var(--pm-brand-hover); border-color: var(--pm-brand-hover); color: #fff; }
+.pm-btn-primary:disabled:hover { background: var(--pm-brand); border-color: var(--pm-brand); color: #fff; }
+
+.pm-btn-danger { background: #fff; color: var(--pm-red); border-color: var(--pm-red-border); }
+.pm-btn-danger:hover { background: var(--pm-red-soft); border-color: var(--pm-red-border); color: var(--pm-red-text); }
+
+.pm-btn-danger-solid { background: var(--pm-red); border-color: var(--pm-red); color: #fff; }
+.pm-btn-danger-solid:hover { background: var(--pm-red-text); border-color: var(--pm-red-text); color: #fff; }
+
+.pm-btn-sm { padding: 7px 14px; font-size: 0.78rem; }
+
+/* ---------- Panel (same look as the Payment Schedule panel) ---------- */
+.pm-panel {
+    background: #fff;
+    border: 1px solid var(--pm-border);
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
+    overflow: hidden;
+}
+.pm-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 22px 24px;
+    border-bottom: 1px solid var(--pm-line);
+}
+.pm-panel-title { font-size: 1.02rem; font-weight: 700; color: var(--pm-title); }
+.pm-panel-sub { margin-top: 2px; font-size: 0.8rem; color: var(--pm-muted); }
+.pm-count-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: 1px solid var(--pm-border);
+    border-radius: 10px;
+    background: #fff;
+    font-size: 0.82rem;
+    color: var(--pm-body);
+}
+.pm-count-pill i { color: var(--pm-link); }
+.pm-count-pill strong { color: var(--pm-title); }
+.pm-panel-body { padding: 22px 24px; }
+
+/* ---------- Account list ---------- */
+.pm-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+    gap: 16px;
+}
+@media (max-width: 520px) { .pm-list { grid-template-columns: 1fr; } }
+
+.pm-item {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--pm-border);
+    border-radius: 12px;
+    background: #fff;
+    padding: 16px 18px;
+}
+.pm-item-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+.pm-item-provider {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--pm-ink);
+}
+.pm-item.is-inactive .pm-item-provider,
+.pm-item.is-inactive .pm-item-field span { color: var(--pm-soft); }
+
+/* ---------- Bank / e-wallet logos ---------- */
+.pm-logo {
+    flex: 0 0 auto;
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border: 1px solid var(--pm-border);
+    border-radius: 10px;
+    background: #fff;           /* stays white in dark mode so logos remain visible */
+    overflow: hidden;
+}
+.pm-logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.pm-logo-fallback {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--pm-brand);
+    letter-spacing: .02em;
+}
+.pm-select-row { display: flex; align-items: center; gap: 10px; }
+.pm-select-row .pm-input { flex: 1 1 auto; width: auto; }
+.pm-select-row .pm-logo { width: 44px; height: 44px; }
+.pm-logo > i { font-size: 1.1rem; color: var(--pm-muted); }
+.pm-item.is-inactive .pm-logo img { filter: grayscale(1); opacity: .6; }
+
+.pm-item-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.2fr) minmax(0, .6fr);
+    gap: 14px 18px;
+}
+@media (max-width: 575.98px) { .pm-item-grid { grid-template-columns: 1fr; } }
+.pm-item-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.pm-item-field label { margin: 0; font-size: 0.72rem; font-weight: 600; color: var(--pm-muted); }
+.pm-item-field span { font-size: 0.92rem; font-weight: 600; color: var(--pm-ink); overflow-wrap: anywhere; }
+
+.pm-item-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--pm-line-soft);
+}
+
+.pm-mono { font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+
+/* ---------- Status pills (same as Paid / Pending pills) ---------- */
+.pm-pill {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.pm-pill.is-active   { background: var(--pm-green-soft); color: var(--pm-green); }
+.pm-pill.is-inactive { background: var(--pm-gray); color: var(--pm-soft); }
+
+/* ---------- Empty state ---------- */
+.pm-empty {
+    padding: 40px 20px;
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--pm-muted);
+    border: 1px dashed var(--pm-border);
+    border-radius: 12px;
+    background: #fbfcfe;
+}
+.pm-empty strong { display: block; margin-bottom: 4px; font-size: 0.95rem; color: var(--pm-title); }
+
+/* ---------- Forms (same as .ols-input / .ols-field-label) ---------- */
+.pm-field { margin-bottom: 16px; }
+.pm-label { display: block; margin-bottom: 6px; font-size: 0.78rem; font-weight: 600; color: var(--pm-body); }
+.pm-req { color: var(--pm-red); }
+.pm-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--pm-border);
+    border-radius: 10px;
+    background: #fff;
+    font-family: inherit;
+    font-size: 0.85rem;
+    color: var(--pm-title);
+    outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+.pm-input:focus { border-color: var(--pm-focus); box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.12); }
+.pm-hint { margin-top: 5px; font-size: 0.72rem; color: var(--pm-muted); }
+.pm-error {
+    margin-top: 14px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    background: var(--pm-red-soft);
+    color: var(--pm-red-text);
+    font-size: 0.78rem;
+    text-align: left;
+}
+.pm-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+@media (max-width: 575.98px) { .pm-grid-2 { grid-template-columns: 1fr; } }
+
+/* ---------- Modals (same as .ols-details-modal) ---------- */
+.pm-modal .modal-content {
+    background: #fff;
+    border: 1px solid var(--pm-border);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+    overflow: hidden;
+}
+.pm-modal .modal-header { padding: 18px 24px 14px; border-bottom: 1px solid var(--pm-line); }
+.pm-modal .modal-title { font-size: 1rem; font-weight: 700; color: var(--pm-title); }
+.pm-modal .modal-body { padding: 20px 24px 8px; }
+.pm-modal .modal-footer { padding: 12px 24px; border-top: 1px solid var(--pm-line); gap: 8px; }
+.pm-confirm-text { margin: 0 0 12px; font-size: 0.85rem; line-height: 1.55; color: var(--pm-soft); }
+
+/* ---------- Payment Account for this Loan (Ongoing Loan Detail) ---------- */
+.pm-assign-panel { margin-bottom: 20px; }
+.pm-assign-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: 22px;
+    align-items: start;
+}
+@media (max-width: 991.98px) { .pm-assign-body { grid-template-columns: 1fr; } }
+
+.pm-assigned-box {
+    border: 1px solid var(--pm-border);
+    border-radius: 12px;
+    background: #fff;
+    padding: 16px 18px;
+}
+.pm-assigned-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+.pm-assigned-brand { display: inline-flex; align-items: center; gap: 12px; min-width: 0; }
+.pm-assigned-provider { font-size: 1.05rem; font-weight: 600; color: var(--pm-ink); }
+.pm-assigned-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 18px; }
+@media (max-width: 575.98px) { .pm-assigned-grid { grid-template-columns: 1fr; } }
+.pm-assigned-item { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.pm-assigned-item label { margin: 0; font-size: 0.72rem; font-weight: 600; color: var(--pm-muted); }
+.pm-assigned-item span { font-size: 0.92rem; font-weight: 600; color: var(--pm-ink); overflow-wrap: anywhere; }
+
+.pm-none-box {
+    border: 1px dashed var(--pm-border);
+    border-radius: 12px;
+    background: #fbfcfe;
+    padding: 22px 18px;
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--pm-muted);
+}
+
+.pm-assign-form .pm-label { margin-bottom: 8px; }
+.pm-assign-form .pm-btn { width: 100%; margin-top: 10px; }
+.pm-assign-feedback { margin-top: 10px; font-size: 0.78rem; }
+.pm-assign-feedback.is-ok  { color: #15803d; }
+.pm-assign-feedback.is-err { color: var(--pm-red-text); }
+.pm-assign-note { margin-top: 10px; font-size: 0.75rem; line-height: 1.5; color: var(--pm-muted); }
+.pm-assign-note a { color: var(--pm-link); text-decoration: none; font-weight: 600; }
+.pm-assign-note a:hover { text-decoration: underline; }
+
+/* ---------- Loader + success modal ---------- */
+.pm-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, .4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    display: inline-block;
+    animation: pm-spin .7s linear infinite;
+}
+@keyframes pm-spin { to { transform: rotate(360deg); } }
+
+.pm-success-modal .modal-dialog { max-width: 420px; }
+.pm-success-modal .modal-content { border-radius: 20px; }
+.pm-success-body { text-align: center; padding: 32px 28px 28px !important; }
+.pm-success-icon {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    background: var(--pm-green-soft);
+    color: var(--pm-green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+}
+.pm-success-title { font-size: 1.25rem; font-weight: 700; color: var(--pm-title); margin-bottom: 8px; }
+.pm-success-text { margin: 0 auto 20px; max-width: 320px; font-size: 0.88rem; line-height: 1.55; color: var(--pm-soft); }
+
+.pm-success-details {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding: 18px 20px;
+    border-radius: 14px;
+    background: #f8fafc;
+    border: 1px solid var(--pm-line);
+    text-align: left;
+}
+.pm-success-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.pm-success-row label {
+    margin: 0;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--pm-soft);
+}
+.pm-success-row strong { font-size: 0.98rem; font-weight: 700; color: var(--pm-ink); text-align: right; overflow-wrap: anywhere; }
+.pm-pill.is-deleted { background: var(--pm-red-soft); color: var(--pm-red-text); }
+
+.pm-success-done {
+    display: block;
+    width: 100%;
+    padding: 14px 18px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--pm-brand);
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .15s ease;
+}
+.pm-success-done:hover { background: var(--pm-brand-hover); }
+
+/* ---------- Custom dropdown with bank logos (Payment Account for this Loan) ---------- */
+.pm-assign-panel { overflow: visible; }
+.pm-native-hidden { display: none !important; }
+.pm-dd { position: relative; }
+.pm-dd-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 6px 12px;
+    text-align: left;
+    cursor: pointer;
+}
+.pm-dd-toggle:disabled { opacity: .6; cursor: not-allowed; }
+.pm-dd-current { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 10px; overflow: hidden; }
+.pm-dd-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; color: var(--pm-ink); }
+.pm-dd-placeholder { color: var(--pm-muted); }
+.pm-dd-caret { flex: 0 0 auto; color: var(--pm-muted); transition: transform .15s ease; }
+.pm-dd-toggle[aria-expanded="true"] .pm-dd-caret { transform: rotate(180deg); }
+.pm-dd .pm-logo { width: 34px; height: 34px; padding: 3px; border-radius: 9px; }
+
+.pm-dd-menu {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 6px);
+    z-index: 30;
+    margin: 0;
+    padding: 6px;
+    list-style: none;
+    max-height: 290px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid var(--pm-border);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+}
+.pm-dd-menu[hidden] { display: none; }
+.pm-dd-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+.pm-dd-option:hover, .pm-dd-option:focus { background: var(--pm-brand-soft); outline: none; }
+.pm-dd-option.is-selected { background: var(--pm-brand-soft); }
+.pm-dd-text { display: flex; flex-direction: column; min-width: 0; }
+.pm-dd-text strong { font-size: 0.88rem; font-weight: 600; color: var(--pm-ink); }
+.pm-dd-text small { font-size: 0.75rem; color: var(--pm-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.pm-confirm-account {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 12px;
+    padding: 14px 16px;
+    border: 1px solid var(--pm-line);
+    border-radius: 12px;
+    background: #f8fafc;
+}
+.pm-confirm-account .pm-logo { width: 44px; height: 44px; }
+.pm-confirm-account-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pm-confirm-account-text strong { font-size: 0.98rem; font-weight: 700; color: var(--pm-ink); }
+.pm-confirm-account-text span { font-size: 0.82rem; color: var(--pm-soft); overflow-wrap: anywhere; }
+
+@media (prefers-reduced-motion: reduce) {
+    .pm-btn, .pm-input { transition: none; }
+    .pm-spinner { animation-duration: 1.6s; }
+}
+
+/* ============================================================
+   DARK MODE (same palette as ongoing-loan-detail.css)
+   ============================================================ */
+html.app-skin-dark:has(.pm-page) .nxl-content { background: #0A0A0A !important; }
+
+html.app-skin-dark .pm-panel,
+html.app-skin-dark .pm-item,
+html.app-skin-dark .pm-assigned-box { background: #141414 !important; border-color: #262626 !important; }
+html.app-skin-dark .pm-item.is-inactive { background: #0d0d0d !important; }
+html.app-skin-dark .pm-panel-header { border-color: #262626 !important; }
+html.app-skin-dark .pm-item-actions { border-color: #262626 !important; }
+
+html.app-skin-dark .pm-panel-title,
+html.app-skin-dark .pm-item-provider,
+html.app-skin-dark .pm-item-field span,
+html.app-skin-dark .pm-assigned-provider,
+html.app-skin-dark .pm-assigned-item span { color: #F5F5F5 !important; }
+html.app-skin-dark .pm-item.is-inactive .pm-item-provider,
+html.app-skin-dark .pm-item.is-inactive .pm-item-field span { color: #9A9A9A !important; }
+html.app-skin-dark .pm-panel-sub,
+html.app-skin-dark .pm-item-field label,
+html.app-skin-dark .pm-assigned-item label,
+html.app-skin-dark .pm-hint { color: #9A9A9A !important; }
+html.app-skin-dark .pm-label { color: #C4C4C4 !important; }
+html.app-skin-dark .pm-confirm-text { color: #9A9A9A !important; }
+
+html.app-skin-dark .pm-count-pill { background: #0d0d0d !important; border-color: #262626 !important; color: #C4C4C4 !important; }
+html.app-skin-dark .pm-count-pill i { color: #C4C4C4 !important; }
+html.app-skin-dark .pm-count-pill strong { color: #F5F5F5 !important; }
+
+html.app-skin-dark .pm-btn { background: #0d0d0d !important; border-color: #262626 !important; color: #F5F5F5 !important; }
+html.app-skin-dark .pm-btn:hover { background: #262626 !important; border-color: #4a4a4a !important; }
+html.app-skin-dark .pm-btn-primary { background: var(--pm-brand) !important; border-color: var(--pm-brand) !important; color: #fff !important; }
+html.app-skin-dark .pm-btn-primary:hover { background: var(--pm-brand-hover) !important; border-color: var(--pm-brand-hover) !important; color: #fff !important; }
+html.app-skin-dark .pm-btn-danger { color: #f87171 !important; border-color: rgba(220, 38, 38, .35) !important; }
+html.app-skin-dark .pm-btn-danger:hover { background: rgba(220, 38, 38, .18) !important; }
+html.app-skin-dark .pm-btn-danger-solid { background: #b91c1c !important; border-color: #b91c1c !important; color: #fff !important; }
+html.app-skin-dark .pm-btn-danger-solid:hover { background: #991b1b !important; border-color: #991b1b !important; }
+
+html.app-skin-dark .pm-input { background: #0d0d0d !important; border-color: #262626 !important; color: #F5F5F5 !important; color-scheme: dark; }
+html.app-skin-dark .pm-input:focus { border-color: #4a4a4a !important; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06) !important; }
+
+html.app-skin-dark .pm-pill.is-active { background: rgba(22, 163, 74, .18) !important; color: #4ade80 !important; }
+html.app-skin-dark .pm-pill.is-inactive { background: rgba(148, 163, 184, .15) !important; color: #cbd5e1 !important; }
+html.app-skin-dark .pm-error { background: rgba(220, 38, 38, .18) !important; color: #f87171 !important; }
+
+html.app-skin-dark .pm-none-box,
+html.app-skin-dark .pm-empty { background: #0d0d0d !important; border-color: #262626 !important; color: #9A9A9A !important; }
+html.app-skin-dark .pm-empty strong { color: #F5F5F5 !important; }
+
+html.app-skin-dark .pm-modal .modal-content { background: #141414 !important; border-color: #262626 !important; }
+html.app-skin-dark .pm-modal .modal-header,
+html.app-skin-dark .pm-modal .modal-footer { border-color: #262626 !important; }
+html.app-skin-dark .pm-modal .modal-title { color: #F5F5F5 !important; }
+html.app-skin-dark .pm-modal .btn-close { filter: invert(1) grayscale(1); }
+html.app-skin-dark .pm-assign-feedback.is-ok { color: #4ade80 !important; }
+html.app-skin-dark .pm-assign-feedback.is-err { color: #f87171 !important; }
+html.app-skin-dark .pm-assign-note a { color: #9db8ff !important; }
+
+/* Logo box stays white in dark mode so the logos remain visible */
+html.app-skin-dark .pm-logo { background: #fff !important; border-color: #262626 !important; }
+
+html.app-skin-dark .pm-success-icon { background: rgba(22, 163, 74, .18) !important; color: #4ade80 !important; }
+html.app-skin-dark .pm-success-title { color: #F5F5F5 !important; }
+html.app-skin-dark .pm-success-text { color: #9A9A9A !important; }
+html.app-skin-dark .pm-logo > i { color: #94a3b8 !important; }
+
+html.app-skin-dark .pm-success-details { background: #0d0d0d !important; border-color: #262626 !important; }
+html.app-skin-dark .pm-success-row label { color: #9A9A9A !important; }
+html.app-skin-dark .pm-success-row strong { color: #F5F5F5 !important; }
+html.app-skin-dark .pm-pill.is-deleted { background: rgba(220, 38, 38, .18) !important; color: #f87171 !important; }
+html.app-skin-dark .pm-success-done { background: var(--pm-brand) !important; color: #fff !important; }
+html.app-skin-dark .pm-success-done:hover { background: var(--pm-brand-hover) !important; }
+
+html.app-skin-dark .pm-dd-menu { background: #141414 !important; border-color: #262626 !important; box-shadow: 0 10px 30px rgba(0, 0, 0, .5); }
+html.app-skin-dark .pm-dd-option:hover,
+html.app-skin-dark .pm-dd-option:focus,
+html.app-skin-dark .pm-dd-option.is-selected { background: #262626 !important; }
+html.app-skin-dark .pm-dd-text strong,
+html.app-skin-dark .pm-dd-label { color: #F5F5F5 !important; }
+html.app-skin-dark .pm-dd-text small,
+html.app-skin-dark .pm-dd-placeholder,
+html.app-skin-dark .pm-dd-caret { color: #9A9A9A !important; }
+
+html.app-skin-dark .pm-confirm-account { background: #0d0d0d !important; border-color: #262626 !important; }
+html.app-skin-dark .pm-confirm-account-text strong { color: #F5F5F5 !important; }
+html.app-skin-dark .pm-confirm-account-text span { color: #9A9A9A !important; }

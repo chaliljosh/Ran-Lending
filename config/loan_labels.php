@@ -71,6 +71,7 @@ return [
         'remittance'         => 'Remittance',
         'odd_jobs'           => 'Part-time / Odd Jobs',
         'rental_investments' => 'Rental / Investments',
+        'others'             => 'Others',
     ],
 
     'years_in_company' => [

@@ -42,7 +42,7 @@
     line-height: 1.3;
 }
 
-/* ---------- Status pill (walang bullet na tuldok) ---------- */
+/* ---------- Status pill ---------- */
 .bwl-ld-status {
     display: inline-flex;
     align-items: center;
@@ -165,9 +165,7 @@
     color: #fff;
 }
 
-/* ---------- Stat grid (Loan Summary numbers) ----------
-   Isang grid na lang. Kusang nag-aadjust ang bilang ng columns
-   (5 o 6 na cards), kaya walang bakanteng espasyo. */
+/* ---------- Stat grid (Loan Summary numbers) ---------- */
 .bwl-ld-stat-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -216,13 +214,13 @@
     margin-bottom: 20px;
 }
 .bwl-ld-card-header {
-    padding: 18px 22px;
+    padding: 20px 22px;
     border-bottom: 1px solid #e5e7eb;
 }
 .bwl-ld-card-header h6 {
     margin: 0;
-    font-weight: 600;
-    font-size: 0.95rem;
+    font-weight: 700;
+    font-size: 1.15rem;
     color: #0f172a;
 }
 .bwl-ld-card-body {
@@ -235,19 +233,21 @@
 }
 
 /* ---------- Payment schedule / history table ---------- */
+/* Header: gray na band */
 .bwl-ld-table thead th {
     font-size: 0.72rem;
-    font-weight: 600;
-    color: #8a9bb0;
+    font-weight: 700;
+    color: #475569;
     text-transform: uppercase;
     letter-spacing: 0.4px;
-    border-bottom: 1px solid #e5e7eb;
-    padding: 10px 12px;
+    background-color: #f8fafc !important;
+    border-bottom: none;
+    padding: 14px 12px;
 }
 .bwl-ld-table tbody td {
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     color: #1a2a3a;
-    padding: 12px;
+    padding: 16px 12px;
     border-bottom: 1px solid #f1f5f9;
     vertical-align: middle;
 }
@@ -255,7 +255,7 @@
     border-bottom: none;
 }
 .bwl-ld-cell-strong {
-    font-weight: 600;
+    font-weight: 700;
 }
 
 /* Clickable rows in the Loan History table */
@@ -320,11 +320,10 @@
     font-weight: 600;
 }
 
-/* ---------- Payment progress (Payment Schedule footer) ---------- */
+/* ---------- Payment progress (Payment Schedule) ---------- */
 .bwl-ld-progress {
     margin: 0 0 18px;
-    padding-bottom: 18px;
-    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 4px;
 }
 .bwl-ld-progress__head {
     display: flex;
@@ -336,13 +335,13 @@
 }
 .bwl-ld-progress__label {
     font-size: 0.75rem;
-    font-weight: 600;
-    color: #8a9bb0;
+    font-weight: 700;
+    color: #475569;
     text-transform: uppercase;
     letter-spacing: 0.4px;
 }
 .bwl-ld-progress__value {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 600;
     color: #0f172a;
 }
@@ -363,9 +362,9 @@
     background: #16a34a;
 }
 .bwl-ld-progress__note {
-    margin: 10px 0 0;
-    font-size: 0.78rem;
-    color: #8a9bb0;
+    margin: 12px 0 0;
+    font-size: 0.82rem;
+    color: #64748b;
 }
 @media (prefers-reduced-motion: reduce) {
     .bwl-ld-progress__bar { transition: none; }
@@ -661,7 +660,6 @@ html.app-skin-dark .bwl-ld-info-sub.is-danger { color: #F87171; }
 
 /* ---------- Borders / dividers ---------- */
 html.app-skin-dark .bwl-ld-card-header,
-html.app-skin-dark .bwl-ld-table thead th,
 html.app-skin-dark .bwl-ld-table tbody td,
 html.app-skin-dark .bwl-ld-timeline-item:not(:last-child)::before {
     border-color: #262626;
@@ -688,7 +686,6 @@ html.app-skin-dark .bwl-ld-tab.is-active .bwl-ld-tab__count {
 /* ---------- Stat value colors + payment progress ---------- */
 html.app-skin-dark .bwl-ld-stat-value.is-danger  { color: #F87171; }
 html.app-skin-dark .bwl-ld-stat-value.is-success { color: #4ADE80; }
-html.app-skin-dark .bwl-ld-progress { border-bottom-color: #262626; }
 html.app-skin-dark .bwl-ld-progress__label,
 html.app-skin-dark .bwl-ld-progress__note { color: #9A9A9A; }
 html.app-skin-dark .bwl-ld-progress__value { color: #F5F5F5; }
@@ -723,6 +720,8 @@ html.app-skin-dark .bwl-ld-table > :not(caption) > * > * {
     box-shadow: none !important;
 }
 html.app-skin-dark .bwl-ld-table tbody tr:hover > * { background-color: #1C1C1C !important; }
+/* Header band sa dark mode (dapat nasa ibaba ng reset sa taas) */
+html.app-skin-dark .bwl-ld-table thead th { background-color: #0d0d0d !important; }
 
 /* ---------- Status pills (dark tints, bright text) ---------- */
 html.app-skin-dark .bwl-ld-status.bg-warning {
@@ -853,42 +852,382 @@ html.app-skin-dark .ols-rv-modal .modal-footer { border-color: #262626 !importan
 html.app-skin-dark .ols-rv-body { background: #0d0d0d !important; }
 html.app-skin-dark .ols-rv-body img { border-color: #262626 !important; }
 
-/* ============================================================
-   Payment Details button (Action column, paid rows)
-   ============================================================ */
-.bwl-ld-btn-details {
+/* ══════════════════════════════════════════════════════════════
+   PAYMENT SCHEDULE — ACTION MENU (3 dots)
+   ------------------------------------------------------------
+   Isang 3-dots button sa bawat row. Bubukas ang menu na may
+   Upload / View Receipt / Payment Details.
+   ══════════════════════════════════════════════════════════════ */
+
+.bwl-ld-table .bwl-ld-th-action,
+.bwl-ld-table .bwl-ld-action-cell {
+    text-align: right;
+}
+
+/* Upload button + 3-dots magkatabi, nasa kanan */
+.bwl-ld-table .bwl-ld-action-cell .bwl-ld-action-group {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+.bwl-ld-table .bwl-ld-action-cell .bwl-ld-upload-btn,
+.bwl-ld-table .bwl-ld-action-cell .bwl-ld-link-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    height: 34px;
-    padding: 0 16px;
+    justify-content: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 18px;
     border-radius: 999px;
-    border: 1px solid #e5e7eb;
-    background: #fff;
-    color: #0f172a;
+    background: #fff !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #0f172a !important;
     font-family: inherit;
-    font-size: 0.82rem;
+    font-size: 0.85rem;
     font-weight: 600;
+    line-height: 1;
     white-space: nowrap;
     cursor: pointer;
-    transition: border-color .15s ease, color .15s ease, background .15s ease;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
 }
-.bwl-ld-btn-details:hover {
-    border-color: #2563eb;
-    color: #2563eb;
-    background: #eff6ff;
+.bwl-ld-table .bwl-ld-action-cell .bwl-ld-upload-btn i,
+.bwl-ld-table .bwl-ld-action-cell .bwl-ld-link-btn i {
+    font-size: 16px;
+    line-height: 1;
 }
-.bwl-ld-btn-details:focus-visible {
-    outline: 2px solid #2563eb;
+.bwl-ld-table .bwl-ld-action-cell .bwl-ld-upload-btn:hover,
+.bwl-ld-table .bwl-ld-action-cell .bwl-ld-link-btn:hover {
+    background: #eff6ff !important;
+    border-color: #2563eb !important;
+    color: #2563eb !important;
+}
+.bwl-ld-table .bwl-ld-action-cell .bwl-ld-upload-btn:focus-visible,
+.bwl-ld-table .bwl-ld-action-cell .bwl-ld-link-btn:focus-visible {
+    outline: 2px solid #93c5fd;
     outline-offset: 2px;
 }
-html.app-skin-dark .bwl-ld-btn-details {
-    background: #141414;
+html.app-skin-dark .bwl-ld-table .bwl-ld-action-cell .bwl-ld-upload-btn,
+html.app-skin-dark .bwl-ld-table .bwl-ld-action-cell .bwl-ld-link-btn {
+    background: transparent !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .bwl-ld-table .bwl-ld-action-cell .bwl-ld-upload-btn:hover,
+html.app-skin-dark .bwl-ld-table .bwl-ld-action-cell .bwl-ld-link-btn:hover {
+    background: rgba(37, 99, 235, 0.14) !important;
+    border-color: #60A5FA !important;
+    color: #60A5FA !important;
+}
+
+.bwl-ld-dots {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    color: #475569;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+.bwl-ld-dots:hover,
+.bwl-ld-dots.show {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #0f172a;
+}
+.bwl-ld-dots:focus-visible {
+    outline: 2px solid #93c5fd;
+    outline-offset: 2px;
+}
+
+.bwl-ld-menu-list {
+    min-width: 200px;
+    padding: 6px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.14);
+    text-align: left;
+}
+.bwl-ld-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: #0f172a;
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.bwl-ld-menu-item i {
+    font-size: 16px;
+    color: #64748b;
+}
+.bwl-ld-menu-item:hover,
+.bwl-ld-menu-item:focus {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+/* ---------- Dark mode ---------- */
+html.app-skin-dark .bwl-ld-dots {
+    background: transparent;
     border-color: #262626;
+    color: #9A9A9A;
+}
+html.app-skin-dark .bwl-ld-dots:hover,
+html.app-skin-dark .bwl-ld-dots.show {
+    background: #1C1C1C;
+    border-color: #404040;
     color: #F5F5F5;
 }
-html.app-skin-dark .bwl-ld-btn-details:hover {
-    background: rgba(37, 99, 235, 0.14);
-    border-color: #60A5FA;
-    color: #60A5FA;
+html.app-skin-dark .bwl-ld-menu-list {
+    background: #141414;
+    border-color: #262626;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
 }
+html.app-skin-dark .bwl-ld-menu-item { color: #F5F5F5; }
+html.app-skin-dark .bwl-ld-menu-item i { color: #9A9A9A; }
+html.app-skin-dark .bwl-ld-menu-item:hover,
+html.app-skin-dark .bwl-ld-menu-item:focus {
+    background: #1C1C1C;
+    color: #F5F5F5;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   REJECTED ROW
+   ------------------------------------------------------------
+   - Pink na row na may red na linya sa kaliwa
+   - "Rejected" pill sa tabi ng Date Paid
+   - Extra row sa ilalim: previous receipt + reason for rejection
+   ══════════════════════════════════════════════════════════════ */
+
+
+/* Pink background + red na linya sa kaliwa */
+.bwl-ld-table tbody tr.is-rejected > td,
+.bwl-ld-table tbody tr.bwl-ld-reject-row > td {
+    background-color: #fef2f2 !important;
+}
+.bwl-ld-table tbody tr.is-rejected > td {
+    border-bottom: none;
+}
+.bwl-ld-table tbody tr.is-rejected > td:first-child,
+.bwl-ld-table tbody tr.bwl-ld-reject-row > td:first-child {
+    border-left: 4px solid #dc2626;
+}
+
+/* Extra row (reason) */
+.bwl-ld-table tbody tr.bwl-ld-reject-row > td {
+    padding: 0 12px 16px;
+    border-bottom: 1px solid #f1f5f9;
+}
+.bwl-ld-reject-panel {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 16px 18px;
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.5);
+}
+.bwl-ld-reject-file {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: none;
+    min-width: 220px;
+}
+.bwl-ld-reject-thumb {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 54px;
+    border-radius: 10px;
+    background: #e8edf3;
+    color: #0f172a;
+    font-size: 22px;
+    flex: none;
+}
+.bwl-ld-reject-file-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+.bwl-ld-reject-file-sub {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+.bwl-ld-reject-tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: #fee2e2;
+    color: #dc2626;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.bwl-ld-reject-reason {
+    flex: 1;
+    min-width: 0;
+    padding-left: 24px;
+    border-left: 1px solid #fecaca;
+}
+.bwl-ld-reject-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 4px;
+}
+.bwl-ld-reject-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #0f172a;
+    word-break: break-word;
+}
+.bwl-ld-reject-hint {
+    font-size: 0.82rem;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+@media (max-width: 767.98px) {
+    .bwl-ld-reject-panel { flex-direction: column; align-items: flex-start; gap: 14px; }
+    .bwl-ld-reject-reason { padding-left: 0; border-left: none; border-top: 1px solid #fecaca; padding-top: 14px; width: 100%; }
+}
+
+/* ---------- Dark mode: rejected row ---------- */
+html.app-skin-dark .bwl-ld-table tbody tr.is-rejected > td,
+html.app-skin-dark .bwl-ld-table tbody tr.bwl-ld-reject-row > td {
+    background-color: rgba(220, 38, 38, 0.08) !important;
+}
+html.app-skin-dark .bwl-ld-table tbody tr.is-rejected > td:first-child,
+html.app-skin-dark .bwl-ld-table tbody tr.bwl-ld-reject-row > td:first-child {
+    border-left: 4px solid #dc2626;
+}
+html.app-skin-dark .bwl-ld-reject-tag {
+    background: rgba(220, 38, 38, 0.16);
+    color: #F87171;
+}
+html.app-skin-dark .bwl-ld-reject-panel {
+    background: rgba(0, 0, 0, 0.25);
+    border-color: rgba(220, 38, 38, 0.3);
+}
+html.app-skin-dark .bwl-ld-reject-thumb {
+    background: #1C1C1C;
+    color: #F5F5F5;
+}
+html.app-skin-dark .bwl-ld-reject-reason { border-color: rgba(220, 38, 38, 0.3); }
+html.app-skin-dark .bwl-ld-reject-file-title,
+html.app-skin-dark .bwl-ld-reject-title { color: #F5F5F5; }
+html.app-skin-dark .bwl-ld-reject-file-sub,
+html.app-skin-dark .bwl-ld-reject-hint,
+html.app-skin-dark .bwl-ld-reject-label { color: #9A9A9A; }
+
+
+/* ══════════════════════════════════════════════════════════════
+   PAYMENT SCHEDULE — TABLE DESIGN (#, Due Date, Amount Due,
+   Amount Paid, Paid On, Status, Actions)
+   ══════════════════════════════════════════════════════════════ */
+
+.bwl-ld-table thead th {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: none;
+    letter-spacing: 0;
+    background-color: #f9fafb !important;
+    padding: 14px 16px;
+    white-space: nowrap;
+}
+.bwl-ld-table tbody td {
+    font-size: 0.9rem;
+    color: #0f172a;
+    padding: 18px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+/* Numero ng buwan sa maliit na kahon */
+.bwl-ld-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 6px;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+/* Malaking text + maliit na text sa ilalim */
+.bwl-ld-main {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.3;
+}
+.bwl-ld-sub {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+.bwl-ld-sub.is-danger {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+/* Status: kulay na text lang, walang pill */
+.bwl-ld-st {
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+.bwl-ld-st.is-paid    { color: #15803d; }
+.bwl-ld-st.is-pending { color: #b45309; }
+.bwl-ld-st.is-overdue { color: #dc2626; }
+
+/* "Recorded" + chevron */
+.bwl-ld-recorded {
+    font-size: 0.9rem;
+    color: #94a3b8;
+}
+.bwl-ld-dots {
+    background: #f3f4f6;
+    border-color: #e5e7eb;
+    color: #334155;
+}
+.bwl-ld-dots:hover,
+.bwl-ld-dots.show {
+    background: #e5e7eb;
+}
+
+/* ---------- Dark mode ---------- */
+html.app-skin-dark .bwl-ld-table thead th { color: #9A9A9A; background-color: #0d0d0d !important; }
+html.app-skin-dark .bwl-ld-num { background: #1C1C1C; color: #F5F5F5; }
+html.app-skin-dark .bwl-ld-main { color: #F5F5F5; }
+html.app-skin-dark .bwl-ld-sub,
+html.app-skin-dark .bwl-ld-recorded { color: #9A9A9A; }
+html.app-skin-dark .bwl-ld-sub.is-danger { color: #F87171; }
+html.app-skin-dark .bwl-ld-st.is-paid    { color: #4ADE80; }
+html.app-skin-dark .bwl-ld-st.is-pending { color: #FBBF24; }
+html.app-skin-dark .bwl-ld-st.is-overdue { color: #F87171; }
+html.app-skin-dark .bwl-ld-dots { background: #1C1C1C; border-color: #262626; color: #F5F5F5; }
+html.app-skin-dark .bwl-ld-dots:hover,
+html.app-skin-dark .bwl-ld-dots.show { background: #262626; }

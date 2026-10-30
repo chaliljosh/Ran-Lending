@@ -351,16 +351,16 @@
             </div>
 
             <div class="field">
-              <label for="houseNo">House / Building No. <span class="optional-tag">(Optional)</span></label>
+              <label for="houseNo">House / Building No.<span class="required-asterisk">*</span></label>
               <div class="input-wrap no-icon">
                 <input type="text" id="houseNo" maxlength="30" placeholder="e.g. Block 5 Lot 10">
               </div>
             </div>
 
             <div class="field">
-              <label for="street">Street <span class="optional-tag">(Optional)</span></label>
+              <label for="street">Street / Sitio / Zone<span class="required-asterisk">*</span></label>
               <div class="input-wrap no-icon">
-                <input type="text" id="street" maxlength="60" placeholder="e.g. Greenfield Subdivision, Rizal Street">
+                <input type="text" id="street" maxlength="60" placeholder="e.g. Rizal Street, Sitio Mabini, Zone 3">
               </div>
             </div>
 
@@ -372,9 +372,9 @@
             </div>
 
             <div class="field">
-              <label for="addressDetails">Additional Details <span class="optional-tag">(Optional)</span></label>
+              <label for="addressDetails">Landmark <span class="optional-tag">(Optional)</span></label>
               <div class="input-wrap no-icon">
-                <input type="text" id="addressDetails" maxlength="60" placeholder="e.g. Phase 2, near the park">
+                <input type="text" id="addressDetails" maxlength="60" placeholder="e.g. Near the park, beside the chapel">
               </div>
             </div>
 

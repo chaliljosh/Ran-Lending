@@ -1331,3 +1331,167 @@ html.app-skin-dark .aln-dropzone__title {
 html.app-skin-dark .aln-dropzone__title span {
     color: #60A5FA;
 }
+
+/* ══════════════════════════════════════════
+   "Leave this application?" modal — red outline
+   "Yes" button that fills red on hover.
+   Save as: public/assets/borrower/css/aln-leave-modal.css
+   ══════════════════════════════════════════ */
+
+.aln-btn--danger-outline {
+    background: #fff;
+    color: var(--aln-red);
+    border-color: var(--aln-red);
+}
+
+.aln-btn--danger-outline:hover,
+.aln-btn--danger-outline:focus-visible {
+    background: var(--aln-red);
+    border-color: var(--aln-red);
+    color: #fff;
+    text-decoration: none;
+}
+
+.aln-btn--danger-outline:active {
+    background: #B91C1C;
+    border-color: #B91C1C;
+    color: #fff;
+}
+
+/* ---------- Dark mode ---------- */
+html.app-skin-dark .aln-btn--danger-outline {
+    background: #141414;
+    color: #F87171;
+    border-color: #F87171;
+}
+
+html.app-skin-dark .aln-btn--danger-outline:hover,
+html.app-skin-dark .aln-btn--danger-outline:focus-visible {
+    background: var(--aln-red);
+    border-color: var(--aln-red);
+    color: #fff;
+}
+
+
+/* ---------- Blue outline button (Next) ---------- */
+.aln-btn--primary-outline {
+    background: #fff;
+    color: var(--aln-blue);
+    border-color: var(--aln-blue);
+}
+
+.aln-btn--primary-outline:hover:not(:disabled),
+.aln-btn--primary-outline:focus-visible:not(:disabled) {
+    background: var(--aln-blue);
+    border-color: var(--aln-blue);
+    color: #fff;
+}
+
+.aln-btn--primary-outline:active:not(:disabled) {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+    color: #fff;
+}
+
+.aln-btn--primary-outline:disabled {
+    background: #fff;
+    color: #CBD5E1;
+    border-color: #CBD5E1;
+    cursor: not-allowed;
+}
+
+/* Dark mode */
+html.app-skin-dark .aln-btn--primary-outline {
+    background: #141414;
+    color: #60A5FA;
+    border-color: #60A5FA;
+}
+
+html.app-skin-dark .aln-btn--primary-outline:hover:not(:disabled),
+html.app-skin-dark .aln-btn--primary-outline:focus-visible:not(:disabled) {
+    background: var(--aln-blue);
+    border-color: var(--aln-blue);
+    color: #fff;
+}
+
+html.app-skin-dark .aln-btn--primary-outline:disabled {
+    background: #141414;
+    color: #737373;
+    border-color: #404040;
+}
+
+/* ══════════════════════════════════════════
+   "Application Submitted" modal — pamalit sa
+   success toast. Gumagamit ng .aln-modal at
+   .aln-btn na galing sa apply-loan.css.
+   Save as: public/assets/borrower/css/aln-success-modal.css
+   ══════════════════════════════════════════ */
+
+.aln-success-modal-dialog {
+    max-width: 420px;
+}
+
+/* Walang scroll box dito (may max-height ang .aln-modal .modal-body) */
+.aln-success-modal .modal-body {
+    max-height: none;
+    overflow: visible;
+    text-align: center;
+    padding: 36px 28px 12px;
+}
+
+.aln-success-modal__icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 18px;
+    border-radius: 50%;
+    background: #DCFCE7;
+    color: var(--aln-green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: alnSuccessPop 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes alnSuccessPop {
+    from { opacity: 0; transform: scale(0.6); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+.aln-success-modal .modal-body .aln-success-modal__title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--aln-navy);
+    text-transform: none;
+    letter-spacing: 0;
+    margin: 0 0 8px;
+}
+
+.aln-success-modal .modal-body .aln-success-modal__text {
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: var(--aln-gray);
+    margin: 0;
+}
+
+/* Walang linya sa taas ng footer, nasa gitna ang button */
+.aln-success-modal .aln-modal-footer {
+    border-top: none;
+    justify-content: center;
+    padding: 20px 28px 28px;
+}
+
+.aln-success-modal .aln-modal-footer .aln-btn {
+    min-width: 160px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aln-success-modal__icon {
+        animation: none;
+    }
+}
+
+/* ---------- Dark mode ---------- */
+html.app-skin-dark .aln-success-modal__icon {
+    background: rgba(22, 163, 74, 0.18);
+    color: #4ADE80;
+}

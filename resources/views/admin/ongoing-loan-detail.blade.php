@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ asset('assets/admin/css/ongoing-loan-detail.css') }}?v={{ time() }}">
     <link rel="stylesheet" href="{{ asset('assets/admin/css/ongoing-loan-release-modal.css') }}?v={{ time() }}">
     <link rel="stylesheet" href="{{ asset('assets/admin/css/ongoing-loan-released-modal.css') }}?v={{ time() }}">
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/payment-methods.css') }}?v={{ time() }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/darkmode-global.css') }}?v={{ time() }}" />
 @endsection
 
@@ -263,6 +264,9 @@
             </div>
 
         </div>
+
+        {{-- Assigned Payment Method: admin picks which account this borrower pays to --}}
+        @include('admin.partials.assigned-payment-method')
 
         <div class="panel payment-schedule-panel">
             <div class="ols-sched-header">
@@ -946,4 +950,6 @@
 
 @section('page-scripts')
     <script src="{{ asset('functions/ongoing-loan-detail.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('functions/assigned-payment-method.js') }}?v={{ time() }}"></script>
+      <script src="{{ asset('functions/payment-account-dropdown.js') }}?v={{ time() }}"></script>
 @endsection

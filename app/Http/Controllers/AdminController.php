@@ -22,6 +22,7 @@ use App\Mail\BorrowerInfoEdited;
 use Illuminate\Support\Facades\Validator;
 use App\Mail\PaymentPartiallyRecorded;
 
+
 class AdminController extends Controller
 {
      public function dashboard(Request $request)
@@ -2459,7 +2460,7 @@ private function executeVoid($voidRequest)
 
         // ---- source of income ----
         'company_name'     => ['table' => 'borrowerworkinfo',        'src' => 'work', 'section' => 'income', 'label' => 'Company / School',        'rules' => ['nullable', 'string', 'max:150']],
-        'position'         => ['table' => 'borrowerworkinfo',        'src' => 'work', 'section' => 'income', 'label' => 'Position / Occupation',   'rules' => ['nullable', 'string', 'max:100']],
+        'position'         => ['table' => 'borrowerworkinfo',        'src' => 'work', 'section' => 'income', 'label' => 'Job Title',               'rules' => ['nullable', 'string', 'max:100']],
         'years_in_company' => ['table' => 'borrowerworkinfo',        'src' => 'work', 'section' => 'income', 'label' => 'Length of employment',    'rules' => ['nullable', 'string', 'max:50']],
         'primary_source'   => ['table' => 'borrowerworkinfo',        'src' => 'work', 'section' => 'income', 'label' => 'Primary source of funds', 'rules' => ['nullable', 'string', 'max:100']],
         'other_sources'    => ['table' => 'borrowerworkinfo',        'src' => 'work', 'section' => 'income', 'label' => 'Other sources of income', 'rules' => ['nullable', 'string', 'max:255']],
@@ -2476,16 +2477,18 @@ private function executeVoid($voidRequest)
     }
 
     /** Dropdown options for the edit mode (value => label). */
+       /** Dropdown options for the edit mode (value => label). */
     private function borrowerEditOptions(): array
     {
         return [
             'gender' => ['male' => 'Male', 'female' => 'Female'],
+            // Dapat tugma sa borrowerpersonaldetails_civil_status_check sa database
             'civil_status' => [
                 'single' => 'Single',
+                'taken' => 'Taken',
                 'married' => 'Married',
                 'widowed' => 'Widowed',
                 'separated' => 'Separated',
-                'divorced' => 'Divorced',
             ],
             'years_in_company' => config('loan_labels.years_in_company', []),
             'primary_source'   => config('loan_labels.primary_sources', []),
@@ -2595,7 +2598,7 @@ private function executeVoid($voidRequest)
      * POST /admin/loan-application-detail/{uuid}/borrower-info
      * Expects: section (personal|address|income|id), fields {key: value}, reason.
      */
-    public function updateBorrowerInfo(Request $request, $uuid)
+         public function updateBorrowerInfo(Request $request, $uuid)
     {
         $request->validate([
             'section' => 'required|in:personal,address,income,id',
@@ -2685,6 +2688,24 @@ private function executeVoid($voidRequest)
             $changes[$key] = ['def' => self::BORROWER_INFO_FIELDS[$key], 'old' => $old, 'new' => $new];
         }
 
+        // Kapag hindi na "Others" ang Primary Source, hindi na dapat manatili ang
+        // lumang Other Sources of Income sa DB (nakatago lang sa page). Gagawin itong
+        // null, at lalabas din sa edit log at sa email sa borrower.
+        if (isset($changes['primary_source']) && $changes['primary_source']['new'] !== 'others') {
+            $oldOther = trim((string) $this->borrowerInfoCurrentValue('other_sources', $app, $address, $work));
+
+            if ($oldOther !== '') {
+                $changes['other_sources'] = [
+                    'def' => self::BORROWER_INFO_FIELDS['other_sources'],
+                    'old' => $oldOther,
+                    'new' => '',
+                ];
+            } else {
+                // Walang dapat i-save: huwag payagang may isulat sa other_sources
+                unset($changes['other_sources']);
+            }
+        }
+
         if (!$changes) {
             return response()->json(['success' => false, 'message' => 'No changes to save.'], 422);
         }
@@ -2741,7 +2762,6 @@ private function executeVoid($voidRequest)
 
         return response()->json(['success' => true, 'message' => $message]);
     }
-
     private function sendBorrowerInfoEditedEmail($app, array $changes, string $reason): bool
     {
         try {
@@ -2811,81 +2831,93 @@ private function executeVoid($voidRequest)
      * Lahat ng readable na label/values na kailangan ng admin review page.
      * $app = result ng getLoanApplication(), $work = result ng getBorrowerWork() (pwedeng null).
      */
-    private function applicationDisplayData($app, $work): array
-    {
-        // ---- Loan: purpose (kasama ang "Others" na detalye) ----
-        $purpose = $this->labelFor('loan_purposes', $app->loan_purpose ?? null);
-        if (($app->loan_purpose ?? null) === 'others' && !empty($app->loan_purpose_other)) {
-            $purpose = 'Others — ' . $app->loan_purpose_other;
-        }
-
-        // ---- Loan: referral source at pangalan ng nag-refer ----
-        $referralSource = $app->referral_source ?? null;
-        $referral = $this->labelFor('referral_sources', $referralSource);
-        $referralName = !empty($app->referral_name) ? trim($app->referral_name) : null;
-
-        if ($referralName !== null) {
-            if ($referralSource === 'friend_family') {
-                $referral .= ' — referred by ' . $referralName;
-            } elseif ($referralSource === 'others') {
-                $referral = 'Others — ' . $referralName;
-            } else {
-                $referral .= ' — ' . $referralName;
-            }
-        }
-
-        // ---- Valid ID type (kasama ang "Others" na detalye) ----
-        $idType = $this->labelFor('id_types', $app->id_type ?? null);
-        if (($app->id_type ?? null) === 'others' && !empty($app->id_type_others)) {
-            $idType = 'Others — ' . $app->id_type_others;
-        }
-
-        // ---- Source of income ----
-        $status = $work->employment_status ?? null;
-
-        $isEmployed = $status === 'employed';
-        $isSelfEmployed = $status === 'self_employed';
-        $hasJob = $isEmployed || $isSelfEmployed;
-        $showFunds = in_array($status, ['student', 'unemployed', 'retired'], true);
-
-        $years = $work->years_in_company ?? null;
-        $yearsLabel = '—';
-        if ($years !== null && $years !== '') {
-            $configured = config('loan_labels.years_in_company', []);
-            if (isset($configured[$years])) {
-                $yearsLabel = $configured[$years];
-            } elseif (is_numeric($years)) {
-                // Lumang application: numero lang ang naka-save
-                $yearsLabel = $years . ' ' . ((int) $years === 1 ? 'year' : 'years');
-            } else {
-                $yearsLabel = (string) $years;
-            }
-        }
-
-        $workData = [
-            'has_data'       => !empty($work),
-            'status_label'   => $this->labelFor('employment_statuses', $status),
-            'show_company'   => $hasJob || $status === 'student',
-            'company_label'  => config("loan_labels.company_name_labels.{$status}", 'Company / School'),
-            'company'        => !empty($work->company_name ?? null) ? $work->company_name : '—',
-            'show_job'       => $hasJob,
-            'position_label' => config("loan_labels.position_labels.{$status}", 'Occupation'),
-            'position'       => !empty($work->position ?? null) ? $work->position : '—',
-            'years_label'    => config("loan_labels.years_labels.{$status}", 'Years'),
-            'years'          => $yearsLabel,
-            'show_funds'     => $showFunds,
-            'primary_source' => $this->labelFor('primary_sources', $work->primary_source ?? null),
-            'other_sources'  => !empty($work->other_sources ?? null) ? $work->other_sources : '—',
-            'show_payslip'   => $hasJob,
-        ];
-
-        return [
-            'purpose'  => $purpose,
-            'referral' => $referral,
-            'id_type'  => $idType,
-            'work'     => $workData,
-        ];
+   private function applicationDisplayData($app, $work): array
+{
+    // ---- Loan: purpose (kasama ang "Others" na detalye) ----
+    $purpose = $this->labelFor('loan_purposes', $app->loan_purpose ?? null);
+    if (($app->loan_purpose ?? null) === 'others' && !empty($app->loan_purpose_other)) {
+        $purpose = 'Others — ' . $app->loan_purpose_other;
     }
+
+    // ---- Loan: referral source at pangalan ng nag-refer ----
+    $referralSource = $app->referral_source ?? null;
+    $referral = $this->labelFor('referral_sources', $referralSource);
+    $referralName = !empty($app->referral_name) ? trim($app->referral_name) : null;
+
+    if ($referralName !== null) {
+        if ($referralSource === 'friend_family') {
+            $referral .= ' — referred by ' . $referralName;
+        } elseif ($referralSource === 'others') {
+            $referral = 'Others — ' . $referralName;
+        } else {
+            $referral .= ' — ' . $referralName;
+        }
+    }
+
+    // ---- Valid ID type (kasama ang "Others" na detalye) ----
+    $idType = $this->labelFor('id_types', $app->id_type ?? null);
+    if (($app->id_type ?? null) === 'others' && !empty($app->id_type_others)) {
+        $idType = 'Others — ' . $app->id_type_others;
+    }
+
+    // ---- Source of income ----
+    $status = $work->employment_status ?? null;
+
+    $isEmployed = $status === 'employed';
+    $isSelfEmployed = $status === 'self_employed';
+    $hasJob = $isEmployed || $isSelfEmployed;
+    $showFunds = in_array($status, ['student', 'unemployed', 'retired'], true);
+    $showBilling = in_array($status, ['unemployed', 'retired', 'others'], true);
+    $primarySource = $work->primary_source ?? null;
+
+    // Kapag "Others" ang status, ipakita ang isinulat ng borrower
+    $statusLabel = $this->labelFor('employment_statuses', $status);
+    if ($status === 'others' && !empty($work->employment_status_other ?? null)) {
+        $statusLabel = 'Others — ' . $work->employment_status_other;
+    }
+
+    $years = $work->years_in_company ?? null;
+    $yearsLabel = '—';
+    if ($years !== null && $years !== '') {
+        $configured = config('loan_labels.years_in_company', []);
+        if (isset($configured[$years])) {
+            $yearsLabel = $configured[$years];
+        } elseif (is_numeric($years)) {
+            // Lumang application: numero lang ang naka-save
+            $yearsLabel = $years . ' ' . ((int) $years === 1 ? 'year' : 'years');
+        } else {
+            $yearsLabel = (string) $years;
+        }
+    }
+
+    $workData = [
+        'has_data'           => !empty($work),
+        'status_label'       => $statusLabel,
+        'show_company'       => $hasJob || $status === 'student',
+        'company_label'      => config("loan_labels.company_name_labels.{$status}", 'Company / School'),
+        'company'            => !empty($work->company_name ?? null) ? $work->company_name : '—',
+        'show_job'           => $hasJob,
+        'position_label'     => 'Job Title',
+        'position'           => !empty($work->position ?? null) ? $work->position : '—',
+        'years_label'        => config("loan_labels.years_labels.{$status}", 'Years'),
+        'years'              => $yearsLabel,
+        'show_funds'         => $showFunds,
+        'primary_source'     => $this->labelFor('primary_sources', $primarySource),
+        // Lalabas lang kapag "Others" ang Primary Source of Funds
+        'show_other_sources' => $showFunds && $primarySource === 'others',
+        'other_sources'      => !empty($work->other_sources ?? null) ? $work->other_sources : '—',
+        'show_payslip'       => $hasJob,
+        // Proof of billing: Unemployed, Retired, Others
+        'show_billing'       => $showBilling,
+    ];
+
+    return [
+        'purpose'  => $purpose,
+        'referral' => $referral,
+        'id_type'  => $idType,
+        'work'     => $workData,
+    ];
+}
 
     /**
      * Signed URLs (30 minutes) para sa Front ID, Back ID, Selfie with ID at Pay Slip.
@@ -2893,34 +2925,35 @@ private function executeVoid($voidRequest)
      * Walang file (o pumalya ang pag-sign) = null, para hindi mag-error ang page.
      */
     private function applicationDocuments($app, $work): array
-    {
-        $make = function ($path) {
-            if (empty($path)) {
-                return null;
-            }
+{
+    $make = function ($path) {
+        if (empty($path)) {
+            return null;
+        }
 
-            try {
-                $url = Storage::disk('valid_ids')->temporaryUrl($path, now()->addMinutes(30));
-            } catch (\Throwable $e) {
-                Log::warning("Could not sign URL for document {$path}: " . $e->getMessage());
-                return null;
-            }
+        try {
+            $url = Storage::disk('valid_ids')->temporaryUrl($path, now()->addMinutes(30));
+        } catch (\Throwable $e) {
+            Log::warning("Could not sign URL for document {$path}: " . $e->getMessage());
+            return null;
+        }
 
-            $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-
-            return [
-                'url'      => $url,
-                'is_image' => in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true),
-            ];
-        };
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
 
         return [
-            'front'   => $make($app->id_file_path ?? null),
-            'back'    => $make($app->id_file_path_back ?? null),
-            'selfie'  => $make($app->selfie_id_path ?? null),
-            'payslip' => $make($work->payslip_path ?? null),
+            'url'      => $url,
+            'is_image' => in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true),
         ];
-    }
+    };
+
+    return [
+        'front'   => $make($app->id_file_path ?? null),
+        'back'    => $make($app->id_file_path_back ?? null),
+        'selfie'  => $make($app->selfie_id_path ?? null),
+        'payslip' => $make($work->payslip_path ?? null),
+        'billing' => $make($work->billing_path ?? null),
+    ];
+}
 
     private function getMyLoanReview($applicationId, $adminId)
     {

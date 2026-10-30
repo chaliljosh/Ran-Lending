@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/loan-details.css') }}?v={{ time() }}">
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/payment-receipt.css') }}?v={{ time() }}">
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/payment-details.css') }}?v={{ time() }}">
+    <link rel="stylesheet" href="{{ asset('assets/borrower/css/payment-method.css') }}?v={{ time() }}">
 @endsection
 
 @section('content')
@@ -24,7 +25,6 @@
 
         @if(!$app)
 
-            {{-- No loan application yet --}}
             <div class="bwl-ld-empty">
                 <div class="bwl-ld-empty-top">
                     <div class="bwl-ld-empty-text-wrap">
@@ -68,19 +68,12 @@
 
             @php
                 $isCompleted = $app->status === 'completed';
-
-                // Approved na pero hindi pa nare-release (galing sa controller)
                 $awaitingRelease = !empty($awaitingRelease);
-
-                // Awaiting Release ay may sariling kulay (is-awaiting), hindi bg-info
                 $statusClass = $awaitingRelease ? 'is-awaiting' : $status['badge'];
-
-                // "Apply for a new loan" lang ang lalabas sa pinakabagong loan.
                 $isLatest = !isset($loans) || $loans->isEmpty()
                     || $loans->first()->application_id == $app->application_id;
             @endphp
 
-            {{-- ============ COMPLETED BANNER ============ --}}
             @if($isCompleted && $isLatest)
                 <div class="bwl-ld-banner">
                     <div>
@@ -93,7 +86,6 @@
                 </div>
             @endif
 
-            {{-- ============ LOAN SUMMARY ============ --}}
             <div class="bwl-ld-section">
                 <div class="bwl-ld-section__head">
                     <div class="bwl-ld-section__head-text">
@@ -103,7 +95,6 @@
                     <span class="bwl-ld-status {{ $statusClass }}">{{ $status['label'] }}</span>
                 </div>
 
-                {{-- Isang grid lang. Kusang nag-aadjust ang columns sa bilang ng cards. --}}
                 <div class="bwl-ld-stat-grid">
                     <div class="bwl-ld-stat-card">
                         <span class="bwl-ld-stat-label">Loan Term</span>
@@ -164,19 +155,17 @@
                 </div>
             </div>
 
-            {{-- ============ PAYMENT SCHEDULE ============ --}}
             <div class="bwl-ld-card">
                 <div class="bwl-ld-card-header">
                     <h6>Payment Schedule</h6>
                 </div>
                 <div class="bwl-ld-card-body">
 
-                    @if($awaitingRelease)
+                    @if($scheduleMessage)
 
-                        {{-- Approved na, pero wala pang release. Walang schedule hanggang ma-send ang proof. --}}
                         <p class="bwl-ld-note mb-0">
                             <i class="feather-info me-1"></i>
-                            Your payment schedule will be available once your loan has been released.
+                            {{ $scheduleMessage }}
                         </p>
 
                     @else
@@ -185,11 +174,6 @@
                             <p class="bwl-ld-note">
                                 <i class="feather-check-circle me-1"></i>
                                 All payments on this loan have been received. This is your final payment record.
-                            </p>
-                        @elseif($app->status !== 'approved' && $app->status !== 'active')
-                            <p class="bwl-ld-note">
-                                <i class="feather-info me-1"></i>
-                                This is an estimated schedule based on your requested amount and term. It will be finalized once your application is approved.
                             </p>
                         @endif
 
@@ -217,112 +201,183 @@
                             </div>
                         @endif
 
+                        {{-- Payment method na itinakda ng admin (read-only) --}}
+                        @if(!empty($canUploadReceipts))
+                            @include('borrower.partials.assigned-payment-method')
+                        @endif
+
                         <div class="table-responsive">
                             <table class="table bwl-ld-table">
                                 <thead>
                                     <tr>
-                                        <th>Month</th>
+                                        <th>#</th>
                                         <th>Due Date</th>
                                         <th>Amount Due</th>
+                                        <th>Amount Paid</th>
+                                        <th>Paid On</th>
                                         <th>Status</th>
-                                        <th>Date Paid</th>
-                                        <th>Action</th>
+                                        <th class="bwl-ld-th-action">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    @php
+                                        // Ilang buwan lang ang pwedeng mag-upload nang sabay (unpaid na buwan, in order)
+                                        $uploadWindow = 2;
+                                        $unpaidSeen   = 0;
+                                    @endphp
                                     @foreach($paymentSchedule as $row)
                                         @php
-                                            $receipt   = $row['receipt'] ?? null;
-                                            $canUpload = !empty($row['can_upload']);
-
-                                            // Lahat ng bayad (partial + full) ng installment na ito, galing sa ledger
+                                            $receipt     = $row['receipt'] ?? null;
                                             $rowPayments = $row['payments'] ?? [];
                                             $isRowPaid   = !empty($row['paid_at']);
+
+                                            // Bilangin ang unpaid na buwan. Una at pangalawang unpaid lang ang may upload button (nakatago sa iba).
+                                            // Ang na-reject na buwan ay laging bukas (re-upload) at hindi kumakain ng slot.
+                                            $isRejected = !$isRowPaid && $receipt && $receipt['status'] === 'rejected';
+                                            $inWindow = true;
+                                            if (!$isRowPaid && !$isRejected) {
+                                                $unpaidSeen++;
+                                                $inWindow = $unpaidSeen <= $uploadWindow;
+                                            }
+                                            $baseCanUpload = !empty($row['can_upload']);
+                                            $canUpload     = $baseCanUpload && $inWindow;
+
+                                            // Amount Paid at balance (kung partial)
+                                            $paidAmount = $isRowPaid
+                                                ? (float) $row['amount']
+                                                : collect($rowPayments)->sum(fn ($pay) => (float) data_get($pay, 'amount', data_get($pay, 'amount_paid', 0)));
+                                            $balance = max(0, (float) $row['amount'] - $paidAmount);
+
+                                            // Maliit na text sa ilalim ng Due Date
+                                            $dueSubClass = '';
+                                            if ($isRowPaid) {
+                                                $dueSub = 'Paid';
+                                            } else {
+                                                $d = (int) now()->startOfDay()->diffInDays($row['due']->copy()->startOfDay(), false);
+                                                if ($d < 0) {
+                                                    $dueSub = abs($d) . ' ' . (abs($d) == 1 ? 'day' : 'days') . ' overdue';
+                                                    $dueSubClass = 'is-danger';
+                                                } elseif ($d === 0) {
+                                                    $dueSub = 'Due today';
+                                                } else {
+                                                    $dueSub = 'in ' . $d . ' ' . ($d == 1 ? 'day' : 'days');
+                                                }
+                                            }
+
+                                            $showView    = !$isRowPaid && $receipt && $receipt['status'] === 'submitted';
+                                            $showUpload  = !$isRowPaid && !$showView && $canUpload;
+                                            $showDetails = $isRowPaid || !empty($rowPayments);
+                                            $uploadLabel = $isRejected ? 'Upload New Proof' : (!empty($rowPayments) ? 'Upload Balance' : 'Upload Receipt');
+                                            $uploadMode  = $isRejected ? 'again' : 'upload';
                                         @endphp
-                                        <tr data-installment="{{ $row['month'] }}"
+
+                                        <tr class="{{ $isRejected ? 'is-rejected' : '' }}"
+                                            data-installment="{{ $row['month'] }}"
                                             data-amount="₱{{ number_format($row['amount'], 2) }}"
                                             data-due="{{ $row['due']->format('F j, Y') }}">
-                                            <td>Month {{ $row['month'] }}</td>
-                                            <td>{{ $row['due']->format('F j, Y') }}</td>
-                                            <td>₱{{ number_format($row['amount'], 2) }}</td>
+                                            <td><span class="bwl-ld-num">{{ $row['month'] }}</span></td>
                                             <td>
-                                                @if($row['status'] === 'paid')
-                                                    <span class="bwl-ld-status bg-success">Paid</span>
-                                                @elseif($row['status'] === 'overdue')
-                                                    <span class="bwl-ld-status bg-danger">Overdue</span>
-                                                @else
-                                                    <span class="bwl-ld-status bg-secondary">Pending</span>
+                                                <div class="bwl-ld-main">{{ $row['due']->format('M j, Y') }}</div>
+                                                <div class="bwl-ld-sub {{ $dueSubClass }}">{{ $dueSub }}</div>
+                                            </td>
+                                            <td><span class="bwl-ld-main">₱{{ number_format($row['amount'], 2) }}</span></td>
+                                            <td>
+                                                <div class="bwl-ld-main">₱{{ number_format($paidAmount, 2) }}</div>
+                                                @if(!$isRowPaid && $paidAmount > 0)
+                                                    <div class="bwl-ld-sub">Balance ₱{{ number_format($balance, 2) }}</div>
                                                 @endif
                                             </td>
-                                            <td class="bwl-ld-cell-muted">
-                                                {{ $isRowPaid ? $row['paid_at']->format('F j, Y') : '—' }}
+                                            <td>{{ $isRowPaid ? $row['paid_at']->format('M j, Y') : '—' }}</td>
+                                            <td>
+                                                @if($row['status'] === 'paid')
+                                                    <span class="bwl-ld-st is-paid">Paid</span>
+                                                @elseif($row['status'] === 'overdue')
+                                                    <span class="bwl-ld-st is-overdue">Overdue</span>
+                                                @else
+                                                    <span class="bwl-ld-st is-pending">Pending</span>
+                                                @endif
                                             </td>
                                             <td class="bwl-ld-action-cell">
-                                                @if($isRowPaid)
-                                                    {{-- Paid na: Payment Details (listahan ng lahat ng bayad) --}}
-                                                    <button type="button" class="bwl-pd-btn" data-ld-payments
-                                                        data-month="{{ $row['month'] }}"
-                                                        data-due="{{ $row['due']->format('F j, Y') }}"
-                                                        data-paid="{{ $row['paid_at']->format('F j, Y') }}"
-                                                        data-amount="{{ number_format($row['amount'], 2) }}"
-                                                        data-status="paid"
-                                                        data-payments="{{ json_encode($rowPayments) }}">
-                                                        <i class="feather-file-text"></i>Payment Details
-                                                    </button>
-
-                                                @elseif($receipt && $receipt['status'] === 'submitted')
+                                                @if($showUpload || $showView || $showDetails)
                                                     <div class="bwl-ld-action-group">
-                                                        @if(!empty($rowPayments))
-                                                            <button type="button" class="bwl-pd-btn" data-ld-payments
-                                                                data-month="{{ $row['month'] }}"
-                                                                data-due="{{ $row['due']->format('F j, Y') }}"
-                                                                data-paid=""
-                                                                data-amount="{{ number_format($row['amount'], 2) }}"
-                                                                data-status="partial"
-                                                                data-payments="{{ json_encode($rowPayments) }}">
-                                                                <i class="feather-file-text"></i>Payment Details
+
+                                                        @if($isRowPaid)
+                                                            <span class="bwl-ld-recorded">Recorded</span>
+                                                        @endif
+
+                                                        {{-- Main action: laging button, hindi nakatago sa menu --}}
+                                                        @if($showUpload)
+                                                            <button type="button"
+                                                                class="{{ $isRejected ? 'bwl-ld-link-btn' : 'bwl-ld-upload-btn' }}"
+                                                                data-ld-upload data-mode="{{ $uploadMode }}">
+                                                                <i class="feather-upload"></i>{{ $uploadLabel }}
                                                             </button>
                                                         @endif
-                                                        <button type="button" class="bwl-ld-view-btn" data-ld-view
-                                                            data-src="{{ route('borrower.payment-receipt.view', $receipt['id']) }}">
-                                                            <i class="feather-file-text"></i>View Receipt
-                                                        </button>
-                                                    </div>
 
-                                                @elseif($receipt && $receipt['status'] === 'rejected')
-                                                    <div class="bwl-ld-action-group">
-                                                        <span class="bwl-ld-receipt-badge is-rejected">Rejected</span>
-                                                        @if($canUpload)
-                                                            <button type="button" class="bwl-ld-link-btn" data-ld-upload data-mode="again">Upload again</button>
+                                                        {{-- Iba pang actions: nasa dropdown --}}
+                                                        @if($showView || $showDetails)
+                                                            <div class="dropdown bwl-ld-menu">
+                                                                <button type="button" class="bwl-ld-dots" data-bs-toggle="dropdown"
+                                                                    aria-expanded="false" aria-label="More actions for month {{ $row['month'] }}">
+                                                                    <i class="feather-chevron-down"></i>
+                                                                </button>
+                                                                <ul class="dropdown-menu dropdown-menu-end bwl-ld-menu-list">
+                                                                    @if($showView)
+                                                                        <li>
+                                                                            <button type="button" class="dropdown-item bwl-ld-menu-item" data-ld-view
+                                                                                data-src="{{ route('borrower.payment-receipt.view', $receipt['id']) }}">
+                                                                                <i class="feather-eye"></i>View Receipt
+                                                                            </button>
+                                                                        </li>
+                                                                    @endif
+                                                                    @if($showDetails)
+                                                                        <li>
+                                                                            <button type="button" class="dropdown-item bwl-ld-menu-item" data-ld-payments
+                                                                                data-month="{{ $row['month'] }}"
+                                                                                data-due="{{ $row['due']->format('F j, Y') }}"
+                                                                                data-paid="{{ $isRowPaid ? $row['paid_at']->format('F j, Y') : '' }}"
+                                                                                data-amount="{{ number_format($row['amount'], 2) }}"
+                                                                                data-status="{{ $isRowPaid ? 'paid' : 'partial' }}"
+                                                                                data-payments="{{ json_encode($rowPayments) }}">
+                                                                                <i class="feather-file-text"></i>View Payment Details
+                                                                            </button>
+                                                                        </li>
+                                                                    @endif
+                                                                </ul>
+                                                            </div>
                                                         @endif
-                                                    </div>
-                                                    @if(!empty($receipt['remarks']))
-                                                        <div class="bwl-ld-receipt-remarks">{{ $receipt['remarks'] }}</div>
-                                                    @endif
 
-                                                @elseif($canUpload)
-                                                    <div class="bwl-ld-action-group">
-                                                        @if(!empty($rowPayments))
-                                                            <button type="button" class="bwl-pd-btn" data-ld-payments
-                                                                data-month="{{ $row['month'] }}"
-                                                                data-due="{{ $row['due']->format('F j, Y') }}"
-                                                                data-paid=""
-                                                                data-amount="{{ number_format($row['amount'], 2) }}"
-                                                                data-status="partial"
-                                                                data-payments="{{ json_encode($rowPayments) }}">
-                                                                <i class="feather-file-text"></i>Payment Details
-                                                            </button>
-                                                        @endif
-                                                        <button type="button" class="bwl-ld-upload-btn" data-ld-upload data-mode="upload">
-                                                            <i class="feather-upload"></i>{{ !empty($rowPayments) ? 'Upload Balance' : 'Upload Receipt' }}
-                                                        </button>
                                                     </div>
-
                                                 @else
                                                     <span class="bwl-ld-cell-muted">—</span>
                                                 @endif
                                             </td>
                                         </tr>
+
+                                        @if($isRejected)
+                                            {{-- Extra row: reason for rejection --}}
+                                            <tr class="bwl-ld-reject-row">
+                                                <td colspan="7">
+                                                    <div class="bwl-ld-reject-panel">
+                                                        <div class="bwl-ld-reject-file">
+                                                            <span class="bwl-ld-reject-thumb"><i class="feather-image"></i></span>
+                                                            <div>
+                                                                <div class="bwl-ld-reject-file-title">Uploaded receipt</div>
+                                                                <div class="bwl-ld-reject-file-sub">Previous submission</div>
+                                                                <span class="bwl-ld-reject-tag">Rejected</span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="bwl-ld-reject-reason">
+                                                            <div class="bwl-ld-reject-label">Reason for rejection</div>
+                                                            <div class="bwl-ld-reject-title">
+                                                                {{ !empty($receipt['remarks']) ? $receipt['remarks'] : 'Your receipt was rejected.' }}
+                                                            </div>
+                                                            <div class="bwl-ld-reject-hint">Please upload a clearer receipt showing the payment details.</div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endif
                                     @endforeach
                                 </tbody>
                             </table>
@@ -333,7 +388,6 @@
                 </div>
             </div>
 
-            {{-- ============ PAYMENT DETAILS MODAL ============ --}}
             <div class="modal fade bwl-pd-modal" id="ldPayDetailsModal" tabindex="-1"
                 aria-labelledby="ldPdTitle" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
@@ -366,47 +420,45 @@
                 </div>
             </div>
 
-           {{-- ============ PAYMENT RECEIPT VIEWER (galing sa Payment Details) ============ --}}
-<div class="modal fade bwl-pd-modal" id="ldPayViewerModal" tabindex="-1"
-    aria-labelledby="ldPdViewerTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div>
-                    <h5 class="modal-title" id="ldPdViewerTitle">Payment Receipt</h5>
-                    <div class="bwl-pd-sub" id="ldPdViewerSub"></div>
+            <div class="modal fade bwl-pd-modal" id="ldPayViewerModal" tabindex="-1"
+                aria-labelledby="ldPdViewerTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <div>
+                                <h5 class="modal-title" id="ldPdViewerTitle">Payment Receipt</h5>
+                                <div class="bwl-pd-sub" id="ldPdViewerSub"></div>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+
+                        <div class="modal-body">
+                            <dl class="bwl-pd-grid">
+                                <div><dt>Due Date</dt><dd id="ldPdVDue"></dd></div>
+                                <div><dt>Date Paid</dt><dd id="ldPdVPaidOn"></dd></div>
+                                <div><dt>Installment Amount</dt><dd id="ldPdVInstallment"></dd></div>
+                                <div><dt>Amount Paid</dt><dd id="ldPdVPaid"></dd></div>
+                                <div><dt>Payment Type</dt><dd id="ldPdVKind"></dd></div>
+                                <div><dt>Status</dt><dd id="ldPdVStatus"></dd></div>
+                            </dl>
+
+                            <div class="bwl-pd-viewer-body">
+                                <span class="spinner-border" id="ldPdViewerLoading" role="status" aria-label="Loading receipt"></span>
+                                <img id="ldPdViewerImg" alt="Payment receipt" hidden>
+                                <span class="bwl-pd-state" id="ldPdViewerError" hidden>We couldn't load this receipt. Please try again.</span>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="bwl-ld-btn-ghost" data-bs-dismiss="modal">Close</button>
+                            <a href="#" class="bwl-ld-btn" id="ldPdViewerDownload">
+                                <i class="feather-download"></i>Download
+                            </a>
+                        </div>
+                    </div>
                 </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
-            <div class="modal-body">
-                <dl class="bwl-pd-grid">
-                    <div><dt>Due Date</dt><dd id="ldPdVDue"></dd></div>
-                    <div><dt>Date Paid</dt><dd id="ldPdVPaidOn"></dd></div>
-                    <div><dt>Installment Amount</dt><dd id="ldPdVInstallment"></dd></div>
-                    <div><dt>Amount Paid</dt><dd id="ldPdVPaid"></dd></div>
-                    <div><dt>Payment Type</dt><dd id="ldPdVKind"></dd></div>
-                    <div><dt>Status</dt><dd id="ldPdVStatus"></dd></div>
-                </dl>
-
-                <div class="bwl-pd-viewer-body">
-                    <span class="spinner-border" id="ldPdViewerLoading" role="status" aria-label="Loading receipt"></span>
-                    <img id="ldPdViewerImg" alt="Payment receipt" hidden>
-                    <span class="bwl-pd-state" id="ldPdViewerError" hidden>We couldn't load this receipt. Please try again.</span>
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="bwl-ld-btn-ghost" data-bs-dismiss="modal">Close</button>
-                <a href="#" class="bwl-ld-btn" id="ldPdViewerDownload">
-                    <i class="feather-download"></i>Download
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-
-            {{-- ============ VIEW RECEIPT MODAL ============ --}}
             <div class="modal fade bwl-ld-modal" id="ldViewModal" tabindex="-1"
                 aria-labelledby="ldViewTitle" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
@@ -438,7 +490,6 @@
                 </div>
             </div>
 
-            {{-- ============ UPLOAD RECEIPT MODAL ============ --}}
             @if(!empty($canUploadReceipts))
                 <div class="modal fade bwl-ld-modal" id="ldReceiptModal" tabindex="-1"
                     aria-labelledby="ldReceiptTitle" aria-hidden="true"
@@ -467,7 +518,6 @@
                                         </div>
                                     </div>
 
-                                    {{-- Date the borrower made the payment (saved to payment_receipts.user_paid_date) --}}
                                     <div class="bwl-ld-field">
                                         <label for="ldReceiptPaidDateDisplay">Date paid</label>
                                         <div class="bwl-ld-date-wrap">
@@ -522,7 +572,16 @@
 @endsection
 
 @section('page-scripts')
-    {{-- loan-details.js tinanggal na: tabs lang ang laman niya. --}}
     <script src="{{ asset('functions/payment-receipt.js') }}"></script>
     <script src="{{ asset('functions/payment-detail.js') }}?v={{ time() }}"></script>
+   <script src="{{ asset('functions/borrower-payment-method.js') }}"></script>
+    <script>
+        // Fixed ang position ng menu para hindi maputol ng .table-responsive
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof bootstrap === 'undefined') return;
+            document.querySelectorAll('.bwl-ld-dots').forEach(function (el) {
+                bootstrap.Dropdown.getOrCreateInstance(el, { popperConfig: { strategy: 'fixed' } });
+            });
+        });
+    </script>
 @endsection

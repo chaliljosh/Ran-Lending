@@ -44,16 +44,17 @@
     @if (!$latestLoan)
         @php
             $firstName = trim(explode(' ', trim($userName ?? ''))[0] ?? '');
-            // Placeholder muna ito — kung may tunay na eligibility logic ka na sa
-            // controller, ipasa na lang bilang $eligibleAmount / $eligibleTermMonths.
-            $eligibleAmount = $eligibleAmount ?? 10000;
-            $eligibleTermMonths = $eligibleTermMonths ?? 12;
+            // Default muna ito: ₱15,000 at hanggang 6 months. Kung may tunay na
+            // eligibility logic ka na sa controller, ipasa na lang bilang
+            // $eligibleAmount / $eligibleTermMonths at iyon ang masusunod.
+            $eligibleAmount = $eligibleAmount ?? 15000;
+            $eligibleTermMonths = $eligibleTermMonths ?? 6;
         @endphp
 
         {{-- ============ WELCOME BANNER ============ --}}
         <div class="bwl-dash-welcome">
             <div class="bwl-dash-welcome-text">
-                <p class="bwl-dash-welcome-eyebrow">Welcome back</p>
+                <p class="bwl-dash-welcome-eyebrow">Welcome</p>
                 <h4 class="bwl-dash-welcome-name">{{ $userName ?: 'there' }} 👋</h4>
                 <p class="bwl-dash-welcome-sub">Manage your loan applications and account details here.</p>
             </div>

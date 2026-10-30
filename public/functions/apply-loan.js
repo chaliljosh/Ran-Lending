@@ -18,11 +18,11 @@
     const CSRF_TOKEN = scriptTag ? scriptTag.dataset.csrf : "";
     const SUBMIT_URL = scriptTag ? scriptTag.dataset.submitUrl : "";
     const USER_ID = scriptTag ? scriptTag.dataset.userId : "";
-    // Server computes this based on loan history (₱5,000 for
+    // Server computes this based on loan history (₱15,000 for
     // first-time borrowers, +₱5,000 for every fully repaid loan).
     const MAX_AMOUNT = scriptTag
-        ? parseInt(scriptTag.dataset.maxAmount, 10) || 5000
-        : 5000;
+        ? parseInt(scriptTag.dataset.maxAmount, 10) || 15000
+        : 15000;
 
     // =========================================================
     // ERROR TOAST — pamalit sa native alert() para sa submit
@@ -115,7 +115,8 @@
 
     const loanAmountInput = document.getElementById("loanAmount");
 
-    // Term is a <select> (1–12 months).
+    // Term is a <select> (1–6 months for first-timers, 1–12 after that;
+    // the options are generated server-side in the blade view).
     const loanTermSelect = document.getElementById("loanTerm");
 
     const loanPurposeSelect = document.getElementById("loanPurpose");
@@ -143,7 +144,7 @@
     const selfieInput = document.getElementById("selfieWithId");
     const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
-    // Source of income + pay slip (step 3)
+    // Source of income + pay slip / proof of billing (step 3)
     const employmentSelect = document.getElementById("employmentStatus");
     // Employment status "Others" — Please specify
     const employmentOtherWrapper = document.getElementById(
@@ -168,6 +169,8 @@
     const paySlipLabel = document.getElementById("paySlipLabel");
     const paySlipHint = document.getElementById("paySlipHint");
     const paySlipInput = document.getElementById("paySlip");
+    const billingSection = document.getElementById("billingSection");
+    const billingInput = document.getElementById("proofOfBilling");
 
     // Wizard
     const progressEl = document.getElementById("alnProgress");
@@ -265,18 +268,20 @@
 
     // What step 3 shows for each employment status.
     //   company / position : label ng field (null = nakatago)
-    //   funds   : true = may Primary Source of Funds + Other Sources (optional)
+    //   funds   : true = may Primary Source of Funds (Other Sources lalabas lang kapag "Others")
     //   paySlip : true = may upload ng pay slip / proof of income
+    //   billing : true = may upload ng proof of billing (water bill, etc.)
     //   other   : true = may "Please specify" na text box
     const WORK_CONFIG = {
         employed: {
             company: "Employer / Company Name",
             companyPh: "Enter employer / company name",
-            position: "Occupation / Job Title",
-            positionPh: "Enter occupation / job title",
+            position: "Job Title",
+            positionPh: "Enter job title",
             tenure: "Years Employed",
             funds: false,
             paySlip: true,
+            billing: false,
             paySlipTitle: "Pay Slip",
             paySlipLabel: "Upload Pay Slip",
             paySlipHint: "Latest pay slip. JPG or PNG, max 5MB.",
@@ -284,11 +289,12 @@
         self_employed: {
             company: "Business Name",
             companyPh: "Enter business name",
-            position: "Occupation / Business Type",
+            position: "Job Title",
             positionPh: "e.g. Sari-sari store owner",
             tenure: "Years in Business",
             funds: false,
             paySlip: true,
+            billing: false,
             paySlipTitle: "Proof of Income",
             paySlipLabel: "Upload Pay Slip / Proof of Income",
             paySlipHint:
@@ -299,6 +305,7 @@
             position: null,
             funds: true,
             paySlip: false,
+            billing: true,
         },
         student: {
             company: "School Name",
@@ -306,18 +313,21 @@
             position: null,
             funds: true,
             paySlip: false,
+            billing: false,
         },
         retired: {
             company: null,
             position: null,
             funds: true,
             paySlip: false,
+            billing: true,
         },
         others: {
             company: null,
             position: null,
             funds: false,
             paySlip: false,
+            billing: true,
             other: true,
         },
     };
@@ -533,7 +543,8 @@
         preview.innerHTML = "";
     }
 
-    // Used for the ID front/back, the selfie with ID, and the pay slip.
+    // Used for the ID front/back, the selfie with valid ID, the pay slip,
+    // and the proof of billing.
     //
     // Kung may <label data-dropzone-for="<id ng input>"> sa page,
     // gagana rin ang drag & drop, at itatago ang dropzone habang
@@ -883,12 +894,20 @@
     function updateWorkFields() {
         const cfg = getWorkConfig();
 
+        // "Other Sources" lalabas lang kapag "Others" ang Primary Source of Funds.
+        const showOtherSources =
+            !!cfg &&
+            cfg.funds &&
+            !!primarySourceSelect &&
+            primarySourceSelect.value === "others";
+
         setVisible(companyNameWrapper, !!cfg && !!cfg.company);
         setVisible(positionWrapper, !!cfg && !!cfg.position);
         setVisible(yearsWrapper, !!cfg && !!cfg.tenure);
         setVisible(primarySourceWrapper, !!cfg && cfg.funds);
-        setVisible(otherSourcesWrapper, !!cfg && cfg.funds);
+        setVisible(otherSourcesWrapper, showOtherSources);
         setVisible(paySlipSection, !!cfg && cfg.paySlip);
+        setVisible(billingSection, !!cfg && !!cfg.billing);
         setVisible(employmentOtherWrapper, !!cfg && !!cfg.other);
 
         if (cfg && cfg.company) {
@@ -924,6 +943,8 @@
         }
         if (!cfg || !cfg.funds) {
             if (primarySourceSelect) primarySourceSelect.value = "";
+        }
+        if (!showOtherSources) {
             if (otherSourcesInput) otherSourcesInput.value = "";
         }
         if (!cfg || !cfg.other) {
@@ -944,6 +965,22 @@
             );
             if (paySlipZone) paySlipZone.classList.remove("aln-hide");
         }
+        if (!cfg || !cfg.billing) {
+            if (billingInput) {
+                billingInput.value = "";
+                billingInput.dataset.saved = "0";
+            }
+            const billingPreview = document.getElementById("billingPreview");
+            if (billingInput && billingPreview) {
+                clearPreview(billingInput, billingPreview);
+            }
+            const billingZone = document.querySelector(
+                '[data-dropzone-for="proofOfBilling"]',
+            );
+            if (billingZone) billingZone.classList.remove("aln-hide");
+        }
+
+        refreshDropdowns();
     }
 
     // =========================================================
@@ -1010,7 +1047,7 @@
         return validIdType && validIdOthers && validIdNumber && validIdFiles;
     }
 
-    // Step 3 — Source of income + pay slip
+    // Step 3 — Source of income + pay slip / proof of billing
     function isStep3Valid() {
         const cfg = getWorkConfig();
 
@@ -1023,7 +1060,7 @@
             return false;
         }
 
-        // Occupation / Job Title / Business Type
+        // Job Title
         if (cfg.position && !isFilled(positionInput)) {
             return false;
         }
@@ -1033,12 +1070,27 @@
             return false;
         }
 
-        // Primary Source of Funds (Other Sources ay optional)
+        // Primary Source of Funds
         if (cfg.funds && !(primarySourceSelect && primarySourceSelect.value)) {
             return false;
         }
 
+        // Kapag "Others" ang Primary Source of Funds, kailangang may nakasulat
+        if (
+            cfg.funds &&
+            primarySourceSelect &&
+            primarySourceSelect.value === "others" &&
+            !isFilled(otherSourcesInput)
+        ) {
+            return false;
+        }
+
         if (cfg.paySlip && !hasFile(paySlipInput)) {
+            return false;
+        }
+
+        // Proof of billing (Unemployed / Retired / Others)
+        if (cfg.billing && !hasFile(billingInput)) {
             return false;
         }
 
@@ -1345,7 +1397,11 @@
         });
     }
     if (primarySourceSelect) {
-        primarySourceSelect.addEventListener("change", validateForm);
+        // Ipapakita / itatago ang "Other Sources" depende kung "Others" ang napili.
+        primarySourceSelect.addEventListener("change", function () {
+            updateWorkFields();
+            validateForm();
+        });
     }
     if (otherSourcesInput) {
         otherSourcesInput.addEventListener("input", validateForm, {
@@ -1354,6 +1410,7 @@
     }
 
     setupFilePreview(paySlipInput, "paySlipPreview");
+    setupFilePreview(billingInput, "billingPreview");
 
     // Show the right fields for the default / prefilled employment status.
     updateWorkFields();
@@ -1399,12 +1456,18 @@
             const docs = [
                 ["Front of ID", hasFile(idFrontInput)],
                 ["Back of ID", hasFile(idBackInput)],
-                ["Selfie with ID", hasFile(selfieInput)],
+                ["Selfie with Valid ID", hasFile(selfieInput)],
             ];
             const payslipVisible =
                 paySlipSection && paySlipSection.style.display !== "none";
             if (payslipVisible) {
                 docs.push(["Pay Slip / Proof of Income", hasFile(paySlipInput)]);
+            }
+
+            const billingVisible =
+                billingSection && billingSection.style.display !== "none";
+            if (billingVisible) {
+                docs.push(["Proof of Billing", hasFile(billingInput)]);
             }
 
             displayDocs.innerHTML = docs
@@ -1662,10 +1725,11 @@
             formData.append("selfieWithId", selfieInput.files[0]);
         }
 
-        // Source of income + pay slip
+        // Source of income + pay slip / proof of billing
         // companyName  = Employer / Company Name, Business Name, o School Name
-        // position     = Occupation / Job Title o Occupation / Business Type
+        // position     = Job Title
         // primarySource / otherSources = para sa Unemployed, Student, Retired
+        //   (otherSources ay may laman lang kapag "Others" ang primarySource)
         // employmentOther = "Please specify" kapag "Others" ang employment status
         formData.append(
             "employmentStatus",
@@ -1698,6 +1762,11 @@
 
         if (paySlipInput && paySlipInput.files[0]) {
             formData.append("paySlip", paySlipInput.files[0]);
+        }
+
+        // Proof of billing (Unemployed / Retired / Others)
+        if (billingInput && billingInput.files[0]) {
+            formData.append("proofOfBilling", billingInput.files[0]);
         }
 
         formData.append("_token", CSRF_TOKEN || "");

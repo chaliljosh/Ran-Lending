@@ -59,7 +59,7 @@
                     <div class="col-lg-12">
                         <div class="card stretch stretch-full">
                             <div class="card-header">
-                                <h5 class="card-title">Payment Due Date Reminders</h5>
+                                <h5 class="card-title">Payment Updates &amp; Reminders</h5>
                             </div>
                             <div class="card-body">
 
@@ -68,7 +68,7 @@
                                     <div class="text-center py-5">
                                         <i class="feather-bell-off fs-1 text-muted mb-3 d-block"></i>
                                         <h6 class="fw-bold mb-1">No Notifications</h6>
-                                        <p class="text-muted mb-0">You don't have an active loan yet, so there are no payment reminders to show.</p>
+                                        <p class="text-muted mb-0">You don't have an active loan yet, so there are no payment updates to show.</p>
                                     </div>
 
                                 @elseif(empty($notifications))
@@ -76,7 +76,7 @@
                                     <div class="text-center py-5">
                                         <i class="feather-check-circle fs-1 text-success mb-3 d-block"></i>
                                         <h6 class="fw-bold mb-1">You're All Caught Up</h6>
-                                        <p class="text-muted mb-0">No payments are due within the next 14 days.</p>
+                                        <p class="text-muted mb-0">No new payment updates, and no payments are due within the next 14 days.</p>
                                     </div>
 
                                 @else

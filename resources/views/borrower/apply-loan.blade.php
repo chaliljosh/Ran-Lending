@@ -5,6 +5,8 @@
 @section('page-head-links')
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/apply-loan.css') }}?v={{ time() }}">
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/aln-dropzone.css') }}?v={{ time() }}">
+    <link rel="stylesheet" href="{{ asset('assets/borrower/css/aln-success-modal.css') }}?v={{ time() }}">
+    
 @endsection
 
 @section('content')
@@ -93,21 +95,48 @@
                             })();
                         </script>
                     </section>
+                @elseif (!empty($waitUntil))
+                    {{-- Bad borrower: kailangang maghintay bago makapag-loan ulit --}}
+                    <section class="aln-section">
+                        <div class="aln-section__head">
+                            <div>
+                                <span class="aln-eyebrow">Loan Application</span>
+                                <h5 class="aln-title">Please Wait Before Applying Again</h5>
+                                <p class="aln-subtext">
+                                    Because of late payments on your previous loan, you can apply again on
+                                    {{ $waitUntil->format('F j, Y') }}.
+                                </p>
+                            </div>
+                        </div>
+
+                        <p class="aln-note">Borrowers who pay on time can apply again right after a loan is fully paid.</p>
+
+                        <a href="{{ route('borrower.loan-details') }}" class="aln-link">
+                            View Loan Details <span class="aln-link-arrow">→</span>
+                        </a>
+                    </section>
                 @else
+                    @php
+                        // First-time borrowers: up to 6 months. From the 2nd loan onward: up to 12 months.
+                        // Galing sa controller (BorrowerController::getLoanEligibility); fallback lang ito.
+                        $maxTerm = $maxTerm ?? ($isFirstTime ? 6 : 12);
+                    @endphp
+
                     {{-- INFO NOTICE --}}
                     <div class="aln-notice">
                         @if ($isFirstTime)
                             <span class="aln-notice__title">First-Time Borrowers</span>
                             <p class="aln-notice__text">
-                                Maximum loan amount is ₱{{ number_format($maxLoanAmount) }}. Every time you fully
-                                repay a loan, your limit goes up by ₱5,000.
+                                Maximum loan amount is ₱{{ number_format($maxLoanAmount) }} and the maximum term is
+                                {{ $maxTerm }} months. Every time you fully repay a loan, your limit goes up by
+                                ₱5,000, and you can choose terms of up to 12 months.
                             </p>
                         @else
                             <span class="aln-notice__title">You're Eligible for Higher Amounts</span>
                             <p class="aln-notice__text">
                                 Since you've successfully repaid a previous loan, you may now apply for up to
-                                ₱{{ number_format($maxLoanAmount) }}. Every fully repaid loan raises your limit
-                                by ₱5,000.
+                                ₱{{ number_format($maxLoanAmount) }} with a term of up to {{ $maxTerm }} months.
+                                Every fully repaid loan raises your limit by ₱5,000.
                             </p>
                         @endif
                     </div>
@@ -156,17 +185,18 @@
                                             ₱{{ number_format($maxLoanAmount) }}</small>
                                     </div>
 
-                                    {{-- Loan Term (dropdown 1–12 months) --}}
+                                    {{-- Loan Term (dropdown: up to 6 months for first-timers, up to 12 months after) --}}
                                     <div class="col-md-6">
                                         <label class="aln-label" for="loanTerm">
                                             Term <span class="aln-required">*</span>
                                         </label>
                                         <select class="form-select aln-input" id="loanTerm" required>
                                             <option value="">Select term</option>
-                                            @for ($m = 1; $m <= 12; $m++)
+                                            @for ($m = 1; $m <= $maxTerm; $m++)
                                                 <option value="{{ $m }}">{{ $m }} {{ $m === 1 ? 'Month' : 'Months' }}</option>
                                             @endfor
                                         </select>
+                                        <small class="aln-hint">Max: {{ $maxTerm }} months</small>
                                     </div>
 
                                     {{-- Loan Purpose --}}
@@ -278,7 +308,9 @@
                                         </select>
                                     </div>
 
-                                    <div class="col-12" id="idTypeOthersWrapper" style="display:none;">
+                                    {{-- Shown only when "Others" is picked. col-md-6 so it sits beside "Type of ID"
+                                         (same row) and the rest of the grid stays aligned. --}}
+                                    <div class="col-md-6" id="idTypeOthersWrapper" style="display:none;">
                                         <label class="aln-label" for="idTypeOthers">
                                             Specify ID Type <span class="aln-required">*</span>
                                         </label>
@@ -348,10 +380,10 @@
                                         <div id="idBackPreview" class="aln-file-preview"></div>
                                     </div>
 
-                                    {{-- Selfie with ID --}}
+                                    {{-- Selfie with Valid ID --}}
                                     <div class="col-md-6">
                                         <label class="aln-label" for="selfieWithId">
-                                            Selfie with ID <span class="aln-required">*</span>
+                                            Selfie with Valid ID <span class="aln-required">*</span>
                                         </label>
                                         {{-- Totoong input (nakatago). Yung dropzone sa ibaba ang pipindutin. --}}
                                         <input type="file" class="aln-file-hidden" id="selfieWithId"
@@ -371,7 +403,7 @@
                                                 {{ $hasSavedSelfie ? 'You already have a selfie on file. Upload a new one to replace it.' : 'JPG or PNG, max 5MB.' }}
                                             </span>
                                         </label>
-                                        <small class="aln-hint">Hold your ID next to your face. Make sure your face and the ID are both clear.</small>
+                                        <small class="aln-hint">Hold your valid ID next to your face. Make sure your face and the ID are both clear.</small>
 
                                         <div id="selfiePreview" class="aln-file-preview"></div>
                                     </div>
@@ -379,12 +411,13 @@
                             </section>
                         </div>
 
-                        {{-- ═══════════ STEP 3 — Source of Income + Pay Slip ═══════════ --}}
+                        {{-- ═══════════ STEP 3 — Source of Income + Pay Slip / Proof of Billing ═══════════ --}}
                         @php
                             $savedEmployment = $work->employment_status ?? '';
                             $savedYears = $work->years_in_company ?? '';
                             $savedPrimarySource = $work->primary_source ?? '';
                             $hasSavedPaySlip = !empty($work->payslip_path ?? null);
+                            $hasSavedBilling = !empty($work->billing_path ?? null);
                             $yearsOptions = [
                                 '0-5' => '0 – 5 years',
                                 '6-10' => '6 – 10 years',
@@ -411,6 +444,7 @@
                                 'remittance' => 'Remittance',
                                 'odd_jobs' => 'Part-time / Odd Jobs',
                                 'rental_investments' => 'Rental / Investments',
+                                'others' => 'Others',
                             ];
                         @endphp
                         <div class="aln-step" data-step="3">
@@ -421,7 +455,7 @@
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <label class="aln-label" for="employmentStatus">
-                                            Employment Status <span class="aln-required">*</span>
+                                            Occupation <span class="aln-required">*</span>
                                         </label>
                                         <select class="form-select aln-input" id="employmentStatus" required>
                                             @foreach ($employmentOptions as $val => $label)
@@ -449,13 +483,13 @@
                                             value="{{ $work->company_name ?? '' }}" placeholder="Enter employer / company name">
                                     </div>
 
-                                    {{-- Employed: Occupation / Job Title | Self-Employed: Occupation / Business Type --}}
+                                    {{-- Employed / Self-Employed: Job Title --}}
                                     <div class="col-md-6" id="positionWrapper" style="display:none;">
                                         <label class="aln-label" for="position">
-                                            <span id="positionLabel">Occupation / Job Title</span> <span class="aln-required">*</span>
+                                            <span id="positionLabel">Job Title</span> <span class="aln-required">*</span>
                                         </label>
                                         <input type="text" class="form-control aln-input" id="position" maxlength="100"
-                                            value="{{ $work->position ?? '' }}" placeholder="Enter occupation / job title">
+                                            value="{{ $work->position ?? '' }}" placeholder="Enter job title">
                                     </div>
 
                                     {{-- Employed: Years Employed | Self-Employed: Years in Business --}}
@@ -483,10 +517,10 @@
                                         </select>
                                     </div>
 
-                                    {{-- Unemployed / Student / Retired: Other Sources of Income (optional) --}}
+                                    {{-- Lalabas lang kapag "Others" ang Primary Source of Funds --}}
                                     <div class="col-md-6" id="otherSourcesWrapper" style="display:none;">
                                         <label class="aln-label" for="otherSources">
-                                            Other Sources of Income <span class="aln-hint" style="display:inline;margin:0;">(optional)</span>
+                                            Please specify other source <span class="aln-required">*</span>
                                         </label>
                                         <input type="text" class="form-control aln-input" id="otherSources" maxlength="150"
                                             value="{{ $work->other_sources ?? '' }}" placeholder="e.g. Freelance work, Rental income">
@@ -526,6 +560,41 @@
                                     </div>
                                 </div>
                             </section>
+
+                            {{-- Proof of billing (only for Unemployed / Retired / Others) --}}
+                            <section class="aln-section" id="billingSection" style="display:none;">
+                                <h6 class="aln-section-title">Proof of Billing</h6>
+                                <div class="aln-hr aln-hr--tight"></div>
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="aln-label" for="proofOfBilling">
+                                            Upload Proof of Billing <span class="aln-required">*</span>
+                                        </label>
+
+                                        {{-- Totoong input (nakatago). Yung dropzone sa ibaba ang pipindutin. --}}
+                                        <input type="file" class="aln-file-hidden" id="proofOfBilling"
+                                            accept=".jpg,.jpeg,.png,image/jpeg,image/png" data-saved="{{ $hasSavedBilling ? '1' : '0' }}">
+
+                                        <label for="proofOfBilling" class="aln-dropzone" data-dropzone-for="proofOfBilling">
+                                            <span class="aln-dropzone__icon">
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="16 16 12 12 8 16"></polyline>
+                                                    <line x1="12" y1="12" x2="12" y2="21"></line>
+                                                    <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path>
+                                                </svg>
+                                            </span>
+                                            <span class="aln-dropzone__title"><span>Click to upload</span> or drag and drop</span>
+                                            <span class="aln-dropzone__hint">
+                                                {{ $hasSavedBilling ? 'You already have a proof of billing on file. Upload a new one to replace it.' : 'Water, electric, or internet bill. JPG or PNG, max 5MB.' }}
+                                            </span>
+                                        </label>
+
+                                        <div id="billingPreview" class="aln-file-preview"></div>
+                                    </div>
+                                </div>
+                            </section>
                         </div>
 
                         {{-- FORM BUTTONS --}}
@@ -540,7 +609,7 @@
                                 Back
                             </button>
 
-                            <button type="button" class="aln-btn aln-btn--primary" id="wizNext" disabled>
+                            <button type="button" class="aln-btn aln-btn--primary-outline" id="wizNext" disabled>
                                 Next
                             </button>
 
@@ -560,19 +629,32 @@
 @endsection
 
 @push('modals')
-    <div id="successOverlay" class="aln-toast">
-        <button type="button" class="aln-toast-close"
-            onclick="document.getElementById('successOverlay').classList.remove('show')">&times;</button>
-        <div class="aln-toast-body">
-            <div class="aln-toast-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-            </div>
-            <div class="aln-toast-text">
-                <h6>Application Submitted</h6>
-                <p>Your loan application is now under review.</p>
+    {{-- APPLICATION SUBMITTED MODAL: lalabas pagka-reload pagkatapos ma-submit ang application.
+         Binubuksan ito ng apply-loan.js kapag may "loanApplicationSubmitted" flag sa sessionStorage. --}}
+    <div class="modal fade" id="applicationSubmittedModal" tabindex="-1"
+        aria-labelledby="applicationSubmittedTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered aln-success-modal-dialog">
+            <div class="modal-content aln-modal aln-success-modal">
+
+                <div class="modal-body">
+                    <div class="aln-success-modal__icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                    <h6 class="aln-success-modal__title" id="applicationSubmittedTitle">Application Submitted</h6>
+                    <p class="aln-success-modal__text">
+                        Your loan application is now under review. You'll be notified once a decision is made.
+                    </p>
+                </div>
+
+                <div class="modal-footer aln-modal-footer">
+                    <button type="button" class="aln-btn aln-btn--primary" data-bs-dismiss="modal">
+                        Done
+                    </button>
+                </div>
+
             </div>
         </div>
     </div>
@@ -588,6 +670,16 @@
                     <div class="modal-body">
                         <h6 class="aln-modal-title">Loan Summary</h6>
                         <p>Please review your loan details before submitting.</p>
+
+                        <div class="aln-hr aln-hr--tight"></div>
+
+                        {{-- Borrower name (galing sa $userName ng controller) --}}
+                        <div class="aln-summary-row" style="grid-template-columns: 1fr;">
+                            <div class="aln-summary-item">
+                                <span class="aln-summary-label">Borrower Name</span>
+                                <span class="aln-summary-value">{{ $userName ?? '—' }}</span>
+                            </div>
+                        </div>
 
                         <div class="aln-hr aln-hr--tight"></div>
 
@@ -673,7 +765,7 @@
                             No
                         </button>
 
-                        <a href="{{ route('borrower.dashboard') }}" class="aln-btn aln-btn--primary" id="alnLeaveBtn">
+                        <a href="{{ route('borrower.dashboard') }}" class="aln-btn aln-btn--danger-outline" id="alnLeaveBtn">
                             Yes
                         </a>
                     </div>
@@ -688,11 +780,11 @@
      apply-loan.js reads its config from these data-* attributes instead of
      a separate inline <script> block, and it self-guards: the form-wiring
      part of the file exits early when #loanAmount isn't on the page
-     (pending-application view), but the post-submit toast check inside it
+     (pending-application view), but the post-submit modal check inside it
      still runs on every load. --}}
 @section('page-scripts')
     <script src="{{ asset('functions/apply-loan.js') }}?v={{ filemtime(public_path('functions/apply-loan.js')) }}" data-csrf="{{ csrf_token() }}"
         data-submit-url="{{ url('/api/borrower/apply-loan') }}"
-        data-max-amount="{{ $maxLoanAmount ?? 5000 }}"
+        data-max-amount="{{ $maxLoanAmount ?? 15000 }}"
         data-user-id="{{ session('user_id') }}"></script>
 @endsection

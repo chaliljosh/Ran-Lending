@@ -1,0 +1,225 @@
+/* assets/borrower/css/payment-method.css
+   Read-only na payment method card sa borrower Loan Details.
+   Prefix: bwl-pm- (para hindi mag-clash sa ibang bwl-ld- styles). */
+
+.bwl-pm {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin: 0 0 20px;
+}
+.bwl-pm__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin-bottom: 14px;
+}
+.bwl-pm__eyebrow {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.bwl-pm__hint {
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+.bwl-pm__provider {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    margin-bottom: 14px;
+}
+.bwl-pm__provider-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+.bwl-pm__provider-label {
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: #dbeafe;
+    color: #2563eb;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.bwl-pm__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+}
+.bwl-pm__field {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 12px 16px;
+    min-width: 0;
+}
+.bwl-pm__field-label {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #8a9bb0;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 6px;
+}
+.bwl-pm__field-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #0f172a;
+    word-break: break-word;
+}
+.bwl-pm__number-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+}
+.bwl-pm__number {
+    font-size: 1.05rem;
+    letter-spacing: 0.5px;
+}
+
+.bwl-pm__copy {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 36px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #0f172a;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+.bwl-pm__copy:hover {
+    background: #eff6ff;
+    border-color: #2563eb;
+    color: #2563eb;
+}
+.bwl-pm__copy:focus-visible {
+    outline: 2px solid #93c5fd;
+    outline-offset: 2px;
+}
+.bwl-pm__copy.is-copied {
+    background: #dcfce7;
+    border-color: #16a34a;
+    color: #16a34a;
+}
+
+.bwl-pm__instructions {
+    margin-top: 12px;
+    padding: 12px 16px;
+    background: #eff6ff;
+    border-radius: 10px;
+}
+.bwl-pm__instructions .bwl-pm__field-label {
+    color: #1e40af;
+}
+.bwl-pm__instructions-text {
+    font-size: 0.86rem;
+    line-height: 1.55;
+    color: #1e3a8a;
+    word-break: break-word;
+}
+
+.bwl-pm__empty {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 16px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 10px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 0.86rem;
+    line-height: 1.5;
+}
+.bwl-pm__empty i {
+    font-size: 16px;
+    margin-top: 2px;
+    flex: none;
+}
+
+@media (max-width: 640px) {
+    .bwl-pm { padding: 16px; }
+    .bwl-pm__copy { width: 100%; }
+}
+
+/* ---------- Dark mode ---------- */
+html.app-skin-dark .bwl-pm {
+    background: #141414;
+    border-color: #262626;
+}
+html.app-skin-dark .bwl-pm__eyebrow { color: #9A9A9A; }
+html.app-skin-dark .bwl-pm__hint { color: #9A9A9A; }
+html.app-skin-dark .bwl-pm__provider-name,
+html.app-skin-dark .bwl-pm__field-value { color: #F5F5F5; }
+html.app-skin-dark .bwl-pm__provider-label {
+    background: rgba(37, 99, 235, 0.18);
+    color: #60A5FA;
+}
+html.app-skin-dark .bwl-pm__field {
+    background: #0d0d0d;
+    border-color: #262626;
+}
+html.app-skin-dark .bwl-pm__field-label { color: #9A9A9A; }
+html.app-skin-dark .bwl-pm__copy {
+    background: transparent;
+    border-color: #262626;
+    color: #F5F5F5;
+}
+html.app-skin-dark .bwl-pm__copy:hover {
+    background: rgba(37, 99, 235, 0.14);
+    border-color: #60A5FA;
+    color: #60A5FA;
+}
+html.app-skin-dark .bwl-pm__copy.is-copied {
+    background: rgba(22, 163, 74, 0.15);
+    border-color: #4ADE80;
+    color: #4ADE80;
+}
+html.app-skin-dark .bwl-pm__instructions { background: rgba(37, 99, 235, 0.12); }
+html.app-skin-dark .bwl-pm__instructions .bwl-pm__field-label,
+html.app-skin-dark .bwl-pm__instructions-text { color: #93C5FD; }
+html.app-skin-dark .bwl-pm__empty {
+    background: #0d0d0d;
+    border-color: #262626;
+    color: #9A9A9A;
+}
+
+/* ---- Add at the END of public/assets/borrower/css/payment-method.css ---- */
+
+.bwl-pm__brand { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.bwl-pm__brand .bwl-pm__provider { margin-bottom: 0; }
+
+.bwl-pm__logo {
+    flex: 0 0 auto;
+    width: 48px;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fff;      /* stays white in dark mode so the logo stays visible */
+    overflow: hidden;
+}
+.bwl-pm__logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.bwl-pm__logo-fallback { font-size: 0.8rem; font-weight: 700; letter-spacing: .02em; color: #4a7cf7; }
