@@ -48,6 +48,30 @@
         $isAttentionTab = $currentRouteName === 'admin.loan-applications'
             && $loanStatusTab === 'pending'
             && request()->query('filter') === 'attention';
+
+        // Ongoing Loans dropdown: Pending Payments + Overdue Payments + Penalty Tracking
+        $isPendingPaymentsPage = request()->routeIs(['admin.ongoing-loans', 'admin.ongoing-loan-detail']);
+        $isOverduePaymentsPage = request()->routeIs(['admin.overdue-payments', 'admin.overdue-payment-detail']);
+        $isPenaltyPage = request()->routeIs('admin.penalty-tracking*');
+        $isOngoingSection = $isPendingPaymentsPage || $isOverduePaymentsPage || $isPenaltyPage;
+
+        // Borrower Records dropdown: All Borrowers + Active Borrowers + Completed Loans
+        $isAllBorrowersPage = request()->routeIs(['admin.borrowers', 'admin.verification-detail']);
+        $isActiveBorrowersPage = request()->routeIs(['admin.active-borrowers', 'admin.active-borrower-detail']);
+        $isCompletedLoansPage = request()->routeIs(['admin.completed-loans', 'admin.completed-loan-detail']);
+        $isBorrowersSection = $isAllBorrowersPage || $isActiveBorrowersPage || $isCompletedLoansPage;
+
+        // Waiting for Release
+        $isWaitingReleasePage = request()->routeIs('admin.waiting-for-release*');
+
+        // Hindi mag-e-error ang sidebar kahit wala pang route para sa Waiting for Release
+        $waitingReleaseUrl = \Illuminate\Support\Facades\Route::has('admin.waiting-for-release')
+            ? route('admin.waiting-for-release')
+            : 'javascript:void(0);';
+
+        // Audit Logs dropdown: aling sub-item ang naka-highlight (admin o borrower page)
+        $isAuditSection = request()->routeIs('admin.audit-logs*');
+        $auditTab = request()->routeIs('admin.audit-logs.borrower') ? 'borrower' : 'admin';
     @endphp
 
     <nav class="nxl-navigation">
@@ -96,67 +120,103 @@
                             </button>
                         </div>
 
-                        <ul class="nxl-flat-submenu" id="nxlLoanSubmenu">
-                            <li class="nxl-flat-sub-item">
-                                <a href="{{ route('admin.loan-applications') }}"
-                                    class="nxl-sublink {{ $loanStatusTab === 'pending' && !$isAttentionTab ? 'active' : '' }}">
-                                    <span class="nxl-sub-label">Pending Applications</span>
-                                    @if (($pendingLoanCount ?? 0) > 0)
-                                        <span class="nxl-badge-circle nxl-badge-sm">{{ $pendingLoanCount }}</span>
-                                    @endif
-                                </a>
-                            </li>
-                            <li class="nxl-flat-sub-item">
-                                <a href="{{ route('admin.loan-applications', ['filter' => 'attention']) }}"
-                                    class="nxl-sublink {{ $isAttentionTab ? 'active' : '' }}">
-                                    <span class="nxl-sub-label">Needs Attention</span>
-                                    @if (($needsAttentionCount ?? 0) > 0)
-                                        <span class="nxl-badge-circle nxl-badge-sm">{{ $needsAttentionCount }}</span>
-                                    @endif
-                                </a>
-                            </li>
-                            <li class="nxl-flat-sub-item">
-                                <a href="{{ route('admin.loan-applications', ['status' => 'approved']) }}"
-                                    class="nxl-sublink {{ $loanStatusTab === 'approved' ? 'active' : '' }}">
-                                    <span class="nxl-sub-label">Approved</span>
-                                </a>
-                            </li>
-                            <li class="nxl-flat-sub-item">
-                                <a href="{{ route('admin.loan-applications', ['status' => 'rejected']) }}"
-                                    class="nxl-sublink {{ $loanStatusTab === 'rejected' ? 'active' : '' }}">
-                                    <span class="nxl-sub-label">Rejected</span>
-                                </a>
-                            </li>
-                            <li class="nxl-flat-sub-item">
-                                <a href="{{ route('admin.loan-applications', ['status' => 'on_hold']) }}"
-                                    class="nxl-sublink {{ $loanStatusTab === 'on_hold' ? 'active' : '' }}">
-                                    <span class="nxl-sub-label">On Hold</span>
-                                </a>
-                            </li>
-                        </ul>
+                       <ul class="nxl-flat-submenu" id="nxlLoanSubmenu">
+    <li class="nxl-flat-sub-item">
+        <a href="{{ route('admin.loan-applications') }}"
+            class="nxl-sublink {{ $loanStatusTab === 'pending' && !$isAttentionTab ? 'active' : '' }}">
+            <i class="feather-clock nxl-sub-icon"></i>
+            <span class="nxl-sub-label">Pending Applications</span>
+            @if (($pendingLoanCount ?? 0) > 0)
+                <span class="nxl-badge-circle nxl-badge-sm">{{ $pendingLoanCount }}</span>
+            @endif
+        </a>
+    </li>
+    <li class="nxl-flat-sub-item">
+        <a href="{{ route('admin.loan-applications', ['filter' => 'attention']) }}"
+            class="nxl-sublink {{ $isAttentionTab ? 'active' : '' }}">
+            <i class="feather-alert-circle nxl-sub-icon"></i>
+            <span class="nxl-sub-label">Needs Attention</span>
+            @if (($needsAttentionCount ?? 0) > 0)
+                <span class="nxl-badge-circle nxl-badge-sm">{{ $needsAttentionCount }}</span>
+            @endif
+        </a>
+    </li>
+    <li class="nxl-flat-sub-item">
+        <a href="{{ route('admin.loan-applications', ['status' => 'approved']) }}"
+            class="nxl-sublink {{ $loanStatusTab === 'approved' ? 'active' : '' }}">
+            <i class="feather-check-circle nxl-sub-icon"></i>
+            <span class="nxl-sub-label">Approved</span>
+        </a>
+    </li>
+    <li class="nxl-flat-sub-item">
+        <a href="{{ route('admin.loan-applications', ['status' => 'rejected']) }}"
+            class="nxl-sublink {{ $loanStatusTab === 'rejected' ? 'active' : '' }}">
+            <i class="feather-x-circle nxl-sub-icon"></i>
+            <span class="nxl-sub-label">Rejected</span>
+        </a>
+    </li>
+    <li class="nxl-flat-sub-item">
+        <a href="{{ route('admin.loan-applications', ['status' => 'on_hold']) }}"
+            class="nxl-sublink {{ $loanStatusTab === 'on_hold' ? 'active' : '' }}">
+            <i class="feather-pause-circle nxl-sub-icon"></i>
+            <span class="nxl-sub-label">On Hold</span>
+        </a>
+    </li>
+</ul>
                     </li>
 
+                    {{-- Waiting for Release: approved na pero wala pang Proof of Release --}}
                     <li class="nxl-item">
-                        <a href="{{ route('admin.ongoing-loans') }}"
-                            class="nxl-link {{ request()->routeIs(['admin.ongoing-loans', 'admin.ongoing-loan-detail']) ? 'active' : '' }}">
-                            <span class="nxl-micon"><i class="feather-dollar-sign"></i></span>
-                            <span class="nxl-mtext">Ongoing Loans</span>
+                        <a href="{{ $waitingReleaseUrl }}"
+                            class="nxl-link {{ $isWaitingReleasePage ? 'active' : '' }}">
+                            <span class="nxl-micon"><i class="feather-send"></i></span>
+                            <span class="nxl-mtext">Waiting for Release</span>
+                            @if (($waitingReleaseCount ?? 0) > 0)
+                                <span class="nxl-badge-circle">{{ $waitingReleaseCount }}</span>
+                            @endif
                         </a>
                     </li>
-                    <li class="nxl-item">
-                        <a href="{{ route('admin.overdue-payments') }}"
-                            class="nxl-link {{ request()->routeIs(['admin.overdue-payments', 'admin.overdue-payment-detail']) ? 'active' : '' }}">
-                            <span class="nxl-micon"><i class="feather-clock"></i></span>
-                            <span class="nxl-mtext">Overdue Payments</span>
-                        </a>
+
+                    {{-- Ongoing Loans dropdown: Pending Payments + Overdue Payments + Penalty Tracking --}}
+                    <li class="nxl-item nxl-flat-parent {{ $isOngoingSection ? 'is-open' : '' }}">
+                        <div class="nxl-flat-row nxl-flat-toggle-trigger" role="button" tabindex="0"
+                            aria-expanded="{{ $isOngoingSection ? 'true' : 'false' }}"
+                            aria-controls="nxlOngoingSubmenu">
+                            <a href="javascript:void(0);"
+                                class="nxl-link nxl-flat-parent-link {{ $isOngoingSection ? 'active' : '' }}">
+                                <span class="nxl-micon"><i class="feather-dollar-sign"></i></span>
+                                <span class="nxl-mtext">Ongoing Loans</span>
+                            </a>
+                            <button type="button" class="nxl-flat-toggle" tabindex="-1">
+                                <i class="feather-chevron-down"></i>
+                            </button>
+                        </div>
+
+                        <ul class="nxl-flat-submenu" id="nxlOngoingSubmenu">
+    <li class="nxl-flat-sub-item">
+        <a href="{{ route('admin.ongoing-loans') }}"
+            class="nxl-sublink {{ $isPendingPaymentsPage ? 'active' : '' }}">
+            <i class="feather-calendar nxl-sub-icon"></i>
+            <span class="nxl-sub-label">Pending Payments</span>
+        </a>
+    </li>
+    <li class="nxl-flat-sub-item">
+        <a href="{{ route('admin.overdue-payments') }}"
+            class="nxl-sublink {{ $isOverduePaymentsPage ? 'active' : '' }}">
+            <i class="feather-alert-triangle nxl-sub-icon"></i>
+            <span class="nxl-sub-label">Overdue Payments</span>
+        </a>
+    </li>
+    <li class="nxl-flat-sub-item">
+        <a href="{{ route('admin.penalty-tracking') }}"
+            class="nxl-sublink {{ $isPenaltyPage ? 'active' : '' }}">
+            <i class="feather-percent nxl-sub-icon"></i>
+            <span class="nxl-sub-label">Penalty Tracking</span>
+        </a>
+    </li>
+</ul>
                     </li>
-                    <li class="nxl-item">
-                        <a href="{{ route('admin.completed-loans') }}"
-                            class="nxl-link {{ request()->routeIs(['admin.completed-loans', 'admin.completed-loan-detail']) ? 'active' : '' }}">
-                            <span class="nxl-micon"><i class="feather-check-circle"></i></span>
-                            <span class="nxl-mtext">Completed Loans</span>
-                        </a>
-                    </li>
+
                     <li class="nxl-item">
                         <a href="{{ route('admin.payment-methods') }}"
                             class="nxl-link {{ request()->routeIs('admin.payment-methods*') ? 'active' : '' }}">
@@ -164,32 +224,81 @@
                             <span class="nxl-mtext">Payment Methods</span>
                         </a>
                     </li>
-                    
+
 
                     <li class="nxl-flat-label">Borrowers</li>
-                    <li class="nxl-item">
-                        <a href="{{ route('admin.borrowers') }}"
-                            class="nxl-link {{ request()->routeIs(['admin.borrowers', 'admin.verification-detail']) ? 'active' : '' }}">
-                            <span class="nxl-micon"><i class="feather-users"></i></span>
-                            <span class="nxl-mtext">All Borrowers</span>
-                        </a>
-                    </li>
-                    <li class="nxl-item">
-                        <a href="{{ route('admin.active-borrowers') }}"
-                            class="nxl-link {{ request()->routeIs(['admin.active-borrowers', 'admin.active-borrower-detail']) ? 'active' : '' }}">
-                            <span class="nxl-micon"><i class="feather-user-check"></i></span>
-                            <span class="nxl-mtext">Active Borrowers</span>
-                        </a>
-                    </li>
-                    <li class="nxl-item">
-                        <a href="{{ route('admin.penalty-tracking') }}"
-                            class="nxl-link {{ request()->routeIs('admin.penalty-tracking') ? 'active' : '' }}">
-                            <span class="nxl-micon"><i class="feather-alert-triangle"></i></span>
-                            <span class="nxl-mtext">Penalty Tracking</span>
-                        </a>
+
+                    {{-- Borrower Records dropdown: All Borrowers + Active Borrowers + Completed Loans --}}
+                    <li class="nxl-item nxl-flat-parent {{ $isBorrowersSection ? 'is-open' : '' }}">
+                        <div class="nxl-flat-row nxl-flat-toggle-trigger" role="button" tabindex="0"
+                            aria-expanded="{{ $isBorrowersSection ? 'true' : 'false' }}"
+                            aria-controls="nxlBorrowersSubmenu">
+                            <a href="javascript:void(0);"
+                                class="nxl-link nxl-flat-parent-link {{ $isBorrowersSection ? 'active' : '' }}">
+                                <span class="nxl-micon"><i class="feather-users"></i></span>
+                                <span class="nxl-mtext">Borrower Records</span>
+                            </a>
+                            <button type="button" class="nxl-flat-toggle" tabindex="-1">
+                                <i class="feather-chevron-down"></i>
+                            </button>
+                        </div>
+
+                       <ul class="nxl-flat-submenu" id="nxlBorrowersSubmenu">
+    <li class="nxl-flat-sub-item">
+        <a href="{{ route('admin.borrowers') }}"
+            class="nxl-sublink {{ $isAllBorrowersPage ? 'active' : '' }}">
+            <i class="feather-users nxl-sub-icon"></i>
+            <span class="nxl-sub-label">All Borrowers</span>
+        </a>
+    </li>
+    <li class="nxl-flat-sub-item">
+        <a href="{{ route('admin.active-borrowers') }}"
+            class="nxl-sublink {{ $isActiveBorrowersPage ? 'active' : '' }}">
+            <i class="feather-user-check nxl-sub-icon"></i>
+            <span class="nxl-sub-label">Active Borrowers</span>
+        </a>
+    </li>
+    <li class="nxl-flat-sub-item">
+        <a href="{{ route('admin.completed-loans') }}"
+            class="nxl-sublink {{ $isCompletedLoansPage ? 'active' : '' }}">
+            <i class="feather-check-square nxl-sub-icon"></i>
+            <span class="nxl-sub-label">Completed Loans</span>
+        </a>
+    </li>
+</ul>
                     </li>
 
                     <li class="nxl-flat-label">Account</li>
+
+                    <li class="nxl-item nxl-flat-parent {{ $isAuditSection ? 'is-open' : '' }}">
+                        <div class="nxl-flat-row nxl-flat-toggle-trigger" role="button" tabindex="0"
+                            aria-expanded="{{ $isAuditSection ? 'true' : 'false' }}"
+                            aria-controls="nxlAuditSubmenu">
+                            <a href="javascript:void(0);"
+                                class="nxl-link nxl-flat-parent-link {{ $isAuditSection ? 'active' : '' }}">
+                                <span class="nxl-micon"><i class="feather-activity"></i></span>
+                                <span class="nxl-mtext">Audit Logs</span>
+                            </a>
+                            <button type="button" class="nxl-flat-toggle" tabindex="-1">
+                                <i class="feather-chevron-down"></i>
+                            </button>
+                        </div>
+
+                        <ul class="nxl-flat-submenu" id="nxlAuditSubmenu">
+                            <li class="nxl-flat-sub-item">
+                                <a href="{{ route('admin.audit-logs.admin') }}"
+                                    class="nxl-sublink {{ $isAuditSection && $auditTab === 'admin' ? 'active' : '' }}">
+                                    <span class="nxl-sub-label">Admin</span>
+                                </a>
+                            </li>
+                            <li class="nxl-flat-sub-item">
+                                <a href="{{ route('admin.audit-logs.borrower') }}"
+                                    class="nxl-sublink {{ $isAuditSection && $auditTab === 'borrower' ? 'active' : '' }}">
+                                    <span class="nxl-sub-label">Borrower</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
 
                     <li class="nxl-item">
                         <a href="javascript:void(0);" onclick="confirmLogout()" class="nxl-link nxl-link-danger">

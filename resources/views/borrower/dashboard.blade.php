@@ -22,36 +22,23 @@
 
     <div class="main-content">
 
-{{-- Wala nang admin-review states (on_hold / rejected / pending). Puro na
-     lang: incomplete (onboarding) o unlocked dashboard, dahil direktang
-     'approved' na ang status pagka-submit ng personal details. --}}
 @if ($detailsStatus === 'incomplete')
-    {{-- Bagong onboarding card — nasa borrower/partials/onboarding.blade.php --}}
     @include('borrower.partials.onboarding')
 
 @elseif(!$app)
     @php
         $isRejectedLoan  = $latestLoan && $latestLoan->status === 'rejected';
-
-        // Pag walang $app, ibig sabihin wala pang schedule. Kaya ang approved/active
-        // dito ay "approved na, hindi pa nare-release" (ginagawang 'active' ng
-        // activate() ang status pagka-approve, kaya isinama ang 'active').
         $isApprovedLoan  = $latestLoan && in_array($latestLoan->status, ['approved', 'active'], true);
-
         $isCompletedLoan = $latestLoan && $latestLoan->status === 'completed';
     @endphp
 
     @if (!$latestLoan)
         @php
             $firstName = trim(explode(' ', trim($userName ?? ''))[0] ?? '');
-            // Default muna ito: ₱15,000 at hanggang 6 months. Kung may tunay na
-            // eligibility logic ka na sa controller, ipasa na lang bilang
-            // $eligibleAmount / $eligibleTermMonths at iyon ang masusunod.
             $eligibleAmount = $eligibleAmount ?? 15000;
             $eligibleTermMonths = $eligibleTermMonths ?? 6;
         @endphp
 
-        {{-- ============ WELCOME BANNER ============ --}}
         <div class="bwl-dash-welcome">
             <div class="bwl-dash-welcome-text">
                 <p class="bwl-dash-welcome-eyebrow">Welcome</p>
@@ -69,7 +56,6 @@
             </div>
         </div>
 
-        {{-- ============ TOP ROW: ELIGIBILITY / STATUS / QUICK ACTIONS ============ --}}
         <div class="bwl-dash-top-row">
 
             <div class="bwl-dash-elig">
@@ -140,7 +126,6 @@
             </div>
         </div>
 
-        {{-- ============ BOTTOM ROW: LOAN JOURNEY + RECENT ACTIVITY ============ --}}
         <div class="bwl-dash-bottom-row">
             <div class="bwl-dash-journey">
                 <span class="bwl-dash-journey-eyebrow">Your Loan Journey</span>
@@ -261,6 +246,75 @@
             </div>
         </div>
 
+    @elseif ($isApprovedLoan)
+        <div class="bwl-wr-card">
+            <div class="bwl-wr-hero">
+                <img class="bwl-wr-hero-img"
+                    src="{{ asset('assets/borrower/images/loan-approved-illustration.png') }}" alt=""
+                    loading="lazy">
+                <div class="bwl-wr-hero-text">
+                    <h2 class="bwl-wr-title">Your loan has been approved!</h2>
+                    <p class="bwl-wr-desc">All required approvals are complete. Your loan is now waiting for
+                        release. Your payment schedule will be available once the funds have been released.</p>
+                </div>
+            </div>
+
+            <div class="bwl-wr-steps">
+                <div class="bwl-wr-step is-done">
+                    <span class="bwl-wr-dot"><i class="feather-check"></i></span>
+                    <span class="bwl-wr-label">Application Submitted</span>
+                </div>
+                <div class="bwl-wr-line is-done"></div>
+                <div class="bwl-wr-step is-done">
+                    <span class="bwl-wr-dot"><i class="feather-check"></i></span>
+                    <span class="bwl-wr-label">Under Review</span>
+                </div>
+                <div class="bwl-wr-line is-done"></div>
+                <div class="bwl-wr-step is-done">
+                    <span class="bwl-wr-dot"><i class="feather-check"></i></span>
+                    <span class="bwl-wr-label">Approved</span>
+                </div>
+                <div class="bwl-wr-line is-current"></div>
+                <div class="bwl-wr-step is-current">
+                    <span class="bwl-wr-dot"><i class="feather-clock"></i></span>
+                    <span class="bwl-wr-label">Loan Release</span>
+                </div>
+            </div>
+
+            <div class="bwl-wr-summary">
+                <div class="bwl-wr-summary-item">
+                    <span class="bwl-wr-summary-label">Application #</span>
+                    <strong class="bwl-wr-summary-value">#{{ $latestLoan->application_id }}</strong>
+                </div>
+                <div class="bwl-wr-summary-item">
+                    <span class="bwl-wr-summary-label">Loan Amount</span>
+                    <strong class="bwl-wr-summary-value">₱{{ number_format($latestLoan->loan_amount, 2) }}</strong>
+                </div>
+                <div class="bwl-wr-summary-item">
+                    <span class="bwl-wr-summary-label">Submitted On</span>
+                    <strong class="bwl-wr-summary-value">{{ \Carbon\Carbon::parse($latestLoan->applied_at)->format('M j, Y') }}</strong>
+                </div>
+            </div>
+
+            <div class="bwl-wr-bottom">
+                <div class="bwl-wr-next">
+                    <img class="bwl-wr-next-img"
+                        src="{{ asset('assets/borrower/images/loan-release-calendar.png') }}" alt=""
+                        loading="lazy">
+                    <div>
+                        <h3 class="bwl-wr-box-title">What's Next?</h3>
+                        <p class="bwl-wr-box-desc">Just wait for the release confirmation from Ran Serenity.
+                            We'll notify you once it's available.</p>
+                    </div>
+                </div>
+                <div class="bwl-wr-help">
+                    <h3 class="bwl-wr-box-title">Need Help?</h3>
+                    <p class="bwl-wr-box-desc">If you have any concerns, feel free to contact our support team.</p>
+                    <a href="{{ route('borrower.faq') }}" class="bwl-wr-help-btn">Contact Support</a>
+                </div>
+            </div>
+        </div>
+
     @else
         <div class="row justify-content-center">
             <div class="col-lg-8">
@@ -281,10 +335,9 @@
 
                         <div class="bwl-tracker-line is-done"></div>
 
-                        <div
-                            class="bwl-tracker-step {{ $isRejectedLoan ? 'is-done' : ($isApprovedLoan ? 'is-done' : 'is-current') }}">
+                        <div class="bwl-tracker-step {{ $isRejectedLoan ? 'is-done' : 'is-current' }}">
                             <span class="bwl-tracker-dot">
-                                @if ($isRejectedLoan || $isApprovedLoan)
+                                @if ($isRejectedLoan)
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
                                         stroke="currentColor" stroke-width="3" stroke-linecap="round"
                                         stroke-linejoin="round">
@@ -302,33 +355,20 @@
                             <span class="bwl-tracker-label">Under Review</span>
                         </div>
 
-                        <div
-                            class="bwl-tracker-line {{ $isRejectedLoan ? 'is-rejected' : ($isApprovedLoan ? 'is-done' : '') }}">
-                        </div>
+                        <div class="bwl-tracker-line {{ $isRejectedLoan ? 'is-rejected' : '' }}"></div>
 
-                        <div
-                            class="bwl-tracker-step {{ $isRejectedLoan ? 'is-rejected' : ($isApprovedLoan ? 'is-done' : '') }}">
+                        <div class="bwl-tracker-step {{ $isRejectedLoan ? 'is-rejected' : '' }}">
                             <span class="bwl-tracker-dot">
-                                @if ($isApprovedLoan)
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                                        stroke="currentColor" stroke-width="3" stroke-linecap="round"
-                                        stroke-linejoin="round">
-                                        <polyline points="20 6 9 17 4 12"></polyline>
-                                    </svg>
-                                @elseif ($isRejectedLoan)
+                                @if ($isRejectedLoan)
                                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
                                         stroke="currentColor" stroke-width="3" stroke-linecap="round"
                                         stroke-linejoin="round">
-                                        <line x1="18" y1="6" x2="6" y2="18">
-                                        </line>
-                                        <line x1="6" y1="6" x2="18" y2="18">
-                                        </line>
+                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                        <line x1="6" y1="6" x2="18" y2="18"></line>
                                     </svg>
                                 @endif
                             </span>
-                            <span class="bwl-tracker-label">
-                                {{ $isRejectedLoan ? 'Rejected' : ($isApprovedLoan ? 'Approved' : 'Decision') }}
-                            </span>
+                            <span class="bwl-tracker-label">{{ $isRejectedLoan ? 'Rejected' : 'Decision' }}</span>
                         </div>
                     </div>
 
@@ -344,9 +384,6 @@
                         @if ($isRejectedLoan)
                             Your loan application was not approved. You may review your application details or apply
                             again when eligible.
-                        @elseif ($isApprovedLoan)
-                            Your application has been approved. Your payment schedule will be available once your loan
-                            has been released.
                         @else
                             Your application is currently being reviewed. We'll notify you once a decision has been
                             made.
@@ -354,8 +391,7 @@
                     </p>
 
                     @if ($isRejectedLoan)
-                        <a href="{{ route('borrower.apply-loan') }}" class="bwl-tracker-link">
-                            Apply Again </a>
+                        <a href="{{ route('borrower.apply-loan') }}" class="bwl-tracker-link">Apply Again</a>
                     @else
                         <a href="{{ route('borrower.loan-details') }}" class="bwl-tracker-link">
                             View Application Status
@@ -367,10 +403,6 @@
     @endif
 
 @else
-    {{-- ============ FULL REDESIGNED DASHBOARD (may active loan) ============ --}}
-
-    {{-- ============ TOP STAT WIDGETS ============ --}}
-
     <div class="bwl-dash-widgets">
         <div class="bwl-dash-widget">
             <div class="bwl-dash-widget-top">
@@ -436,7 +468,6 @@
         </div>
     </div>
 
-    {{-- ============ CURRENT LOAN OVERVIEW + PAYMENT CALENDAR ============ --}}
     <div class="bwl-dash-row bwl-dash-row-cal">
         <div class="bwl-dash-card bwl-dash-overview">
             <div class="bwl-dash-card-header">
@@ -478,10 +509,13 @@
                     <div class="bwl-dash-progress-title">Loan Progress</div>
                     <div class="bwl-dash-progress-sub">{{ $paidCount }} of {{ $totalCount }} payments
                         completed</div>
-                    <div class="bwl-dash-donut" style="--pct: {{ $progressPct }};">
-                        <div class="bwl-dash-donut-inner">
-                            <span class="bwl-dash-donut-pct">{{ $progressPct }}%</span>
-                        </div>
+                    <div class="bwl-dash-donut">
+                        <svg class="bwl-dash-donut-svg" viewBox="0 0 150 150">
+                            <circle class="bwl-dash-donut-track" cx="75" cy="75" r="65.5" pathLength="100"></circle>
+                            <circle class="bwl-dash-donut-fill" cx="75" cy="75" r="65.5" pathLength="100"
+                                stroke-dasharray="{{ $progressPct }} 100"></circle>
+                        </svg>
+                        <span class="bwl-dash-donut-pct">{{ $progressPct }}%</span>
                     </div>
                     <div class="bwl-dash-progress-sub">
                         @if ($activatedAt)
@@ -492,7 +526,7 @@
             </div>
         </div>
 
-      <div id="bwl-dash-calendar-card" class="bwl-dash-card" data-calendar-data-url="{{ route('borrower.dashboard-calendar-data') }}">
+        <div id="bwl-dash-calendar-card" class="bwl-dash-card" data-calendar-data-url="{{ route('borrower.dashboard-calendar-data') }}">
             <div class="bwl-dash-card-header">
                 <h6>Payment Calendar</h6>
             </div>
@@ -502,7 +536,6 @@
         </div>
     </div>
 
-    {{-- ============ APPLICATION TIMELINE + RECENT PAYMENTS ============ --}}
     <div class="bwl-dash-row">
         <div class="bwl-dash-card bwl-dash-timeline">
             <div class="bwl-dash-card-header">

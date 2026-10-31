@@ -13,6 +13,8 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ZipcodeController;
 use App\Http\Controllers\BorrowerAccountController;
 use App\Http\Controllers\ReceiptReviewController;
+use App\Http\Controllers\AuditLogController;
+use App\Http\Middleware\AuditRequests;
 
 
 Route::get('/', function () {
@@ -68,7 +70,8 @@ Route::post('/api/forgot-password/send-otp', [ForgotPasswordController::class, '
 Route::post('/api/forgot-password/reset',    [ForgotPasswordController::class, 'reset'])->middleware('throttle:5,10');
 
 // Borrower pages — Blade, protected by 'borrower' middleware
-Route::middleware(['borrower', 'no-cache'])->group(function () {
+// AuditRequests = Audit Logs safety net para sa borrower (records successful write requests only).
+Route::middleware(['borrower', 'no-cache', AuditRequests::class])->group(function () {
     Route::get('/borrower/dashboard', [BorrowerController::class, 'dashboard'])->name('borrower.dashboard');
     Route::get('/borrower/dashboard/calendar', [BorrowerController::class, 'dashboardCalendar'])->name('borrower.dashboard.calendar');
     Route::get('/dashboard-calendar-data', [BorrowerController::class, 'dashboardCalendarData'])
@@ -112,7 +115,7 @@ Route::middleware(['borrower', 'no-cache'])->group(function () {
 // brute-forceable, pero pumipigil pa rin sa abuse/spam (hal. paulit-
 // ulit na profile picture upload) o sa isang na-compromise na session
 // na mag-mass-abuse ng mga endpoints na 'to.
-Route::middleware(['borrower', 'no-cache', 'throttle:20,1'])->prefix('api/borrower')->group(function () {
+Route::middleware(['borrower', 'no-cache', 'throttle:20,1', AuditRequests::class])->prefix('api/borrower')->group(function () {
     Route::post('/personal-details', [BorrowerController::class, 'savePersonalDetails']);
     Route::post('/apply-loan', [BorrowerController::class, 'submitLoanApplication']);
     Route::post('/payment-receipt', [PaymentReceiptController::class, 'submit']);
@@ -128,8 +131,15 @@ Route::middleware(['borrower', 'no-cache', 'throttle:20,1'])->prefix('api/borrow
 // Admin pages — 'throttle:60,1' (60 requests/minute) dito, mas
 // mataas kaysa sa borrower API dahil kasama rito ang normal na page
 // browsing (GET requests), hindi lang ang mutating actions.
-Route::middleware(['admin', 'no-cache', 'throttle:60,1'])->prefix('admin')->name('admin.')->group(function () {
+// AuditRequests = Audit Logs safety net (records successful write requests only).
+Route::middleware(['admin', 'no-cache', 'throttle:60,1', AuditRequests::class])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+
+    // Audit Logs (sidebar > Account). Read-only, system-wide.
+    // Old URL redirects to the Admin page, so old links / ?tab=borrower still work.
+    Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs');
+    Route::get('/audit-logs/admin', [AuditLogController::class, 'admin'])->name('audit-logs.admin');
+    Route::get('/audit-logs/borrower', [AuditLogController::class, 'borrower'])->name('audit-logs.borrower');
 
     // Monthly Reports (sidebar, below Dashboard)
     Route::get('/reports/monthly', [ReportController::class, 'monthly'])->name('monthly-reports');
@@ -176,6 +186,16 @@ Route::middleware(['admin', 'no-cache', 'throttle:60,1'])->prefix('admin')->name
         ->whereUuid('uuid')
         ->whereNumber('installment')
         ->name('penalty-tracking-detail');
+
+    // ===== Waiting for Release (approved na, wala pang proof of release) =====
+    // URL: /admin/active-loans/waiting-for-release  |  name: admin.waiting-for-release
+    Route::get('/active-loans/waiting-for-release', [AdminController::class, 'waitingForRelease'])
+        ->name('waiting-for-release');
+
+    // URL: /admin/waiting-for-release-detail/{uuid}  |  name: admin.waiting-for-release-detail
+    Route::get('/waiting-for-release-detail/{uuid}', [AdminController::class, 'waitingForReleaseDetail'])
+        ->whereUuid('uuid')
+        ->name('waiting-for-release-detail');
 
     // Active Loans > Ongoing Loans
     Route::get('/active-loans/ongoing', [AdminController::class, 'ongoingLoans'])->name('ongoing-loans');

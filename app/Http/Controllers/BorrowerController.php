@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
@@ -581,6 +582,13 @@ class BorrowerController extends Controller
                 DB::table('borrowerworkinfo')->insert($workData);
             }
 
+            // Audit Logs: walang values sa log (personal data), description lang
+            AuditLogger::log('borrower.details_saved', [
+                'entity_type' => 'borrower',
+                'entity_id'   => $detailId,
+                'description' => $existing ? 'Updated personal details' : 'Submitted personal details',
+            ]);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Personal details submitted successfully!',
@@ -962,6 +970,19 @@ class BorrowerController extends Controller
                 (string) ($userEmail ?: ($details->email ?? '')),
                 (string) ($details->first_name ?? '')
             );
+
+            // Audit Logs: nag-apply ng loan ang borrower
+            AuditLogger::log('loan.applied', [
+                'entity_type' => 'loan_application',
+                'entity_id'   => $result['application_id'],
+                'description' => 'Applied for a loan of ₱' . number_format($loanAmount, 2) . ' for ' . $loanTerm . ' month(s)',
+                'new'         => [
+                    'loan_amount'  => $loanAmount,
+                    'loan_term'    => $loanTerm,
+                    'loan_purpose' => $request->input('loanPurpose'),
+                    'total_amount' => $totalAmount,
+                ],
+            ]);
 
             return response()->json([
                 'success' => true,
@@ -1694,6 +1715,12 @@ class BorrowerController extends Controller
 
         Session::put('user_profile_picture', $filename);
 
+        AuditLogger::log('account.profile_picture_changed', [
+            'entity_type' => 'user',
+            'entity_id'   => $userId,
+            'description' => 'Changed profile picture',
+        ]);
+
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success' => true,
@@ -1719,6 +1746,12 @@ class BorrowerController extends Controller
         ]);
 
         Session::forget('user_profile_picture');
+
+        AuditLogger::log('account.profile_picture_removed', [
+            'entity_type' => 'user',
+            'entity_id'   => $userId,
+            'description' => 'Removed profile picture',
+        ]);
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
@@ -1833,6 +1866,13 @@ class BorrowerController extends Controller
 
         // Successful change — clear ang rate limit counter
         RateLimiter::clear($rateLimitKey);
+
+        // Audit Logs: hindi kailanman nilalagay ang password
+        AuditLogger::log('account.password_changed', [
+            'entity_type' => 'user',
+            'entity_id'   => $userId,
+            'description' => 'Changed account password',
+        ]);
 
         return response()->json(['success' => true, 'message' => 'Password changed successfully!']);
     }

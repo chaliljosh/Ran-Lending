@@ -1,22 +1,51 @@
 document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.nxl-flat-toggle-trigger').forEach(function (trigger) {
-        function toggle() {
-            var parent = trigger.closest('.nxl-flat-parent');
-            if (!parent) return;
+    var parents = document.querySelectorAll('.nxl-flat-parent');
 
-            var isOpen = parent.classList.toggle('is-open');
-            trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-        }
+    function setOpen(parent, open) {
+        parent.classList.toggle('is-open', open);
+        var trigger = parent.querySelector('.nxl-flat-toggle-trigger');
+        if (trigger) trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    // Accordion: isa lang ang pwedeng bukas
+    function toggle(parent) {
+        var willOpen = !parent.classList.contains('is-open');
+
+        parents.forEach(function (p) {
+            if (p !== parent) setOpen(p, false);
+        });
+
+        setOpen(parent, willOpen);
+    }
+
+    // Sa page load: kung higit sa isa ang may is-open, isa lang ang iwan
+    // (unahin yung may active na sublink)
+    var openOnes = Array.prototype.filter.call(parents, function (p) {
+        return p.classList.contains('is-open');
+    });
+    if (openOnes.length > 1) {
+        var keep = openOnes.find(function (p) {
+            return p.querySelector('.nxl-sublink.active');
+        }) || openOnes[0];
+
+        openOnes.forEach(function (p) {
+            setOpen(p, p === keep);
+        });
+    }
+
+    parents.forEach(function (parent) {
+        var trigger = parent.querySelector('.nxl-flat-toggle-trigger');
+        if (!trigger) return;
 
         trigger.addEventListener('click', function (e) {
             e.preventDefault();
-            toggle();
+            toggle(parent);
         });
 
         trigger.addEventListener('keydown', function (e) {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                toggle();
+                toggle(parent);
             }
         });
     });

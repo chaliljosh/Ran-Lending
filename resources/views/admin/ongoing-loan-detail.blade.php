@@ -114,8 +114,8 @@
             <div class="olr-card">
                 <div class="olr-icon"><i class="feather-send"></i></div>
                 <div class="olr-text">
-                    <div class="olr-title">Proof of Release</div>
-                    <div class="olr-sub">Email the borrower proof that the &#8369;{{ number_format($app->loan_amount ?? 0, 2) }} loan was released. The payment schedule will be created once the proof is sent.</div>
+                    <div class="olr-title">Loan Disbursement</div>
+                    <div class="olr-sub">Send the borrower confirmation that the &#8369;{{ number_format($app->loan_amount ?? 0, 2) }} loan has been released. The payment schedule will be created once the proof is sent.</div>
                 </div>
                 <button type="button" class="btn-send-release" id="olsSendProofBtn"
                     data-application-id="{{ $applicationId }}"
@@ -950,6 +950,6 @@
 
 @section('page-scripts')
     <script src="{{ asset('functions/ongoing-loan-detail.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('functions/payment-account-dropdown.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('functions/assigned-payment-method.js') }}?v={{ time() }}"></script>
-      <script src="{{ asset('functions/payment-account-dropdown.js') }}?v={{ time() }}"></script>
 @endsection

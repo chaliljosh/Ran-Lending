@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -76,6 +77,7 @@ class AuthController extends Controller
                 RateLimiter::availableIn($emailKey)
             );
             $minutes = ceil($seconds / 60);
+
             return response()->json([
                 'success' => false,
                 'message' => "Too many login attempts. Try again in {$minutes} minute(s)."
@@ -87,6 +89,7 @@ class AuthController extends Controller
         if (!$user || !Hash::check($password, $user->password_hash)) {
             RateLimiter::hit($ipKey, 600);
             RateLimiter::hit($emailKey, 600);
+
             return response()->json(['success' => false, 'message' => 'Invalid email or password.']);
         }
 
@@ -108,6 +111,16 @@ class AuthController extends Controller
             'last_login_at' => now(),
         ]);
 
+        // Audit Logs: admin at borrower
+        if (in_array($user->role, ['admin', 'borrower'], true)) {
+            AuditLogger::log('auth.login', [
+                'entity_type' => 'user',
+                'entity_id'   => $user->user_id,
+                'description' => ucfirst($user->role) . ' ' . ($user->name ?: $user->email) . ' logged in',
+                'actor'       => ['id' => $user->user_id, 'role' => $user->role, 'name' => $user->name],
+            ]);
+        }
+
         $redirect = $user->role === 'admin'
             ? route('admin.dashboard')
             : route('borrower.dashboard');
@@ -120,6 +133,21 @@ class AuthController extends Controller
 
     public function logout()
     {
+        // Audit Logs: i-log muna bago ma-flush ang session (admin at borrower)
+        $role = Session::get('user_role');
+        if (in_array($role, ['admin', 'borrower'], true) && Session::get('user_id')) {
+            AuditLogger::log('auth.logout', [
+                'entity_type' => 'user',
+                'entity_id'   => Session::get('user_id'),
+                'description' => ucfirst($role) . ' ' . (Session::get('user_name') ?: Session::get('user_email')) . ' logged out',
+                'actor'       => [
+                    'id'   => Session::get('user_id'),
+                    'role' => $role,
+                    'name' => Session::get('user_name'),
+                ],
+            ]);
+        }
+
         Session::flush();
         return redirect()->route('login');
     }
@@ -332,7 +360,7 @@ class AuthController extends Controller
     $fullName = trim(preg_replace('/\s+/', ' ', $pending['first_name'] . ' ' . $pending['middle_name'] . ' ' . $pending['last_name']));
 
     try {
-        DB::transaction(function () use ($pending, $record, $fullName) {
+        $userId = DB::transaction(function () use ($pending, $record, $fullName) {
             DB::table('otp_verifications')->where('id', $record->id)->update(['is_used' => 1]);
 
             $userId = DB::table('users')->insertGetId([
@@ -363,6 +391,8 @@ class AuthController extends Controller
             DB::table('borroweraddress')->insert(array_merge($pending['address'], [
                 'detail_id' => $detailId,
             ]));
+
+            return $userId;
         });
     } catch (QueryException $e) {
         report($e);
@@ -373,6 +403,14 @@ class AuthController extends Controller
     }
 
     Session::forget('pending_register');
+
+    // Audit Logs: natapos ang pag-register ng borrower (pagkatapos ma-verify ang OTP)
+    AuditLogger::log('auth.registered', [
+        'entity_type' => 'user',
+        'entity_id'   => $userId,
+        'description' => 'New borrower ' . $fullName . ' registered an account',
+        'actor'       => ['id' => $userId, 'role' => 'borrower', 'name' => $fullName],
+    ]);
 
     return response()->json(['success' => true]);
 }

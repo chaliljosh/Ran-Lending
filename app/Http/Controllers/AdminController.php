@@ -21,6 +21,7 @@ use App\Mail\PaymentVoided;
 use App\Mail\BorrowerInfoEdited;
 use Illuminate\Support\Facades\Validator;
 use App\Mail\PaymentPartiallyRecorded;
+use App\Services\AuditLogger;
 
 
 class AdminController extends Controller
@@ -354,6 +355,12 @@ public function verificationDetail(Request $request, $id)
         'profile_picture' => $filename,
     ]);
 
+    AuditLogger::log('account.profile_picture_changed', [
+        'entity_type' => 'user',
+        'entity_id'   => $adminId,
+        'description' => 'Changed own profile picture',
+    ]);
+
     if ($request->ajax() || $request->wantsJson()) {
         return response()->json([
             'success' => true,
@@ -376,6 +383,12 @@ public function verificationDetail(Request $request, $id)
 
     DB::table('users')->where('user_id', $adminId)->update([
         'profile_picture' => null,
+    ]);
+
+    AuditLogger::log('account.profile_picture_removed', [
+        'entity_type' => 'user',
+        'entity_id'   => $adminId,
+        'description' => 'Removed own profile picture',
     ]);
 
     if ($request->ajax() || $request->wantsJson()) {
@@ -413,6 +426,13 @@ public function verificationDetail(Request $request, $id)
     DB::table('users')->where('user_id', $adminId)->update([
         'password_hash' => Hash::make($request->new_password),
         'password_changed_at' => $changedAt,
+    ]);
+
+    // Audit log (walang password na nilalagay)
+    AuditLogger::log('account.password_changed', [
+        'entity_type' => 'user',
+        'entity_id'   => $adminId,
+        'description' => 'Changed own account password',
     ]);
 
     if ($request->ajax() || $request->wantsJson()) {
@@ -922,12 +942,23 @@ public function ongoingLoans(Request $request)
         ];
     });
 
+    // Released na lang (may proof_sent_at). Ang hindi pa released ay nasa Waiting for Release.
+    $releasedIds = DB::table('loan_applications')
+        ->whereIn('application_id', $ongoingLoans->pluck('application_id')->all())
+        ->whereNotNull('proof_sent_at')
+        ->pluck('application_id')
+        ->flip();
+
+    $ongoingLoans = $ongoingLoans
+        ->filter(fn ($loan) => $releasedIds->has($loan['application_id']))
+        ->values();
+
     // uuid ng bawat loan
     $uuids = DB::table('loan_applications')
         ->whereIn('application_id', $ongoingLoans->pluck('application_id')->all())
         ->pluck('uuid', 'application_id');
 
-    // uuid ng bawat borrower (galing sa borrowerpersonaldetails)
+    // uuid ng bawat borrower
     $borrowerUuids = DB::table('borrowerpersonaldetails')
         ->whereIn('user_id', $ongoingLoans->pluck('user_id')->unique()->all())
         ->pluck('uuid', 'user_id');
@@ -959,7 +990,8 @@ public function ongoingLoans(Request $request)
         'pendingLoanCount' => $this->getPendingLoanCount($adminId),
     ]);
 }
-     public function ongoingLoanDetail(Request $request, $uuid)
+
+public function ongoingLoanDetail(Request $request, $uuid)
 {
     $adminId = Session::get('user_id');
 
@@ -975,6 +1007,11 @@ public function ongoingLoans(Request $request)
 
     if (!$app) {
         return redirect()->route('admin.ongoing-loans');
+    }
+
+    // Hindi pa na-release: doon sa Waiting for Release page
+    if (empty($app->proof_sent_at)) {
+        return redirect()->route('admin.waiting-for-release-detail', $uuid);
     }
 
     $schedule = $this->getPaymentSchedule($applicationId);
@@ -1024,14 +1061,11 @@ public function ongoingLoans(Request $request)
         ->get()
         ->groupBy('request_id');
 
-    // ---- Bagong Apply for a Loan form: address, source of income, labels, at signed URLs
-    // ng ID / selfie / payslip. Parehong helpers ng loanApplicationDetail().
     $address = $this->getBorrowerAddress($app->detail_id);
     $work = $this->getBorrowerWork($app->detail_id);
     $appDisplay = $this->applicationDisplayData($app, $work);
     $appDocs = $this->applicationDocuments($app, $work);
 
-    // B2: Lahat ng bayad (partial + full) kada installment, para sa Payment Details
     $paymentsBySchedule = DB::table('installment_payments')
         ->where('application_id', $applicationId)
         ->whereNull('voided_at')
@@ -1054,7 +1088,7 @@ public function ongoingLoans(Request $request)
         'comments' => $this->getLoanComments($applicationId),
         'paymentSchedule' => $schedule,
         'borrowerReceipts' => $borrowerReceipts,
-        'paymentsBySchedule' => $paymentsBySchedule, // B2
+        'paymentsBySchedule' => $paymentsBySchedule,
         'totalCount' => $totalCount,
         'paidCount' => $paidCount,
         'amountCollected' => $amountCollected,
@@ -1068,6 +1102,103 @@ public function ongoingLoans(Request $request)
         'voidWindowDays' => self::VOID_WINDOW_DAYS,
         'pendingCount' => $this->getPendingVerificationCount($adminId),
         'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+    ]);
+}
+
+/**
+ * Waiting for Release: approved na pero wala pang Proof of Release.
+ */
+private function waitingReleaseQuery()
+{
+    return DB::table('loan_applications as la')
+        ->join('users as u', 'la.user_id', '=', 'u.user_id')
+        ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
+        ->whereIn('la.status', ['approved', 'active'])
+        ->whereNull('la.proof_sent_at');
+}
+
+public function waitingForRelease(Request $request)
+{
+    $adminId = Session::get('user_id');
+    $sort = $request->query('sort', 'oldest'); // pinakamatagal na naghihintay ang una
+
+    $loans = $this->waitingReleaseQuery()
+        ->select(
+            'la.application_id', 'la.uuid', 'la.loan_amount', 'la.total_amount', 'la.loan_term',
+            'u.email', 'bpd.first_name', 'bpd.last_name',
+            DB::raw("(SELECT MAX(reviewed_at) FROM loan_approvals
+                      WHERE application_id = la.application_id AND decision = 'approved') AS approved_at")
+        )
+        ->orderBy('approved_at', $sort === 'newest' ? 'desc' : 'asc')
+        ->get()
+        ->map(function ($r) {
+            $name = trim(($r->first_name ?? '') . ' ' . ($r->last_name ?? ''));
+            $r->name = $name !== '' ? $name : $r->email;
+            $r->initials = $name !== ''
+                ? strtoupper(substr($r->first_name, 0, 1) . substr($r->last_name, 0, 1))
+                : strtoupper(substr($r->email, 0, 2));
+            $r->loan_code = 'LN-' . strtoupper(substr($r->uuid, 0, 8));
+            $r->waiting_days = $r->approved_at
+                ? (int) \Carbon\Carbon::parse($r->approved_at)->startOfDay()->diffInDays(now()->startOfDay())
+                : 0;
+            return $r;
+        });
+
+    return view('admin.waiting-for-release', [
+        'loans'            => $loans,
+        'totalAmount'      => $loans->sum('loan_amount'),
+        'sort'             => $sort,
+        'pendingCount'     => $this->getPendingVerificationCount($adminId),
+        'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+    ]);
+}
+
+public function waitingForReleaseDetail(Request $request, $uuid)
+{
+    $adminId = Session::get('user_id');
+
+    $applicationId = (int) DB::table('loan_applications')
+        ->where('uuid', $uuid)
+        ->value('application_id');
+
+    if (!$applicationId) {
+        return redirect()->route('admin.waiting-for-release');
+    }
+
+    $app = $this->getLoanApplication($applicationId);
+
+    if (!$app) {
+        return redirect()->route('admin.waiting-for-release');
+    }
+
+    // Na-release na: doon na sa Ongoing Loan Detail
+    if (!empty($app->proof_sent_at)) {
+        return redirect()->route('admin.ongoing-loan-detail', $uuid);
+    }
+
+    if (!in_array($app->status, ['approved', 'active'], true)) {
+        return redirect()->route('admin.waiting-for-release');
+    }
+
+    $term = (int) ($app->loan_term ?: 0);
+    $totalInterest = max(0, $app->total_amount - $app->loan_amount);
+    $work = $this->getBorrowerWork($app->detail_id);
+
+    return view('admin.waiting-for-release-detail', [
+        'app'                    => $app,
+        'applicationId'          => $applicationId,
+        'adminId'                => $adminId,
+        'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
+        'appDisplay'             => $this->applicationDisplayData($app, $work),
+        'allReviews'             => $this->getAllLoanReviews($applicationId),
+        'comments'               => $this->getLoanComments($applicationId),
+        'monthlyPayment'         => $term > 0 ? $app->total_amount / $term : 0,
+        'totalInterest'          => $totalInterest,
+        'interestRate'           => ($app->loan_amount > 0 && $term > 0)
+            ? round(($totalInterest / $app->loan_amount / $term) * 100, 2)
+            : 0,
+        'pendingCount'           => $this->getPendingVerificationCount($adminId),
+        'pendingLoanCount'       => $this->getPendingLoanCount($adminId),
     ]);
 }
           public function overduePayments(Request $request)
@@ -1251,6 +1382,46 @@ private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $i
     } catch (\Throwable $e) {
         // Hindi dapat pumalya ang pag-record ng payment dahil lang sa email.
         Log::warning("Payment recorded email failed (schedule {$schedule->id}): " . $e->getMessage());
+    }
+}
+
+private function sendPartialPaymentEmail($schedule, int $applicationId, float $receivedNow, float $remainingBalance): void
+{
+    try {
+        $loan = DB::table('loan_applications')
+            ->where('application_id', $applicationId)
+            ->first();
+
+        if (!$loan) {
+            return;
+        }
+
+        $borrower = DB::table('users as u')
+            ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'u.user_id')
+            ->where('u.user_id', $loan->user_id)
+            ->select('u.email', 'u.name', 'bpd.first_name')
+            ->first();
+
+        if (!$borrower || empty($borrower->email)) {
+            return;
+        }
+
+        $displayName = $borrower->first_name ?: ($borrower->name ?: 'Borrower');
+
+        Mail::to($borrower->email)->send(
+            new PaymentPartiallyRecorded(
+                $loan,
+                $displayName,
+                (int) $schedule->installment_no,
+                (float) $schedule->amount_due,
+                $receivedNow,
+                $remainingBalance,
+                null
+            )
+        );
+    } catch (\Throwable $e) {
+        // Hindi dapat pumalya ang pag-record ng payment dahil lang sa email.
+        Log::warning("Partial payment email failed (schedule {$schedule->id}): " . $e->getMessage());
     }
 }
 
@@ -1707,6 +1878,28 @@ private function sendPaymentRecordedEmail($schedule, int $applicationId, bool $i
         } else {
             $this->sendPaymentRecordedEmail($schedule, (int) $applicationId, !$hasUnpaid, $receivedNow);
         }
+
+        // Audit log
+        AuditLogger::log($isPartial ? 'payment.partial_recorded' : 'payment.recorded', [
+            'entity_type' => 'installment',
+            'entity_id'   => $id,
+            'description' => ($isPartial ? 'Recorded a partial payment of ₱' : 'Recorded a full payment of ₱')
+                . number_format($receivedNow, 2) . ' for installment #' . $schedule->installment_no
+                . ' of ' . $this->auditLoanLabel($applicationId),
+            'old'         => ['amount_paid' => (float) $schedule->amount_paid],
+            'new'         => [
+                'amount_paid'       => $isPartial ? $newAmountPaid : (float) $schedule->amount_due,
+                'amount_received'   => $receivedNow,
+                'paid_date'         => $paidAt->toDateString(),
+                'remaining_balance' => $remainingBalance,
+            ],
+            'context'     => [
+                'application_id'        => (int) $applicationId,
+                'installment_no'        => (int) $schedule->installment_no,
+                'used_borrower_receipt' => (bool) $useBorrowerReceipt,
+                'loan_completed'        => !$hasUnpaid,
+            ],
+        ]);
  
         if ($wantsJson) {
             $app = DB::table('loan_applications')->where('application_id', $applicationId)->first();
@@ -1923,6 +2116,17 @@ public function requestVoid(Request $request, $id)
         return response()->json(['success' => false, 'message' => 'Failed to submit the void request.'], 500);
     }
 
+    // Audit log
+    $voidSchedule = $result['schedule'];
+    AuditLogger::log('void.requested', [
+        'entity_type' => 'void_request',
+        'entity_id'   => $result['request_id'],
+        'description' => 'Requested to void the payment of installment #' . $voidSchedule->installment_no
+            . ' of ' . $this->auditLoanLabel($voidSchedule->application_id),
+        'new'         => ['reason' => $reason, 'amount' => (float) $voidSchedule->amount_paid],
+        'context'     => ['application_id' => $voidSchedule->application_id, 'schedule_id' => $voidSchedule->id],
+    ]);
+
     return response()->json([
         'success'    => true,
         'status'     => 'pending',
@@ -2010,6 +2214,35 @@ public function voteVoid(Request $request, $id)
         $this->sendPaymentVoidedEmail($result['schedule'], $result['reason']);
     }
 
+    // Audit log
+    $voidInfo = $this->auditVoidInfo($id);
+    $voidLoan = $voidInfo['application_id'] ? $this->auditLoanLabel($voidInfo['application_id']) : 'a loan';
+
+    AuditLogger::log('void.voted', [
+        'entity_type' => 'void_request',
+        'entity_id'   => $id,
+        'description' => ($decision === 'approved' ? 'Voted to approve' : 'Voted to reject')
+            . ' the void request for installment #' . $voidInfo['installment_no'] . ' of ' . $voidLoan,
+        'new'         => ['decision' => $decision, 'remarks' => $remarks !== '' ? $remarks : null],
+        'context'     => [
+            'application_id' => $voidInfo['application_id'],
+            'result'         => $result['status'],
+            'approvals'      => $result['approvals'] ?? null,
+        ],
+    ]);
+
+    if ($result['status'] === 'approved' && $result['schedule']) {
+        AuditLogger::log('payment.voided', [
+            'entity_type' => 'installment',
+            'entity_id'   => $result['schedule']->id,
+            'description' => 'Payment of ₱' . number_format((float) $result['schedule']->amount_paid, 2)
+                . ' for installment #' . $result['schedule']->installment_no . ' of ' . $voidLoan . ' was voided',
+            'old'         => ['amount_paid' => (float) $result['schedule']->amount_paid, 'status' => 'paid'],
+            'new'         => ['amount_paid' => 0, 'status' => 'unpaid'],
+            'context'     => ['reason' => $result['reason'], 'void_request_id' => (int) $id],
+        ]);
+    }
+
     $messages = [
         'approved' => 'Void approved by all admins. The payment has been voided.',
         'rejected' => 'Void request rejected. The payment remains recorded as paid.',
@@ -2058,6 +2291,16 @@ public function cancelVoid(Request $request, $id)
         Log::error("Cancel void failed (request {$id}): " . $e->getMessage());
         return response()->json(['success' => false, 'message' => 'Failed to cancel the void request.'], 500);
     }
+
+    // Audit log
+    $voidInfo = $this->auditVoidInfo($id);
+    AuditLogger::log('void.cancelled', [
+        'entity_type' => 'void_request',
+        'entity_id'   => $id,
+        'description' => 'Cancelled the void request for installment #' . $voidInfo['installment_no']
+            . ' of ' . ($voidInfo['application_id'] ? $this->auditLoanLabel($voidInfo['application_id']) : 'a loan'),
+        'context'     => ['application_id' => $voidInfo['application_id']],
+    ]);
 
     return response()->json(['success' => true, 'message' => 'Void request cancelled.']);
 }
@@ -2129,6 +2372,84 @@ private function executeVoid($voidRequest)
         $recordedAt = $schedule->updated_at ?? $schedule->paid_at;
 
         return \Carbon\Carbon::parse($recordedAt)->addDays(self::VOID_WINDOW_DAYS);
+    }
+
+    // ================================================================
+    // Audit Logs helpers (para sa readable na description ng mga log)
+    // ================================================================
+
+    /** "loan LN-1A2B3C4D (Juan Dela Cruz)" */
+    private function auditLoanLabel($applicationId): string
+    {
+        try {
+            $row = DB::table('loan_applications as la')
+                ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
+                ->where('la.application_id', $applicationId)
+                ->select('la.uuid', 'bpd.first_name', 'bpd.last_name')
+                ->first();
+
+            if ($row) {
+                $name = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? ''));
+                return 'loan LN-' . strtoupper(substr((string) $row->uuid, 0, 8)) . ($name !== '' ? " ({$name})" : '');
+            }
+        } catch (\Throwable $e) {
+            // ignore, fallback sa baba
+        }
+
+        return 'loan #' . $applicationId;
+    }
+
+    /** Installment no. at loan ng isang void request */
+    private function auditVoidInfo($requestId): array
+    {
+        $info = ['application_id' => null, 'schedule_id' => null, 'installment_no' => null];
+
+        try {
+            $row = DB::table('payment_void_requests as r')
+                ->join('loan_payment_schedules as sch', 'r.schedule_id', '=', 'sch.id')
+                ->where('r.id', $requestId)
+                ->select('r.application_id', 'r.schedule_id', 'sch.installment_no')
+                ->first();
+
+            if ($row) {
+                $info = [
+                    'application_id' => $row->application_id,
+                    'schedule_id'    => $row->schedule_id,
+                    'installment_no' => $row->installment_no,
+                ];
+            }
+        } catch (\Throwable $e) {
+            // ignore
+        }
+
+        return $info;
+    }
+
+    /** Installment no., loan at halaga ng isang penalty */
+    private function auditPenaltyInfo($penaltyId): array
+    {
+        $info = ['application_id' => null, 'installment_no' => null, 'amount' => 0.0, 'status' => null];
+
+        try {
+            $row = DB::table('loan_penalties as lp')
+                ->leftJoin('loan_payment_schedules as sch', 'lp.schedule_id', '=', 'sch.id')
+                ->where('lp.id', $penaltyId)
+                ->select('lp.application_id', 'lp.penalty_amount', 'lp.status', 'sch.installment_no')
+                ->first();
+
+            if ($row) {
+                $info = [
+                    'application_id' => $row->application_id,
+                    'installment_no' => $row->installment_no,
+                    'amount'         => (float) $row->penalty_amount,
+                    'status'         => $row->status,
+                ];
+            }
+        } catch (\Throwable $e) {
+            // ignore
+        }
+
+        return $info;
     }
 
     private function getPaymentSchedule($applicationId)
@@ -2250,6 +2571,14 @@ private function executeVoid($voidRequest)
 
         Log::info("Proof of release emailed + schedule created (loan {$applicationId}) by admin " . Session::get('user_id'));
 
+        AuditLogger::log('loan.released', [
+            'entity_type' => 'loan',
+            'entity_id'   => $applicationId,
+            'description' => 'Sent the proof of release for ' . $this->auditLoanLabel($applicationId)
+                . '. The payment schedule was created',
+            'context'     => ['loan_code' => $loanCode, 'sent_at' => $sentAt->toDateTimeString()],
+        ]);
+
         return response()->json([
             'success' => true,
             'message' => "Proof sent to {$borrower->email}. The payment schedule is now created.",
@@ -2264,6 +2593,13 @@ private function executeVoid($voidRequest)
             'admin_id' => $adminId,
             'comment' => trim($comment),
             'created_at' => now(),
+        ]);
+
+        AuditLogger::log('loan.comment_added', [
+            'entity_type' => 'loan',
+            'entity_id'   => $applicationId,
+            'description' => 'Added a comment on ' . $this->auditLoanLabel($applicationId),
+            'new'         => ['comment' => trim($comment)],
         ]);
     }
 
@@ -2351,6 +2687,15 @@ private function executeVoid($voidRequest)
             ]);
         }
 
+        AuditLogger::log('loan.decision', [
+            'entity_type' => 'loan',
+            'entity_id'   => $applicationId,
+            'description' => ($action === 'approved' ? 'Approved ' : 'Rejected ') . $this->auditLoanLabel($applicationId)
+                . ($existing ? ' (changed from ' . $existing->decision . ')' : ''),
+            'old'         => $existing ? ['decision' => $existing->decision, 'remarks' => $existing->remarks] : null,
+            'new'         => ['decision' => $action, 'remarks' => $remarks !== '' ? $remarks : null],
+        ]);
+
         $this->refreshLoanApplicationStatus($applicationId);
     }
 
@@ -2397,6 +2742,15 @@ private function executeVoid($voidRequest)
 
     if ($status !== $before) {
         $this->sendLoanStatusEmail((int) $applicationId, $status);
+
+        AuditLogger::log('loan.status_changed', [
+            'entity_type' => 'loan',
+            'entity_id'   => $applicationId,
+            'description' => 'Status of ' . $this->auditLoanLabel($applicationId)
+                . ' changed from ' . ($before ?: 'none') . ' to ' . $status,
+            'old'         => ['status' => $before],
+            'new'         => ['status' => $status],
+        ]);
     }
 }
 
@@ -2753,6 +3107,24 @@ private function executeVoid($voidRequest)
         }
 
         Log::info("Borrower info edited (application {$applicationId}) by admin {$adminId}: " . implode(', ', array_keys($changes)));
+
+        // Audit log (ang id_number ay awtomatikong namamask ng AuditLogger)
+        $auditOld = [];
+        $auditNew = [];
+        foreach ($changes as $key => $c) {
+            $auditOld[$key] = $c['old'] !== '' ? $c['old'] : null;
+            $auditNew[$key] = $c['new'] !== '' ? $c['new'] : null;
+        }
+
+        AuditLogger::log('borrower.info_edited', [
+            'entity_type' => 'loan',
+            'entity_id'   => $applicationId,
+            'description' => 'Edited borrower info on ' . $this->auditLoanLabel($applicationId)
+                . ' (changed: ' . implode(', ', array_map(fn ($c) => $c['def']['label'], $changes)) . '). Reason: ' . $reason,
+            'old'         => $auditOld,
+            'new'         => $auditNew,
+            'context'     => ['section' => $section, 'reason' => $reason, 'batch_id' => $batchId],
+        ]);
 
         $emailed = $this->sendBorrowerInfoEditedEmail($app, $changes, $reason);
 
@@ -3407,9 +3779,22 @@ private function computeBorrowerPerformance($applicationId, $schedule)
 
     public function markPenaltyPaid(Request $request, $id)
 {
+    $penaltyBefore = $this->auditPenaltyInfo($id);
+
     DB::table('loan_penalties')->where('id', $id)->update([
         'status' => 'paid',
         'updated_at' => now(),
+    ]);
+
+    AuditLogger::log('penalty.marked_paid', [
+        'entity_type' => 'penalty',
+        'entity_id'   => $id,
+        'description' => 'Marked the penalty of ₱' . number_format($penaltyBefore['amount'], 2)
+            . ' for installment #' . $penaltyBefore['installment_no'] . ' of '
+            . ($penaltyBefore['application_id'] ? $this->auditLoanLabel($penaltyBefore['application_id']) : 'a loan') . ' as paid',
+        'old'         => ['status' => $penaltyBefore['status']],
+        'new'         => ['status' => 'paid'],
+        'context'     => ['application_id' => $penaltyBefore['application_id']],
     ]);
 
     if ($request->ajax() || $request->wantsJson()) {
@@ -3505,11 +3890,25 @@ public function waivePenalty(Request $request, $id)
     $request->validate(['waived_reason' => 'required|string|max:255']);
     $adminId = Session::get('user_id');
 
+    $penaltyBefore = $this->auditPenaltyInfo($id);
+
     DB::table('loan_penalties')->where('id', $id)->update([
         'status' => 'waived',
         'waived_by' => $adminId,
         'waived_reason' => $request->waived_reason,
         'updated_at' => now(),
+    ]);
+
+    AuditLogger::log('penalty.waived', [
+        'entity_type' => 'penalty',
+        'entity_id'   => $id,
+        'description' => 'Waived the penalty of ₱' . number_format($penaltyBefore['amount'], 2)
+            . ' for installment #' . $penaltyBefore['installment_no'] . ' of '
+            . ($penaltyBefore['application_id'] ? $this->auditLoanLabel($penaltyBefore['application_id']) : 'a loan')
+            . '. Reason: ' . $request->waived_reason,
+        'old'         => ['status' => $penaltyBefore['status']],
+        'new'         => ['status' => 'waived', 'waived_reason' => $request->waived_reason],
+        'context'     => ['application_id' => $penaltyBefore['application_id']],
     ]);
 
     if ($request->ajax() || $request->wantsJson()) {

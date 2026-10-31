@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AuditLogger;
 use App\Mail\OtpMail;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
@@ -266,6 +267,22 @@ class BorrowerAccountController extends BorrowerController
             return response()->json(['success' => false, 'message' => 'Could not save your changes. Please try again.'], 500);
         }
 
+        // Audit Logs: civil status / address na binago ng borrower mismo
+        $oldValues = [];
+        $newValues = [];
+        foreach ($changes as $field => [$before, $after]) {
+            $oldValues[$field] = $before;
+            $newValues[$field] = $after;
+        }
+
+        AuditLogger::log('account.details_changed', [
+            'entity_type' => 'user',
+            'entity_id'   => $userId,
+            'description' => 'Updated own ' . implode(', ', array_map(fn ($f) => str_replace('_', ' ', $f), array_keys($changes))),
+            'old'         => $oldValues,
+            'new'         => $newValues,
+        ]);
+
         return response()->json(['success' => true, 'message' => 'Changes saved successfully!']);
     }
 
@@ -435,12 +452,15 @@ class BorrowerAccountController extends BorrowerController
             return response()->json(['success' => false, 'message' => 'Invalid or expired code.'], 422);
         }
 
+        $oldValue = null;
+
         try {
-            DB::transaction(function () use ($pending, $record, $userId, $request) {
+            DB::transaction(function () use ($pending, $record, $userId, $request, &$oldValue) {
                 DB::table('otp_verifications')->where('id', $record->id)->update(['is_used' => 1]);
 
                 if ($pending['field'] === 'phone') {
                     $old = DB::table('borrowerpersonaldetails')->where('user_id', $userId)->value('cellphone_num');
+                    $oldValue = $old;
 
                     DB::table('borrowerpersonaldetails')
                         ->where('user_id', $userId)
@@ -449,6 +469,7 @@ class BorrowerAccountController extends BorrowerController
                     $this->audit($userId, ['cellphone_num' => [$old, $pending['value']]], 'self', $request->ip());
                 } else {
                     $old = DB::table('users')->where('user_id', $userId)->value('email');
+                    $oldValue = $old;
 
                     DB::table('users')->where('user_id', $userId)->update(['email' => $pending['value']]);
                     DB::table('borrowerpersonaldetails')->where('user_id', $userId)->update(['email' => $pending['value']]);
@@ -469,6 +490,16 @@ class BorrowerAccountController extends BorrowerController
         }
 
         Session::forget('pending_contact_change');
+
+        // Audit Logs: cellphone o email na na-verify gamit ang OTP
+        $isPhone = $pending['field'] === 'phone';
+        AuditLogger::log($isPhone ? 'account.phone_changed' : 'account.email_changed', [
+            'entity_type' => 'user',
+            'entity_id'   => $userId,
+            'description' => $isPhone ? 'Changed cellphone number (verified by OTP)' : 'Changed email address (verified by OTP)',
+            'old'         => [$pending['field'] => $oldValue],
+            'new'         => [$pending['field'] => $pending['value']],
+        ]);
 
         return response()->json([
             'success' => true,
@@ -582,6 +613,15 @@ class BorrowerAccountController extends BorrowerController
             report($e);
             return response()->json(['success' => false, 'message' => 'Could not submit your request. Please try again.'], 500);
         }
+
+        // Audit Logs: humiling ang borrower na baguhin ang locked field
+        AuditLogger::log('account.change_requested', [
+            'entity_type' => 'profile_change_request',
+            'description' => 'Requested a change of ' . self::CHANGE_REQUEST_FIELDS[$field],
+            'old'         => [$field => $this->currentValueForField($details, $field)],
+            'new'         => [$field => $newValue],
+            'context'     => ['reason' => trim((string) $request->input('reason'))],
+        ]);
 
         return response()->json([
             'success' => true,

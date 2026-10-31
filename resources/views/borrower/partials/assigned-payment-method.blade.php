@@ -7,12 +7,21 @@
     $pmCopyValue = $pm ? preg_replace('/[\s-]+/', '', (string) $pm->account_number) : '';
     // Uri ng account (tag lang). Walang tag kapag "Other" kasi hindi natin alam kung bank o e-wallet.
     $pmType = null;
+    // Logo ng bank / e-wallet (png, jpg, jpeg, webp). Initials ang fallback kapag walang logo file.
+    $pmLogoFile = null;
     if ($pm) {
         $pmKey = strtolower(trim((string) $pm->provider));
         if (in_array($pmKey, ['gcash', 'maya'], true)) {
             $pmType = 'E-wallet';
         } elseif (in_array($pmKey, ['bpi', 'bdo', 'metrobank', 'unionbank', 'landbank'], true)) {
             $pmType = 'Bank';
+        }
+
+        foreach (['png', 'jpg', 'jpeg', 'webp'] as $pmExt) {
+            if (file_exists(public_path("assets/admin/images/banks/{$pmKey}.{$pmExt}"))) {
+                $pmLogoFile = "{$pmKey}.{$pmExt}";
+                break;
+            }
         }
     }
 @endphp
@@ -25,11 +34,22 @@
 
     @if($pm)
         <div class="bwl-pm__body">
-            <div class="bwl-pm__provider">
-                <span class="bwl-pm__provider-name">{{ $pm->provider }}</span>
-                @if($pmType)
-                    <span class="bwl-pm__provider-label">{{ $pmType }}</span>
-                @endif
+            <div class="bwl-pm__brand">
+                <span class="bwl-pm__logo">
+                    @if($pmLogoFile)
+                        <img src="{{ asset('assets/admin/images/banks/' . $pmLogoFile) }}"
+                            alt="{{ $pm->provider }}" width="36" height="36">
+                    @else
+                        <span class="bwl-pm__logo-fallback">{{ strtoupper(mb_substr($pm->provider, 0, 2)) }}</span>
+                    @endif
+                </span>
+
+                <div class="bwl-pm__provider">
+                    <span class="bwl-pm__provider-name">{{ $pm->provider }}</span>
+                    @if($pmType)
+                        <span class="bwl-pm__provider-label">{{ $pmType }}</span>
+                    @endif
+                </div>
             </div>
 
             <div class="bwl-pm__grid">

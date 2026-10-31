@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -35,58 +36,74 @@ class PaymentMethodController extends Controller
         ]);
     }
 
-   public function destroy($id)
-{
-    $method = DB::table('payment_methods')->where('id', $id)->first();
-    if (!$method) {
-        return response()->json(['success' => false, 'message' => 'Payment method not found.'], 404);
-    }
+    public function destroy($id)
+    {
+        $method = DB::table('payment_methods')->where('id', $id)->first();
+        if (!$method) {
+            return response()->json(['success' => false, 'message' => 'Payment method not found.'], 404);
+        }
 
-    // Active accounts must be deactivated first.
-    if ($method->is_active) {
+        // Active accounts must be deactivated first.
+        if ($method->is_active) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Deactivate this account first before deleting it.',
+            ], 422);
+        }
+
+        try {
+            $unassigned = DB::transaction(function () use ($id) {
+                // Loans using it go back to "no payment account assigned".
+                $count = DB::table('loan_applications')
+                    ->where('payment_method_id', $id)
+                    ->update(['payment_method_id' => null]);
+
+                DB::table('payment_methods')->where('id', $id)->delete();
+
+                return $count;
+            });
+        } catch (\Throwable $e) {
+            Log::error('payment method delete failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Could not delete this payment method. Please try again.',
+            ], 500);
+        }
+
+        AuditLogger::log('payment_method.deleted', [
+            'entity_type' => 'payment_method',
+            'entity_id'   => $id,
+            'description' => 'Deleted payment account ' . $this->label($method),
+            'old'         => $this->snapshot($method),
+            'context'     => ['unassigned_loans' => (int) $unassigned],
+        ]);
+
         return response()->json([
-            'success' => false,
-            'message' => 'Deactivate this account first before deleting it.',
-        ], 422);
+            'success' => true,
+            'message' => $unassigned > 0
+                ? "Payment method deleted. {$unassigned} loan(s) now have no payment account assigned."
+                : 'Payment method deleted.',
+        ]);
     }
 
-    try {
-        $unassigned = DB::transaction(function () use ($id) {
-            // Loans using it go back to "no payment account assigned".
-            $count = DB::table('loan_applications')
-                ->where('payment_method_id', $id)
-                ->update(['payment_method_id' => null]);
-
-            DB::table('payment_methods')->where('id', $id)->delete();
-
-            return $count;
-        });
-    } catch (\Throwable $e) {
-        \Log::error('payment method delete failed: ' . $e->getMessage());
-        return response()->json([
-            'success' => false,
-            'message' => 'Could not delete this payment method. Please try again.',
-        ], 500);
-    }
-
-    return response()->json([
-        'success' => true,
-        'message' => $unassigned > 0
-            ? "Payment method deleted. {$unassigned} loan(s) now have no payment account assigned."
-            : 'Payment method deleted.',
-    ]);
-}
     public function store(Request $request)
     {
         $data = $this->validated($request);
 
-        DB::table('payment_methods')->insert($data + [
+        $newId = DB::table('payment_methods')->insertGetId($data + [
             'is_active'  => true,
             'created_at' => now(),
             'updated_at' => now(),
-        ]);
+        ], 'id');
 
         Log::info('Payment method added by admin ' . Session::get('user_id') . ': ' . $data['provider'] . ' / ' . $data['account_label']);
+
+        AuditLogger::log('payment_method.created', [
+            'entity_type' => 'payment_method',
+            'entity_id'   => $newId,
+            'description' => 'Added payment account ' . $this->label($data),
+            'new'         => $this->snapshot($data),
+        ]);
 
         return response()->json(['success' => true, 'message' => 'Payment method added.']);
     }
@@ -106,6 +123,19 @@ class PaymentMethodController extends Controller
         DB::table('payment_methods')->where('id', $id)->update($data + ['updated_at' => now()]);
 
         Log::info('Payment method #' . $id . ' edited by admin ' . Session::get('user_id'));
+
+        // Log only the fields that really changed
+        [$old, $new] = AuditLogger::diff($this->snapshot($method), $this->snapshot($data));
+        if ($new) {
+            AuditLogger::log('payment_method.updated', [
+                'entity_type' => 'payment_method',
+                'entity_id'   => $id,
+                'description' => 'Edited payment account ' . $this->label($method)
+                    . ' (changed: ' . implode(', ', array_map(fn ($k) => str_replace('_', ' ', $k), array_keys($new))) . ')',
+                'old'         => $old,
+                'new'         => $new,
+            ]);
+        }
 
         return response()->json(['success' => true, 'message' => 'Payment method updated.']);
     }
@@ -133,6 +163,15 @@ class PaymentMethodController extends Controller
                 . ($loans > 0 ? ", but the {$loans} loan(s) already using it will keep showing it." : '.');
 
         Log::info('Payment method #' . $id . ($newState ? ' activated' : ' deactivated') . ' by admin ' . Session::get('user_id'));
+
+        AuditLogger::log($newState ? 'payment_method.activated' : 'payment_method.deactivated', [
+            'entity_type' => 'payment_method',
+            'entity_id'   => $id,
+            'description' => ($newState ? 'Activated' : 'Deactivated') . ' payment account ' . $this->label($method),
+            'old'         => ['is_active' => (bool) $method->is_active],
+            'new'         => ['is_active' => $newState],
+            'context'     => ['loans_using_it' => $loans],
+        ]);
 
         return response()->json(['success' => true, 'is_active' => $newState, 'message' => $message]);
     }
@@ -174,11 +213,35 @@ class PaymentMethodController extends Controller
         }
 
         if (!$isSame) {
+            // What the loan used before (for the audit log)
+            $previous = $loan->payment_method_id
+                ? DB::table('payment_methods')->where('id', $loan->payment_method_id)->first()
+                : null;
+
             DB::table('loan_applications')
                 ->where('application_id', $loan->application_id)
                 ->update(['payment_method_id' => $method->id]);
 
             Log::info("Payment method #{$method->id} assigned to loan {$loan->application_id} by admin " . Session::get('user_id'));
+
+            $loanCode = 'LN-' . strtoupper(substr((string) $uuid, 0, 8));
+            $hadBefore = !empty($loan->payment_method_id);
+
+            AuditLogger::log('payment_method.assigned', [
+                'entity_type' => 'loan',
+                'entity_id'   => $loan->application_id,
+                'description' => $hadBefore
+                    ? "Changed the payment account of loan {$loanCode} from "
+                        . ($previous ? $this->label($previous) : 'a removed account') . ' to ' . $this->label($method)
+                    : "Assigned payment account {$this->label($method)} to loan {$loanCode}",
+                'old'         => ['payment_account' => $hadBefore ? ($previous ? $this->label($previous) : 'Removed account') : null],
+                'new'         => ['payment_account' => $this->label($method)],
+                'context'     => [
+                    'loan_uuid'             => $uuid,
+                    'old_payment_method_id' => $loan->payment_method_id,
+                    'new_payment_method_id' => $method->id,
+                ],
+            ]);
         }
 
         return response()->json([
@@ -235,6 +298,25 @@ class PaymentMethodController extends Controller
         return $validated;
     }
 
+    /** "GCash — Juan Dela Cruz" (works with a DB row or an array) */
+    private function label($row): string
+    {
+        $a = (array) $row;
+        $parts = array_filter([trim((string) ($a['provider'] ?? '')), trim((string) ($a['account_name'] ?? ''))], fn ($p) => $p !== '');
+        return implode(' — ', $parts);
+    }
+
+    /** The fields worth showing in the audit log. */
+    private function snapshot($row): array
+    {
+        $a = (array) $row;
+        return [
+            'provider'       => $a['provider'] ?? null,
+            'account_name'   => $a['account_name'] ?? null,
+            'account_number' => $a['account_number'] ?? null,
+        ];
+    }
+
     // Same rule as AdminController::getPendingLoanCount(), so the sidebar badge stays correct on this page.
     private function getPendingLoanCount($adminId)
     {
@@ -248,6 +330,4 @@ class PaymentMethodController extends Controller
             })
             ->count();
     }
-
-    
 }

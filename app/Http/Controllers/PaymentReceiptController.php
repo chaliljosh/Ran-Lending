@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -197,6 +198,19 @@ class PaymentReceiptController extends Controller
                 Log::warning('Could not delete replaced receipt file: ' . $oldPath);
             }
         }
+
+        // Audit Logs: nag-upload (o pumalit) ng receipt ang borrower
+        AuditLogger::log($oldPath ? 'receipt.replaced' : 'receipt.submitted', [
+            'entity_type' => 'payment_receipt',
+            'entity_id'   => $result['receipt_id'],
+            'description' => ($oldPath ? 'Replaced' : 'Uploaded') . ' payment receipt for installment #' . $installmentNo . ' of loan application #' . $applicationId,
+            'new'         => [
+                'application_id' => $applicationId,
+                'installment_no' => $installmentNo,
+                'reference_no'   => $referenceNo,
+                'paid_date'      => $paidDate,
+            ],
+        ]);
 
         return response()->json([
             'success'    => true,

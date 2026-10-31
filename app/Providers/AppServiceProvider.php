@@ -57,6 +57,18 @@ class AppServiceProvider extends ServiceProvider
                 ->count();
 
             $view->with('needsAttentionCount', $needsAttentionCount);
+
+            // Bilang para sa "Waiting for Release" sa sidebar.
+            // PAREHONG rules ng AdminController::waitingReleaseQuery():
+            //   - status = 'approved' o 'active'
+            //   - wala pang proof_sent_at (hindi pa na-release)
+            // Walang cache, kaya agad nawawala ang bilang pagkatapos mag-release.
+            $waitingReleaseCount = DB::table('loan_applications')
+                ->whereIn('status', ['approved', 'active'])
+                ->whereNull('proof_sent_at')
+                ->count();
+
+            $view->with('waitingReleaseCount', $waitingReleaseCount);
         });
 
         // Borrower sidebar: true kung may ongoing loan ang borrower, para

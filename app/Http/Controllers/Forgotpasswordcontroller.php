@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AuditLogger;
 use App\Mail\OtpMail;
 use App\Models\OtpVerification;
 use App\Models\User;
@@ -66,6 +67,14 @@ class ForgotPasswordController extends Controller
         Mail::to($user->email)->send(new OtpMail($user->name, $otp));
         $request->session()->put('reset_email', $user->email);
 
+        // Audit Logs: humingi ng reset code (hindi kasama ang OTP)
+        AuditLogger::log('auth.password_reset_requested', [
+            'entity_type' => 'user',
+            'entity_id'   => $user->user_id,
+            'description' => 'Requested a password reset code',
+            'actor'       => ['id' => $user->user_id, 'role' => $user->role, 'name' => $user->name],
+        ]);
+
         return response()->json(['success' => true, 'message' => 'OTP sent to your email.']);
 
     } catch (\Exception $e) {
@@ -120,6 +129,17 @@ class ForgotPasswordController extends Controller
             User::where('email', $email)->update([
                 'password_hash' => Hash::make($data['password']),
             ]);
+
+            // Audit Logs: hindi kailanman nilalagay ang password
+            $user = User::where('email', $email)->first();
+            if ($user) {
+                AuditLogger::log('auth.password_reset', [
+                    'entity_type' => 'user',
+                    'entity_id'   => $user->user_id,
+                    'description' => 'Reset password using the email code',
+                    'actor'       => ['id' => $user->user_id, 'role' => $user->role, 'name' => $user->name],
+                ]);
+            }
 
             $request->session()->forget('reset_email');
 
