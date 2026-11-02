@@ -2019,3 +2019,19 @@ html.app-skin-dark .bwl-wr-help-btn:hover {
     background: #FFFFFF;
     color: #0A0A0A;
 }
+
+/* ---------- Recent Payments: clickable rows ---------- */
+.bwl-dash-payment-link {
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.12s ease;
+}
+.bwl-dash-payment-link:hover {
+    background: #f8fafc;
+    color: inherit;
+}
+
+html.app-skin-dark .bwl-dash-payment-link:hover {
+    background: #1c1c1c;
+}

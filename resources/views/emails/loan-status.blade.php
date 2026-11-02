@@ -1,9 +1,13 @@
 @php
+    // Kulay per status:
+    //   dark  = text (title, Status row, badge text)
+    //   light = background ng badge
     $copy = [
         'approved' => [
             'label' => 'Approved',
             'badge' => '&#10003; Approved',
             'title' => 'Loan application approved',
+            'theme' => ['dark' => '#15803d', 'light' => '#dcfce7'], // green
             'lines' => [
                 'Your loan application has been reviewed and approved by our admins.',
                 'Our team will contact you about the next steps. You can also track your loan anytime in your borrower account.',
@@ -13,6 +17,7 @@
             'label' => 'Not approved',
             'badge' => 'Not approved',
             'title' => 'Update on your loan application',
+            'theme' => ['dark' => '#b91c1c', 'light' => '#fee2e2'], // red
             'lines' => [
                 'Thank you for applying with RAN Serenity. After careful review, we are unable to approve your loan application at this time.',
                 'If you have questions about this decision, please contact us directly.',
@@ -22,6 +27,7 @@
             'label' => 'On hold',
             'badge' => 'On hold',
             'title' => 'Loan application on hold',
+            'theme' => ['dark' => '#c2570c', 'light' => '#ffedd5'], // orange
             'lines' => [
                 'Your loan application is currently on hold pending additional review.',
                 'You do not need to do anything right now. Our team may contact you for a follow-up, and we will let you know once there is an update.',
@@ -48,6 +54,11 @@
     $purple     = '#9b7bd6';
     $purpleDark = '#6b4bb8';
     $lavender   = '#efebf7';
+
+    // Kulay na nagbabago depende sa status. Fallback: purple kung unknown ang status.
+    $theme       = $copy['theme'] ?? ['dark' => $purpleDark, 'light' => $lavender];
+    $accentDark  = $theme['dark'];
+    $accentLight = $theme['light'];
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -81,7 +92,7 @@
                     @if($copy)
                         {{-- Pamagat at mensahe --}}
                         <tr>
-                            <td style="padding:36px 0 0;{{ $f }}font-size:14px;font-weight:400;letter-spacing:0.5px;color:{{ $purpleDark }};">
+                            <td style="padding:36px 0 0;{{ $f }}font-size:14px;font-weight:400;letter-spacing:0.5px;color:{{ $accentDark }};">
                                 {{ $copy['title'] }}
                             </td>
                         </tr>
@@ -110,7 +121,7 @@
                                                 <tr>
                                                     <td style="{{ $f }}font-size:13px;font-weight:400;color:{{ $muted }};">Loan number</td>
                                                     <td align="right" rowspan="2" valign="top">
-                                                        <span style="display:inline-block;padding:5px 14px;background:{{ $lavender }};border-radius:999px;{{ $f }}font-size:13px;font-weight:400;color:{{ $purpleDark }};">{!! $copy['badge'] !!}</span>
+                                                        <span style="display:inline-block;padding:5px 14px;background:{{ $accentLight }};border-radius:999px;{{ $f }}font-size:13px;font-weight:400;color:{{ $accentDark }};">{!! $copy['badge'] !!}</span>
                                                     </td>
                                                 </tr>
                                                 <tr>
@@ -126,7 +137,7 @@
                                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                                 <tr>
                                                     <td style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $muted }};">Status</td>
-                                                    <td align="right" style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $purpleDark }};">{{ $copy['label'] }}</td>
+                                                    <td align="right" style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $accentDark }};">{{ $copy['label'] }}</td>
                                                 </tr>
                                                 <tr>
                                                     <td style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $muted }};">Loan amount</td>

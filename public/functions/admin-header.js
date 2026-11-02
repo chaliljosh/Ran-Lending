@@ -68,6 +68,31 @@ document.addEventListener('DOMContentLoaded', function () {
         console.error('[admin-header.js] No CSRF meta tag found — mark-all-read will fail.');
     }
 
+    // ---------- Loader ng "Mark all as read" ----------
+    // Ang CSS ng loader ay nilalagay dito para isang file lang ang babaguhin.
+    var loaderStyle = document.createElement('style');
+    loaderStyle.textContent =
+        '.nxl-btn-spinner{display:inline-block;width:12px;height:12px;' +
+        'border:2px solid currentColor;border-top-color:transparent;border-radius:50%;' +
+        'animation:nxl-btn-spin .6s linear infinite;vertical-align:-2px;margin-right:6px;}' +
+        '@keyframes nxl-btn-spin{to{transform:rotate(360deg);}}' +
+        '.nxl-notif-list.is-busy{opacity:.5;pointer-events:none;transition:opacity .15s;}';
+    document.head.appendChild(loaderStyle);
+
+    var originalBtnText = btn.textContent.trim();
+
+    function startMarkAllLoading() {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="nxl-btn-spinner"></span>Marking...';
+        if (notifList) notifList.classList.add('is-busy');
+    }
+
+    function stopMarkAllLoading() {
+        btn.disabled = false;
+        btn.textContent = originalBtnText;
+        if (notifList) notifList.classList.remove('is-busy');
+    }
+
     btn.addEventListener('click', function (e) {
         e.preventDefault();
 
@@ -79,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        btn.disabled = true;
+        startMarkAllLoading();
 
         fetch(url, {
             method: 'POST',
@@ -98,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(function (data) {
             if (!data || !data.success) {
                 console.error('[admin-header.js] server did not return success:true');
-                btn.disabled = false;
+                stopMarkAllLoading();
                 return;
             }
 
@@ -111,12 +136,13 @@ document.addEventListener('DOMContentLoaded', function () {
             var badge = document.querySelector('.nxl-notif-badge');
             if (badge) badge.remove();
 
+            if (notifList) notifList.classList.remove('is-busy');
             btn.style.display = 'none';
             refreshNotifEmpty();
         })
         .catch(function (err) {
             console.error('[admin-header.js] mark-all-read fetch error:', err);
-            btn.disabled = false;
+            stopMarkAllLoading();
         });
     });
 });

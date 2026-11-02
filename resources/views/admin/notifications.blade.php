@@ -1,150 +1,274 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta http-equiv="x-ua-compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Notifications - Admin</title>
-    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('assets/admin/images/favicon.ico') }}" />
-    <link rel="stylesheet" href="{{ asset('assets/admin/css/bootstrap.min.css') }}" />
-    <link rel="stylesheet" href="{{ asset('assets/admin/vendors/css/vendors.min.css') }}" />
-    <link rel="stylesheet" href="{{ asset('assets/admin/css/theme.min.css') }}" />
-    <link rel="stylesheet" href="{{ asset('assets/admin/css/logout-modal.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/admin/css/admin-dashboard.css') }}" />
+@extends('admin.layout')
+
+@section('title', 'Notifications')
+
+@section('page-styles')
     <link rel="stylesheet" href="{{ asset('assets/admin/css/admin-notifications.css') }}" />
-</head>
-<body>
-    <nav class="nxl-navigation">
-        <div class="navbar-wrapper">
-            <div class="m-header">
-                <a href="{{ route('admin.dashboard') }}" class="b-brand"><h3 class="fst-italic">Ran Serenity</h3></a>
+@endsection
+
+@section('content')
+    @php
+        // Category ng notification, galing sa prefix ng key (bago ang ":")
+        $categoryOf = function ($key) {
+            $prefix = explode(':', $key)[0];
+
+            if (in_array($prefix, ['loan', 'onhold', 'waitrelease', 'released', 'completed', 'defaulted'])) {
+                return 'loans';
+            }
+
+            if (in_array($prefix, ['receipt', 'penalty', 'overdue', 'void', 'voidresult'])) {
+                return 'payments';
+            }
+
+            return 'system';
+        };
+
+        // Bilang kada category, para itago ang chip na walang laman
+        $counts = $notifications->groupBy(fn($n) => $categoryOf($n['key']))->map->count();
+    @endphp
+
+    <div class="page-header">
+        <div class="page-header-left d-flex align-items-center">
+            <div class="page-header-title">
+                <h5 class="m-b-10">All Notifications</h5>
             </div>
-            <div class="navbar-content">
-                <ul class="nxl-navbar">
-                    <li class="nxl-item">
-                        <a href="{{ route('admin.dashboard') }}" class="nxl-link">
-                            <span class="nxl-micon"><i class="feather-airplay"></i></span>
-                            <span class="nxl-mtext">Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="nxl-item nxl-hasmenu">
-                        <a href="javascript:void(0);" class="nxl-link">
-                            <span class="nxl-micon"><i class="feather-file-text"></i></span>
-                            <span class="nxl-mtext">Loan Applications</span>
-                            @if(($pendingLoanCount ?? 0) > 0)
-                                <span class="badge bg-danger ms-auto">{{ $pendingLoanCount }}</span>
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Home</a></li>
+                <li class="breadcrumb-item">Notifications</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="anf-card" id="anfCard" data-page-size="10">
+
+            <div class="anf-toolbar">
+                <div class="anf-tabs" id="anfReadTabs">
+                    <button type="button" class="anf-tab is-active" data-read="all">All</button>
+                    <button type="button" class="anf-tab" data-read="unread">Unread</button>
+                </div>
+
+                <div class="anf-chips" id="anfTypeChips">
+                    <button type="button" class="anf-chip is-active" data-type="all">All types</button>
+                    @if (($counts['loans'] ?? 0) > 0)
+                        <button type="button" class="anf-chip" data-type="loans">Loans</button>
+                    @endif
+                    @if (($counts['payments'] ?? 0) > 0)
+                        <button type="button" class="anf-chip" data-type="payments">Payments</button>
+                    @endif
+                    @if (($counts['system'] ?? 0) > 0)
+                        <button type="button" class="anf-chip" data-type="system">System</button>
+                    @endif
+                </div>
+            </div>
+
+            <div class="anf-list-wrap">
+                {{-- Loader habang nag-aayos ng list --}}
+                <div class="anf-loader" id="anfLoader">
+                    <div class="anf-spinner"></div>
+                    <span>Loading notifications...</span>
+                </div>
+
+                <div class="anf-list" id="anfList">
+                    @foreach ($notifications as $n)
+                        <a href="{{ route('admin.notification-open', $n['key']) }}?redirect={{ urlencode($n['url']) }}"
+                            class="anf-item {{ $n['read'] ? '' : 'is-unread' }}"
+                            data-category="{{ $categoryOf($n['key']) }}"
+                            data-read="{{ $n['read'] ? '1' : '0' }}">
+                            <span class="anf-icon bg-soft-{{ $n['color'] }} text-{{ $n['color'] }}">
+                                <i class="{{ $n['icon'] }}"></i>
+                            </span>
+                            <span class="anf-body">
+                                <span class="anf-title">{{ $n['title'] }}</span>
+                                <span class="anf-sub">{{ $n['subtitle'] }}</span>
+                                <span class="anf-time">{{ \Carbon\Carbon::parse($n['ts'])->format('F j, Y, g:i A') }}</span>
+                            </span>
+                            @if (!$n['read'])
+                                <span class="anf-dot"></span>
                             @endif
-                            <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
                         </a>
-                        <ul class="nxl-submenu">
-                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.loan-applications') }}">Pending Applications</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'approved']) }}">Approved</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'rejected']) }}">Rejected</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.loan-applications', ['status' => 'on_hold']) }}">On Hold</a></li>
-                        </ul>
-                    </li>
-                    <li class="nxl-item nxl-hasmenu">
-                        <a href="javascript:void(0);" class="nxl-link">
-                            <span class="nxl-micon"><i class="feather-users"></i></span>
-                            <span class="nxl-mtext">Borrowers</span>
-                            <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
-                        </a>
-                        <ul class="nxl-submenu">
-                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.borrowers') }}">All Borrowers</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.active-borrowers') }}">Active Borrowers</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.penalty-tracking') }}">Penalty Tracking</a></li>
-                        </ul>
-                    </li>
-                    <li class="nxl-item nxl-hasmenu">
-                        <a href="javascript:void(0);" class="nxl-link">
-                            <span class="nxl-micon"><i class="feather-dollar-sign"></i></span>
-                            <span class="nxl-mtext">Active Loans</span>
-                            <span class="nxl-arrow"><i class="feather-chevron-right"></i></span>
-                        </a>
-                        <ul class="nxl-submenu">
-                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.ongoing-loans') }}">Ongoing Loans</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.overdue-payments') }}">Overdue Payments</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="{{ route('admin.completed-loans') }}">Completed Loans</a></li>
-                            <li class="nxl-item"><a class="nxl-link" href="#">Defaulted</a></li>
-                        </ul>
-                    </li>
-                    <li class="nxl-item">
-                        <a href="javascript:void(0);" onclick="confirmLogout()" class="nxl-link text-danger">
-                            <span class="nxl-micon"><i class="feather-log-out"></i></span>
-                            <span class="nxl-mtext">Logout</span>
-                        </a>
-                    </li>
-                </ul>
+                    @endforeach
+                </div>
+
+                <div class="anf-empty" id="anfEmpty" style="display:none;">
+                    No notifications found.
+                </div>
             </div>
+
+            <div class="anf-pagination" id="anfPagination"></div>
         </div>
-    </nav>
+    </div>
 
-    <header class="nxl-header">
-        <div class="header-wrapper">
-            <div class="header-left d-flex align-items-center gap-4">
-                <a href="javascript:void(0);" class="nxl-head-mobile-toggler" id="mobile-collapse">
-                    <div class="hamburger hamburger--arrowturn"><div class="hamburger-box"><div class="hamburger-inner"></div></div></div>
-                </a>
-                <div class="nxl-navigation-toggle">
-                    <a href="javascript:void(0);" id="menu-mini-button"><i class="feather-align-left"></i></a>
-                    <a href="javascript:void(0);" id="menu-expend-button" style="display:none"><i class="feather-arrow-right"></i></a>
-                </div>
-            </div>
-            <div class="header-right ms-auto">
-                <div class="nxl-h-item dark-light-theme">
-                    <a href="javascript:void(0);" class="nxl-head-link me-0 dark-button"><i class="feather-moon"></i></a>
-                    <a href="javascript:void(0);" class="nxl-head-link me-0 light-button" style="display:none"><i class="feather-sun"></i></a>
-                </div>
-            </div>
-        </div>
-    </header>
+    {{-- Loader pag nag-click ng notification (habang nire-redirect) --}}
+    <div class="anf-nav-loader" id="anfNavLoader">
+        <div class="anf-spinner"></div>
+        <span>Opening...</span>
+    </div>
+@endsection
 
-    <main class="nxl-container">
-        <div class="nxl-content">
-            <div class="page-header">
-                <div class="page-header-left d-flex align-items-center">
-                    <div class="page-header-title"><h5 class="m-b-10">All Notifications</h5></div>
-                    <ul class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Home</a></li>
-                        <li class="breadcrumb-item">Notifications</li>
-                    </ul>
-                </div>
-            </div>
+@section('page-scripts')
+    {{-- Nasa mismong blade ang script, kaya hindi na kailangan ng hiwalay na JS file --}}
+    <script>
+        // Admin notifications page: filters, pagination, at loader
 
-            <div class="main-content">
-                <div class="card">
-                    <div class="card-body p-0">
-                        @forelse($notifications as $n)
-                            <a href="{{ route('admin.notification-open', $n['key']) }}?redirect={{ urlencode($n['url']) }}"
-                               class="notif-index-item {{ $n['read'] ? '' : 'is-unread' }}">
-                                <span class="notif-index-icon bg-soft-{{ $n['color'] }} text-{{ $n['color'] }}">
-                                    <i class="{{ $n['icon'] }}"></i>
-                                </span>
-                                <span class="notif-index-body">
-                                    <span class="notif-index-title">{{ $n['title'] }}</span>
-                                    <span class="notif-index-sub">{{ $n['subtitle'] }}</span>
-                                   <span class="notif-index-time">{{ \Carbon\Carbon::parse($n['ts'])->format('F j, g:i A') }}</span>
-                                </span>
-                                @if(!$n['read'])
-                                    <span class="notif-index-dot"></span>
-                                @endif
-                            </a>
-                        @empty
-                            <div class="text-center text-muted py-5 fs-13">You're all caught up.</div>
-                        @endforelse
-                    </div>
-                </div>
-            </div>
-        </div>
+        document.addEventListener('DOMContentLoaded', function () {
+            var card = document.getElementById('anfCard');
+            if (!card) return;
 
-        <footer class="footer">
-            <p class="text-center"><span>&copy; {{ date('Y') }} Ran Serenity Lending System</span></p>
-        </footer>
-    </main>
+            var list = document.getElementById('anfList');
+            var items = Array.from(list.querySelectorAll('.anf-item'));
+            var loader = document.getElementById('anfLoader');
+            var emptyBox = document.getElementById('anfEmpty');
+            var pagination = document.getElementById('anfPagination');
+            var readTabs = document.getElementById('anfReadTabs');
+            var typeChips = document.getElementById('anfTypeChips');
+            var navLoader = document.getElementById('anfNavLoader');
 
-    <script src="{{ asset('assets/admin/vendors/js/vendors.min.js') }}"></script>
-    <script src="{{ asset('assets/admin/js/common-init.min.js') }}"></script>
-    <script src="{{ asset('assets/admin/js/theme-customizer-init.min.js') }}"></script>
-    <script src="{{ asset('functions/logout-modal.js') }}"></script>
-</body>
-</html>
+            var pageSize = parseInt(card.dataset.pageSize, 10) || 10;
+
+            var readFilter = 'all';
+            var typeFilter = 'all';
+            var currentPage = 1;
+
+            // ---------- Loader ----------
+            function showLoader() {
+                loader.classList.add('is-visible');
+            }
+
+            function hideLoader() {
+                loader.classList.remove('is-visible');
+            }
+
+            // Ipakita ang loader sandali, tapos i-render ulit ang list
+            function reloadList() {
+                showLoader();
+                setTimeout(function () {
+                    render();
+                    hideLoader();
+                }, 250);
+            }
+
+            // ---------- Filter ----------
+            function getFilteredItems() {
+                return items.filter(function (item) {
+                    var matchRead = readFilter === 'all' || item.dataset.read === '0';
+                    var matchType = typeFilter === 'all' || item.dataset.category === typeFilter;
+                    return matchRead && matchType;
+                });
+            }
+
+            // ---------- Render ----------
+            function render() {
+                var filtered = getFilteredItems();
+                var totalPages = Math.ceil(filtered.length / pageSize);
+
+                if (currentPage > totalPages) currentPage = totalPages;
+                if (currentPage < 1) currentPage = 1;
+
+                var start = (currentPage - 1) * pageSize;
+                var end = start + pageSize;
+
+                // Itago muna lahat, tapos ipakita lang yung nasa page na ito
+                items.forEach(function (item) {
+                    item.style.display = 'none';
+                });
+
+                filtered.slice(start, end).forEach(function (item) {
+                    item.style.display = 'flex';
+                });
+
+                emptyBox.style.display = filtered.length === 0 ? '' : 'none';
+
+                renderPagination(totalPages);
+            }
+
+            function renderPagination(totalPages) {
+                pagination.innerHTML = '';
+
+                // Isang page lang, hindi na kailangan ng pagination
+                if (totalPages <= 1) return;
+
+                addPageButton('‹', currentPage - 1, currentPage === 1);
+
+                for (var p = 1; p <= totalPages; p++) {
+                    var nearCurrent = Math.abs(p - currentPage) <= 1;
+
+                    if (p === 1 || p === totalPages || nearCurrent) {
+                        addPageButton(String(p), p, false, p === currentPage);
+                    } else if (p === currentPage - 2 || p === currentPage + 2) {
+                        var dots = document.createElement('span');
+                        dots.className = 'anf-page-dots';
+                        dots.textContent = '…';
+                        pagination.appendChild(dots);
+                    }
+                }
+
+                addPageButton('›', currentPage + 1, currentPage === totalPages);
+            }
+
+            function addPageButton(label, page, disabled, active) {
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'anf-page-btn' + (active ? ' is-active' : '');
+                btn.textContent = label;
+                btn.dataset.page = page;
+                btn.disabled = disabled;
+                pagination.appendChild(btn);
+            }
+
+            // ---------- Events ----------
+            readTabs.addEventListener('click', function (e) {
+                var tab = e.target.closest('.anf-tab');
+                if (!tab) return;
+
+                readTabs.querySelectorAll('.anf-tab').forEach(function (t) {
+                    t.classList.remove('is-active');
+                });
+                tab.classList.add('is-active');
+
+                readFilter = tab.dataset.read;
+                currentPage = 1;
+                reloadList();
+            });
+
+            typeChips.addEventListener('click', function (e) {
+                var chip = e.target.closest('.anf-chip');
+                if (!chip) return;
+
+                typeChips.querySelectorAll('.anf-chip').forEach(function (c) {
+                    c.classList.remove('is-active');
+                });
+                chip.classList.add('is-active');
+
+                typeFilter = chip.dataset.type;
+                currentPage = 1;
+                reloadList();
+            });
+
+            pagination.addEventListener('click', function (e) {
+                var btn = e.target.closest('.anf-page-btn');
+                if (!btn || btn.disabled) return;
+
+                currentPage = parseInt(btn.dataset.page, 10);
+                reloadList();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+
+            // Pag nag-click ng notification, ipakita ang loader habang nagre-redirect
+            list.addEventListener('click', function (e) {
+                var link = e.target.closest('.anf-item');
+                if (!link) return;
+
+                navLoader.classList.add('is-visible');
+            });
+
+            // Kapag bumalik gamit ang Back button, itago ulit ang loader
+            window.addEventListener('pageshow', function () {
+                navLoader.classList.remove('is-visible');
+            });
+
+            // ---------- Simula ----------
+            render();
+        });
+    </script>
+@endsection

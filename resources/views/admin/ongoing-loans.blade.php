@@ -203,4 +203,5 @@
 
 @section('page-scripts')
     <script src="{{ asset('functions/ongoing-loans.js') }}"></script>
+    <script src="{{ asset('functions/row-loader.js') }}"></script>
 @endsection

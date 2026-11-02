@@ -57,7 +57,7 @@
                 <div class="empty-state-v2">
                     <i class="feather-users"></i>
                     <h6>No active borrowers yet</h6>
-                    <p>There are currently no borrowers with approved or active loans.</p>
+                    <p>There are currently no borrowers with released loans.</p>
                 </div>
             </div>
         @else
@@ -106,7 +106,7 @@
                         <tbody>
                             @foreach ($activeBorrowers as $b)
                                 <tr class="rs-clickable-row"
-                                    data-href="{{ route('admin.active-borrower-detail', $b['application_id']) }}"
+                                    data-href="{{ route('admin.active-borrower-detail', $b['uuid']) }}"
                                     data-search="{{ strtolower($b['name'] . ' ' . $b['email'] . ' ' . $b['borrower_id']) }}"
                                     data-applied="{{ \Carbon\Carbon::parse($b['applied_at'])->timestamp }}"
                                     data-month="{{ \Carbon\Carbon::parse($b['applied_at'])->format('m') }}">
@@ -130,7 +130,7 @@
                                     </td>
                                     <td class="loan-meta-v2">{{ \Carbon\Carbon::parse($b['applied_at'])->format('M d, Y') }}</td>
                                     <td class="text-end">
-                                        <a href="{{ route('admin.active-borrower-detail', $b['application_id']) }}" class="btn-view-v2">
+                                        <a href="{{ route('admin.active-borrower-detail', $b['uuid']) }}" class="btn-view-v2">
                                             <i class="feather-eye"></i> View Details
                                         </a>
                                     </td>
@@ -166,5 +166,6 @@
 @endsection
 
 @section('page-scripts')
+<script src="{{ asset('functions/row-loader.js') }}"></script>
     <script src="{{ asset('functions/active-borrowers.js') }}?v={{ time() }}"></script>
 @endsection

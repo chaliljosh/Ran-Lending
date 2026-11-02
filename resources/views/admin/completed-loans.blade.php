@@ -163,5 +163,6 @@
 @endsection
 
 @section('page-scripts')
+    <script src="{{ asset('functions/row-loader.js') }}"></script>
     <script src="{{ asset('functions/completed-loans.js') }}?v={{ time() }}"></script>
 @endsection

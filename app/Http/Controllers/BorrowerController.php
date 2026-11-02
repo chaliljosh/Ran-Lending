@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\AuditLogger;
+use App\Services\BorrowerNotificationExtras;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
@@ -29,6 +30,11 @@ class BorrowerController extends Controller
     private const MAX_TERM              = 12;    // max months mula sa 2nd loan
     private const LATE_DAYS             = 7;     // ilang araw na late = "late payment" (parehong rule ng penalty)
     private const BAD_BORROWER_WAIT_MONTHS = 3;  // paghihintay ng bad borrower bago makapag-loan ulit
+
+    // Ilang notification ang pinakamarami (dropdown at buong page)
+    private const MAX_NOTIFICATIONS = 60;
+    // Ang mga dagdag na notification na mas matanda dito (araw) ay itinuturing nang read
+    private const EXTRA_NOTIF_AUTO_READ_DAYS = 7;
 
     // Shared helper — kinukuha ang common data na kailangan ng nav sa lahat ng borrower pages.
     // Isang RPC call na lang (borrower_common_data) sa halip na 6+ magkakahiwalay na queries,
@@ -203,7 +209,12 @@ class BorrowerController extends Controller
     // Kapalit ng dating buildBorrowerNotifications(). Parehong logic sa pag-buo ng
     // notification cards, pero gamit na yung bulk data na kasama na sa borrower_common_data
     // RPC — walang bagong query dito, kaya wala nang N+1 kahit ilan pang loan applications.
-        private function buildBorrowerNotificationsFromData($data)
+    //
+    // Idinagdag: mga notification galing sa admin at sa system na wala sa RPC
+    // (On Hold, Loan Released, Payment Method Assigned, Penalty Waived, Info Updated,
+    // Receipt Received, Loan Fully Paid, Application Submitted, Welcome).
+    // Nasa App\Services\BorrowerNotificationExtras ang mga iyon.
+    private function buildBorrowerNotificationsFromData($data)
     {
         $items = collect();
         $readKeys = collect($data['read_keys'])->flip();
@@ -226,8 +237,8 @@ class BorrowerController extends Controller
                 'color'    => $isApproved ? 'success' : 'danger',
                 'title'    => $isApproved ? 'Loan Application Approved' : 'Loan Application Rejected',
                 'subtitle' => $isApproved
-                    ? 'Your loan of ₱' . number_format($app['loan_amount'], 2) . ' has been approved.'
-                    : 'Your loan application was not approved.',
+                    ? 'Your loan of ₱' . number_format($app['loan_amount'], 2) . ' has been approved. We will let you know once it is released.'
+                    : 'Your loan application was not approved. You may apply again when you are eligible.',
                 'read'     => $readKeys->has($key),
                 'ts'       => Carbon::parse($app['decided_at']),
             ]);
@@ -268,7 +279,7 @@ class BorrowerController extends Controller
                 'icon'     => 'feather-check-circle',
                 'color'    => 'success',
                 'title'    => 'Payment Received',
-                'subtitle' => 'Your payment of ₱' . number_format($s['amount_paid'], 2) . ' was confirmed.',
+                'subtitle' => 'Installment #' . $s['installment_no'] . ': your payment of ₱' . number_format($s['amount_paid'], 2) . ' was confirmed.',
                 'read'     => $readKeys->has($key),
                 // Date lang ang paid_at (Date Paid na nilalagay ng admin), kaya laging 12:00 AM.
                 // Kapag may recorded_at (eksaktong oras ng pag-record), yun ang gamitin.
@@ -315,7 +326,7 @@ class BorrowerController extends Controller
 
         foreach ($data['upcoming_schedule'] as $s) {
             $due = Carbon::parse($s['due_date']);
-            $daysUntilDue = $today->diffInDays($due, false);
+            $daysUntilDue = (int) $today->diffInDays($due->copy()->startOfDay(), false);
 
             if ($daysUntilDue > 14) {
                 continue;
@@ -323,16 +334,37 @@ class BorrowerController extends Controller
 
             $key = 'payment:' . $s['application_id'] . ':' . $s['installment_no'];
             $isLate = $daysUntilDue < 0;
+            $isToday = $daysUntilDue === 0;
+
+            $amount = isset($s['amount_due']) ? ' of ₱' . number_format($s['amount_due'], 2) : '';
+            $inst = 'Installment #' . $s['installment_no'];
+
+            if ($isLate) {
+                $days = abs($daysUntilDue);
+                $title = 'Payment Overdue';
+                $subtitle = $inst . $amount . ' was due on ' . $due->format('M j, Y')
+                    . ' (' . $days . ' ' . ($days === 1 ? 'day' : 'days') . ' ago).';
+            } elseif ($isToday) {
+                $title = 'Payment Due Today';
+                $subtitle = $inst . $amount . ' is due today.';
+            } else {
+                $title = 'Upcoming Payment';
+                $subtitle = $inst . $amount . ' is due on ' . $due->format('M j, Y')
+                    . ' (in ' . $daysUntilDue . ' ' . ($daysUntilDue === 1 ? 'day' : 'days') . ').';
+            }
 
             $items->push([
-                'key'      => $key,
-                'url'      => route('borrower.loan-details', ['loan' => $s['application_id']]),
-                'icon'     => $isLate ? 'feather-alert-circle' : 'feather-clock',
-                'color'    => $isLate ? 'danger' : 'primary',
-                'title'    => $isLate ? 'Payment Overdue' : 'Upcoming Payment',
-                'subtitle' => ($isLate ? 'Was due ' : 'Due ') . $due->format('M j, Y'),
-                'read'     => $readKeys->has($key),
-                'ts'       => $due,
+                'key'       => $key,
+                'url'       => route('borrower.loan-details', ['loan' => $s['application_id']]),
+                'icon'      => $isLate ? 'feather-alert-circle' : ($isToday ? 'feather-alert-circle' : 'feather-clock'),
+                'color'     => $isLate ? 'danger' : ($isToday ? 'warning' : 'primary'),
+                'title'     => $title,
+                'subtitle'  => $subtitle,
+                'read'      => $readKeys->has($key),
+                // Hindi ilalagay sa hinaharap ang oras para hindi mapunta sa pinakataas
+                // ng listahan ang mga paparating pa lang: ngayon ang petsa nila.
+                'ts'        => $isLate ? $due : $today->copy(),
+                'date_only' => true,
             ]);
         }
 
@@ -341,7 +373,22 @@ class BorrowerController extends Controller
             $this->buildPaymentUpdateNotifications(Session::get('user_id'), $readKeys)
         );
 
-        return $items->sortByDesc('ts')->values();
+        // Mga galing sa admin at sa system. Ang mga mas matanda sa ilang araw ay
+        // read na agad, para hindi mag-unread ang lahat ng lumang history.
+        $autoReadBefore = now()->subDays(self::EXTRA_NOTIF_AUTO_READ_DAYS);
+
+        $extras = BorrowerNotificationExtras::build((int) Session::get('user_id'))
+            ->map(function ($n) use ($readKeys, $autoReadBefore) {
+                $n['read'] = $readKeys->has($n['key']) || $n['ts']->lt($autoReadBefore);
+                return $n;
+            });
+
+        return $items
+            ->concat($extras)
+            ->unique('key')
+            ->sortByDesc('ts')
+            ->values()
+            ->take(self::MAX_NOTIFICATIONS);
     }
 
     public function dashboard(Request $request)
@@ -1314,7 +1361,9 @@ class BorrowerController extends Controller
         }
     }
 
-       public function notifications(Request $request)
+    // Buong listahan ng notifications (ang "See all notifications" sa dropdown).
+    // Galing din sa buildBorrowerNotificationsFromData() ang laman, kapareho ng dropdown.
+    public function notifications(Request $request)
     {
         $userId = Session::get('user_id');
         $common = $this->commonData($userId);
@@ -1324,60 +1373,8 @@ class BorrowerController extends Controller
             return redirect()->route('borrower.dashboard');
         }
 
-        $app = DB::table('loan_applications')
-            ->where('user_id', $userId)
-            ->whereIn('status', ['approved', 'active'])
-            ->orderByDesc('applied_at')
-            ->first();
-
-        $notifications = [];
-
-        if ($app) {
-            $today = Carbon::today();
-
-            // Totoong schedule lang. Kung wala pa (hindi pa nare-release), walang lalabas.
-            $unpaidRows = DB::table('loan_payment_schedules')
-                ->where('application_id', $app->application_id)
-                ->whereNull('paid_at')
-                ->orderBy('installment_no')
-                ->get();
-
-            foreach ($unpaidRows as $row) {
-                $due = Carbon::parse($row->due_date);
-                $amount = (float) $row->amount_due;
-                $daysUntilDue = $today->diffInDays($due, false);
-
-                if ($daysUntilDue > 14) {
-                    continue;
-                }
-
-                if ($daysUntilDue < 0) {
-                    $notifications[] = [
-                        'type'    => 'danger',
-                        'icon'    => 'feather-alert-circle',
-                        'title'   => 'Payment Overdue',
-                        'message' => 'Your payment of ₱' . number_format($amount, 2) . ' was due on ' . $due->format('F j, Y') . '.',
-                        'sort'    => $daysUntilDue,
-                    ];
-                } else {
-                    $notifications[] = [
-                        'type'    => 'warning',
-                        'icon'    => 'feather-clock',
-                        'title'   => 'Upcoming Payment',
-                        'message' => 'Your payment of ₱' . number_format($amount, 2) . ' is due on ' . $due->format('F j, Y') . '.',
-                        'sort'    => $daysUntilDue,
-                    ];
-                }
-            }
-
-            usort($notifications, fn($a, $b) => $a['sort'] <=> $b['sort']);
-
-            // Rejected receipt at partial payment — nasa ibabaw ng due date reminders
-            $notifications = array_merge($this->paymentUpdateNotificationsForPage($userId), $notifications);
-        }
-
         return view('borrower.notifications', compact(
-            'userName', 'initials', 'profilePicture', 'isFullyApproved', 'app', 'notifications',
+            'userName', 'initials', 'profilePicture', 'isFullyApproved',
             'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
             'headerNotifications', 'unreadNotifCount'
         ));

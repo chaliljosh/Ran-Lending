@@ -1,6 +1,21 @@
 // public/functions/loan-application-detail.js
 // Used by: resources/views/admin/loan-application-detail.blade.php
 
+// ---- Loader helper ----
+// Ginagamit ng lahat ng button na may loading state.
+// Nilalagay ang spinner icon (.spin-icon, nasa loan-details.css) at dinidisable ang button
+// para hindi ma-click ulit habang naghihintay.
+function setButtonLoading(btn, loadingHtml) {
+    if (!btn || btn.dataset.loading === '1') return;
+
+    btn.dataset.loading = '1';
+    btn.dataset.originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.style.opacity = '0.85';
+    btn.style.cursor = 'not-allowed';
+    btn.innerHTML = loadingHtml;
+}
+
 function decisionShowConfirm(action) {
     document.getElementById('decisionActionInput').value = action;
 
@@ -16,22 +31,29 @@ function decisionShowConfirm(action) {
     const subtext = document.getElementById('decisionConfirmSubtext');
     const confirmBtn = document.getElementById('decisionConfirmBtn');
 
+    // Kung may "Change My Decision" button sa page, nagbabago lang ng decision ang admin
+    // (on hold pa ang application), kaya hindi final ang action na ito.
+    const isChange = !!document.querySelector('.btn-decision-review i.feather-edit-2');
+    const undoNote = isChange
+        ? 'You can change this again while the application is on hold.'
+        : 'This action cannot be undone.';
+
     if (action === 'approved') {
-        headerTitle.textContent = 'Approve loan application';
+        headerTitle.textContent = isChange ? 'Change to Approve' : 'Approve loan application';
         iconWrap.className = 'modal-icon-circle icon-success';
         icon.className = 'feather-check';
-        text.textContent = 'Approve loan application?';
-        subtext.textContent = 'Are you sure you want to approve this loan application? This action cannot be undone.';
-        confirmBtn.className = 'btn-decision btn-decision-approve'; // green #477553
-        confirmBtn.textContent = 'Approve';
+        text.textContent = isChange ? 'Change your decision to Approve?' : 'Approve loan application?';
+        subtext.textContent = 'Are you sure you want to approve this loan application? ' + undoNote;
+        confirmBtn.className = 'btn-decision btn-decision-approve'; // system green
+        confirmBtn.textContent = isChange ? 'Change to Approve' : 'Approve';
     } else {
-        headerTitle.textContent = 'Reject loan application';
+        headerTitle.textContent = isChange ? 'Change to Reject' : 'Reject loan application';
         iconWrap.className = 'modal-icon-circle icon-danger';
         icon.className = 'feather-x';
-        text.textContent = 'Reject loan application?';
-        subtext.textContent = 'Are you sure you want to reject this loan application? This action cannot be undone.';
+        text.textContent = isChange ? 'Change your decision to Reject?' : 'Reject loan application?';
+        subtext.textContent = 'Are you sure you want to reject this loan application? ' + undoNote;
         confirmBtn.className = 'btn-decision btn-decision-black';
-        confirmBtn.textContent = 'Reject';
+        confirmBtn.textContent = isChange ? 'Change to Reject' : 'Reject';
     }
 }
 
@@ -41,7 +63,11 @@ function decisionBackToStep1() {
     document.getElementById('decisionFooterStep1').style.display = 'flex';
     document.getElementById('decisionFooterStep2').style.display = 'none';
     document.getElementById('decisionActionInput').value = '';
-    document.getElementById('decisionModalLabel').textContent = 'Review Loan Application';
+
+    const isChange = !!document.querySelector('.btn-decision-review i.feather-edit-2');
+    document.getElementById('decisionModalLabel').textContent = isChange
+        ? 'Change My Decision'
+        : 'Review Loan Application';
 
     // Reset confirm button back to its default look
     const confirmBtn = document.getElementById('decisionConfirmBtn');
@@ -49,7 +75,6 @@ function decisionBackToStep1() {
         confirmBtn.className = 'btn-decision btn-decision-black';
     }
 }
-
 /* ============================================================
    BORROWER INFO EDITING
    Per-card Edit / Cancel / Save. Save opens a modal that asks
@@ -398,18 +423,31 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // ---- Loading state on submit: icon-only spinner, no text ----
-    // Normal form submit (not AJAX) — the button stays in this
-    // loading state until the page navigates away after the
-    // server responds/redirects.
+    // ---- Loading state sa Approve / Reject confirm ----
+    // Normal form submit (hindi AJAX) — mananatili ang loader hanggang
+    // mag-redirect ang page pagkatapos sumagot ng server.
+    // Pati ang Cancel button ay dinidisable para hindi maisara ang modal habang nagpoproseso.
     const decisionForm = document.getElementById('decisionForm');
     if (decisionForm) {
         decisionForm.addEventListener('submit', function () {
             const confirmBtn = document.getElementById('decisionConfirmBtn');
-            if (confirmBtn) {
-                confirmBtn.disabled = true;
-                confirmBtn.innerHTML = '<i class="feather-loader spin-icon"></i>';
-            }
+            setButtonLoading(confirmBtn, '<i class="feather-loader spin-icon"></i>');
+
+            const cancelBtn = document.querySelector('#decisionFooterStep2 .btn-decision-cancel');
+            if (cancelBtn) cancelBtn.disabled = true;
+
+            const closeBtn = document.querySelector('#decisionModal .btn-close-clean');
+            if (closeBtn) closeBtn.disabled = true;
+        });
+    }
+
+    // ---- Loading state sa Post Comment ----
+    // Normal form submit din ito, kaya nagre-reload ang page kapag tapos na.
+    const commentForm = document.querySelector('.ld-comment-form');
+    if (commentForm) {
+        commentForm.addEventListener('submit', function () {
+            const postBtn = commentForm.querySelector('.btn-post-comment');
+            setButtonLoading(postBtn, '<i class="feather-loader spin-icon"></i> Posting...');
         });
     }
 

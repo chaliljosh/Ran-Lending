@@ -81,25 +81,42 @@ body { background: #fff; }
 }
 
 
+/* "Review Application" — brand blue (#4a7cf7), kapareho ng Post Comment
+   at ng ibang primary actions sa admin panel. */
 .btn.btn-decision-review {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    background: #465D78 !important;
-    border: 1px solid #465D78 !important;
+    background: var(--rs-brand) !important;
+    border: 1px solid var(--rs-brand) !important;
     color: #FFFFFF !important;
     border-radius: 10px !important;
     font-weight: 600;
     padding: 11px 24px;
     font-size: 0.87rem;
     text-transform: none;
+    box-shadow: 0 1px 2px rgba(74, 124, 247, 0.25);
+    transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease, transform .15s ease;
 }
 .btn.btn-decision-review:hover,
 .btn.btn-decision-review:focus {
-    background: #3a4e64 !important;
-    border-color: #3a4e64 !important;
+    background: #3a6ae0 !important;
+    border-color: #3a6ae0 !important;
     color: #FFFFFF !important;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(74, 124, 247, 0.30);
+}
+.btn.btn-decision-review:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(74, 124, 247, 0.25);
+}
+.btn.btn-decision-review:focus-visible {
+    outline: 2px solid #bfdbfe;
+    outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+    .btn.btn-decision-review { transition: none; transform: none !important; }
 }
 
 /* ============================================================
@@ -498,9 +515,9 @@ html.app-skin-dark .ld-review-table tbody td { color: #e2e8f0; border-color: #2d
    #decisionModal only so it doesn't affect modal-modern usage
    elsewhere in the app.
 
-   Approve button is green (#526B5D); Reject is outlined red;
-   Cancel is outlined neutral. The Step 2 confirm button is
-   green for Approve and black for Reject (set from JS).
+   Approve button is green (#16a34a, system green); Reject is
+   outlined red; Cancel is outlined neutral. The Step 2 confirm
+   button is green for Approve and black for Reject (set from JS).
    ============================================================ */
 #decisionModal .modal-content {
     border: 1px solid var(--rs-border);
@@ -614,16 +631,16 @@ html.app-skin-dark .ld-review-table tbody td { color: #e2e8f0; border-color: #2d
 }
 .btn-decision-reject:hover { background: var(--rs-red-soft); }
 
-/* ── Approve button (sage green #526B5D) — color only, size comes from .btn-decision ── */
+/* ── Approve button (system green #16a34a) — color only, size comes from .btn-decision ── */
 .btn-decision-approve {
-    background: #526B5D;
-    border-color: #526B5D;
+    background: var(--rs-green);
+    border-color: var(--rs-green);
     color: #fff;
 }
 .btn-decision-approve:hover,
 .btn-decision-approve:focus {
-    background: #445a4e;
-    border-color: #445a4e;
+    background: #15803d;
+    border-color: #15803d;
     color: #fff;
 }
 
@@ -699,15 +716,30 @@ html.app-skin-dark .btn-decision-reject:hover { background: rgba(220,38,38,.15) 
 
 /* Approve button — dark mode */
 html.app-skin-dark .btn-decision-approve {
-    background: #526B5D !important;
-    border-color: #526B5D !important;
+    background: #16a34a !important;
+    border-color: #16a34a !important;
     color: #fff !important;
 }
 html.app-skin-dark .btn-decision-approve:hover,
 html.app-skin-dark .btn-decision-approve:focus {
-    background: #61806e !important;
-    border-color: #61806e !important;
+    background: #22c55e !important;
+    border-color: #22c55e !important;
     color: #fff !important;
+}
+
+/* Review Application button — dark mode (brand blue, medyo mas maliwanag sa hover) */
+html.app-skin-dark .btn.btn-decision-review {
+    background: #4a7cf7 !important;
+    border-color: #4a7cf7 !important;
+    color: #fff !important;
+    box-shadow: none;
+}
+html.app-skin-dark .btn.btn-decision-review:hover,
+html.app-skin-dark .btn.btn-decision-review:focus {
+    background: #6b94f9 !important;
+    border-color: #6b94f9 !important;
+    color: #fff !important;
+    box-shadow: 0 6px 16px rgba(74, 124, 247, 0.35);
 }
 
 html.app-skin-dark .id-thumb-wrap img { border-color: #262626 !important; }
@@ -1221,3 +1253,116 @@ html.app-skin-dark #editInfoSuccessModal .modal-header-clean h6,
 html.app-skin-dark #editInfoSuccessModal .modal-title-text { color: #F5F5F5 !important; }
 html.app-skin-dark #editInfoSuccessModal .modal-subtext-text { color: #9A9A9A !important; }
 html.app-skin-dark #editInfoSuccessModal .modal-icon-circle { background: rgba(22, 163, 74, .18) !important; color: #4ade80 !important; }
+
+/* ---------- Your Review Decision card ---------- */
+.ld-decision-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin: 24px 0 40px;
+    padding: 20px 24px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+}
+.ld-decision-main { flex: 1; min-width: 0; }
+.ld-decision-title {
+    margin: 0 0 12px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #0f172a;
+}
+.ld-decision-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.ld-decision-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 18px;
+    border-radius: 999px;
+    background: transparent;
+    border: 1px solid #cbd5e1;
+    color: #0f172a;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+.ld-decision-divider {
+    width: 1px;
+    height: 28px;
+    background: #e5e7eb;
+}
+.ld-decision-text {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #475569;
+}
+.ld-decision-btn {
+    padding: 10px 24px;
+    border-radius: 999px;
+    border: 1.5px solid #0f172a;
+    background: #fff;
+    color: #0f172a;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease;
+}
+.ld-decision-btn:hover { background: #0f172a; color: #fff; }
+
+@media (max-width: 767.98px) {
+    .ld-decision-divider { display: none; }
+    .ld-decision-btn { width: 100%; }
+}
+
+html.app-skin-dark .ld-decision-card { background: #141414; border-color: #262626; }
+html.app-skin-dark .ld-decision-title,
+html.app-skin-dark .ld-decision-pill { color: #F5F5F5; }
+html.app-skin-dark .ld-decision-pill { border-color: #404040; }
+html.app-skin-dark .ld-decision-divider { background: #262626; }
+html.app-skin-dark .ld-decision-text { color: #9A9A9A; }
+html.app-skin-dark .ld-decision-btn { background: transparent; border-color: #F5F5F5; color: #F5F5F5; }
+html.app-skin-dark .ld-decision-btn:hover { background: #F5F5F5; color: #0A0A0A; }
+
+/* Admin Review Status: text color lang */
+.ld-review-text {
+    font-size: 0.88rem;
+    font-weight: 600;
+    background: none;
+    border: none;
+    padding: 0;
+}
+.ld-review-text.is-approved { color: #15803d; }
+.ld-review-text.is-rejected { color: #dc2626; }
+.ld-review-text.is-awaiting { color: #b45309; }
+
+/* Your Review Decision pill: kulay ng text at border */
+/* Your Review Decision pill: solid na kulay */
+.ld-decision-pill.is-approved {
+    background: #16a34a;
+    border-color: #16a34a;
+    color: #fff;
+}
+.ld-decision-pill.is-rejected {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: #fff;
+}
+
+html.app-skin-dark .ld-review-text.is-approved { color: #4ADE80; }
+html.app-skin-dark .ld-review-text.is-rejected { color: #F87171; }
+html.app-skin-dark .ld-review-text.is-awaiting { color: #FBBF24; }
+html.app-skin-dark .ld-decision-pill.is-approved {
+    background: #16a34a;
+    border-color: #16a34a;
+    color: #fff;
+}
+html.app-skin-dark .ld-decision-pill.is-rejected {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: #fff;
+}

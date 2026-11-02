@@ -1,10 +1,12 @@
-// public/functions/overdue-payments.js
+// public/functions/overdue-payment.js
 // Used by: resources/views/admin/overdue-payments.blade.php
 //
 // Handles search filtering, sorting (dropdown AT click sa column header),
 // rows-per-page pagination, at clickable rows.
 // Ang mga click ay naka-inline onclick sa blade (hindi document listener),
 // para hindi ma-block ng ibang scripts sa layout.
+//
+// Ang loader sa pag-open ng row ay nasa row-loader.js (shared).
 
 let opCurrentPage = 1;
 let opRowsPerPage = 10;
@@ -134,13 +136,16 @@ function opSyncDropdown() {
 
 // Click sa row (tinatawag ng onclick sa <tr>)
 // Pupunta sa detail page, maliban kung link/button ang na-click.
+// (Ang link/button ay may sariling loader sa row-loader.js.)
 function opGoToRow(event, row) {
     if (event.target.closest('a, button, input, select, textarea')) return;
 
     const url = row.dataset.href;
-    if (url) {
-        window.location.href = url;
-    }
+    if (!url) return;
+
+    if (window.rowLoader) window.rowLoader.show(row);
+
+    window.location.href = url;
 }
 
 function opChangeRowsPerPage(select) {

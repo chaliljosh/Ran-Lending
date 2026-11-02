@@ -121,16 +121,22 @@
                         </thead>
                         <tbody>
                             @foreach ($borrowers as $b)
-                                @php $statusInfo = $statusMap[$b['loan_status']]; @endphp
+                                @php
+                                    $statusInfo = $statusMap[$b['loan_status']];
+
+                                    // Borrower ID = unang 8 characters ng UUID (kapareho ng sa Borrower Details page).
+                                    // Kapag walang 'uuid' galing controller, yung dating borrower_id ang gagamitin.
+                                    $borrowerCode = !empty($b['uuid']) ? strtoupper(substr($b['uuid'], 0, 8)) : $b['borrower_id'];
+                                @endphp
                                 <tr @if ($b['detail_id']) class="rs-clickable-row" data-href="{{ route('admin.verification-detail', $b['detail_id']) }}" @endif
-                                    data-search="{{ strtolower($b['name'] . ' ' . $b['email'] . ' ' . $b['borrower_id']) }}"
+                                    data-search="{{ strtolower($b['name'] . ' ' . $b['email'] . ' ' . $borrowerCode) }}"
                                     data-status="{{ $b['loan_status'] }}"
                                     data-joined="{{ \Carbon\Carbon::parse($b['joined_at'])->timestamp }}">
                                     <td>
                                         <div class="borrower-cell">
                                             <div>
                                                 <div class="borrower-name">{{ $b['name'] }}</div>
-                                                <div class="borrower-id-text">{{ $b['borrower_id'] }}</div>
+                                                <div class="borrower-id-text">{{ $borrowerCode }}</div>
                                                 <div class="borrower-email">{{ $b['email'] }}</div>
                                             </div>
                                         </div>
@@ -187,5 +193,7 @@
 @endsection
 
 @section('page-scripts')
+    
+    <script src="{{ asset('functions/row-loader.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('functions/all-borrowers.js') }}?v={{ time() }}"></script>
 @endsection

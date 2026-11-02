@@ -1,10 +1,13 @@
 // public/functions/ongoing-loans.js
 // Used by: resources/views/admin/ongoing-loans.blade.php
+//          resources/views/admin/waiting-for-release.blade.php
 //
 // Handles search + month filter + status filter, sorting (dropdown AT click sa column header),
 // rows-per-page pagination, at clickable rows.
 // Ang mga click ay naka-inline onclick sa blade (hindi document listener),
 // para hindi ma-block ng ibang scripts sa layout.
+//
+// Ang loader sa pag-open ng row ay nasa row-loader.js (shared).
 
 let olCurrentPage = 1;
 let olRowsPerPage = 10;
@@ -22,6 +25,7 @@ function olGetMatchingRows() {
     const month = document.getElementById('monthFilter')?.value || '';
 
     // Napiling status: "awaiting" o "ongoing". Walang laman = All Status
+    // (wala ang dropdown na ito sa Waiting for Release page, kaya walang laman din)
     const status = document.getElementById('statusFilter')?.value || '';
 
     const allRows = Array.from(
@@ -134,13 +138,16 @@ function olSyncDropdown() {
 
 // Click sa row (tinatawag ng onclick sa <tr>)
 // Pupunta sa detail page, maliban kung link/button ang na-click.
+// (Ang link/button ay may sariling loader sa row-loader.js.)
 function olGoToRow(event, row) {
     if (event.target.closest('a, button, input, select, textarea')) return;
 
     const url = row.dataset.href;
-    if (url) {
-        window.location.href = url;
-    }
+    if (!url) return;
+
+    if (window.rowLoader) window.rowLoader.show(row);
+
+    window.location.href = url;
 }
 
 function olChangeRowsPerPage(select) {

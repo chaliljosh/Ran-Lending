@@ -589,6 +589,7 @@
 @endsection
 
 @section('page-scripts')
+<script src="{{ asset('functions/row-loader.js') }}"></script>
     <script src="{{ asset('functions/loan-applications.js') }}"></script>
 
     @if (session('success'))

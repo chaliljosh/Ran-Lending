@@ -1,0 +1,380 @@
+/* ============================================================
+   BORROWER NOTIFICATIONS — dropdown (header) at buong page.
+   Flat colors lang, walang gradient.
+============================================================ */
+
+.bwl-notif-bell { position: relative; }
+
+[hidden].bwl-nf-item,
+[hidden].bwl-nf-empty,
+[hidden].bwl-nf-markall,
+[hidden].bwl-nf-chip,
+[hidden].bwl-nf-pager { display: none !important; }
+
+/* ---------- Dropdown panel (compact) ---------- */
+.bwl-nf-panel {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    z-index: 1050;
+    width: 360px;
+    max-width: calc(100vw - 24px);
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 20px 50px -14px rgba(15, 23, 42, 0.25);
+    padding: 16px 0 10px;
+}
+
+/* ---------- Head ---------- */
+.bwl-nf-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 24px 14px;
+}
+.bwl-nf-heading {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #0f172a;
+}
+.bwl-nf-markall {
+    background: none;
+    border: 0;
+    padding: 0;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #0f172a;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+.bwl-nf-markall:hover { color: #2563eb; }
+
+/* ---------- Tabs (All / Unread) ---------- */
+.bwl-nf-tabs {
+    display: flex;
+    gap: 4px;
+    margin: 0 24px 6px;
+    padding: 3px;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+}
+.bwl-nf-tab {
+    flex: 1;
+    border: 0;
+    background: transparent;
+    padding: 7px 0;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.bwl-nf-tab:hover { color: #0f172a; }
+.bwl-nf-tab.is-active {
+    background: #1f2937;
+    color: #ffffff;
+}
+
+/* ---------- List ---------- */
+.bwl-nf-list {
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 2px 0;
+}
+.bwl-nf-page .bwl-nf-list { max-height: none; overflow: visible; }
+
+.bwl-nf-item {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr) 8px;
+    column-gap: 10px;
+    align-items: start;
+    padding: 10px 24px;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.12s ease;
+}
+.bwl-nf-item:hover { background: #f8fafc; color: inherit; }
+
+.bwl-nf-icon {
+    display: flex;
+    justify-content: center;
+    padding-top: 2px;
+}
+.bwl-nf-icon i { font-size: 17px; line-height: 1; }
+.bwl-nf-icon.is-success   i { color: #16a34a; }
+.bwl-nf-icon.is-danger    i { color: #dc2626; }
+.bwl-nf-icon.is-warning   i { color: #ea580c; }
+.bwl-nf-icon.is-primary   i { color: #2563eb; }
+.bwl-nf-icon.is-secondary i { color: #64748b; }
+
+.bwl-nf-body { min-width: 0; }
+.bwl-nf-title {
+    display: block;
+    font-size: 0.84rem;
+    font-weight: 500;
+    line-height: 1.35;
+    color: #475569;
+}
+.bwl-nf-item.is-unread .bwl-nf-title {
+    font-weight: 600;
+    color: #0f172a;
+}
+.bwl-nf-sub {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.76rem;
+    font-weight: 400;
+    line-height: 1.4;
+    color: #64748b;
+}
+.bwl-nf-time {
+    display: block;
+    margin-top: 3px;
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: #94a3b8;
+}
+
+.bwl-nf-dot {
+    width: 7px;
+    height: 7px;
+    margin-top: 6px;
+    border-radius: 50%;
+    background: transparent;
+}
+.bwl-nf-item.is-unread .bwl-nf-dot { background: #2563eb; }
+
+.bwl-nf-empty {
+    margin: 0;
+    padding: 28px 24px;
+    text-align: center;
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
+
+/* ---------- Pagination (buong page) ---------- */
+.bwl-nf-pager {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    margin-top: 8px;
+    padding: 14px 24px 4px;
+    border-top: 1px solid #f1f5f9;
+}
+.bwl-nf-pager-info {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #94a3b8;
+}
+.bwl-nf-pager-nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.bwl-nf-pg {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #ffffff;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.bwl-nf-pg:hover:not(:disabled):not(.is-active) { background: #f8fafc; color: #0f172a; }
+.bwl-nf-pg.is-active {
+    background: #1f2937;
+    border-color: #1f2937;
+    color: #ffffff;
+    cursor: default;
+}
+.bwl-nf-pg:disabled { opacity: 0.4; cursor: default; }
+.bwl-nf-pg-gap { padding: 0 2px; color: #94a3b8; font-size: 0.82rem; }
+
+/* ---------- Footer (dropdown) ---------- */
+.bwl-nf-foot {
+    padding: 8px 24px 0;
+    text-align: center;
+}
+.bwl-nf-foot a {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #0f172a;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+.bwl-nf-foot a:hover { color: #2563eb; }
+
+/* ---------- Buong page: full width, kapareho ng border ng Loan Details ---------- */
+.bwl-nf-page {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 22px 0 12px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
+}
+.bwl-nf-page .bwl-nf-head { padding-bottom: 16px; }
+.bwl-nf-page .bwl-nf-heading { font-size: 1.1rem; font-weight: 700; }
+
+/* Toolbar: All/Unread sa kaliwa, type filter sa kanan */
+.bwl-nf-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+    padding: 0 24px 8px;
+}
+.bwl-nf-toolbar .bwl-nf-tabs {
+    margin: 0;
+    width: 240px;
+    max-width: 100%;
+}
+
+/* ---------- Type filter chips ---------- */
+.bwl-nf-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.bwl-nf-chip {
+    padding: 7px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    background: #ffffff;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.bwl-nf-chip:hover { color: #0f172a; border-color: #cbd5e1; }
+.bwl-nf-chip.is-active {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #2563eb;
+}
+
+/* Puting background ng notifications page (hindi gray) */
+html:not(.app-skin-dark) .nxl-container:has(.bwl-nf-page),
+html:not(.app-skin-dark) .nxl-content:has(.bwl-nf-page),
+html:not(.app-skin-dark) .main-content:has(.bwl-nf-page) {
+    background: #ffffff !important;
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 575.98px) {
+    .bwl-nf-panel {
+        position: fixed;
+        top: 72px;
+        left: 12px;
+        right: 12px;
+        width: auto;
+        max-width: none;
+    }
+    .bwl-nf-list { max-height: 55vh; }
+    .bwl-nf-item { padding: 10px 18px; }
+    .bwl-nf-head,
+    .bwl-nf-foot { padding-left: 18px; padding-right: 18px; }
+    .bwl-nf-tabs { margin-left: 18px; margin-right: 18px; }
+    .bwl-nf-toolbar { padding: 0 18px 8px; }
+    .bwl-nf-toolbar .bwl-nf-tabs { width: 100%; }
+    .bwl-nf-pager { padding: 14px 18px 4px; justify-content: center; }
+}
+
+/* ---------- Dark mode ---------- */
+html.app-skin-dark .bwl-nf-panel,
+html.app-skin-dark .bwl-nf-page {
+    background: #141414;
+    border-color: #262626;
+    box-shadow: 0 20px 50px -14px rgba(0, 0, 0, 0.6);
+}
+html.app-skin-dark .bwl-nf-page { box-shadow: none; }
+html.app-skin-dark .bwl-nf-heading,
+html.app-skin-dark .bwl-nf-markall,
+html.app-skin-dark .bwl-nf-foot a { color: #f5f5f5; }
+html.app-skin-dark .bwl-nf-markall:hover,
+html.app-skin-dark .bwl-nf-foot a:hover { color: #60a5fa; }
+html.app-skin-dark .bwl-nf-tabs { border-color: #262626; }
+html.app-skin-dark .bwl-nf-tab { color: #9a9a9a; }
+html.app-skin-dark .bwl-nf-tab:hover { color: #f5f5f5; }
+html.app-skin-dark .bwl-nf-tab.is-active { background: #f5f5f5; color: #0a0a0a; }
+html.app-skin-dark .bwl-nf-chip { background: transparent; border-color: #262626; color: #9a9a9a; }
+html.app-skin-dark .bwl-nf-chip:hover { color: #f5f5f5; border-color: #404040; }
+html.app-skin-dark .bwl-nf-chip.is-active {
+    background: rgba(37, 99, 235, 0.18);
+    border-color: rgba(96, 165, 250, 0.4);
+    color: #60a5fa;
+}
+html.app-skin-dark .bwl-nf-item:hover { background: #1c1c1c; }
+html.app-skin-dark .bwl-nf-title { color: #c4c4c4; }
+html.app-skin-dark .bwl-nf-item.is-unread .bwl-nf-title { color: #f5f5f5; }
+html.app-skin-dark .bwl-nf-sub { color: #9a9a9a; }
+html.app-skin-dark .bwl-nf-time { color: #737373; }
+html.app-skin-dark .bwl-nf-icon.is-success i { color: #4ade80; }
+html.app-skin-dark .bwl-nf-icon.is-danger  i { color: #f87171; }
+html.app-skin-dark .bwl-nf-icon.is-warning i { color: #fb923c; }
+html.app-skin-dark .bwl-nf-icon.is-primary i { color: #60a5fa; }
+html.app-skin-dark .bwl-nf-item.is-unread .bwl-nf-dot { background: #60a5fa; }
+html.app-skin-dark .bwl-nf-pager { border-top-color: #262626; }
+html.app-skin-dark .bwl-nf-pager-info,
+html.app-skin-dark .bwl-nf-pg-gap { color: #737373; }
+html.app-skin-dark .bwl-nf-pg { background: transparent; border-color: #262626; color: #9a9a9a; }
+html.app-skin-dark .bwl-nf-pg:hover:not(:disabled):not(.is-active) { background: #1c1c1c; color: #f5f5f5; }
+html.app-skin-dark .bwl-nf-pg.is-active { background: #f5f5f5; border-color: #f5f5f5; color: #0a0a0a; }
+
+/* ---------- Loader (overlay sa buong notifications page) ---------- */
+.bwl-nf-page { position: relative; }
+
+[hidden].bwl-nf-loader { display: none !important; }
+
+.bwl-nf-loader {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 14px;
+}
+.bwl-nf-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #e2e8f0;
+    border-top-color: #2563eb;
+    border-radius: 50%;
+    animation: bwl-nf-spin 0.7s linear infinite;
+}
+@keyframes bwl-nf-spin {
+    to { transform: rotate(360deg); }
+}
+
+html.app-skin-dark .bwl-nf-loader { background: rgba(20, 20, 20, 0.7); }
+html.app-skin-dark .bwl-nf-spinner {
+    border-color: #262626;
+    border-top-color: #60a5fa;
+}
+
+/* ---------- Full-screen loader (See all notifications) ---------- */
+.bwl-nf-loader.bwl-nf-loader-page {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    border-radius: 0;
+}
+
+/* Loader sa loob ng dropdown panel */
+.bwl-nf-panel .bwl-nf-loader { border-radius: 16px; }

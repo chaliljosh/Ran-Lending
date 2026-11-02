@@ -181,4 +181,5 @@
 
 @section('page-scripts')
 <script src="{{ asset('functions/overdue-payment.js') }}"></script>
+<script src="{{ asset('functions/row-loader.js') }}"></script>
 @endsection

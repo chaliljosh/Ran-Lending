@@ -66,11 +66,11 @@
                   </div>
                 </div>
                 <div>
-                  <label for="middleName">Middle Name</label>
+                  <label for="middleName">Middle Initial</label>
                   <div class="input-wrap">
                     <i class="bi bi-person-badge field-icon"></i>
-                    <input type="text" id="middleName" placeholder="Enter middle name"
-                      oninput="this.value = this.value.replace(/\b\w/g, c => c.toUpperCase())">
+                    <input type="text" id="middleName" placeholder="e.g. D" maxlength="1" autocomplete="off"
+                      oninput="this.value = this.value.replace(/[^A-Za-z]/g, '').toUpperCase()">
                   </div>
                 </div>
                 <div>

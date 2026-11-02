@@ -16,6 +16,8 @@ document.addEventListener('DOMContentLoaded', function () {
     var removeBtn = document.getElementById('olsProofRemove');
     var errEl = document.getElementById('olsProofError');
     var sendBtn = document.getElementById('olsProofSendBtn');
+    var cancelBtn = modalEl.querySelector('.olrm-btn-cancel');
+    var closeBtn = modalEl.querySelector('.olrm-close');
 
     var file = null;
     var previewUrl = null;
@@ -31,16 +33,40 @@ document.addEventListener('DOMContentLoaded', function () {
             : Math.max(1, Math.round(bytes / 1024)) + ' KB';
     }
 
+    // ---- Loader ----
+    // Spinner + "Sending..." sa Confirm & Send button.
+    // Ang pag-ikot ng spinner ay galing sa JS mismo (hindi na kailangan ng CSS),
+    // kaya siguradong gagana kahit wala ang .spin-icon sa CSS file.
+    // Dinidisable din ang Cancel at X para hindi maisara ang modal habang nagpapadala.
     function setLoading(btn, loading) {
         btn.disabled = loading;
         btn.classList.toggle('is-loading', loading);
+
+        if (cancelBtn) cancelBtn.disabled = loading;
+        if (closeBtn) closeBtn.disabled = loading;
+
+        var label = btn.querySelector('.ols-confirm-btn-label');
         var spinner = btn.querySelector('.spin-icon');
-        if (loading && !spinner) {
-            var s = document.createElement('i');
-            s.className = 'feather-loader spin-icon';
-            btn.insertBefore(s, btn.firstChild);
-        } else if (!loading && spinner) {
-            spinner.remove();
+
+        if (loading) {
+            if (label) {
+                if (!label.dataset.original) label.dataset.original = label.textContent;
+                label.textContent = 'Sending...';
+            }
+            if (!spinner) {
+                var s = document.createElement('i');
+                s.className = 'feather-loader spin-icon';
+                s.style.display = 'inline-block';
+                s.style.marginRight = '8px';
+                s.animate(
+                    [{ transform: 'rotate(0deg)' }, { transform: 'rotate(360deg)' }],
+                    { duration: 700, iterations: Infinity }
+                );
+                btn.insertBefore(s, btn.firstChild);
+            }
+        } else {
+            if (label && label.dataset.original) label.textContent = label.dataset.original;
+            if (spinner) spinner.remove();
         }
     }
 
@@ -123,6 +149,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('olsProofBorrowerEmail').textContent = openBtn.dataset.borrowerEmail;
         clearProof();
         showError('');
+        setLoading(sendBtn, false);
         bootstrap.Modal.getOrCreateInstance(modalEl).show();
     });
 
@@ -166,6 +193,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     ('Release confirmation was emailed to ' + openBtn.dataset.borrowerEmail + '.')
             }));
 
+            // Mananatili ang loader hanggang mag-redirect ang page
             window.location.href = openBtn.dataset.redirectUrl;
         })
         .catch(function (err) {

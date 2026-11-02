@@ -153,11 +153,16 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
+// Click kahit saan sa row para buksan ang detail page.
+// Ang loader ay galing sa row-loader.js (shared, kapareho ng All Borrowers).
 document.addEventListener('click', function (e) {
-    var row = e.target.closest('tr[data-href]');
+    const row = e.target.closest('tr[data-href]');
     if (!row) return;
 
-    if (e.target.closest('a, button, input, select, textarea')) return;
+    // Ang link/button ay may sariling loader sa row-loader.js
+    if (e.target.closest('a, button, input, select')) return;
+    if (window.getSelection && window.getSelection().toString()) return;
 
+    if (window.rowLoader) window.rowLoader.show(row);
     window.location.href = row.dataset.href;
 });

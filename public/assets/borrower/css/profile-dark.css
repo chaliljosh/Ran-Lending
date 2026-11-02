@@ -1,0 +1,79 @@
+/* ══════════════════════════════════════════
+   Profile page: DARK MODE (html.app-skin-dark)
+   page #0A0A0A | card #141414 | inner #0d0d0d
+   border #262626 | text #F5F5F5 | muted #9A9A9A
+══════════════════════════════════════════ */
+
+/* ---------- Hero card ---------- */
+html.app-skin-dark .profile-hero {
+    background: #141414 !important;
+    border: 1px solid #262626 !important;
+    box-shadow: none !important;
+}
+html.app-skin-dark .profile-hero__body {
+    background: transparent !important;
+}
+
+/* Cover (asul sa taas) */
+html.app-skin-dark .profile-hero__cover {
+    background: #16233b !important;
+}
+html.app-skin-dark .profile-hero__cover::before,
+html.app-skin-dark .profile-hero__cover::after {
+    background: rgba(74, 124, 247, 0.15) !important;
+}
+
+/* Avatar */
+html.app-skin-dark .profile-hero__avatar {
+    border-color: #141414 !important;
+    background: rgba(74, 124, 247, 0.15) !important;
+    color: #6ea8fe !important;
+    box-shadow: none !important;
+}
+
+/* Pangalan at contact info */
+html.app-skin-dark .profile-hero__name { color: #F5F5F5 !important; }
+html.app-skin-dark .profile-hero__meta,
+html.app-skin-dark .profile-hero__meta span { color: #9A9A9A !important; }
+html.app-skin-dark .profile-hero__meta i { color: #6ea8fe !important; }
+
+/* Badges (Active Account / Verified) */
+html.app-skin-dark .profile-hero__badge--active {
+    background: rgba(22, 163, 74, 0.15) !important;
+    border-color: rgba(74, 222, 128, 0.3) !important;
+    color: #4ADE80 !important;
+}
+html.app-skin-dark .profile-hero__badge--verified {
+    background: rgba(56, 189, 248, 0.15) !important;
+    border-color: rgba(56, 189, 248, 0.3) !important;
+    color: #38BDF8 !important;
+}
+
+/* Stats (Total Loans / Ongoing / Total Borrowed) */
+html.app-skin-dark .profile-hero__stat {
+    background: #0d0d0d !important;
+    border: 1px solid #262626 !important;
+    box-shadow: none !important;
+}
+html.app-skin-dark .profile-hero__stat strong { color: #6ea8fe !important; }
+html.app-skin-dark .profile-hero__stat span { color: #9A9A9A !important; }
+
+/* ---------- Loan History ---------- */
+html.app-skin-dark .bwl-ld-link-btn {
+    background: transparent !important;
+    border: 1px solid #262626 !important;
+    color: #6ea8fe !important;
+    box-shadow: none !important;
+}
+html.app-skin-dark .bwl-ld-link-btn:hover {
+    background: #1C1C1C !important;
+    border-color: #404040 !important;
+    color: #93C5FD !important;
+}
+
+/* ---------- Personal info / Address / Work ---------- */
+html.app-skin-dark .acct-card-sub { color: #9A9A9A !important; }
+html.app-skin-dark .acct-card-sub a { color: #6ea8fe !important; }
+html.app-skin-dark .acct-section-label { color: #9A9A9A !important; }
+html.app-skin-dark .acct-grid__item dt { color: #9A9A9A !important; }
+html.app-skin-dark .acct-grid__item dd { color: #F5F5F5 !important; }

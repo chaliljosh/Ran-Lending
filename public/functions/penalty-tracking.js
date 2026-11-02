@@ -1,3 +1,9 @@
+// public/functions/penalty-tracking.js
+// Used by: resources/views/admin/penalty-tracking.blade.php
+//
+// Search + month filter + status filter + sort + rows-per-page + pagination,
+// at clickable rows. Ang loader sa pag-open ng row ay nasa row-loader.js (shared).
+
 (function () {
     const searchInput = document.getElementById('ptSearchInput');
     const monthFilter = document.getElementById('ptMonthFilter');
@@ -118,13 +124,19 @@
         render();
     });
 
+    // Buksan ang detail page ng row (click o Enter/Space).
+    // May loader (row-loader.js) para alam ng user na nagbubukas na.
     function openRowDetail(row) {
         const href = row.getAttribute('data-href');
-        if (href) window.location.href = href;
+        if (!href) return;
+
+        if (window.rowLoader) window.rowLoader.show(row);
+        window.location.href = href;
     }
 
     allRows.forEach(function (row) {
         row.addEventListener('click', function (e) {
+            // Ang link/button ay may sariling loader sa row-loader.js
             if (e.target.closest('a, button')) return;
             if (window.getSelection && window.getSelection().toString()) return;
             openRowDetail(row);

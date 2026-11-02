@@ -228,7 +228,8 @@ Route::middleware(['admin', 'no-cache', 'throttle:60,1', AuditRequests::class])-
 
     // Active Borrowers > View Details (focused view — borrower profile +
     // overview of loans, payments, and penalties)
-    Route::get('/active-borrower-detail/{id}', [AdminController::class, 'activeBorrowerDetail'])
+       Route::get('/active-borrower-detail/{uuid}', [AdminController::class, 'activeBorrowerDetail'])
+        ->whereUuid('uuid')
         ->name('active-borrower-detail');
 
     // Overdue Payments > View Details (focused view — borrower card + overview

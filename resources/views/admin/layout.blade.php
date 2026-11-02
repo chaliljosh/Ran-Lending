@@ -110,17 +110,20 @@
                             <a href="javascript:void(0);"
                                 class="nxl-link nxl-flat-parent-link {{ $isLoanApplicationsSection ? 'active' : '' }}">
                                 <span class="nxl-micon"><i class="feather-file-text"></i></span>
-                                <span class="nxl-mtext">Loan Applications</span>
-                                @if (($pendingLoanCount ?? 0) > 0)
-                                    <span class="nxl-badge-circle">{{ $pendingLoanCount }}</span>
-                                @endif
+                               <span class="nxl-mtext">Loan Applications</span>
+@php
+    $loanParentCount = ($pendingLoanCount ?? 0) + ($onHoldLoanCount ?? 0);
+@endphp
+@if ($loanParentCount > 0)
+    <span class="nxl-badge-circle">{{ $loanParentCount }}</span>
+@endif
                             </a>
                             <button type="button" class="nxl-flat-toggle" tabindex="-1">
                                 <i class="feather-chevron-down"></i>
                             </button>
                         </div>
 
-                       <ul class="nxl-flat-submenu" id="nxlLoanSubmenu">
+                      <ul class="nxl-flat-submenu" id="nxlLoanSubmenu">
     <li class="nxl-flat-sub-item">
         <a href="{{ route('admin.loan-applications') }}"
             class="nxl-sublink {{ $loanStatusTab === 'pending' && !$isAttentionTab ? 'active' : '' }}">
@@ -160,6 +163,9 @@
             class="nxl-sublink {{ $loanStatusTab === 'on_hold' ? 'active' : '' }}">
             <i class="feather-pause-circle nxl-sub-icon"></i>
             <span class="nxl-sub-label">On Hold</span>
+            @if (($onHoldLoanCount ?? 0) > 0)
+                <span class="nxl-badge-circle nxl-badge-sm">{{ $onHoldLoanCount }}</span>
+            @endif
         </a>
     </li>
 </ul>
@@ -184,8 +190,11 @@
                             aria-controls="nxlOngoingSubmenu">
                             <a href="javascript:void(0);"
                                 class="nxl-link nxl-flat-parent-link {{ $isOngoingSection ? 'active' : '' }}">
-                                <span class="nxl-micon"><i class="feather-dollar-sign"></i></span>
-                                <span class="nxl-mtext">Ongoing Loans</span>
+                              <span class="nxl-micon"><i class="feather-dollar-sign"></i></span>
+<span class="nxl-mtext">Ongoing Loans</span>
+@if (($overdueLoanCount ?? 0) > 0)
+    <span class="nxl-badge-circle">{{ $overdueLoanCount }}</span>
+@endif
                             </a>
                             <button type="button" class="nxl-flat-toggle" tabindex="-1">
                                 <i class="feather-chevron-down"></i>
@@ -200,13 +209,16 @@
             <span class="nxl-sub-label">Pending Payments</span>
         </a>
     </li>
-    <li class="nxl-flat-sub-item">
-        <a href="{{ route('admin.overdue-payments') }}"
-            class="nxl-sublink {{ $isOverduePaymentsPage ? 'active' : '' }}">
-            <i class="feather-alert-triangle nxl-sub-icon"></i>
-            <span class="nxl-sub-label">Overdue Payments</span>
-        </a>
-    </li>
+   <li class="nxl-flat-sub-item">
+    <a href="{{ route('admin.overdue-payments') }}"
+        class="nxl-sublink {{ $isOverduePaymentsPage ? 'active' : '' }}">
+        <i class="feather-alert-triangle nxl-sub-icon"></i>
+        <span class="nxl-sub-label">Overdue Payments</span>
+        @if (($overdueLoanCount ?? 0) > 0)
+            <span class="nxl-badge-circle nxl-badge-sm">{{ $overdueLoanCount }}</span>
+        @endif
+    </a>
+</li>
     <li class="nxl-flat-sub-item">
         <a href="{{ route('admin.penalty-tracking') }}"
             class="nxl-sublink {{ $isPenaltyPage ? 'active' : '' }}">
@@ -744,6 +756,7 @@
     <script src="{{ asset('functions/logout-modal.js') }}"></script>
     <script src="{{ asset('functions/admin-header.js') }}"></script>
     <script src="{{ asset('functions/admin-account-modals.js') }}"></script>
+     <script src="{{ asset('functions/admin-page-loader.js') }}?v={{ time() }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
     <script src="{{ asset('functions/admin-toast.js') }}"></script>
     <script src="{{ asset('functions/admin-profile-picture.js') }}"></script>

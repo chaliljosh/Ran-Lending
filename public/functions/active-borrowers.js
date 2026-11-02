@@ -143,10 +143,15 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
+// Click sa mismong row (hindi sa link/button): ipakita ang loader, tapos buksan ang detail page.
+// Ang click naman sa "View Details" button ay hinahawakan na mismo ng row-loader.js.
 document.addEventListener('click', function (e) {
     const row = e.target.closest('tr[data-href]');
     if (!row) return;
     if (e.target.closest('a, button, input, select, textarea')) return;
     if (window.getSelection && window.getSelection().toString()) return;
+
+    if (window.rowLoader) rowLoader.show(row);
+
     window.location.href = row.dataset.href;
 });

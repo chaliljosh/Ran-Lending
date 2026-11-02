@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/payment-receipt.css') }}?v={{ time() }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/avatar-placeholder.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/account-pages.css') }}?v={{ time() }}">
+       <link rel="stylesheet" href="{{ asset('assets/borrower/css/profile-dark.css') }}?v={{ time() }}">
 @endsection
 
 @section('content')

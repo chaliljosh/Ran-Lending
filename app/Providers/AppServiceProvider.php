@@ -69,6 +69,30 @@ class AppServiceProvider extends ServiceProvider
                 ->count();
 
             $view->with('waitingReleaseCount', $waitingReleaseCount);
+
+            // Bilang para sa "On Hold" sa sidebar (Loan Applications).
+            // Lahat ng application na naka-on_hold ang status.
+            // Walang cache, kaya agad nag-a-update pagkatapos mag-hold o mag-lift ng hold.
+            $onHoldLoanCount = DB::table('loan_applications')
+                ->where('status', 'on_hold')
+                ->count();
+
+            $view->with('onHoldLoanCount', $onHoldLoanCount);
+
+            // Bilang para sa "Overdue Payments" sa sidebar (Ongoing Loans).
+            // PAREHONG function ng AdminController::overduePayments(), kaya laging
+            // magkapareho ang badge at ang laman ng page.
+            $overdueRpc = DB::selectOne(
+                'SELECT admin_overdue_payments_data(?) as data',
+                [AdminController::DEFAULT_DAYS_LATE]
+            );
+            $overdueData = $overdueRpc->data ?? null;
+            if (is_string($overdueData)) {
+                $overdueData = json_decode($overdueData);
+            }
+            $overdueLoanCount = count($overdueData->overdue_loans ?? []);
+
+            $view->with('overdueLoanCount', $overdueLoanCount);
         });
 
         // Borrower sidebar: true kung may ongoing loan ang borrower, para

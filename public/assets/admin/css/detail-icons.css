@@ -1,0 +1,97 @@
+/* ============================================================
+   DETAIL ICONS + SHARED LAYOUT BITS
+   Gamit sa: Completed Loan Detail at Borrower (Verification) Detail.
+   I-link ito PAGKATAPOS ng completed-loan-detail.css.
+
+   - Plain icons (walang box) sa panel headers
+   - Icon sa tabi ng bawat stat sa taas
+   - Grid ng mga field para sa Borrower Details page (.vd-page)
+============================================================ */
+
+/* ---------- Panel header icons ---------- */
+.cld-page .panel-header .cld-hicon {
+    margin-right: 8px;
+    font-size: 1rem;
+    color: #4a7cf7;
+    flex-shrink: 0;
+}
+
+/* ---------- Stats: icon sa kaliwa, text sa kanan ---------- */
+.cld-page .cld-stat {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+}
+.cld-page .cld-stat-icon {
+    font-size: 1.3rem;
+    color: #4a7cf7;
+    flex-shrink: 0;
+}
+.cld-page .cld-stat-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+/* ---------- Payment Schedule header icon ---------- */
+.cld-page .ols-sched-header-left .ols-sched-icon {
+    margin-right: 10px;
+}
+
+/* ============================================================
+   BORROWER DETAILS PAGE (.vd-page)
+============================================================ */
+
+/* Stats nasa pinaka-kanan ng header card */
+.cld-page.vd-page .cld-summary-right {
+    justify-content: flex-end;
+}
+
+/* Magkakapatong na full-width na panels */
+.cld-page.vd-page .panel {
+    margin-bottom: 16px;
+}
+
+/* Mga field: ilang columns sa isang row, depende sa lapad */
+.cld-page .vd-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px 24px;
+}
+.cld-page .vd-grid .info-item2 {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+.cld-page .vd-grid .info-item2 span {
+    word-break: break-word;
+}
+.cld-page .vd-span-2 {
+    grid-column: span 2;
+}
+
+@media (max-width: 991.98px) {
+    .cld-page.vd-page .cld-summary-right {
+        justify-content: space-between;
+    }
+}
+@media (max-width: 575.98px) {
+    .cld-page .vd-grid {
+        grid-template-columns: 1fr;
+    }
+    .cld-page .vd-span-2 {
+        grid-column: auto;
+    }
+    .cld-page .cld-stat {
+        flex: 1 1 45%;
+    }
+}
+
+/* ============================================================
+   DARK MODE
+   Neutral ang icons (kapareho ng ibang icons sa dark mode)
+============================================================ */
+html.app-skin-dark .cld-page .panel-header .cld-hicon { color: #C4C4C4 !important; }
+html.app-skin-dark .cld-page .cld-stat-icon { color: #C4C4C4 !important; }

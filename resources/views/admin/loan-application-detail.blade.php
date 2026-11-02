@@ -108,6 +108,9 @@
         $birthdayRaw = !empty($app->birthday) ? \Carbon\Carbon::parse($app->birthday)->format('Y-m-d') : '';
         $nameKeys = ['first_name', 'middle_name', 'last_name', 'suffix'];
         $birthKeys = ['birth_city', 'birth_province', 'birth_country'];
+
+        // Pwede pang baguhin ng admin ang decision niya kung on hold pa ang application
+        $canChangeDecision = $app->status === 'on_hold' && !empty($myReview);
     @endphp
 
     <div class="page-header">
@@ -563,14 +566,13 @@
                             <tr>
                                 <td>{{ $review->admin_name ?? 'Admin ' . ($i + 1) }}</td>
                                 <td>
-                                    @if ($review)
-                                        <span
-                                            class="badge {{ $review->decision === 'approved' ? 'badge-approved' : 'badge-rejected' }} px-2 py-1">
-                                            {{ ucfirst($review->decision) }}
-                                        </span>
-                                    @else
-                                        <span class="badge badge-pending px-2 py-1">Awaiting</span>
-                                    @endif
+                                   @if ($review)
+    <span class="ld-review-text {{ $review->decision === 'approved' ? 'is-approved' : 'is-rejected' }}">
+        {{ ucfirst($review->decision) }}
+    </span>
+@else
+    <span class="ld-review-text is-awaiting">Awaiting</span>
+@endif
                                 </td>
                                 <td>
                                     {{ $review ? \Carbon\Carbon::parse($review->reviewed_at)->format('M d, Y g:i A') : '—' }}
@@ -661,30 +663,50 @@
             </form>
         </div>
 
-        <!-- Application Status / Decision — nasa pinaka-baba, right side -->
-        <div class="d-flex justify-content-end mt-4 mb-5">
-            @if ($app->status === 'rejected')
-                <div class="alert alert-danger mb-0" style="font-size:0.85rem;">
-                    <i class="feather-x-circle me-2"></i>
-                    Fully <strong>rejected</strong> by all 3 admins. No further action.
+        <!-- Application Status / Decision — nasa pinaka-baba -->
+        @if ($app->status === 'rejected')
+            <div class="alert alert-danger mt-4 mb-5" style="font-size:0.85rem;">
+                <i class="feather-x-circle me-2"></i>
+                Fully <strong>rejected</strong> by all 3 admins. No further action.
+            </div>
+        @elseif($app->status === 'approved' || $app->status === 'active')
+            <div class="alert alert-success mt-4 mb-5" style="font-size:0.85rem;">
+                <i class="feather-check-circle me-2"></i>
+                Fully <strong>approved</strong>. No further action needed.
+            </div>
+        @elseif($myReview)
+            <div class="ld-decision-card">
+                <div class="ld-decision-main">
+                    <h6 class="ld-decision-title">Your Review Decision</h6>
+                    <div class="ld-decision-row">
+                     <span class="ld-decision-pill is-{{ $myReview->decision }}">{{ ucfirst($myReview->decision) }}</span>
+                        <span class="ld-decision-divider"></span>
+                        <p class="ld-decision-text">
+                            @if ($canChangeDecision)
+                                This application is currently on hold. You may update your review decision while the application remains on hold.
+                            @else
+                                You have already reviewed this application.
+                            @endif
+                        </p>
+                    </div>
                 </div>
-            @elseif($app->status === 'approved' || $app->status === 'active')
-                <div class="alert alert-success mb-0" style="font-size:0.85rem;">
-                    <i class="feather-check-circle me-2"></i>
-                    Fully <strong>approved</strong>. No further action needed.
-                </div>
-            @elseif($myReview)
-                <div class="alert alert-info mb-0" style="font-size:0.82rem;">
-                    <i class="feather-check-circle me-1"></i> You have already reviewed this application.
-                </div>
-            @else
+
+                @if ($canChangeDecision)
+                    <button type="button" class="ld-decision-btn" data-decision-change="1"
+                        data-bs-toggle="modal" data-bs-target="#decisionModal">
+                        Update Review
+                    </button>
+                @endif
+            </div>
+        @else
+            <div class="d-flex justify-content-end mt-4 mb-5">
                 <button type="button" class="btn btn-decision-review" data-bs-toggle="modal"
                     data-bs-target="#decisionModal">
                     <i class="feather-clipboard"></i>
                     Review Application
                 </button>
-            @endif
-        </div>
+            </div>
+        @endif
 
     </div>
 
@@ -778,7 +800,7 @@
         </div>
     @endif
 
-    @if ($app->status !== 'rejected' && $app->status !== 'approved' && $app->status !== 'active' && !$myReview)
+    @if ($app->status !== 'rejected' && $app->status !== 'approved' && $app->status !== 'active' && (!$myReview || $app->status === 'on_hold'))
         <div class="modal fade modal-modern" id="decisionModal" tabindex="-1" aria-labelledby="decisionModalLabel"
             aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
@@ -790,7 +812,7 @@
 
                         <div class="modal-header-clean">
                             <div class="header-left">
-                                <h6 id="decisionModalLabel">Review Loan Application</h6>
+                                <h6 id="decisionModalLabel">{{ $canChangeDecision ? 'Update Review' : 'Review Loan Application' }}</h6>
                             </div>
                             <button type="button" class="btn-close-clean" data-bs-dismiss="modal"
                                 aria-label="Close">&times;</button>
@@ -803,8 +825,9 @@
                                 <label class="form-label fw-semibold" style="font-size:0.85rem;">Review Remarks <span
                                         class="text-muted fw-normal">(optional)</span></label>
                                 <textarea name="remarks" id="decisionRemarks" class="form-control" rows="3" maxlength="500"
-                                    placeholder="Provide additional comments or reason for your decision..."></textarea>
-                                <div class="decision-char-counter"><span id="decisionRemarksCount">0</span>/500</div>
+                                    placeholder="Provide additional comments or reason for your decision...">{{ old('remarks', $myReview->remarks ?? '') }}</textarea>
+                                <div class="decision-char-counter"><span
+                                        id="decisionRemarksCount">{{ mb_strlen($myReview->remarks ?? '') }}</span>/500</div>
                             </div>
 
                             <!-- Step 2: confirmation -->

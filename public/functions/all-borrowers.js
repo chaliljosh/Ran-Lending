@@ -1,3 +1,9 @@
+// public/functions/all-borrowers.js
+// Used by: resources/views/admin/all-borrowers.blade.php
+//
+// Search + status filter + sort + rows-per-page pagination, at clickable rows.
+// Ang loader sa pag-open ng row ay nasa row-loader.js (shared).
+
 const PER_PAGE_STORAGE_KEY = 'rs_all_borrowers_per_page';
 
 function getSavedPerPage() {
@@ -52,11 +58,17 @@ function sortBorrowers() {
     }
 }
 
+// Click kahit saan sa row para buksan ang detail page.
+// May loader (row-loader.js) para alam ng user na nagbubukas na.
 document.addEventListener('click', function (e) {
     const row = e.target.closest('tr[data-href]');
     if (!row) return;
+
+    // Ang link/button ay may sariling loader sa row-loader.js
     if (e.target.closest('a, button, input, select')) return;
     if (window.getSelection && window.getSelection().toString()) return;
+
+    if (window.rowLoader) window.rowLoader.show(row);
     window.location.href = row.dataset.href;
 });
 

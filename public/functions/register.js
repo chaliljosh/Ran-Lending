@@ -8,16 +8,12 @@ const PH_DEMONYM = 'Filipino';
 const MIN_AGE = 18;
 const NEXT_MIN_LOADING_MS = 400;
 
-/* Debug para sa zipcode. Lalabas ang pulang banner sa taas ng form. Gawing false kapag gumana na. */
 const ZIP_DEBUG = false;
 
-/* Hindi na lalabas sa listahan ang placeholder (Day, Year, Select...). Suffix lang ang may "None" na pwedeng piliin. */
 const KEEP_EMPTY_OPTION = ['suffix'];
 
-/* Hanggang ganito karaming options, ipapakita lahat nang walang scroll. Mas marami rito: 220px max at may scroll. */
 const SHORT_LIST_MAX = 8;
 
-/* Search box: sa mahahabang listahan lang. Tanggalin sa array kung ayaw mo sa isa. */
 const SEARCHABLE_SELECTS = [];
 
 const RULES = {
@@ -99,7 +95,6 @@ function togglePw(id, btn) {
   }
 }
 
-/* Banner: general errors lang (network, server, address list). */
 function showError(msg) {
   const alert = document.getElementById('registerAlert');
   const text  = document.getElementById('registerAlertText');
@@ -120,8 +115,6 @@ function zipDebug(msg) {
 function showSuccessModal() {
   document.getElementById('successModal').classList.add('show');
 }
-
-/* ---------- Custom dropdown (laging pababa ang bukas, may search kapag mahaba) ---------- */
 
 function closeAllDropdowns(except) {
   document.querySelectorAll('.dd.is-open').forEach(dd => {
@@ -216,13 +209,11 @@ function enhanceSelect(sel) {
     search.value = '';
     renderList('');
 
-    // Maikling listahan: ipakita lahat, walang scroll. Mahaba: 220px max (galing sa CSS) at may scroll.
     list.style.maxHeight = items.length <= SHORT_LIST_MAX ? 'none' : '';
 
     const useSearch = SEARCHABLE_SELECTS.includes(sel.id);
     search.style.display = useSearch ? '' : 'none';
 
-    // Buksan muna para masukat ang tunay na taas ng panel, tapos saka pipiliin kung pababa o pataas.
     wrap.classList.remove('drop-up');
     wrap.classList.add('is-open');
 
@@ -298,7 +289,6 @@ function enhanceSelect(sel) {
 }
 
 function enhanceAllSelects() {
-  // Sa touch devices, mas maganda ang native picker.
   if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return;
   document.querySelectorAll('#regForm select').forEach(enhanceSelect);
 
@@ -309,9 +299,6 @@ function enhanceAllSelects() {
   });
 }
 
-/* ---------- Inline field errors ---------- */
-
-/* Kapag foreign ang birth country, text input ang ginagamit sa province/city. */
 function activeId(id) {
   if (TEXT_SWAP.includes(id)) {
     const sel = document.getElementById(id);
@@ -595,8 +582,6 @@ function setNotApplicableProvince(value, label) {
   sel.disabled = true;
 }
 
-/* ---------- Address (Step 3) ---------- */
-
 async function loadRegions() {
   try {
     const regions = await fetchWithFallback(PSGC_API_BASE + '/regions/');
@@ -665,12 +650,6 @@ function selectedText(id) {
   return sel.selectedIndex >= 0 ? sel.options[sel.selectedIndex].text : '';
 }
 
-/* ---------- Zipcode auto-fill (Step 3) ---------- */
-
-/* Kinukuha sa Laravel (GET /api/zipcode?city=<PSGC city code>). City-level ang data:
-  - iisa ang zipcode ng city: auto-fill
-  - maraming zipcode (hal. Manila): hindi mag-a-auto-fill, ipapakita ang mga posibleng zipcode sa placeholder
-  - walang nakita o may error: manual ang zipcode */
 async function fetchZip(cityCode) {
   if (Object.prototype.hasOwnProperty.call(zipCache, cityCode)) return zipCache[cityCode];
 
@@ -707,10 +686,8 @@ async function applyAutoZip() {
   const result = await fetchZip(cityCode);
   zipDebug('city=' + cityCode + ' zip=' + result.zip + ' zips=' + result.zips.join(','));
 
-  // Nagbago na ba ang city/barangay habang naghihintay?
   if (document.getElementById('city').value !== cityCode || !document.getElementById('barangay').value) return;
 
-  // Huwag palitan kung manu-manong tinype ng user.
   if (zip.value && zip.dataset.auto !== '1') return;
 
   if (result.zip) {
@@ -726,8 +703,6 @@ async function applyAutoZip() {
     zip.placeholder = 'e.g. ' + result.zips.slice(0, 3).join(' / ');
   }
 }
-
-/* ---------- Countries, citizenship, birth place (Step 2) ---------- */
 
 function countriesFromIntl() {
   const skip = ['EU', 'UN', 'EZ', 'ZZ', 'XA', 'XB', 'QO'];
@@ -750,7 +725,6 @@ function countriesFromIntl() {
   return names;
 }
 
-/* Inilalagay muna ang default (hal. Philippines), tapos alphabetical ang iba. */
 function fillPlainSelect(id, list, first, placeholder) {
   const rest = Array.from(new Set(list.map(n => String(n).trim()).filter(Boolean)))
     .filter(n => n !== first)
@@ -793,7 +767,6 @@ async function loadCountries() {
   loadBirthProvinces();
 }
 
-/* isPH = true: dropdowns (PSGC). false: text inputs para sa ibang bansa. */
 function setBirthMode(isPH) {
   TEXT_SWAP.forEach(base => {
     const sel = document.getElementById(base);
@@ -850,8 +823,6 @@ function incomeValue() {
   return val('monthlyIncome') === 'Others' ? val('monthlyIncomeOther') : val('monthlyIncome');
 }
 
-/* Pinagsasama ang apat na address field (House/Bldg No., Street/Sitio/Zone, Subdivision, Landmark)
-  sa iisang homeAddress, para hindi na kailangang baguhin ang backend o database. */
 function buildHomeAddress() {
   return ['houseNo', 'street', 'subdivision', 'addressDetails']
     .map(id => val(id))
@@ -885,8 +856,6 @@ function setupPhoneInput(id) {
   });
 }
 
-/* ---------- Validators ---------- */
-
 function validateAccount() {
   clearInvalid();
   hideError();
@@ -897,7 +866,7 @@ function validateAccount() {
 
   const middleName = val('middleName');
   if (middleName && !/^[A-Za-z]$/.test(middleName)) {
-    showFieldError('middleName', 'Middle name must be a single letter.');
+    showFieldError('middleName', 'Middle initial must be a single letter.');
     return false;
   }
 
@@ -954,7 +923,6 @@ function validateAddress() {
   clearInvalid();
   hideError();
 
-  /* Required na ang House / Building No. at Street / Sitio / Zone. */
   if (!checkRequired(['region', 'province', 'city', 'barangay', 'houseNo', 'street'])) {
     return false;
   }
@@ -966,8 +934,6 @@ function validateAddress() {
 
   return true;
 }
-
-/* ---------- Wizard ---------- */
 
 const RegWizard = (function () {
   const validators = [validateAccount, validatePersonal, validateAddress];
@@ -1075,7 +1041,6 @@ document.addEventListener('DOMContentLoaded', function () {
     updatePasswordStrengthUI();
   }
 
-  /* Zipcode: burahin ang auto-filled kapag nagbago ang address, i-fill kapag may barangay na */
   ['region', 'province', 'city'].forEach(id => {
     document.getElementById(id).addEventListener('change', clearAutoZip);
   });
@@ -1083,7 +1048,6 @@ document.addEventListener('DOMContentLoaded', function () {
     if (this.value) applyAutoZip(); else clearAutoZip();
   });
 
-  /* Address cascade */
   document.getElementById('region').addEventListener('change', function () {
     if (this.value) {
       loadProvinces(this.value);
@@ -1111,7 +1075,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  /* Birth place cascade */
   document.getElementById('birthCountry').addEventListener('change', function () {
     clearFieldError('birthProvince');
     clearFieldError('birthCity');
@@ -1140,7 +1103,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  /* Monthly income: Others */
   document.getElementById('monthlyIncome').addEventListener('change', function () {
     const isOther = this.value === 'Others';
     document.getElementById('monthlyIncomeOtherWrap').classList.toggle('is-off', !isOther);
@@ -1154,7 +1116,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   document.getElementById('zipcode').addEventListener('input', function () {
     this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4);
-    delete this.dataset.auto; // manual edit na ito
+    delete this.dataset.auto;
   });
 
   const regForm = document.getElementById('regForm');
@@ -1173,7 +1135,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const agreeEl = document.getElementById('agreeTerms');
   let signupBusy = false;
 
-  /* Disabled ang Create Account hangga't hindi naka-check ang Terms. */
   function updateSignupState() {
     signupBtn.disabled = signupBusy || !agreeEl.checked;
   }
@@ -1262,7 +1223,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         let unmapped = null;
         fieldNames.forEach(field => {
-          // Ang error sa homeAddress ay ipapakita sa House / Building No.
           let target = field;
           if (field === 'homeAddress') target = 'houseNo';
           if (field === 'monthlyIncome' && val('monthlyIncome') === 'Others') target = 'monthlyIncomeOther';

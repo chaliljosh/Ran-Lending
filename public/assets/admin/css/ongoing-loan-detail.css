@@ -1903,3 +1903,22 @@ html.app-skin-dark .ols-rv-body { background: #0d0d0d !important; }
 html.app-skin-dark .ols-rv-body img { border-color: #262626 !important; }
 html.app-skin-dark .ols-rv-modal .btn-close { filter: invert(1) grayscale(1); }
 html.app-skin-dark .ols-rv-fulllink { color: #9db8ff !important; }
+
+/* ============================================================
+   FOOTER — nasa pinakababa ng page
+   ============================================================ */
+.nxl-container {
+    min-height: calc(100vh - 80px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+.nxl-content {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: #fff;
+}
+.nxl-content .main-content { flex: 1 !important; }
+.footer { flex-shrink: 0 !important; margin-top: auto !important; }
+
+html.app-skin-dark .nxl-content { background: #0A0A0A !important; }

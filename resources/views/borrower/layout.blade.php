@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/borrower-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/header-profile.css') }}?v={{ time() }}">
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/header-notifications.css') }}?v={{ time() }}">
+    <link rel="stylesheet" href="{{ asset('assets/borrower/css/borrower-notifications.css') }}?v={{ time() }}">
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/borrower-layout.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/darkmode-global.css') }}?v={{ time() }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/avatar-placeholder.css') }}" />
@@ -66,6 +67,14 @@
                     </div>
 
                     {{-- ============ HEADER — NOTIFICATION BELL ============ --}}
+                    @php
+                        $nfAll = ($headerNotifications ?? collect());
+                        // Walong pinakabago lang sa dropdown. Ang lahat ay nasa "See all notifications".
+                        $nfTop = $nfAll->take(8);
+                        $nfPageUrl = \Illuminate\Support\Facades\Route::has('borrower.notifications')
+                            ? route('borrower.notifications')
+                            : '#';
+                    @endphp
                     <details class="bwl-notif-bell" name="header-dropdown-group">
                         <summary class="bwl-notif-trigger">
                             <i class="feather-bell"></i>
@@ -74,30 +83,31 @@
                                     class="bwl-notif-badge">{{ $unreadNotifCount > 9 ? '9+' : $unreadNotifCount }}</span>
                             @endif
                         </summary>
-                        <div class="bwl-notif-dropdown">
-                            <div class="bwl-notif-head">
-                                <h6>Notifications</h6>
-                                @if (($unreadNotifCount ?? 0) > 0)
-                                    <button type="button" id="bwlNotifMarkAllRead"
-                                        data-url="{{ route('borrower.notifications.mark-all-read') }}">Mark all as
-                                        read</button>
-                                @endif
+                        <div class="bwl-nf-panel" data-nf-root>
+                            <div class="bwl-nf-head">
+                                <h6 class="bwl-nf-heading">Notifications</h6>
+                                <button type="button" class="bwl-nf-markall" data-nf-markall
+                                    data-url="{{ route('borrower.notifications.mark-all-read') }}"
+                                    @if (($unreadNotifCount ?? 0) < 1) hidden @endif>Mark all as read</button>
                             </div>
-                            <div class="bwl-notif-list">
-                                @forelse(($headerNotifications ?? collect()) as $n)
-                                    <a href="{{ route('borrower.notification-open', $n['key']) }}?redirect={{ urlencode($n['url']) }}"
-                                        class="bwl-notif-item {{ $n['read'] ? '' : 'is-unread' }}">
-                                        <span class="bwl-notif-item-body">
-                                            <span class="bwl-notif-item-title">{{ $n['title'] }}</span>
-                                            <span class="bwl-notif-item-sub">{{ $n['subtitle'] }}</span>
-                                            @if (!empty($n['ts']))
-                                                <span class="bwl-notif-item-time">{{ $n['ts']->format('M j, g:i A') }}</span>
-                                            @endif
-                                        </span>
-                                    </a>
-                                @empty
-                                    <p class="bwl-notif-empty">No notifications yet.</p>
-                                @endforelse
+
+                            <div class="bwl-nf-tabs" role="tablist">
+                                <button type="button" class="bwl-nf-tab is-active" data-nf-tab="all"
+                                    role="tab" aria-selected="true">All</button>
+                                <button type="button" class="bwl-nf-tab" data-nf-tab="unread"
+                                    role="tab" aria-selected="false">Unread</button>
+                            </div>
+
+                            <div class="bwl-nf-list">
+                                @foreach ($nfTop as $n)
+                                    @include('borrower.partials.notification-item', ['n' => $n])
+                                @endforeach
+                                <p class="bwl-nf-empty" data-nf-empty @if ($nfTop->isNotEmpty()) hidden @endif>
+                                    No notifications yet.</p>
+                            </div>
+
+                            <div class="bwl-nf-foot">
+                                <a href="{{ $nfPageUrl }}">See all notifications</a>
                             </div>
                         </div>
                     </details>
@@ -203,22 +213,33 @@
     <script src="{{ asset('assets/borrower/js/common-init.min.js') }}"></script>
     <script src="{{ asset('assets/borrower/js/dashboard-init.min.js') }}"></script>
     <script src="{{ asset('assets/borrower/js/theme-customizer-init.min.js') }}"></script>
-    <script src="{{ asset('functions/borrower-header-notifications.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('functions/borrower-notifications.js') }}?v={{ time() }}"></script>
+        <script src="{{ asset('functions/borrower-page-loader.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('functions/logout-modal.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
     <script src="{{ asset('functions/settings-modal.js') }}"></script>
 
     <script>
+        // Sidebar brand: text kapag expanded, logo lang kapag mini.
+        // Sinusundan ang ACTUAL na lapad ng sidebar (hindi ang click ng hamburger),
+        // kaya hindi na nagkakamali kahit ang theme mismo ang nag-toggle o nag-restore ng state.
         document.addEventListener('DOMContentLoaded', function () {
-            var miniBtn = document.getElementById('menu-mini-button');
-            var expandBtn = document.getElementById('menu-expend-button');
+            var nav = document.querySelector('.nxl-navigation');
+            if (!nav) return;
 
-            function toggleSidebarMiniMode() {
-                document.body.classList.toggle('sidebar-mini-mode');
+            var MINI_MAX_WIDTH = 150; // px: mas maliit dito = mini mode
+
+            function syncMiniMode() {
+                var w = nav.offsetWidth;
+                document.body.classList.toggle('sidebar-mini-mode', w > 0 && w < MINI_MAX_WIDTH);
             }
 
-            if (miniBtn) miniBtn.addEventListener('click', toggleSidebarMiniMode);
-            if (expandBtn) expandBtn.addEventListener('click', toggleSidebarMiniMode);
+            syncMiniMode();
+
+            if (window.ResizeObserver) {
+                new ResizeObserver(syncMiniMode).observe(nav);
+            }
+            window.addEventListener('resize', syncMiniMode);
         });
     </script>
 

@@ -1,95 +1,452 @@
-/* ============================================================
-   ALL NOTIFICATIONS PAGE (admin/notifications index)
-   Card-style rows, same visual language as the header dropdown
-   (.nxl-notif-*) but full-width and slightly roomier.
-============================================================ */
+/* Admin notifications page (prefix: anf-)
+   Ginaya ang style ng Loan Details page: puting bg, card border/shadow,
+   neutral dark mode, at footer na nasa pinakababa. */
 
-.notif-index-item {
+/* ---------- Puting background ng page ---------- */
+html:not(.app-skin-dark) .nxl-content {
+    background: #fff;
+}
+
+/* ---------- Card ---------- */
+.anf-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
+    overflow: hidden;
+}
+
+/* ---------- Toolbar (tabs + chips) ---------- */
+.anf-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 24px;
+    border-bottom: 1px solid #eef1f6;
+}
+
+.anf-tabs {
+    display: inline-flex;
+    background: #f3f4f6;
+    border-radius: 999px;
+    padding: 4px;
+}
+
+.anf-tab {
+    border: 0;
+    background: transparent;
+    padding: 6px 20px;
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.anf-tab:hover:not(.is-active) {
+    color: #0f172a;
+}
+
+.anf-tab.is-active {
+    background: #1f2937;
+    color: #ffffff;
+}
+
+.anf-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.anf-chip {
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #0f172a;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.anf-chip:hover:not(.is-active) {
+    border-color: #4a7cf7;
+    color: #4a7cf7;
+    background: #eef3ff;
+}
+
+.anf-chip.is-active {
+    background: #1f2937;
+    border-color: #1f2937;
+    color: #ffffff;
+}
+
+.anf-tab:focus-visible,
+.anf-chip:focus-visible,
+.anf-page-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.18);
+}
+
+/* ---------- List ---------- */
+
+/* Page 1 lang ang kita habang hindi pa tumatakbo ang JS (10 = data-page-size) */
+.anf-item:nth-child(n+11) {
+    display: none;
+}
+
+.anf-list-wrap {
+    position: relative;
+    min-height: 220px;
+}
+
+.anf-item {
     display: flex;
     align-items: flex-start;
     gap: 14px;
-    padding: 16px 20px;
+    padding: 16px 24px;
+    border-bottom: 1px solid #f1f3f8;
     text-decoration: none;
-    border-bottom: 1px solid #F1F5F9;
+    color: inherit;
     position: relative;
-    transition: background .15s ease;
-}
-.notif-index-item:last-child {
-    border-bottom: none;
-}
-.notif-index-item:hover {
-    background: #F8FAFC;
-}
-.notif-index-item.is-unread {
-    background: rgba(37, 99, 235, 0.04);
 }
 
-.notif-index-icon {
-    width: 38px;
-    height: 38px;
+.anf-item:last-child {
+    border-bottom: none;
+}
+
+.anf-item:hover {
+    background: #f8faff;
+}
+
+.anf-item.is-unread {
+    background: #f5f8ff;
+}
+
+.anf-item.is-unread:hover {
+    background: #edf3ff;
+}
+
+.anf-icon {
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.95rem;
+    font-size: 17px;
 }
 
-.notif-index-body {
+.anf-body {
+    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 2px;
     min-width: 0;
-    flex: 1;
-}
-.notif-index-title {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #0F172A;
-}
-.notif-index-sub {
-    font-size: 0.83rem;
-    color: #64748B;
-}
-.notif-index-time {
-    font-size: 0.75rem;
-    color: #94A3B8;
-    margin-top: 3px;
 }
 
-.notif-index-dot {
-    width: 8px;
-    height: 8px;
+.anf-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #1a2a3a;
+}
+
+.anf-sub {
+    font-size: 0.8rem;
+    color: #5b6b82;
+    overflow-wrap: anywhere;
+}
+
+.anf-time {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
+.anf-dot {
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
-    background: #2563EB;
-    flex-shrink: 0;
+    background: #4a7cf7;
     margin-top: 6px;
+    flex: 0 0 9px;
 }
 
-/* ---------- Dark mode ---------- */
-html.app-skin-dark .notif-index-item {
-    border-color: #262626;
+.anf-empty {
+    text-align: center;
+    color: #8a9bb0;
+    font-size: 0.85rem;
+    padding: 56px 20px;
 }
-html.app-skin-dark .notif-index-item:hover {
-    background: rgba(255, 255, 255, 0.06);
+
+/* ---------- Pagination ---------- */
+.anf-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    padding: 18px;
+    border-top: 1px solid #eef1f6;
 }
-html.app-skin-dark .notif-index-item.is-unread {
-    background: rgba(37, 99, 235, 0.10);
+
+.anf-pagination:empty {
+    display: none;
 }
-html.app-skin-dark .notif-index-title {
-    color: #EDEDED;
+
+.anf-page-btn {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 8px;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.15s ease;
 }
-html.app-skin-dark .notif-index-sub {
-    color: #8A8A8A;
+
+.anf-page-btn:hover:not(:disabled):not(.is-active) {
+    border-color: #4a7cf7;
+    color: #4a7cf7;
 }
-html.app-skin-dark .notif-index-time {
-    color: #6B6B6B;
+
+.anf-page-btn.is-active {
+    background: #eef3ff;
+    border-color: #eef3ff;
+    color: #4a7cf7;
+    font-weight: 700;
+}
+
+.anf-page-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.anf-page-dots {
+    color: #94a3b8;
+    padding: 0 4px;
+}
+
+/* ---------- Loaders ---------- */
+.anf-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #4a7cf7;
+    border-radius: 50%;
+    animation: anf-spin 0.7s linear infinite;
+}
+
+@keyframes anf-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Loader sa loob ng list */
+.anf-loader {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.92);
+    font-size: 0.82rem;
+    color: #8a9bb0;
+}
+
+.anf-loader.is-visible {
+    display: flex;
+}
+
+/* Loader pag nag-click ng notification (buong screen) */
+.anf-nav-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.75);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #1a2a3a;
+}
+
+.anf-nav-loader.is-visible {
+    display: flex;
 }
 
 /* ---------- Mobile ---------- */
-@media (max-width: 575.98px) {
-    .notif-index-item {
-        padding: 14px 16px;
-        gap: 10px;
+@media (max-width: 575px) {
+    .anf-toolbar {
+        padding: 12px 14px;
     }
+
+    .anf-item {
+        padding: 14px;
+    }
+}
+
+/* ============================================================
+   DARK MODE (neutral colors, gaya ng Loan Details)
+   ============================================================ */
+html.app-skin-dark .nxl-content {
+    background: #0A0A0A !important;
+}
+
+html.app-skin-dark .anf-card {
+    background: #141414 !important;
+    border-color: #262626 !important;
+    box-shadow: none !important;
+}
+
+html.app-skin-dark .anf-toolbar,
+html.app-skin-dark .anf-pagination {
+    border-color: #262626 !important;
+}
+
+html.app-skin-dark .anf-tabs {
+    background: #0d0d0d !important;
+}
+
+html.app-skin-dark .anf-tab {
+    color: #9A9A9A !important;
+}
+
+html.app-skin-dark .anf-tab:hover:not(.is-active) {
+    color: #F5F5F5 !important;
+}
+
+html.app-skin-dark .anf-tab.is-active {
+    background: #F5F5F5 !important;
+    color: #0A0A0A !important;
+}
+
+html.app-skin-dark .anf-chip,
+html.app-skin-dark .anf-page-btn {
+    background: #141414 !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+}
+
+html.app-skin-dark .anf-chip:hover:not(.is-active),
+html.app-skin-dark .anf-page-btn:hover:not(:disabled):not(.is-active) {
+    background: #262626 !important;
+    border-color: #4a4a4a !important;
+    color: #F5F5F5 !important;
+}
+
+html.app-skin-dark .anf-chip.is-active {
+    background: #F5F5F5 !important;
+    border-color: #F5F5F5 !important;
+    color: #0A0A0A !important;
+}
+
+html.app-skin-dark .anf-page-btn.is-active {
+    background: #262626 !important;
+    border-color: #262626 !important;
+    color: #F5F5F5 !important;
+}
+
+html.app-skin-dark .anf-tab:focus-visible,
+html.app-skin-dark .anf-chip:focus-visible,
+html.app-skin-dark .anf-page-btn:focus-visible {
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
+}
+
+html.app-skin-dark .anf-item {
+    border-color: #262626 !important;
+}
+
+html.app-skin-dark .anf-item:hover {
+    background: #1a1a1a !important;
+}
+
+html.app-skin-dark .anf-item.is-unread {
+    background: #16181c !important;
+}
+
+html.app-skin-dark .anf-item.is-unread:hover {
+    background: #1f2226 !important;
+}
+
+html.app-skin-dark .anf-title {
+    color: #F5F5F5 !important;
+}
+
+html.app-skin-dark .anf-sub {
+    color: #C4C4C4 !important;
+}
+
+html.app-skin-dark .anf-time {
+    color: #9A9A9A !important;
+}
+
+html.app-skin-dark .anf-dot {
+    background: #6c9bff !important;
+}
+
+html.app-skin-dark .anf-empty,
+html.app-skin-dark .anf-page-dots {
+    color: #9A9A9A !important;
+}
+
+html.app-skin-dark .anf-loader {
+    background: rgba(20, 20, 20, 0.92) !important;
+    color: #9A9A9A !important;
+}
+
+html.app-skin-dark .anf-nav-loader {
+    background: rgba(10, 10, 10, 0.8) !important;
+    color: #F5F5F5 !important;
+}
+
+html.app-skin-dark .anf-spinner {
+    border-color: #262626 !important;
+    border-top-color: #F5F5F5 !important;
+}
+
+/* ============================================================
+   FOOTER: nasa pinakababa ng page (gaya ng Loan Details)
+   ============================================================ */
+.nxl-container {
+    min-height: calc(100vh - 80px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.nxl-content {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: #fff;
+}
+
+.nxl-content .main-content {
+    flex: 1 !important;
+}
+
+.footer {
+    flex-shrink: 0 !important;
+    margin-top: auto !important;
+}
+
+html.app-skin-dark .nxl-content {
+    background: #0A0A0A !important;
 }

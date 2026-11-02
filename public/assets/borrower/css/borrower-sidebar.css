@@ -168,27 +168,38 @@ html.app-skin-dark .nxl-navigation .nxl-link.active {
 }
 html.app-skin-dark .nxl-navigation .nxl-nav-divider { background: #262626; }
 
-/* ---------- Brand logo — icon swaps in for the text logo when the
-   sidebar is collapsed to icon-only mode. ---------- */
+/* ---------- Brand: text kapag expanded, logo lang kapag mini ----------
+   Ang body.sidebar-mini-mode ay inilalagay ng script sa layout
+   batay sa ACTUAL na lapad ng sidebar (tingnan ang borrower/layout.blade.php),
+   kaya laging sabay sa itsura ng sidebar. */
 .b-brand {
     display: flex;
     align-items: center;
     gap: 10px;
 }
+
+/* Expanded (default): text lang */
 .b-brand-icon {
-    display: none;
-    width: 32px;
-    height: 32px;
+    display: none !important;
+    width: 40px;
+    height: 40px;
     object-fit: contain;
     flex-shrink: 0;
 }
+.b-brand-text {
+    display: block;
+    margin: 0;
+    white-space: nowrap;
+}
+
+/* Mini: logo lang */
 body.sidebar-mini-mode .b-brand-text {
-    display: none;
+    display: none !important;
 }
 body.sidebar-mini-mode .b-brand-icon {
-    display: block;
-    width: 80px;
-    height: 80px;
+    display: block !important;
+    width: 48px;
+    height: 48px;
 }
 body.sidebar-mini-mode .m-header {
     justify-content: center;
@@ -196,6 +207,7 @@ body.sidebar-mini-mode .m-header {
     overflow: visible;
 }
 body.sidebar-mini-mode .b-brand {
+    justify-content: center;
     overflow: visible;
 }
 

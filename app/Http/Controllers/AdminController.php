@@ -214,6 +214,7 @@ public function verificationDetail(Request $request, $id)
             'bpd.*',
             'u.email as reg_email', 'u.profile_picture', 'u.user_id as borrower_user_id',
             'ba.region', 'ba.province', 'ba.city', 'ba.barangay', 'ba.zipcode', 'ba.home_address',
+            'ba.house_no', 'ba.street', 'ba.subdivision', 'ba.address_details',
             'bwi.employment_status', 'bwi.company_name', 'bwi.position', 'bwi.years_in_company',
             'ci.last_name as co_last', 'ci.first_name as co_first', 'ci.middle_name as co_middle',
             'ci.relationship', 'ci.contact_number as co_contact'
@@ -251,6 +252,7 @@ public function verificationDetail(Request $request, $id)
         'completed' => DB::table('loan_applications')->where('user_id', $d->borrower_user_id)->where('status', 'completed')->count(),
         'overdue' => 0,
         'active_application_id' => null,
+        'active_application_uuid' => null, 
     ];
     $activeLoan = DB::table('loan_applications')
         ->where('user_id', $d->borrower_user_id)
@@ -259,6 +261,7 @@ public function verificationDetail(Request $request, $id)
     if ($activeLoan) {
         $loanStats['active'] = 1;
         $loanStats['active_application_id'] = $activeLoan->application_id;
+            $loanStats['active_application_uuid'] = $activeLoan->uuid;   // BAGO
     }
 
     return view('admin.verification-detail', [
@@ -453,173 +456,178 @@ public function verificationDetail(Request $request, $id)
     /**
 
      */
-       private function buildAdminNotifications($adminId, $preloaded = null)
-{
-    $items = collect();
+          private function buildAdminNotifications($adminId, $preloaded = null)
+    {
+        $items = collect();
 
-    if ($preloaded) {
-        $pendingLoans = collect($preloaded->pending_loans);
-        $onHoldLoans = collect($preloaded->on_hold_loans);
-        $overdueRows = collect($preloaded->overdue_rows);
-        $readKeys = collect($preloaded->read_keys)->flip();
-    } else {
-        // Fallback — ginagamit ito ng notificationsIndex(), notificationOpen(),
-        // notificationsMarkAllRead() na wala namang RPC data.
+        if ($preloaded) {
+            $pendingLoans = collect($preloaded->pending_loans);
+            $onHoldLoans = collect($preloaded->on_hold_loans);
+            $overdueRows = collect($preloaded->overdue_rows);
+            $readKeys = collect($preloaded->read_keys)->flip();
+        } else {
+            // Fallback — ginagamit ito ng notificationsIndex(), notificationOpen(),
+            // notificationsMarkAllRead() na wala namang RPC data.
 
-        $pendingLoans = DB::table('loan_applications as la')
-            ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
-            ->where('la.status', 'pending')
+            $pendingLoans = DB::table('loan_applications as la')
+                ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
+                ->where('la.status', 'pending')
+                ->whereNotExists(function ($q) use ($adminId) {
+                    $q->select(DB::raw(1))->from('loan_approvals as lap')
+                        ->whereColumn('lap.application_id', 'la.application_id')
+                        ->where('lap.admin_id', $adminId);
+                })
+                ->select('la.application_id', 'la.applied_at', 'bpd.first_name', 'bpd.last_name')
+                ->orderByDesc('la.application_id')
+                ->limit(20)
+                ->get();
+
+            $onHoldLoans = DB::table('loan_applications as la')
+                ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
+                ->where('la.status', 'on_hold')
+                ->select('la.application_id', 'la.applied_at', 'bpd.first_name', 'bpd.last_name')
+                ->orderByDesc('la.application_id')
+                ->limit(10)
+                ->get();
+
+            $overdueRows = DB::table('loan_payment_schedules as sch')
+                ->join('loan_applications as la', 'sch.application_id', '=', 'la.application_id')
+                ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
+                ->where('la.status', 'active')
+                ->whereNull('sch.paid_at')
+                ->where('sch.due_date', '<', now())
+                ->select('la.application_id', 'sch.due_date', 'bpd.first_name', 'bpd.last_name')
+                ->orderBy('sch.due_date')
+                ->get()
+                ->unique('application_id')
+                ->take(20);
+
+            $readKeys = DB::table('admin_notification_reads')
+                ->where('admin_id', $adminId)
+                ->pluck('notification_key')
+                ->flip();
+        }
+
+        // ---- Void requests ----
+        // Para sa ibang admin: may void request na hinihintay ang boto nila
+        $pendingVoids = DB::table('payment_void_requests as r')
+            ->join('users as req', 'r.requested_by', '=', 'req.user_id')
+            ->join('loan_payment_schedules as sch', 'r.schedule_id', '=', 'sch.id')
+            ->where('r.status', 'pending')
+            ->where('r.requested_by', '!=', $adminId)
             ->whereNotExists(function ($q) use ($adminId) {
-                $q->select(DB::raw(1))->from('loan_approvals as lap')
-                    ->whereColumn('lap.application_id', 'la.application_id')
-                    ->where('lap.admin_id', $adminId);
+                $q->select(DB::raw(1))->from('payment_void_votes as v')
+                    ->whereColumn('v.request_id', 'r.id')
+                    ->where('v.admin_id', $adminId);
             })
-            ->select('la.application_id', 'la.applied_at', 'bpd.first_name', 'bpd.last_name')
-            ->orderByDesc('la.application_id')
+            ->select('r.id', 'r.application_id', 'r.created_at', 'req.name as requester_name', 'sch.installment_no')
+            ->orderByDesc('r.created_at')
             ->limit(20)
             ->get();
 
-        $onHoldLoans = DB::table('loan_applications as la')
-            ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
-            ->where('la.status', 'on_hold')
-            ->select('la.application_id', 'la.applied_at', 'bpd.first_name', 'bpd.last_name')
-            ->orderByDesc('la.application_id')
+        // Para sa nag-request: approved o rejected na (huling 7 araw)
+        $voidResults = DB::table('payment_void_requests as r')
+            ->join('loan_payment_schedules as sch', 'r.schedule_id', '=', 'sch.id')
+            ->where('r.requested_by', $adminId)
+            ->whereIn('r.status', ['approved', 'rejected'])
+            ->where('r.resolved_at', '>=', now()->subDays(7))
+            ->select('r.id', 'r.application_id', 'r.status', 'r.resolved_at', 'sch.installment_no')
+            ->orderByDesc('r.resolved_at')
             ->limit(10)
             ->get();
 
-        $overdueRows = DB::table('loan_payment_schedules as sch')
-            ->join('loan_applications as la', 'sch.application_id', '=', 'la.application_id')
-            ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
-            ->where('la.status', 'active')
-            ->whereNull('sch.paid_at')
-            ->where('sch.due_date', '<', now())
-            ->select('la.application_id', 'sch.due_date', 'bpd.first_name', 'bpd.last_name')
-            ->orderBy('sch.due_date')
-            ->get()
-            ->unique('application_id')
-            ->take(20);
+        // Kunin ang uuid ng lahat ng application na lalabas sa notifications (isang query lang).
+        // Ginagamit ito sa mga link papunta sa detail pages.
+        $loanUuids = DB::table('loan_applications')
+            ->whereIn('application_id', $pendingLoans->pluck('application_id')
+                ->merge($onHoldLoans->pluck('application_id'))
+                ->merge($overdueRows->pluck('application_id'))
+                ->merge($pendingVoids->pluck('application_id'))
+                ->merge($voidResults->pluck('application_id'))
+                ->unique()
+                ->all())
+            ->pluck('uuid', 'application_id');
 
-        $readKeys = DB::table('admin_notification_reads')
-            ->where('admin_id', $adminId)
-            ->pluck('notification_key')
-            ->flip();
-    }
+        foreach ($pendingLoans as $row) {
+            $name = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? ''));
+            $items->push([
+                'key'      => 'loan:' . $row->application_id,
+                'title'    => 'Loan Application Decision Needed',
+                'subtitle' => $name !== '' ? $name : ('Application #' . $row->application_id),
+                'icon'     => 'feather-file-text',
+                'color'    => 'primary',
+                'url'      => route('admin.loan-application-detail', $loanUuids[$row->application_id]),
+                'ts'       => $row->applied_at ?? now(),
+            ]);
+        }
 
-    // Kunin ang uuid ng lahat ng application na lalabas sa notifications (isang query lang).
-    // Ginagamit ito sa mga link papunta sa loan-application-detail.
-       // ---- Void requests ----
-    // Para sa ibang admin: may void request na hinihintay ang boto nila
-    $pendingVoids = DB::table('payment_void_requests as r')
-        ->join('users as req', 'r.requested_by', '=', 'req.user_id')
-        ->join('loan_payment_schedules as sch', 'r.schedule_id', '=', 'sch.id')
-        ->where('r.status', 'pending')
-        ->where('r.requested_by', '!=', $adminId)
-        ->whereNotExists(function ($q) use ($adminId) {
-            $q->select(DB::raw(1))->from('payment_void_votes as v')
-                ->whereColumn('v.request_id', 'r.id')
-                ->where('v.admin_id', $adminId);
-        })
-        ->select('r.id', 'r.application_id', 'r.created_at', 'req.name as requester_name', 'sch.installment_no')
-        ->orderByDesc('r.created_at')
-        ->limit(20)
-        ->get();
+        foreach ($onHoldLoans as $row) {
+            $name = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? ''));
+            $items->push([
+                'key'      => 'onhold:' . $row->application_id,
+                'title'    => 'Application Placed On Hold',
+                'subtitle' => $name !== '' ? $name : ('Application #' . $row->application_id),
+                'icon'     => 'feather-pause-circle',
+                'color'    => 'secondary',
+                'url'      => route('admin.loan-application-detail', $loanUuids[$row->application_id]),
+                'ts'       => $row->applied_at ?? now(),
+            ]);
+        }
 
-    // Para sa nag-request: approved o rejected na (huling 7 araw)
-    $voidResults = DB::table('payment_void_requests as r')
-        ->join('loan_payment_schedules as sch', 'r.schedule_id', '=', 'sch.id')
-        ->where('r.requested_by', $adminId)
-        ->whereIn('r.status', ['approved', 'rejected'])
-        ->where('r.resolved_at', '>=', now()->subDays(7))
-        ->select('r.id', 'r.application_id', 'r.status', 'r.resolved_at', 'sch.installment_no')
-        ->orderByDesc('r.resolved_at')
-        ->limit(10)
-        ->get();
-
-    // Kunin ang uuid ng lahat ng application na lalabas sa notifications (isang query lang).
-    $loanUuids = DB::table('loan_applications')
-        ->whereIn('application_id', $pendingLoans->pluck('application_id')
-            ->merge($onHoldLoans->pluck('application_id'))
-            ->merge($overdueRows->pluck('application_id'))
-            ->merge($pendingVoids->pluck('application_id'))
-            ->merge($voidResults->pluck('application_id'))
-            ->unique()
-            ->all())
-        ->pluck('uuid', 'application_id');
-
-    foreach ($pendingLoans as $row) {
-        $name = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? ''));
-        $items->push([
-            'key'      => 'loan:' . $row->application_id,
-            'title'    => 'Loan Application Decision Needed',
-            'subtitle' => $name !== '' ? $name : ('Application #' . $row->application_id),
-            'icon'     => 'feather-file-text',
-            'color'    => 'primary',
-            'url'      => route('admin.loan-application-detail', $loanUuids[$row->application_id]),
-            'ts'       => $row->applied_at ?? now(),
-        ]);
-    }
-
-    foreach ($onHoldLoans as $row) {
-        $name = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? ''));
-        $items->push([
-            'key'      => 'onhold:' . $row->application_id,
-            'title'    => 'Application Placed On Hold',
-            'subtitle' => $name !== '' ? $name : ('Application #' . $row->application_id),
-            'icon'     => 'feather-pause-circle',
-            'color'    => 'secondary',
-            'url'      => route('admin.loan-application-detail', $loanUuids[$row->application_id]),
-            'ts'       => $row->applied_at ?? now(),
-        ]);
-    }
-
-    foreach ($overdueRows as $row) {
-        $name = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? ''));
-        $items->push([
-            'key'      => 'overdue:' . $row->application_id,
-            'title'    => 'Overdue Payment',
-            'subtitle' => $name !== '' ? $name : ('Application #' . $row->application_id),
-            'icon'     => 'feather-alert-triangle',
-            'color'    => 'danger',
-            'url'      => route('admin.overdue-payment-detail', $loanUuids[$row->application_id]),
-            'ts'       => $row->due_date,
-        ]);
-    }
+        foreach ($overdueRows as $row) {
+            $name = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? ''));
+            $items->push([
+                'key'      => 'overdue:' . $row->application_id,
+                'title'    => 'Overdue Payment',
+                'subtitle' => $name !== '' ? $name : ('Application #' . $row->application_id),
+                'icon'     => 'feather-alert-triangle',
+                'color'    => 'danger',
+                'url'      => route('admin.overdue-payment-detail', $loanUuids[$row->application_id]),
+                'ts'       => $row->due_date,
+            ]);
+        }
 
         foreach ($pendingVoids as $row) {
-        $items->push([
-            'key'      => 'void:' . $row->id,
-            'title'    => 'Void Request Needs Your Vote',
-            'subtitle' => ($row->requester_name ?? 'An admin') . ' · Installment #' . $row->installment_no,
-            'icon'     => 'feather-rotate-ccw',
-            'color'    => 'warning',
-            'url'      => route('admin.ongoing-loan-detail', $loanUuids[$row->application_id]) . '?from=ongoing-loans',
-            'ts'       => $row->created_at,
-        ]);
+            $items->push([
+                'key'      => 'void:' . $row->id,
+                'title'    => 'Void Request Needs Your Vote',
+                'subtitle' => ($row->requester_name ?? 'An admin') . ' · Installment #' . $row->installment_no,
+                'icon'     => 'feather-rotate-ccw',
+                'color'    => 'warning',
+                'url'      => route('admin.ongoing-loan-detail', $loanUuids[$row->application_id]) . '?from=ongoing-loans',
+                'ts'       => $row->created_at,
+            ]);
+        }
+
+        foreach ($voidResults as $row) {
+            $approved = $row->status === 'approved';
+            $items->push([
+                'key'      => 'voidresult:' . $row->id,
+                'title'    => $approved ? 'Void Request Approved' : 'Void Request Rejected',
+                'subtitle' => 'Installment #' . $row->installment_no,
+                'icon'     => $approved ? 'feather-check-circle' : 'feather-x-circle',
+                'color'    => $approved ? 'success' : 'danger',
+                'url'      => route('admin.ongoing-loan-detail', $loanUuids[$row->application_id]) . '?from=ongoing-loans',
+                'ts'       => $row->resolved_at,
+            ]);
+        }
+
+        // Mga bagong notification (loans, payments, borrowers, system)
+        // galing sa App\Services\AdminNotificationExtras.
+        $items = $items->concat(\App\Services\AdminNotificationExtras::build((int) $adminId));
+
+        return $items
+            ->map(function ($n) use ($readKeys) {
+                $n['ts']   = \Carbon\Carbon::parse($n['ts']);
+                // 'stale' = lumang event na read na agad (galing sa extras)
+                $n['read'] = $readKeys->has($n['key']) || !empty($n['stale']);
+                return $n;
+            })
+            ->unique('key')
+            ->sortByDesc('ts')
+            ->values()
+            ->take(100);
     }
-
-
-    foreach ($voidResults as $row) {
-        $approved = $row->status === 'approved';
-        $items->push([
-            'key'      => 'voidresult:' . $row->id,
-            'title'    => $approved ? 'Void Request Approved' : 'Void Request Rejected',
-            'subtitle' => 'Installment #' . $row->installment_no,
-            'icon'     => $approved ? 'feather-check-circle' : 'feather-x-circle',
-            'color'    => $approved ? 'success' : 'danger',
-            'url'      => route('admin.ongoing-loan-detail', $loanUuids[$row->application_id]) . '?from=ongoing-loans',
-            'ts'       => $row->resolved_at,
-        ]);
-    }
-
-    return $items
-        ->map(function ($n) use ($readKeys) {
-            $n['read'] = $readKeys->has($n['key']);
-            return $n;
-        })
-        ->sortByDesc('ts')
-        ->values();
-}
-
 private function forgetAllAdminNotificationCaches(): void
 {
     $adminIds = DB::table('users')->where('role', 'admin')->pluck('user_id');
@@ -629,25 +637,34 @@ private function forgetAllAdminNotificationCaches(): void
     Cache::forget('admin_recent_activity');
 }
 
-    public function notificationOpen(Request $request, $key)
-    {
-        $adminId = Session::get('user_id');
+   public function notificationOpen(Request $request, $key)
+{
+    $adminId = Session::get('user_id');
 
-        DB::table('admin_notification_reads')->updateOrInsert(
-           
-            ['admin_id' => $adminId, 'notification_key' => $key],
-            ['read_at' => now(), 'updated_at' => now(), 'created_at' => now()]
-        );
+    DB::table('admin_notification_reads')->updateOrInsert(
+        ['admin_id' => $adminId, 'notification_key' => $key],
+        ['read_at' => now(), 'updated_at' => now(), 'created_at' => now()]
+    );
 
-         Cache::forget("admin_notifications_{$adminId}");
+    Cache::forget("admin_notifications_{$adminId}");
 
-       $redirect = $request->query('redirect');
-if ($redirect && str_starts_with($redirect, '/') && !str_starts_with($redirect, '//')) {
-    return redirect($redirect);
-}
+    $redirect = (string) $request->query('redirect', '');
 
-        return redirect()->route('admin.dashboard');
+    if ($redirect !== '') {
+        $parts = parse_url($redirect);
+
+        if ($parts !== false) {
+            $path = $parts['path'] ?? '/';
+
+            // Path at query lang ang kukunin, tinatapon ang host.
+            if (str_starts_with($path, '/') && !str_starts_with($path, '//')) {
+                return redirect($path . (isset($parts['query']) ? '?' . $parts['query'] : ''));
+            }
+        }
     }
+
+    return redirect()->route('admin.dashboard');
+}
 
     public function notificationsMarkAllRead(Request $request)
     {
@@ -770,67 +787,78 @@ if ($redirect && str_starts_with($redirect, '/') && !str_starts_with($redirect, 
         return $initials !== '' ? $initials : 'A';
     }
 
-    public function allBorrowers(Request $request)
-    {
-        $adminId = Session::get('user_id');
-        $sort = $request->query('sort', 'newest');
-
-        $rpcRow = DB::selectOne('SELECT admin_all_borrowers_data(?) as data', [$sort]);
-        $data = json_decode($rpcRow->data);
-
-        $borrowers = [];
-        foreach (($data->borrowers ?? []) as $row) {
-            $fullName = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? ''));
-            $displayName = $fullName !== '' ? $fullName : $row->email;
-            $initials = $fullName !== ''
-                ? strtoupper(substr($row->first_name, 0, 1) . substr($row->last_name, 0, 1))
-                : strtoupper(substr($row->email, 0, 2));
-
-            $borrowers[] = [
-                'user_id' => $row->user_id,
-                'borrower_id' => 'BRW-' . str_pad($row->user_id, 4, '0', STR_PAD_LEFT),
-                'detail_id' => $row->detail_id,
-                'name' => $displayName,
-                'initials' => $initials,
-                'email' => $row->email,
-                'is_active' => (bool) $row->is_active,
-                'loan_status' => $row->loan_status,
-                'total_loans' => $row->total_loans,
-                'last_activity' => $row->latest_applied_at ?? $row->created_at,
-                'has_activity' => $row->latest_status !== null,
-                'joined_at' => $row->created_at,
-            ];
-        }
-
-        $stats = (array) $data->stats;
-
-        return view('admin.borrowers', [
-            'borrowers' => $borrowers,
-            'stats' => $stats,
-            'sort' => $sort,
-            'pendingCount' => $this->getPendingVerificationCount($adminId),
-            'pendingLoanCount' => $this->getPendingLoanCount($adminId),
-        ]);
-    }
-
-    public function activeBorrowers(Request $request)
+   public function allBorrowers(Request $request)
 {
     $adminId = Session::get('user_id');
     $sort = $request->query('sort', 'newest');
- 
+
+    $rpcRow = DB::selectOne('SELECT admin_all_borrowers_data(?) as data', [$sort]);
+    $data = json_decode($rpcRow->data);
+
+    // uuid ng bawat borrower (para sa Borrower ID)
+    $borrowerUuids = DB::table('borrowerpersonaldetails')
+        ->whereIn('user_id', collect($data->borrowers ?? [])->pluck('user_id')->all())
+        ->pluck('uuid', 'user_id');
+
+    $borrowers = [];
+    foreach (($data->borrowers ?? []) as $row) {
+        $fullName = trim(($row->first_name ?? '') . ' ' . ($row->last_name ?? ''));
+        $displayName = $fullName !== '' ? $fullName : $row->email;
+        $initials = $fullName !== ''
+            ? strtoupper(substr($row->first_name, 0, 1) . substr($row->last_name, 0, 1))
+            : strtoupper(substr($row->email, 0, 2));
+
+        $borrowerUuid = $borrowerUuids[$row->user_id] ?? null;
+
+        $borrowers[] = [
+            'user_id' => $row->user_id,
+            'borrower_id' => $borrowerUuid
+                ? 'BRW-' . strtoupper(substr($borrowerUuid, 0, 8))
+                : '—',
+            'detail_id' => $row->detail_id,
+            'name' => $displayName,
+            'initials' => $initials,
+            'email' => $row->email,
+            'is_active' => (bool) $row->is_active,
+            'loan_status' => $row->loan_status,
+            'total_loans' => $row->total_loans,
+            'last_activity' => $row->latest_applied_at ?? $row->created_at,
+            'has_activity' => $row->latest_status !== null,
+            'joined_at' => $row->created_at,
+        ];
+    }
+
+    $stats = (array) $data->stats;
+
+    return view('admin.borrowers', [
+        'borrowers' => $borrowers,
+        'stats' => $stats,
+        'sort' => $sort,
+        'pendingCount' => $this->getPendingVerificationCount($adminId),
+        'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+    ]);
+}
+
+ public function activeBorrowers(Request $request)
+{
+    $adminId = Session::get('user_id');
+    $sort = $request->query('sort', 'newest');
+
     $rows = DB::table('loan_applications as la')
         ->join('users as u', 'la.user_id', '=', 'u.user_id')
         ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
         ->whereIn('la.status', ['approved', 'active'])
+        ->whereNotNull('la.proof_sent_at') // released na lang (may proof na na-send)
         ->select(
             'la.application_id', 'la.loan_amount', 'la.loan_term', 'la.loan_purpose',
             'la.total_amount', 'la.status', 'la.applied_at',
             'u.user_id', 'u.email',
-            'bpd.detail_id', 'bpd.first_name', 'bpd.last_name'
+            'bpd.detail_id', 'bpd.first_name', 'bpd.last_name',
+           'bpd.uuid as borrower_uuid', 'la.uuid as loan_uuid'
         )
         ->orderBy('la.applied_at', $sort === 'oldest' ? 'asc' : 'desc')
         ->get();
- 
+
     $activeBorrowers = [];
     foreach ($rows as $row) {
         $fullName = trim($row->first_name . ' ' . $row->last_name);
@@ -838,11 +866,14 @@ if ($redirect && str_starts_with($redirect, '/') && !str_starts_with($redirect, 
         $initials = $fullName !== ''
             ? strtoupper(substr($row->first_name, 0, 1) . substr($row->last_name, 0, 1))
             : strtoupper(substr($row->email, 0, 2));
- 
+
         $activeBorrowers[] = [
             'application_id' => $row->application_id,
+                'uuid'           => $row->loan_uuid,   // 
             'user_id'        => $row->user_id,
-            'borrower_id'    => 'BRW-' . str_pad($row->user_id, 4, '0', STR_PAD_LEFT),
+            'borrower_id'    => !empty($row->borrower_uuid)
+                ? 'BRW-' . strtoupper(substr($row->borrower_uuid, 0, 8))
+                : '—',
             'detail_id'      => $row->detail_id,
             'name'           => $displayName,
             'initials'       => $initials,
@@ -854,13 +885,13 @@ if ($redirect && str_starts_with($redirect, '/') && !str_starts_with($redirect, 
             'applied_at'     => $row->applied_at,
         ];
     }
- 
+
     $stats = [
         'total'        => count($activeBorrowers),
         'total_amount' => collect($activeBorrowers)->sum('total_amount'),
         'avg_amount'   => count($activeBorrowers) ? collect($activeBorrowers)->avg('loan_amount') : 0,
     ];
- 
+
     return view('admin.active-borrowers', [
         'activeBorrowers' => $activeBorrowers,
         'stats'           => $stats,
@@ -1539,55 +1570,64 @@ private function sendPartialPaymentEmail($schedule, int $applicationId, float $r
         'editOptions' => $this->borrowerEditOptions(),
     ]);
 }
-    public function activeBorrowerDetail(Request $request, $id)
-    {
-        $adminId = Session::get('user_id');
-        $applicationId = (int) $id;
+   public function activeBorrowerDetail(Request $request, $uuid)
+{
+    $adminId = Session::get('user_id');
 
-        $app = $this->getLoanApplication($applicationId);
+    // UUID lang ang nasa URL. Ang integer na application_id ay internal na lang.
+    $applicationId = (int) DB::table('loan_applications')
+        ->where('uuid', $uuid)
+        ->value('application_id');
 
-        if (!$app) {
-            return redirect()->route('admin.active-borrowers');
-        }
-
-        $schedule = $this->getPaymentSchedule($applicationId);
-
-        $totalCount = $schedule->count();
-        $paidCount = $schedule->filter(fn($s) => !is_null($s->paid_at))->count();
-        $progressPct = $totalCount > 0 ? (int) round(($paidCount / $totalCount) * 100) : 0;
-
-        $overdueSchedules = $schedule->filter(function ($s) {
-            return is_null($s->paid_at) && \Carbon\Carbon::parse($s->due_date)->isPast();
-        });
-
-        $maxDaysLate = $overdueSchedules->isNotEmpty()
-            ? $overdueSchedules->max(fn($s) => \Carbon\Carbon::parse($s->due_date)->diffInDays(now()))
-            : 0;
-
-        if ($overdueSchedules->count() === 0) {
-            $standing = 'good';
-            $standingLabel = 'Good Standing';
-        } elseif ($overdueSchedules->count() === 1 && $maxDaysLate < 30) {
-            $standing = 'delayed';
-            $standingLabel = 'Payment Delayed';
-        } else {
-            $standing = 'risk';
-            $standingLabel = 'At Risk';
-        }
-
-        return view('admin.active-borrower-detail', [
-            'app' => $app,
-            'applicationId' => $applicationId,
-            'paymentSchedule' => $schedule,
-            'totalCount' => $totalCount,
-            'paidCount' => $paidCount,
-            'progressPct' => $progressPct,
-            'standing' => $standing,
-            'standingLabel' => $standingLabel,
-            'pendingCount' => $this->getPendingVerificationCount($adminId),
-            'pendingLoanCount' => $this->getPendingLoanCount($adminId),
-        ]);
+    if (!$applicationId) {
+        return redirect()->route('admin.active-borrowers');
     }
+
+    $app = $this->getLoanApplication($applicationId);
+
+    if (!$app) {
+        return redirect()->route('admin.active-borrowers');
+    }
+
+    $schedule = $this->getPaymentSchedule($applicationId);
+
+    $totalCount = $schedule->count();
+    $paidCount = $schedule->filter(fn($s) => !is_null($s->paid_at))->count();
+    $progressPct = $totalCount > 0 ? (int) round(($paidCount / $totalCount) * 100) : 0;
+
+    $overdueSchedules = $schedule->filter(function ($s) {
+        return is_null($s->paid_at) && \Carbon\Carbon::parse($s->due_date)->isPast();
+    });
+
+    $maxDaysLate = $overdueSchedules->isNotEmpty()
+        ? $overdueSchedules->max(fn($s) => \Carbon\Carbon::parse($s->due_date)->diffInDays(now()))
+        : 0;
+
+    if ($overdueSchedules->count() === 0) {
+        $standing = 'good';
+        $standingLabel = 'Good Standing';
+    } elseif ($overdueSchedules->count() === 1 && $maxDaysLate < 30) {
+        $standing = 'delayed';
+        $standingLabel = 'Payment Delayed';
+    } else {
+        $standing = 'risk';
+        $standingLabel = 'At Risk';
+    }
+
+    return view('admin.active-borrower-detail', [
+        'app' => $app,
+        'applicationId' => $applicationId,
+        'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
+        'paymentSchedule' => $schedule,
+        'totalCount' => $totalCount,
+        'paidCount' => $paidCount,
+        'progressPct' => $progressPct,
+        'standing' => $standing,
+        'standingLabel' => $standingLabel,
+        'pendingCount' => $this->getPendingVerificationCount($adminId),
+        'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+    ]);
+}
 
     public function overduePaymentDetail(Request $request, $uuid)
 {
@@ -3620,7 +3660,7 @@ private function executeVoid($voidRequest)
      * pattern as overduePayments(), just a higher threshold. Change
      * the constant below if the business wants a different cutoff.
      */
-    private const DEFAULT_DAYS_LATE = 90;
+    public const DEFAULT_DAYS_LATE = 90;
     private const REQUIRED_VOID_APPROVALS = 3;
 
        private const VOID_WINDOW_DAYS = 7;
@@ -3922,16 +3962,17 @@ public function waivePenalty(Request $request, $id)
     return back()->with('success', 'Penalty waived.');
 }
 
-    public function notificationsIndex(Request $request)
-    {
-        $adminId = Session::get('user_id');
-        $notifications = $this->buildAdminNotifications($adminId);
+  public function notificationsIndex(Request $request)
+{
+    $adminId = Session::get('user_id');
+    $notifications = $this->buildAdminNotifications($adminId);
 
-        return view('admin.notifications', [
-            'notifications' => $notifications,
-            'pendingCount' => $this->getPendingVerificationCount($adminId),
-            'pendingLoanCount' => $this->getPendingLoanCount($adminId),
-        ]);
-    }
+    return view('admin.notifications', array_merge($this->getHeaderData($adminId), [
+        'notifications'    => $notifications,
+        'unreadNotifCount' => $notifications->where('read', false)->count(),
+        'pendingCount'     => $this->getPendingVerificationCount($adminId),
+        'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+    ]));
+}
     // Ensure class is properly closed
 }

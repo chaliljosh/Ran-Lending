@@ -23,6 +23,9 @@
         $nextPayment = $paymentSchedule->first(fn($s) => is_null($s->paid_at));
         $nextIsOverdue = $nextPayment && \Carbon\Carbon::parse($nextPayment->due_date)->isPast();
         $dueInDays = $nextPayment ? \Carbon\Carbon::parse($nextPayment->due_date)->diffInDays(now()) : null;
+
+        // Application ID = unang 8 characters ng UUID (kapareho ng ibang loan pages)
+        $appCode = strtoupper(substr($app->uuid, 0, 8));
     @endphp
 
     <div class="page-header">
@@ -41,7 +44,7 @@
         </div>
     </div>
 
-    <div class="main-content">
+    <div class="main-content abd-page">
 
         {{-- ============================================
              TOP SUMMARY CARD
@@ -61,7 +64,7 @@
                 <div class="abd-summary-info">
                     <h5>{{ $app->first_name }} {{ $app->last_name }}</h5>
                     <div class="abd-summary-meta">
-                        <span><strong>Application ID:</strong> #{{ $app->application_id }}</span>
+                        <span><strong>Application ID:</strong> #{{ $appCode }}</span>
                         <span><strong>Email:</strong> {{ $app->email }}</span>
                     </div>
                     <div class="abd-summary-badges">
@@ -72,28 +75,40 @@
             </div>
             <div class="abd-summary-right">
                 <div class="abd-summary-stat">
-                    <span class="abd-summary-stat-value">₱{{ number_format($totalToPay, 2) }}</span>
-                    <span class="abd-summary-stat-label">Total to Pay</span>
+                    <i class="feather-credit-card abd-stat-icon"></i>
+                    <div class="abd-stat-text">
+                        <span class="abd-summary-stat-value">₱{{ number_format($totalToPay, 2) }}</span>
+                        <span class="abd-summary-stat-label">Total to Pay</span>
+                    </div>
                 </div>
                 <div class="abd-summary-stat">
-                    <span class="abd-summary-stat-value">₱{{ number_format($totalPaidAmount, 2) }}</span>
-                    <span class="abd-summary-stat-label">Total Paid</span>
+                    <i class="feather-check-circle abd-stat-icon"></i>
+                    <div class="abd-stat-text">
+                        <span class="abd-summary-stat-value">₱{{ number_format($totalPaidAmount, 2) }}</span>
+                        <span class="abd-summary-stat-label">Total Paid</span>
+                    </div>
                 </div>
                 <div class="abd-summary-stat">
-                    <span class="abd-summary-stat-value">₱{{ number_format($remainingBalance, 2) }}</span>
-                    <span class="abd-summary-stat-label">Remaining Balance</span>
+                    <i class="feather-pie-chart abd-stat-icon"></i>
+                    <div class="abd-stat-text">
+                        <span class="abd-summary-stat-value">₱{{ number_format($remainingBalance, 2) }}</span>
+                        <span class="abd-summary-stat-label">Remaining Balance</span>
+                    </div>
                 </div>
                 <div class="abd-summary-stat">
-                    <span class="abd-summary-stat-value">
-                        @if (!$nextPayment)
-                            —
-                        @elseif($nextIsOverdue)
-                            Overdue
-                        @else
-                            {{ $dueInDays }} {{ $dueInDays == 1 ? 'day' : 'days' }}
-                        @endif
-                    </span>
-                    <span class="abd-summary-stat-label">Due In</span>
+                    <i class="feather-clock abd-stat-icon"></i>
+                    <div class="abd-stat-text">
+                        <span class="abd-summary-stat-value">
+                            @if (!$nextPayment)
+                                —
+                            @elseif($nextIsOverdue)
+                                Overdue
+                            @else
+                                {{ $dueInDays }} {{ $dueInDays == 1 ? 'day' : 'days' }}
+                            @endif
+                        </span>
+                        <span class="abd-summary-stat-label">Due In</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -103,50 +118,77 @@
              matched to the Personal Information layout style.
         ============================================ --}}
         <div class="section-card mb-3">
-            <p class="section-title">Loan Summary</p>
+            <p class="section-title"><i class="feather-file-text abd-title-icon"></i>Loan Summary</p>
             <div class="abd-info-row">
                 <div class="abd-info-item">
-                    <label>Application ID</label>
-                    <span>#{{ $app->application_id }}</span>
+                    <i class="feather-hash abd-info-icon"></i>
+                    <div class="abd-info-text">
+                        <label>Application ID</label>
+                        <span>#{{ $appCode }}</span>
+                    </div>
                 </div>
                 <div class="abd-info-item">
-                    <label>Loan Amount</label>
-                    <span>₱{{ number_format($app->loan_amount, 2) }}</span>
+                    <i class="feather-dollar-sign abd-info-icon"></i>
+                    <div class="abd-info-text">
+                        <label>Loan Amount</label>
+                        <span>₱{{ number_format($app->loan_amount, 2) }}</span>
+                    </div>
                 </div>
                 <div class="abd-info-item">
-                    <label>Term</label>
-                    <span>{{ $app->loan_term }} months</span>
+                    <i class="feather-calendar abd-info-icon"></i>
+                    <div class="abd-info-text">
+                        <label>Term</label>
+                        <span>{{ $app->loan_term }} months</span>
+                    </div>
                 </div>
                 <div class="abd-info-item">
-                    <label>Interest Rate</label>
-                    <span>5% / month</span>
+                    <i class="feather-percent abd-info-icon"></i>
+                    <div class="abd-info-text">
+                        <label>Interest Rate</label>
+                        <span>5% / month</span>
+                    </div>
                 </div>
                 <div class="abd-info-item">
-                    <label>Total Interest</label>
-                    <span>₱{{ number_format($app->total_interest ?? 0, 2) }}</span>
+                    <i class="feather-trending-up abd-info-icon"></i>
+                    <div class="abd-info-text">
+                        <label>Total Interest</label>
+                        <span>₱{{ number_format($app->total_interest ?? 0, 2) }}</span>
+                    </div>
                 </div>
                 <div class="abd-info-item">
-                    <label>Total to Pay</label>
-                    <span>₱{{ number_format($totalToPay, 2) }}</span>
+                    <i class="feather-credit-card abd-info-icon"></i>
+                    <div class="abd-info-text">
+                        <label>Total to Pay</label>
+                        <span>₱{{ number_format($totalToPay, 2) }}</span>
+                    </div>
                 </div>
                 <div class="abd-info-item abd-info-highlight">
-                    <label>Monthly Payment</label>
-                    <span>₱{{ number_format($app->monthly_payment ?? 0, 2) }}</span>
+                    <i class="feather-repeat abd-info-icon"></i>
+                    <div class="abd-info-text">
+                        <label>Monthly Payment</label>
+                        <span>₱{{ number_format($app->monthly_payment ?? 0, 2) }}</span>
+                    </div>
                 </div>
                 <div class="abd-info-item">
-                    <label>Purpose</label>
-                    <span>{{ ucfirst(str_replace('_', ' ', $app->loan_purpose)) }}</span>
+                    <i class="feather-target abd-info-icon"></i>
+                    <div class="abd-info-text">
+                        <label>Purpose</label>
+                        <span>{{ ucfirst(str_replace('_', ' ', $app->loan_purpose)) }}</span>
+                    </div>
                 </div>
                 <div class="abd-info-item">
-                    <label>Applied On</label>
-                    <span>{{ date('M d, Y', strtotime($app->applied_at)) }}</span>
+                    <i class="feather-calendar abd-info-icon"></i>
+                    <div class="abd-info-text">
+                        <label>Applied On</label>
+                        <span>{{ date('M d, Y', strtotime($app->applied_at)) }}</span>
+                    </div>
                 </div>
             </div>
         </div>
 
         {{-- PAYMENT SCHEDULE --}}
         <div class="section-card abd-schedule-card mb-3">
-            <p class="section-title">Payment Schedule</p>
+            <p class="section-title"><i class="feather-list abd-title-icon"></i>Payment Schedule</p>
             <div class="table-responsive">
                 <table class="table table-sm ld-schedule-table mb-0">
                     <thead>
@@ -193,7 +235,7 @@
         {{-- PAYMENT PROGRESS --}}
         <div class="section-card">
             <div class="abd-progress-head">
-                <span class="abd-progress-label">Payment Progress</span>
+                <span class="abd-progress-label"><i class="feather-activity abd-title-icon"></i>Payment Progress</span>
                 <span class="abd-progress-count">{{ $paidCount }} of {{ $totalCount }} payments completed</span>
             </div>
             <div class="abd-progress-track">
@@ -204,7 +246,7 @@
             @if ($nextPayment)
                 <div class="abd-next-payment">
                     <div>
-                        <div class="abd-next-payment-label">Next Payment</div>
+                        <div class="abd-next-payment-label"><i class="feather-calendar"></i>Next Payment</div>
                         <div class="abd-next-payment-date">
                             {{ \Carbon\Carbon::parse($nextPayment->due_date)->format('M d, Y') }}</div>
                     </div>

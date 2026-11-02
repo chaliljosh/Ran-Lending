@@ -85,29 +85,37 @@ html:not(.app-skin-dark) .nxl-content {
 }
 .abd-summary-badges .badge { margin: 0; }
 
-/* Stats — vertical divider between each stat, centered text,
-   matched to the Borrower Verification Details layout width/spacing. */
+/* Stats — nasa kanan na (margin-left:auto), may icon, left-aligned ang text */
 .abd-summary-right {
     display: flex;
     align-items: center;
-    gap: 0;
+    justify-content: flex-end;
+    gap: 28px;
     flex: 1 1 auto;
+    margin-left: auto;
 }
 
 .abd-summary-stat {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    text-align: center;
-    padding: 0 28px;
-    border-left: 1px solid #e5e7eb;
+    gap: 12px;
+    text-align: left;
 }
-.abd-summary-stat:first-child {
-    border-left: none;
-    padding-left: 0;
+.abd-stat-icon {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 17px;
 }
+.abd-stat-text { display: flex; flex-direction: column; min-width: 0; }
 .abd-summary-stat-value {
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: #0f172a;
     line-height: 1.2;
@@ -117,14 +125,15 @@ html:not(.app-skin-dark) .nxl-content {
 .abd-summary-stat-label {
     font-size: 0.78rem;
     color: #94a3b8;
-    margin-top: 4px;
+    margin-top: 3px;
 }
 
-@media (max-width: 991.98px) {
-    .abd-summary-card {
-        flex-direction: column;
-        align-items: stretch;
-    }
+@media (max-width: 1399.98px) {
+    .abd-summary-right { gap: 20px; }
+    .abd-stat-icon { width: 34px; height: 34px; font-size: 15px; }
+}
+@media (max-width: 1199.98px) {
+    .abd-summary-card { flex-direction: column; align-items: stretch; }
     .abd-summary-left {
         border-right: none;
         padding-right: 0;
@@ -132,18 +141,14 @@ html:not(.app-skin-dark) .nxl-content {
         border-bottom: 1px solid #e5e7eb;
     }
     .abd-summary-right {
-        padding-top: 18px;
-        flex-wrap: wrap;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px 20px;
+        padding-top: 4px;
     }
-    .abd-summary-stat {
-        border-left: none;
-        padding: 0 12px;
-        flex: 1 1 45%;
-    }
-    .abd-summary-stat:first-child {
-        padding-left: 12px;
-    }
+}
+@media (max-width: 575.98px) {
+    .abd-summary-right { grid-template-columns: 1fr; }
 }
 
 /* ---------- Borrower standing badge ---------- */
@@ -159,40 +164,74 @@ html:not(.app-skin-dark) .nxl-content {
 .abd-standing.is-delayed { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
 .abd-standing.is-risk    { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
 
-/* ---------- Loan Summary — horizontal info grid ----------
-   Matched to the Personal Information layout style:
-   label on top (muted, small), value below (dark, bold-ish),
-   wrapping into rows of several columns. */
-.abd-info-row {
+/* ---------- Section title: icon sa kaliwa, title katabi ---------- */
+.abd-page .section-title {
     display: flex;
-    flex-wrap: wrap;
-    gap: 22px 40px;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: left;
+    gap: 0;
+}
+
+/* ---------- Section title icon ---------- */
+.abd-title-icon {
+    flex-shrink: 0;
+    margin-right: 8px;
+    color: #2563eb;
+    font-size: 16px;
+}
+
+/* ---------- Loan Summary — 3-column grid, icon + label/value ---------- */
+.abd-info-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
 }
 .abd-info-item {
-    min-width: 140px;
-    flex: 1 1 160px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border: 1px solid #eef1f6;
+    border-radius: 12px;
+    background: #fff;
+    min-width: 0;
 }
+.abd-info-icon {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 17px;
+}
+.abd-info-text { min-width: 0; }
 .abd-info-item label {
     display: block;
-    font-size: 0.72rem;
+    font-size: 0.74rem;
     font-weight: 600;
     color: #94a3b8;
-    margin-bottom: 6px;
+    margin: 0 0 3px;
 }
 .abd-info-item span {
     display: block;
-    font-size: 0.92rem;
+    font-size: 0.95rem;
     font-weight: 600;
     color: #0f172a;
+    overflow-wrap: anywhere;
 }
-.abd-info-item.abd-info-highlight {
-    background: #eff6ff;
-    border-radius: 8px;
-    padding: 8px 12px;
-    margin: -8px -12px;
-}
-.abd-info-item.abd-info-highlight label { color: #2563eb; }
-.abd-info-item.abd-info-highlight span { color: #2563eb; font-weight: 700; }
+.abd-info-item.abd-info-highlight { background: #eff6ff; border-color: #dbeafe; }
+.abd-info-item.abd-info-highlight .abd-info-icon { background: #dbeafe; color: #2563eb; }
+.abd-info-item.abd-info-highlight label,
+.abd-info-item.abd-info-highlight span { color: #2563eb; }
+.abd-info-item.abd-info-highlight span { font-weight: 700; }
+
+@media (max-width: 991.98px) { .abd-info-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 575.98px) { .abd-info-row { grid-template-columns: 1fr; } }
 
 /* ---------- Payment progress ---------- */
 .abd-progress-head {
@@ -204,6 +243,8 @@ html:not(.app-skin-dark) .nxl-content {
     gap: 6px;
 }
 .abd-progress-label {
+    display: inline-flex;
+    align-items: center;
     font-size: 0.85rem;
     font-weight: 600;
     color: #0f172a;
@@ -238,6 +279,7 @@ html:not(.app-skin-dark) .nxl-content {
     border-top: 1px solid #f1f5f9;
     flex-wrap: wrap;
 }
+.abd-next-payment-label i { margin-right: 6px; color: #2563eb; }
 .abd-next-payment-label {
     font-size: 0.7rem;
     font-weight: 700;
@@ -261,6 +303,20 @@ html:not(.app-skin-dark) .nxl-content {
 .abd-schedule-card .ld-schedule-table tbody td { padding: 12px 14px; font-size: 0.82rem; }
 .abd-schedule-card .ld-schedule-table tbody td:first-child { font-weight: 600; color: #0f172a; }
 
+/* ---------- Walang gradient: flat colors lang sa buong page ---------- */
+.abd-page .section-card,
+.abd-page .abd-summary-card,
+.abd-page .abd-progress-track,
+.abd-page .abd-progress-fill,
+.abd-page .abd-stat-icon,
+.abd-page .abd-info-item,
+.abd-page .abd-info-icon,
+.abd-page .badge,
+.abd-page .abd-standing,
+.abd-page .ld-schedule-badge {
+    background-image: none !important;
+}
+
 /* ---------- Dark mode — true black palette, may !important ---------- */
 html.app-skin-dark .nxl-content { background: #0A0A0A !important; }
 
@@ -274,7 +330,6 @@ html.app-skin-dark .abd-summary-info h5 { color: #F5F5F5 !important; }
 html.app-skin-dark .abd-summary-meta { color: #9A9A9A !important; }
 html.app-skin-dark .abd-summary-meta strong { color: #F5F5F5 !important; }
 html.app-skin-dark .abd-summary-left { border-right-color: #262626 !important; }
-html.app-skin-dark .abd-summary-stat { border-left-color: #262626 !important; }
 html.app-skin-dark .abd-summary-stat-value { color: #F5F5F5 !important; }
 html.app-skin-dark .abd-summary-stat-label { color: #9A9A9A !important; }
 @media (max-width: 991.98px) {
@@ -285,9 +340,15 @@ html.app-skin-dark .abd-standing.is-good    { background: rgba(22,163,74,.18) !i
 html.app-skin-dark .abd-standing.is-delayed { background: rgba(180,83,9,.18) !important; color: #f0b756 !important; border-color: rgba(180,83,9,.35) !important; }
 html.app-skin-dark .abd-standing.is-risk    { background: rgba(220,38,38,.18) !important; color: #f87171 !important; border-color: rgba(220,38,38,.3) !important; }
 
+html.app-skin-dark .abd-stat-icon { background: rgba(37,99,235,.14) !important; color: #60A5FA !important; }
+html.app-skin-dark .abd-title-icon,
+html.app-skin-dark .abd-next-payment-label i { color: #60A5FA !important; }
+html.app-skin-dark .abd-info-item { background: #141414 !important; border-color: #262626 !important; }
+html.app-skin-dark .abd-info-icon { background: #1f1f1f !important; color: #9A9A9A !important; }
+html.app-skin-dark .abd-info-item.abd-info-highlight .abd-info-icon { background: rgba(37,99,235,.2) !important; color: #60A5FA !important; }
 html.app-skin-dark .abd-info-item label { color: #9A9A9A !important; }
 html.app-skin-dark .abd-info-item span { color: #F5F5F5 !important; }
-html.app-skin-dark .abd-info-item.abd-info-highlight { background: rgba(37,99,235,.12) !important; }
+html.app-skin-dark .abd-info-item.abd-info-highlight { background: rgba(37,99,235,.12) !important; border-color: rgba(37,99,235,.3) !important; }
 html.app-skin-dark .abd-info-item.abd-info-highlight label,
 html.app-skin-dark .abd-info-item.abd-info-highlight span { color: #60A5FA !important; }
 

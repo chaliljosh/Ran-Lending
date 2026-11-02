@@ -1,0 +1,389 @@
+/* ============================================================
+   borrower-pending-review.css
+   Redesigned "Pending Review" state ng Borrower Dashboard
+   (hero banner + 3-step tracker + Application Summary +
+   "What happens next?"). Gumagana rin para sa On Hold at
+   Rejected (may red variant).
+
+   Lagay sa: public/assets/borrower/css/borrower-pending-review.css
+   Prefix: bwl-pr-  (para hindi mabangga ang ibang styles)
+============================================================ */
+
+:root {
+    --bwl-pr-navy: #0f2a5c;
+    --bwl-pr-ink: #0f1f3d;
+    --bwl-pr-muted: #5b6b8a;
+    --bwl-pr-border: #dfe6f3;
+    --bwl-pr-soft: #f1f5fd;
+    --bwl-pr-hero-bg: #eef3fd;
+    --bwl-pr-orange: #f97316;
+    --bwl-pr-orange-soft: #ffedd5;
+    --bwl-pr-red: #dc2626;
+    --bwl-pr-red-soft: #fee2e2;
+    --bwl-pr-card: #ffffff;
+}
+
+.bwl-pr {
+    display: grid;
+    gap: 22px;
+}
+
+/* ---------- Hero ---------- */
+.bwl-pr-hero {
+    display: grid;
+    grid-template-columns: minmax(220px, 300px) 1fr;
+    align-items: center;
+    gap: 36px;
+    padding: 30px 40px;
+    background: linear-gradient(135deg, var(--bwl-pr-hero-bg) 0%, #f6f9ff 100%);
+    border: 1px solid #dbe5f7;
+    border-radius: 18px;
+    overflow: hidden;
+}
+.bwl-pr-hero-art {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.bwl-pr-hero-art img,
+.bwl-pr-hero-art svg {
+    width: 100%;
+    max-width: 280px;
+    height: auto;
+    display: block;
+}
+.bwl-pr-eyebrow-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 10px;
+}
+.bwl-pr-eyebrow {
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--bwl-pr-muted);
+}
+.bwl-pr-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 16px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: var(--bwl-pr-orange-soft);
+    color: var(--bwl-pr-orange);
+}
+.bwl-pr-pill.is-rejected {
+    background: var(--bwl-pr-red-soft);
+    color: var(--bwl-pr-red);
+}
+.bwl-pr-pill svg { flex-shrink: 0; }
+.bwl-pr-title {
+    margin: 0 0 12px;
+    font-size: 2.05rem;
+    line-height: 1.15;
+    font-weight: 800;
+    color: var(--bwl-pr-navy);
+}
+.bwl-pr-desc {
+    margin: 0;
+    max-width: 640px;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--bwl-pr-ink);
+}
+
+/* ---------- Tracker ---------- */
+.bwl-pr-steps {
+    display: flex;
+    align-items: flex-start;
+    padding: 6px 12px;
+}
+.bwl-pr-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 170px;
+    flex-shrink: 0;
+    text-align: center;
+}
+.bwl-pr-dot {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #c9d3e6;
+    background: var(--bwl-pr-card);
+    color: #c9d3e6;
+}
+.bwl-pr-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--bwl-pr-muted);
+}
+.bwl-pr-step.is-done .bwl-pr-dot {
+    background: var(--bwl-pr-navy);
+    border-color: var(--bwl-pr-navy);
+    color: #fff;
+}
+.bwl-pr-step.is-done .bwl-pr-label { color: var(--bwl-pr-navy); }
+.bwl-pr-step.is-current .bwl-pr-dot {
+    border-color: var(--bwl-pr-orange);
+    background: var(--bwl-pr-orange-soft);
+    color: var(--bwl-pr-orange);
+    box-shadow: 0 0 0 6px rgba(249, 115, 22, 0.14);
+}
+.bwl-pr-step.is-current .bwl-pr-label { color: var(--bwl-pr-orange); }
+.bwl-pr-step.is-rejected .bwl-pr-dot {
+    background: var(--bwl-pr-red);
+    border-color: var(--bwl-pr-red);
+    color: #fff;
+}
+.bwl-pr-step.is-rejected .bwl-pr-label { color: var(--bwl-pr-red); }
+
+.bwl-pr-line {
+    flex: 1;
+    height: 2px;
+    margin-top: 21px; /* gitna ng 44px na bilog */
+    background: #d5deee;
+    border-radius: 2px;
+}
+.bwl-pr-line.is-done { background: var(--bwl-pr-navy); }
+.bwl-pr-line.is-rejected { background: var(--bwl-pr-red); }
+
+/* ---------- Bottom row ---------- */
+.bwl-pr-bottom {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 22px;
+}
+.bwl-pr-card {
+    background: var(--bwl-pr-card);
+    border: 1px solid var(--bwl-pr-border);
+    border-radius: 16px;
+    padding: 26px 30px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+.bwl-pr-card-title {
+    margin: 0 0 18px;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--bwl-pr-navy);
+}
+
+/* Application Summary */
+.bwl-pr-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+}
+.bwl-pr-summary-item {
+    padding: 4px 22px;
+    border-left: 1px solid var(--bwl-pr-border);
+}
+.bwl-pr-summary-item:first-child {
+    padding-left: 0;
+    border-left: none;
+}
+.bwl-pr-summary-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.92rem;
+    color: var(--bwl-pr-muted);
+}
+.bwl-pr-summary-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--bwl-pr-navy);
+    line-height: 1.2;
+    word-break: break-word;
+}
+
+/* What happens next */
+.bwl-pr-next {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    background: var(--bwl-pr-soft);
+}
+.bwl-pr-next-art {
+    flex-shrink: 0;
+    width: 120px;
+}
+.bwl-pr-next-art img,
+.bwl-pr-next-art svg {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+.bwl-pr-next-body { min-width: 0; }
+.bwl-pr-next-title {
+    margin: 0 0 8px;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--bwl-pr-navy);
+}
+.bwl-pr-next-desc {
+    margin: 0 0 16px;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: var(--bwl-pr-ink);
+}
+.bwl-pr-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.bwl-pr-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 11px 22px;
+    border-radius: 999px;
+    border: 1.5px solid var(--bwl-pr-navy);
+    background: var(--bwl-pr-card);
+    color: var(--bwl-pr-navy);
+    font-size: 0.92rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.bwl-pr-btn:hover {
+    background: var(--bwl-pr-navy);
+    color: #fff;
+    text-decoration: none;
+}
+.bwl-pr-btn.is-solid {
+    background: var(--bwl-pr-navy);
+    color: #fff;
+}
+.bwl-pr-btn.is-solid:hover { opacity: 0.9; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 991.98px) {
+    .bwl-pr-bottom { grid-template-columns: 1fr; }
+}
+@media (max-width: 767.98px) {
+    .bwl-pr-hero {
+        grid-template-columns: 1fr;
+        gap: 18px;
+        padding: 24px 22px;
+        text-align: left;
+    }
+    .bwl-pr-hero-art img,
+    .bwl-pr-hero-art svg { max-width: 200px; }
+    .bwl-pr-title { font-size: 1.55rem; }
+    .bwl-pr-step { width: 96px; }
+    .bwl-pr-label { font-size: 0.8rem; }
+    .bwl-pr-summary { grid-template-columns: 1fr; gap: 14px; }
+    .bwl-pr-summary-item {
+        padding: 0 0 14px;
+        border-left: none;
+        border-bottom: 1px solid var(--bwl-pr-border);
+    }
+    .bwl-pr-summary-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .bwl-pr-next { flex-direction: column; align-items: flex-start; }
+}
+
+/* ============================================================
+   DARK MODE
+============================================================ */
+html.app-skin-dark .bwl-pr-hero {
+    background: linear-gradient(135deg, #141a2b 0%, #101522 100%);
+    border-color: #262626;
+}
+html.app-skin-dark .bwl-pr-card {
+    background: #141414;
+    border-color: #262626;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+html.app-skin-dark .bwl-pr-next { background: #10151f; }
+html.app-skin-dark .bwl-pr-title,
+html.app-skin-dark .bwl-pr-card-title,
+html.app-skin-dark .bwl-pr-next-title,
+html.app-skin-dark .bwl-pr-summary-value {
+    color: #F5F5F5;
+}
+html.app-skin-dark .bwl-pr-desc,
+html.app-skin-dark .bwl-pr-next-desc {
+    color: #D4D4D4;
+}
+html.app-skin-dark .bwl-pr-eyebrow,
+html.app-skin-dark .bwl-pr-summary-label,
+html.app-skin-dark .bwl-pr-label {
+    color: #9A9A9A;
+}
+html.app-skin-dark .bwl-pr-summary-item { border-color: #262626; }
+html.app-skin-dark .bwl-pr-dot {
+    background: #141414;
+    border-color: #3a3a3a;
+    color: #3a3a3a;
+}
+html.app-skin-dark .bwl-pr-step.is-done .bwl-pr-dot {
+    background: #60A5FA;
+    border-color: #60A5FA;
+    color: #0A0A0A;
+}
+html.app-skin-dark .bwl-pr-step.is-done .bwl-pr-label { color: #F5F5F5; }
+html.app-skin-dark .bwl-pr-step.is-current .bwl-pr-dot {
+    background: rgba(249, 115, 22, 0.16);
+    border-color: var(--bwl-pr-orange);
+    color: var(--bwl-pr-orange);
+}
+html.app-skin-dark .bwl-pr-step.is-rejected .bwl-pr-dot {
+    background: var(--bwl-pr-red);
+    border-color: var(--bwl-pr-red);
+    color: #fff;
+}
+html.app-skin-dark .bwl-pr-line { background: #2f2f2f; }
+html.app-skin-dark .bwl-pr-line.is-done { background: #60A5FA; }
+html.app-skin-dark .bwl-pr-line.is-rejected { background: var(--bwl-pr-red); }
+html.app-skin-dark .bwl-pr-pill {
+    background: rgba(249, 115, 22, 0.18);
+}
+html.app-skin-dark .bwl-pr-pill.is-rejected {
+    background: rgba(220, 38, 38, 0.18);
+}
+html.app-skin-dark .bwl-pr-btn {
+    background: transparent;
+    border-color: #60A5FA;
+    color: #60A5FA;
+}
+html.app-skin-dark .bwl-pr-btn:hover {
+    background: #60A5FA;
+    color: #0A0A0A;
+}
+html.app-skin-dark .bwl-pr-btn.is-solid {
+    background: #60A5FA;
+    color: #0A0A0A;
+}
+
+/* ---------- Lighter font weights + flat backgrounds ---------- */
+.bwl-pr-hero {
+    background: var(--bwl-pr-hero-bg);
+    background-image: none;
+}
+html.app-skin-dark .bwl-pr-hero {
+    background: #141a2b;
+    background-image: none;
+}
+
+.bwl-pr-eyebrow { font-weight: 600; }
+.bwl-pr-pill { font-weight: 600; }
+.bwl-pr-title { font-weight: 600; }
+.bwl-pr-label { font-weight: 500; }
+.bwl-pr-step.is-current .bwl-pr-label { font-weight: 600; }
+
+.bwl-pr-card-title,
+.bwl-pr-next-title { font-weight: 600; }
+.bwl-pr-summary-value { font-weight: 600; }
+.bwl-pr-btn { font-weight: 500; }

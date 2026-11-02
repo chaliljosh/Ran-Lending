@@ -12,6 +12,8 @@
          Repayment Performance, and Payment Schedule panels without
          touching the shared ongoing-loan-detail.css file. --}}
      <link rel="stylesheet" href="{{ asset('assets/admin/css/completed-loan-detail.css') }}?v={{ time() }}" />
+     {{-- Icons (panel headers + stats). Dapat NASA BANDANG DULO, pagkatapos ng completed-loan-detail.css --}}
+     <link rel="stylesheet" href="{{ asset('assets/admin/css/detail-icons.css') }}?v={{ time() }}" />
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/darkmode-global.css') }}?v={{ time() }}" />
 @endsection
 
@@ -28,6 +30,17 @@
 
         // Display lang: unang 8 characters ng UUID ng loan (hindi ginagamit sa lookup)
         $loanCode = strtoupper(substr($app->uuid, 0, 8));
+
+        // Interest rate kada buwan. Ang $interestRate galing controller ay TOTAL %
+        // ng buong term (hal. 30% para sa 6 months), kaya hinahati sa term.
+        $loanTerm = (int) ($app->loan_term ?? 0);
+        $monthlyRate = $loanTerm > 0 ? round($interestRate / $loanTerm, 2) : $interestRate;
+        $monthlyRateLabel = rtrim(rtrim(number_format($monthlyRate, 2), '0'), '.');
+
+        // Monthly payment base sa term ng loan, hindi sa dami ng rows sa schedule.
+        $monthlyPaymentDisplay = $loanTerm > 0
+            ? ($app->total_amount / $loanTerm)
+            : $monthlyPayment;
     @endphp
 
     <div class="page-header">
@@ -70,20 +83,32 @@
             </div>
             <div class="cld-summary-right">
                 <div class="cld-stat">
-                    <span class="cld-stat-value">&#8369;{{ number_format($app->total_amount ?? 0, 2) }}</span>
-                    <span class="cld-stat-label">Total Loan Amount</span>
+                    <i class="feather-dollar-sign cld-stat-icon"></i>
+                    <div class="cld-stat-text">
+                        <span class="cld-stat-value">&#8369;{{ number_format($app->total_amount ?? 0, 2) }}</span>
+                        <span class="cld-stat-label">Total Loan Amount</span>
+                    </div>
                 </div>
                 <div class="cld-stat">
-                    <span class="cld-stat-value">&#8369;{{ number_format($amountCollected, 2) }}</span>
-                    <span class="cld-stat-label">Total Amount Repaid</span>
+                    <i class="feather-check-circle cld-stat-icon"></i>
+                    <div class="cld-stat-text">
+                        <span class="cld-stat-value">&#8369;{{ number_format($amountCollected, 2) }}</span>
+                        <span class="cld-stat-label">Total Amount Repaid</span>
+                    </div>
                 </div>
                 <div class="cld-stat">
-                    <span class="cld-stat-value">&#8369;{{ number_format($totalInterest, 2) }}</span>
-                    <span class="cld-stat-label">Total Interest Earned</span>
+                    <i class="feather-trending-up cld-stat-icon"></i>
+                    <div class="cld-stat-text">
+                        <span class="cld-stat-value">&#8369;{{ number_format($totalInterest, 2) }}</span>
+                        <span class="cld-stat-label">Total Interest Earned</span>
+                    </div>
                 </div>
                 <div class="cld-stat">
-                    <span class="cld-stat-value">{{ $paidCount }} / {{ $totalCount }}</span>
-                    <span class="cld-stat-label">Installments Paid</span>
+                    <i class="feather-list cld-stat-icon"></i>
+                    <div class="cld-stat-text">
+                        <span class="cld-stat-value">{{ $paidCount }} / {{ $totalCount }}</span>
+                        <span class="cld-stat-label">Installments Paid</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -92,7 +117,7 @@
 
             {{-- ============ LOAN SUMMARY ============ --}}
             <div class="panel loan-summary-panel">
-                <div class="panel-header">Loan Summary</div>
+                <div class="panel-header"><i class="feather-file-text cld-hicon"></i>Loan Summary</div>
                 <div class="panel-body">
 
                     <div class="loan-info-grid">
@@ -102,7 +127,7 @@
                         </div>
                         <div class="info-item2">
                             <label>Interest Rate</label>
-                            <span>{{ $interestRate }}%</span>
+                            <span>{{ $monthlyRateLabel }}%/month</span>
                         </div>
                         <div class="info-item2">
                             <label>Total Interest</label>
@@ -117,7 +142,7 @@
                     <div class="loan-info-grid secondary">
                         <div class="info-item2">
                             <label>Monthly Payment</label>
-                            <span>&#8369;{{ number_format($monthlyPayment, 2) }}</span>
+                            <span>&#8369;{{ number_format($monthlyPaymentDisplay, 2) }}</span>
                         </div>
                         <div class="info-item2">
                             <label>Purpose</label>
@@ -152,7 +177,7 @@
 
             {{-- ============ BORROWER REPAYMENT PERFORMANCE ============ --}}
             <div class="panel loan-review-panel">
-                <div class="panel-header">Repayment Performance</div>
+                <div class="panel-header"><i class="feather-bar-chart-2 cld-hicon"></i>Repayment Performance</div>
                 <div class="panel-body">
 
                     <div class="review-item {{ $ratingBadgeClass }}">
@@ -189,6 +214,7 @@
         <div class="panel payment-schedule-panel">
             <div class="ols-sched-header">
                 <div class="ols-sched-header-left">
+                    <i class="feather-calendar ols-sched-icon"></i>
                     <div>
                         <div class="ols-sched-title">Payment Schedule</div>
                     </div>
