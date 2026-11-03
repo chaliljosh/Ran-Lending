@@ -11,6 +11,15 @@
 
 @section('content')
 
+    @php
+        // Mga loan na may resibong na-upload ng borrower na hinihintay pa i-verify ng admin.
+        // (payment_receipts.status = 'submitted'). Key = application_id.
+        $receiptApps = \Illuminate\Support\Facades\DB::table('payment_receipts')
+            ->where('status', 'submitted')
+            ->pluck('application_id')
+            ->flip();
+    @endphp
+
     <div class="page-header">
         <div class="page-header-left d-flex align-items-center">
             <div class="page-header-title">
@@ -77,11 +86,13 @@
                             </option>
                         @endforeach
                     </select>
-                    {{-- Awaiting Release = wala pang schedule. Ongoing = may schedule na. --}}
+                    {{-- Awaiting Release = wala pang schedule. Ongoing = may schedule na.
+                         Receipt to Verify = may resibong na-upload ng borrower na hinihintay pa ang admin. --}}
                     <select class="sort-select-v2" id="statusFilter" onchange="filterOngoingLoans()" aria-label="Filter by status">
                         <option value="">All Status</option>
                         <option value="awaiting">Awaiting Release</option>
                         <option value="ongoing">Ongoing</option>
+                        <option value="receipt">Receipt to Verify</option>
                     </select>
                     <select class="sort-select-v2" id="sortFilter" onchange="sortOngoingLoans()">
                         <option value="newest" {{ $sort === 'newest' ? 'selected' : '' }}>Newest First</option>
@@ -115,6 +126,9 @@
 
                                     $progressPercent = $hasSchedule ? round(($loan['paid_count'] / $loan['total_count']) * 100) : 0;
                                     $nextDueStamp = $loan['next_due_date'] ? \Carbon\Carbon::parse($loan['next_due_date'])->timestamp : 9999999999;
+
+                                    // May resibo bang hinihintay i-verify para sa loan na ito?
+                                    $hasReceipt = $receiptApps->has($loan['application_id']);
                                 @endphp
                                 <tr data-search="{{ strtolower($loan['name'] . ' ' . $loan['email'] . ' ' . $loan['borrower_id']) }}"
                                     data-name="{{ $loan['name'] }}"
@@ -125,6 +139,7 @@
                                     data-applied="{{ \Carbon\Carbon::parse($loan['applied_at'])->timestamp }}"
                                     data-month="{{ \Carbon\Carbon::parse($loan['applied_at'])->format('m') }}"
                                     data-status="{{ $hasSchedule ? 'ongoing' : 'awaiting' }}"
+                                    data-receipt="{{ $hasReceipt ? '1' : '0' }}"
                                     data-href="{{ route('admin.ongoing-loan-detail', $loan['uuid']) }}?from=ongoing-loans"
                                     onclick="olGoToRow(event, this)"
                                     class="rs-clickable-row">
@@ -134,6 +149,9 @@
                                                 <div class="borrower-name-v2">{{ $loan['name'] }}</div>
                                                 <div class="borrower-id-v2">{{ $loan['borrower_id'] }}</div>
                                                 <div class="borrower-email-v2">{{ $loan['email'] }}</div>
+                                                @if ($hasReceipt)
+                                                    <span class="purpose-pill" style="margin-top:6px;">Receipt to verify</span>
+                                                @endif
                                             </div>
                                         </div>
                                     </td>

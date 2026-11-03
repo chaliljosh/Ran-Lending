@@ -74,12 +74,35 @@ trait BorrowerPaymentNotifications
                 ->whereNull('ip.voided_at')
                 ->where('ip.created_at', '>=', $since)
                 ->select(
-                    'ip.id', 'ip.application_id', 'ip.amount', 'ip.created_at',
+                    'ip.id', 'ip.application_id', 'ip.schedule_id', 'ip.amount', 'ip.created_at',
                     'sch.installment_no', 'sch.amount_due', 'sch.amount_paid', 'sch.paid_at'
                 )
                 ->orderByDesc('ip.created_at')
                 ->limit(10)
                 ->get();
+
+            // Natitirang penalty kada installment (parehong formula ng admin side):
+            // penalty_amount ng unpaid na penalty - penalty na nabayad na sa ledger (hindi void).
+            $penaltyLeftBySchedule = collect();
+            if ($partials->isNotEmpty()) {
+                $scheduleIds = $partials->pluck('schedule_id')->unique()->all();
+
+                $unpaidPenalties = DB::table('loan_penalties')
+                    ->whereIn('schedule_id', $scheduleIds)
+                    ->where('status', 'unpaid')
+                    ->pluck('penalty_amount', 'schedule_id');
+
+                $penaltyPaid = DB::table('installment_payments')
+                    ->whereIn('schedule_id', $scheduleIds)
+                    ->whereNull('voided_at')
+                    ->selectRaw('schedule_id, COALESCE(SUM(penalty_amount), 0) as paid')
+                    ->groupBy('schedule_id')
+                    ->pluck('paid', 'schedule_id');
+
+                $penaltyLeftBySchedule = $unpaidPenalties->map(function ($amount, $scheduleId) use ($penaltyPaid) {
+                    return max(0.0, round((float) $amount - (float) ($penaltyPaid[$scheduleId] ?? 0), 2));
+                });
+            }
 
             foreach ($partials as $p) {
                 $key = 'partial:' . $p->id;
@@ -88,8 +111,12 @@ trait BorrowerPaymentNotifications
 
                 // Ipakita lang ang natitirang balance kung hindi pa fully paid ang installment
                 if (is_null($p->paid_at)) {
-                    $balance = max(0, (float) $p->amount_due - (float) $p->amount_paid);
-                    $text .= ' Remaining balance: ₱' . number_format($balance, 2) . '.';
+                    $installmentLeft = max(0.0, round((float) $p->amount_due - (float) $p->amount_paid, 2));
+                    $penaltyLeft = (float) $penaltyLeftBySchedule->get($p->schedule_id, 0);
+                    $balance = round($installmentLeft + $penaltyLeft, 2);
+
+                    $text .= ' Remaining balance: ₱' . number_format($balance, 2)
+                        . ($penaltyLeft > 0 ? ' (includes ₱' . number_format($penaltyLeft, 2) . ' penalty).' : '.');
                 }
 
                 $items->push([

@@ -128,15 +128,14 @@
                             <span class="aln-notice__title">First-Time Borrowers</span>
                             <p class="aln-notice__text">
                                 Maximum loan amount is ₱{{ number_format($maxLoanAmount) }} and the maximum term is
-                                {{ $maxTerm }} months. Every time you fully repay a loan, your limit goes up by
-                                ₱5,000, and you can choose terms of up to 12 months.
+                                {{ $maxTerm }} months. Once you fully repay your first loan, you can borrow up to
+                                ₱100,000 with terms of up to 12 months.
                             </p>
                         @else
                             <span class="aln-notice__title">You're Eligible for Higher Amounts</span>
                             <p class="aln-notice__text">
                                 Since you've successfully repaid a previous loan, you may now apply for up to
                                 ₱{{ number_format($maxLoanAmount) }} with a term of up to {{ $maxTerm }} months.
-                                Every fully repaid loan raises your limit by ₱5,000.
                             </p>
                         @endif
                     </div>
@@ -295,6 +294,10 @@
                                 <div class="aln-hr aln-hr--tight"></div>
 
                                 <div class="row g-3">
+                                    {{-- Row 1: Type of ID | (Others: Specify ID Type) or (not Others: ID Number).
+                                         Ang order sa DOM ay: Type of ID -> Specify ID Type -> ID Number.
+                                         Kapag Others, tabi ni Type of ID si Specify, tapos bababa si ID Number sa row 2.
+                                         Kapag hindi Others, nakatago si Specify kaya tabi ni Type of ID si ID Number. --}}
                                     <div class="col-md-6">
                                         <label class="aln-label" for="idType">
                                             Type of ID <span class="aln-required">*</span>
@@ -308,8 +311,7 @@
                                         </select>
                                     </div>
 
-                                    {{-- Shown only when "Others" is picked. col-md-6 so it sits beside "Type of ID"
-                                         (same row) and the rest of the grid stays aligned. --}}
+                                    {{-- Shown only when "Others" is picked. --}}
                                     <div class="col-md-6" id="idTypeOthersWrapper" style="display:none;">
                                         <label class="aln-label" for="idTypeOthers">
                                             Specify ID Type <span class="aln-required">*</span>
@@ -328,84 +330,100 @@
                                             placeholder="Select an ID type first" required>
                                     </div>
 
-                                    <div class="col-md-6">
-                                        <label class="aln-label" for="validIdFront">
-                                            Front of ID <span class="aln-required">*</span>
-                                        </label>
-                                        {{-- Totoong input (nakatago). Yung dropzone sa ibaba ang pipindutin. --}}
-                                        <input type="file" class="aln-file-hidden" id="validIdFront"
-                                            accept=".jpg,.jpeg,.png,image/jpeg,image/png" data-saved="{{ $hasSavedFront ? '1' : '0' }}">
-
-                                        <label for="validIdFront" class="aln-dropzone" data-dropzone-for="validIdFront">
-                                            <span class="aln-dropzone__icon">
-                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <polyline points="16 16 12 12 8 16"></polyline>
-                                                    <line x1="12" y1="12" x2="12" y2="21"></line>
-                                                    <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path>
-                                                </svg>
-                                            </span>
-                                            <span class="aln-dropzone__title"><span>Click to upload</span> or drag and drop</span>
-                                            <span class="aln-dropzone__hint">
-                                                {{ $hasSavedFront ? 'You already have an ID on file. Upload a new one to replace it.' : 'JPG or PNG, max 5MB.' }}
-                                            </span>
-                                        </label>
-
-                                        <div id="idFrontPreview" class="aln-file-preview"></div>
+                                    {{-- "ID Documents" divider heading --}}
+                                    <div class="col-12">
+                                        <div style="display:flex; align-items:center; gap:14px; margin-top:6px;">
+                                            <span style="font-size:0.95rem; font-weight:700; color:var(--aln-navy); white-space:nowrap;">ID Documents</span>
+                                            <span style="flex:1; height:1px; background:var(--aln-border);"></span>
+                                        </div>
                                     </div>
 
-                                    <div class="col-md-6">
-                                        <label class="aln-label" for="validIdBack">
-                                            Back of ID <span class="aln-required">*</span>
-                                        </label>
-                                        {{-- Totoong input (nakatago). Yung dropzone sa ibaba ang pipindutin. --}}
-                                        <input type="file" class="aln-file-hidden" id="validIdBack"
-                                            accept=".jpg,.jpeg,.png,image/jpeg,image/png" data-saved="{{ $hasSavedBack ? '1' : '0' }}">
+                                    {{-- Front / Back / Selfie: tatlong magkakapantay na column sa sariling row.
+                                         Nasa loob ng col-12 at sariling .row para laging bagong row ang simula. --}}
+                                    <div class="col-12">
+                                        <div class="row g-3">
 
-                                        <label for="validIdBack" class="aln-dropzone" data-dropzone-for="validIdBack">
-                                            <span class="aln-dropzone__icon">
-                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <polyline points="16 16 12 12 8 16"></polyline>
-                                                    <line x1="12" y1="12" x2="12" y2="21"></line>
-                                                    <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path>
-                                                </svg>
-                                            </span>
-                                            <span class="aln-dropzone__title"><span>Click to upload</span> or drag and drop</span>
-                                            <span class="aln-dropzone__hint">
-                                                {{ $hasSavedBack ? 'You already have an ID on file. Upload a new one to replace it.' : 'JPG or PNG, max 5MB.' }}
-                                            </span>
-                                        </label>
+                                            <div class="col-md-4">
+                                                <label class="aln-label" for="validIdFront">
+                                                    Front of ID <span class="aln-required">*</span>
+                                                </label>
+                                                {{-- Totoong input (nakatago). Yung dropzone sa ibaba ang pipindutin. --}}
+                                                <input type="file" class="aln-file-hidden" id="validIdFront"
+                                                    accept=".jpg,.jpeg,.png,image/jpeg,image/png" data-saved="{{ $hasSavedFront ? '1' : '0' }}">
 
-                                        <div id="idBackPreview" class="aln-file-preview"></div>
-                                    </div>
+                                                <label for="validIdFront" class="aln-dropzone aln-dropzone--id" data-dropzone-for="validIdFront">
+                                                    <span class="aln-dropzone__icon">
+                                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                            <polyline points="16 16 12 12 8 16"></polyline>
+                                                            <line x1="12" y1="12" x2="12" y2="21"></line>
+                                                            <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path>
+                                                        </svg>
+                                                    </span>
+                                                    <span class="aln-dropzone__title"><span>Click to upload</span> or drag and drop</span>
+                                                    <span class="aln-dropzone__hint">
+                                                        {{ $hasSavedFront ? 'You already have an ID on file. Upload a new one to replace it.' : 'JPG or PNG, max 5MB.' }}
+                                                    </span>
+                                                </label>
 
-                                    {{-- Selfie with Valid ID --}}
-                                    <div class="col-md-6">
-                                        <label class="aln-label" for="selfieWithId">
-                                            Selfie with Valid ID <span class="aln-required">*</span>
-                                        </label>
-                                        {{-- Totoong input (nakatago). Yung dropzone sa ibaba ang pipindutin. --}}
-                                        <input type="file" class="aln-file-hidden" id="selfieWithId"
-                                            accept=".jpg,.jpeg,.png,image/jpeg,image/png" data-saved="{{ $hasSavedSelfie ? '1' : '0' }}">
+                                                <div id="idFrontPreview" class="aln-file-preview"></div>
+                                            </div>
 
-                                        <label for="selfieWithId" class="aln-dropzone" data-dropzone-for="selfieWithId">
-                                            <span class="aln-dropzone__icon">
-                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                    <polyline points="16 16 12 12 8 16"></polyline>
-                                                    <line x1="12" y1="12" x2="12" y2="21"></line>
-                                                    <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path>
-                                                </svg>
-                                            </span>
-                                            <span class="aln-dropzone__title"><span>Click to upload</span> or drag and drop</span>
-                                            <span class="aln-dropzone__hint">
-                                                {{ $hasSavedSelfie ? 'You already have a selfie on file. Upload a new one to replace it.' : 'JPG or PNG, max 5MB.' }}
-                                            </span>
-                                        </label>
-                                        <small class="aln-hint">Hold your valid ID next to your face. Make sure your face and the ID are both clear.</small>
+                                            <div class="col-md-4">
+                                                <label class="aln-label" for="validIdBack">
+                                                    Back of ID <span class="aln-required">*</span>
+                                                </label>
+                                                {{-- Totoong input (nakatago). Yung dropzone sa ibaba ang pipindutin. --}}
+                                                <input type="file" class="aln-file-hidden" id="validIdBack"
+                                                    accept=".jpg,.jpeg,.png,image/jpeg,image/png" data-saved="{{ $hasSavedBack ? '1' : '0' }}">
 
-                                        <div id="selfiePreview" class="aln-file-preview"></div>
+                                                <label for="validIdBack" class="aln-dropzone aln-dropzone--id" data-dropzone-for="validIdBack">
+                                                    <span class="aln-dropzone__icon">
+                                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                            <polyline points="16 16 12 12 8 16"></polyline>
+                                                            <line x1="12" y1="12" x2="12" y2="21"></line>
+                                                            <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path>
+                                                        </svg>
+                                                    </span>
+                                                    <span class="aln-dropzone__title"><span>Click to upload</span> or drag and drop</span>
+                                                    <span class="aln-dropzone__hint">
+                                                        {{ $hasSavedBack ? 'You already have an ID on file. Upload a new one to replace it.' : 'JPG or PNG, max 5MB.' }}
+                                                    </span>
+                                                </label>
+
+                                                <div id="idBackPreview" class="aln-file-preview"></div>
+                                            </div>
+
+                                            {{-- Selfie with Valid ID --}}
+                                            <div class="col-md-4">
+                                                <label class="aln-label" for="selfieWithId">
+                                                    Selfie with Valid ID <span class="aln-required">*</span>
+                                                </label>
+                                                {{-- Totoong input (nakatago). Yung dropzone sa ibaba ang pipindutin. --}}
+                                                <input type="file" class="aln-file-hidden" id="selfieWithId"
+                                                    accept=".jpg,.jpeg,.png,image/jpeg,image/png" data-saved="{{ $hasSavedSelfie ? '1' : '0' }}">
+
+                                                <label for="selfieWithId" class="aln-dropzone aln-dropzone--id" data-dropzone-for="selfieWithId">
+                                                    <span class="aln-dropzone__icon">
+                                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                            <polyline points="16 16 12 12 8 16"></polyline>
+                                                            <line x1="12" y1="12" x2="12" y2="21"></line>
+                                                            <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path>
+                                                        </svg>
+                                                    </span>
+                                                    <span class="aln-dropzone__title"><span>Click to upload</span> or drag and drop</span>
+                                                    <span class="aln-dropzone__hint">
+                                                        {{ $hasSavedSelfie ? 'You already have a selfie on file. Upload a new one to replace it.' : 'JPG or PNG, max 5MB.' }}
+                                                    </span>
+                                                </label>
+                                                <div id="selfiePreview" class="aln-file-preview"></div>
+                                                {{-- Nasa ilalim ng preview para magkapantay ang preview ng Front, Back, at Selfie --}}
+                                                <small class="aln-hint">Hold your valid ID next to your face. Make sure your face and the ID are both clear.</small>
+                                            </div>
+
+                                        </div>
                                     </div>
                                 </div>
                             </section>

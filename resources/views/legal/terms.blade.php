@@ -11,8 +11,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Terms and Conditions — Ran Serenity</title>
+<title>Terms and Conditions — RAN Serenity</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link href="{{ asset('assets/landingpage/img/ranlogo1.jpg') }}" rel="icon">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="{{ asset('assets/legal/terms.css') }}" />
 </head>
@@ -21,7 +22,7 @@
     <div class="legal-layout">
 
         <aside class="legal-sidebar">
-            <a href="/" class="legal-sidebar-brand">Ran Serenity</a>
+            <a href="/" class="legal-sidebar-brand">RAN Serenity</a>
             <p class="legal-sidebar-label">On this page</p>
             <nav class="legal-sidebar-nav">
                 <a href="#overview">Overview</a>
@@ -32,7 +33,6 @@
                 <a href="#obligations">Borrower obligations</a>
                 <a href="#interest">Interest, fees, and penalties</a>
                 <a href="#payments">Payments, late payment &amp; default</a>
-                <a href="#comaker">Co-maker responsibilities</a>
                 <a href="#prohibited">Prohibited conduct</a>
                 <a href="#ip">Intellectual property</a>
                 <a href="#liability">Limitation of liability</a>
@@ -51,7 +51,7 @@
 
             <p>
                 These Terms and Conditions ("Terms") govern your access to and use of
-                Ran Serenity (the "Platform"), operated by [Company Legal Name]. By
+                RAN Serenity, operated by [Company Legal Name]. By
                 creating an account, applying for a loan, or otherwise using the
                 Platform, you agree to be bound by these Terms and our
                 <a href="{{ route('legal.privacy') }}">Privacy Policy</a>.
@@ -66,7 +66,7 @@
             </p>
 
             <h2 id="eligibility">2. Eligibility</h2>
-            <p>To use Ran Serenity as a borrower, you must:</p>
+            <p>To use RAN Serenity as a borrower, you must:</p>
             <ul>
                 <li>Be at least [18] years old and have the legal capacity to enter into a binding loan agreement;</li>
                 <li>Provide accurate, current, and complete information during registration and loan application;</li>
@@ -117,14 +117,7 @@
                 <li>Penalties may be waived at our sole discretion, as reflected in your account.</li>
             </ul>
 
-            <h2 id="comaker">8. Co-maker responsibilities</h2>
-            <p>
-                If your loan application includes a co-maker, you represent that the
-                co-maker has agreed to be identified as such and understands their
-                role. We may contact the co-maker regarding the status of the loan.
-            </p>
-
-            <h2 id="prohibited">9. Prohibited conduct</h2>
+            <h2 id="prohibited">8. Prohibited conduct</h2>
             <p>You agree not to:</p>
             <ul>
                 <li>Provide false, misleading, or fraudulent information;</li>
@@ -133,22 +126,22 @@
                 <li>Use the Platform for any unlawful purpose.</li>
             </ul>
 
-            <h2 id="ip">10. Intellectual property</h2>
+            <h2 id="ip">9. Intellectual property</h2>
             <p>
                 All content, branding, and software associated with the Platform are
                 owned by or licensed to [Company Legal Name] and may not be copied,
                 modified, or distributed without prior written permission.
             </p>
 
-            <h2 id="liability">11. Limitation of liability</h2>
+            <h2 id="liability">10. Limitation of liability</h2>
             <p>
-                To the fullest extent permitted by law, Ran Serenity is not liable for
+                To the fullest extent permitted by law, RAN Serenity is not liable for
                 indirect, incidental, or consequential damages arising from your use
                 of the Platform. Nothing in these Terms limits any liability that
                 cannot be excluded under Philippine law.
             </p>
 
-            <h2 id="termination">12. Suspension &amp; termination</h2>
+            <h2 id="termination">11. Suspension &amp; termination</h2>
             <p>
                 We may suspend or terminate your account if you violate these Terms,
                 provide false information, or engage in conduct that we reasonably
@@ -157,7 +150,7 @@
                 repayment obligations.
             </p>
 
-            <h2 id="disputes">13. Governing law &amp; disputes</h2>
+            <h2 id="disputes">12. Governing law &amp; disputes</h2>
             <p>
                 These Terms are governed by the laws of the Republic of the
                 Philippines. Any disputes arising from these Terms or your use of the
@@ -166,7 +159,7 @@
                 applicable arbitration or mediation clause the parties may agree to.
             </p>
 
-            <h2 id="changes">14. Changes to these terms</h2>
+            <h2 id="changes">13. Changes to these terms</h2>
             <p>
                 We may update these Terms from time to time. Material changes will be
                 posted on this page with an updated "Last updated" date. Continued
@@ -174,18 +167,18 @@
                 of the revised Terms.
             </p>
 
-            <h2 id="contact">15. Contact us</h2>
+            <h2 id="contact">14. Contact us</h2>
             <p>
-                +1 5589 55488 555<br>
-                Email: ranserenity@gmail.com<br>
-                Address: Olongapo City
+                +63 +9691898835<br>
+                Email: ranserenity77@gmail.com<br>
+                Address: New Cabalan, Olangapo City
             </p>
 
             <div class="legal-academic-notice">
                 <strong>Academic Use Notice</strong>
                 <p>
                     This document is provided for the purposes of the
-                    Ran Serenity Lending System capstone project and is
+                    RAN Serenity Lending System capstone project and is
                     intended for system demonstration and academic use
                     only. It does not constitute legal advice or
                     establish a real lending agreement.

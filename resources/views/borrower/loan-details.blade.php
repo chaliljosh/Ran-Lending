@@ -242,11 +242,17 @@
                                             $baseCanUpload = !empty($row['can_upload']);
                                             $canUpload     = $baseCanUpload && $inWindow;
 
-                                            // Amount Paid at balance (kung partial)
+                                            // Amount Paid = bahagi ng installment na nabayad na (galing mismo sa
+                                            // schedule.amount_paid, kapareho ng admin). Hindi na ginagamit ang
+                                            // naka-format na amount ng ledger ("1,350.00"), kasi ang (float) nun ay 1.0.
                                             $paidAmount = $isRowPaid
                                                 ? (float) $row['amount']
-                                                : collect($rowPayments)->sum(fn ($pay) => (float) data_get($pay, 'amount', data_get($pay, 'amount_paid', 0)));
-                                            $balance = max(0, (float) $row['amount'] - $paidAmount);
+                                                : (float) ($row['amount_paid'] ?? 0);
+
+                                            // Natitirang balance: installment + natitirang penalty (kapareho ng admin)
+                                            $installmentLeft = max(0, (float) $row['amount'] - $paidAmount);
+                                            $penaltyDue      = $isRowPaid ? 0.0 : (float) ($row['penalty_due'] ?? 0);
+                                            $balance         = $installmentLeft + $penaltyDue;
 
                                             // Maliit na text sa ilalim ng Due Date
                                             $dueSubClass = '';
@@ -283,8 +289,13 @@
                                             <td><span class="bwl-ld-main">₱{{ number_format($row['amount'], 2) }}</span></td>
                                             <td>
                                                 <div class="bwl-ld-main">₱{{ number_format($paidAmount, 2) }}</div>
-                                                @if(!$isRowPaid && $paidAmount > 0)
-                                                    <div class="bwl-ld-sub">Balance ₱{{ number_format($balance, 2) }}</div>
+                                                @if(!$isRowPaid && ($paidAmount > 0 || $penaltyDue > 0))
+                                                    <div class="bwl-ld-sub">
+                                                        Balance ₱{{ number_format($balance, 2) }}
+                                                        @if($penaltyDue > 0)
+                                                            (incl. ₱{{ number_format($penaltyDue, 2) }} penalty)
+                                                        @endif
+                                                    </div>
                                                 @endif
                                             </td>
                                             <td>{{ $isRowPaid ? $row['paid_at']->format('M j, Y') : '—' }}</td>

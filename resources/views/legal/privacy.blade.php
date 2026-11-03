@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Privacy Policy — Ran Serenity</title>
+<title>Privacy Policy — RAN Serenity</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="{{ asset('assets/landingpage/img/ranlogo1.jpg') }}" rel="icon">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="{{ asset('assets/legal/terms.css') }}" />
 </head>
@@ -13,7 +14,7 @@
     <div class="legal-layout">
 
         <aside class="legal-sidebar">
-            <a href="/" class="legal-sidebar-brand">Ran Serenity</a>
+            <a href="/" class="legal-sidebar-brand">RAN Serenity</a>
             <p class="legal-sidebar-label">On this page</p>
             <nav class="legal-sidebar-nav">
                 <a href="#overview">Overview</a>
@@ -39,7 +40,7 @@
             <div class="legal-updated">Last updated: September 11, 2026</div>
 
             <p>
-                Ran Serenity ("we," "us," or "the Platform") operates an online lending
+                RAN Serenity ("we," "us," or "the Platform") operates an online lending
                 application and admin system. This Privacy Policy explains what personal
                 information we collect from borrowers and administrators, why we collect
                 it, how we use and protect it, and what rights you have over it under the
@@ -49,13 +50,13 @@
 
             <div class="legal-note">
                 By registering for an account, applying for a loan, or otherwise using
-                Ran Serenity, you agree to the collection and use of information as
+                RAN Serenity, you agree to the collection and use of information as
                 described in this Privacy Policy.
             </div>
 
             <h2 id="scope">1. Who this policy covers</h2>
             <p>
-                This policy applies to borrowers who register on Ran Serenity, apply for
+                This policy applies to borrowers who register on RAN Serenity, apply for
                 or hold a loan, and administrators/staff who use the admin dashboard. It
                 covers information collected through our website, forms, uploaded
                 documents, and related communications.
@@ -86,10 +87,6 @@
                     <td>Employer name, position, years employed, monthly income</td>
                 </tr>
                 <tr>
-                    <td>Co-maker information</td>
-                    <td>Name, relationship to borrower, and contact number of a designated co-maker</td>
-                </tr>
-                <tr>
                     <td>Loan &amp; payment information</td>
                     <td>Loan amount, term, purpose, application status, payment schedule, payment history, penalties</td>
                 </tr>
@@ -110,8 +107,8 @@
                 <li>To create and manage your account</li>
                 <li>To verify your identity and evaluate loan eligibility</li>
                 <li>To process, disburse, and service your loan, including calculating interest, penalties, and payment schedules</li>
-                <li>To contact you and your designated co-maker regarding your application or loan status</li>
-                <li>To detect and prevent fraud, abuse, and unauthorized access (including through security tools such as Google reCAPTCHA)</li>
+                <li>To contact you regarding your application or loan status</li>
+                <li>To detect and prevent fraud, abuse, and unauthorized access</li>
                 <li>To comply with legal, regulatory, and recordkeeping obligations</li>
                 <li>To improve the security, reliability, and usability of the Platform</li>
             </ul>
@@ -130,8 +127,7 @@
             <p>We do not sell your personal information. We may share it only:</p>
             <ul>
                 <li>With our administrators and staff who need it to review, approve, or service your loan</li>
-                <li>With your designated co-maker, to the extent necessary to confirm their role and obligations</li>
-                <li>With service providers who help us operate the Platform (e.g., hosting, storage, email delivery, and security services such as Google reCAPTCHA), under confidentiality obligations</li>
+                <li>With service providers who help us operate the Platform (e.g., hosting, storage, and email delivery), under confidentiality obligations</li>
                 <li>With regulators, courts, or government authorities where required by law</li>
                 <li>In connection with a merger, acquisition, or transfer of business assets, subject to equivalent privacy protections</li>
             </ul>
@@ -159,7 +155,7 @@
             <h2 id="cookies">8. Cookies</h2>
             <p>
                 We use a small number of cookies that are necessary to keep you signed
-                in and to protect the Platform from abuse (including Google reCAPTCHA).
+                in and to make the Platform work properly.
                 See our <a href="{{ route('legal.cookies') }}">Cookie Policy</a> for full details on
                 what each cookie does and how to manage them.
             </p>
@@ -180,7 +176,7 @@
 
             <h2 id="minors">10. Children's privacy</h2>
             <p>
-                Ran Serenity is intended for borrowers who meet the minimum legal age
+                RAN Serenity is intended for borrowers who meet the minimum legal age
                 to enter into a loan agreement in the Philippines. We do not knowingly
                 collect personal information from minors. If we learn that we have
                 collected information from a minor without appropriate consent, we
@@ -201,16 +197,16 @@
             </p>
             <p>
                 [Data Protection Officer / Contact Person]<br>
-                Ran Serenity<br>
-                Email: Ranserenity@gmail.com<br>
-                Address: Olongapo City
+                RAN<br>
+                Email: ranserenity77@gmail.com<br>
+                Address: New Cabalan, Olangapo City
             </p>
 
             <div class="legal-academic-notice">
                 <strong>Academic Use Notice</strong>
                 <p>
                     This Privacy Policy is provided for the purposes of the
-                    Ran Serenity Lending System capstone project and is
+                    RAN Serenity Lending System capstone project and is
                     intended for academic and system demonstration purposes
                     only. It does not constitute legal advice or represent
                     a legally binding privacy policy for an actual lending

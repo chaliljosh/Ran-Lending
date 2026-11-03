@@ -360,12 +360,13 @@
           <div class="tab-pane fade" id="features-tab-4">
             <div class="row">
               <div class="col-lg-6 order-2 order-lg-1 mt-3 mt-lg-0">
-                <h3>Assigned Loan Due Dates</h3>
-                <p>Loan due dates are manually set by the administrator to define clear payment schedules and ensure borrowers are aware of their payment deadlines.</p>
+                <h3>Loan Due Dates</h3>
+                <p>Your due dates are automatically set once your loan is released. The first payment is due one month after the release date, minus one day, and each next payment follows every month on the same schedule.</p>
                 <ul>
-                  <li><i class="bi bi-check2-all"></i> <span>Manually assigned due dates</span></li>
-                  <li><i class="bi bi-check2-all"></i> <span>Clear and fixed payment schedules</span></li>
-                  <li><i class="bi bi-check2-all"></i> <span>Improved loan monitoring and compliance</span></li>
+                  <li><i class="bi bi-check2-all"></i> <span>Starts counting from the loan release date</span></li>
+                  <li><i class="bi bi-check2-all"></i> <span>Example: released on November 3, first due date is December 2</span></li>
+                  <li><i class="bi bi-check2-all"></i> <span>Next payments follow monthly: January 2, February 2, and so on</span></li>
+                  <li><i class="bi bi-check2-all"></i> <span>Your full payment schedule is available once the loan is released</span></li>
                 </ul>
               </div>
               <div class="col-lg-6 order-1 order-lg-2 text-center">
@@ -430,7 +431,7 @@
               data-aos="fade-up" data-aos-delay="200">
               <i class="bi bi-geo-alt"></i>
               <h3>Address</h3>
-              <p>Olongapo, PH</p>
+              <p>New Cabalan, Olangapo City</p>
             </div>
           </div>
 
@@ -439,7 +440,7 @@
               data-aos="fade-up" data-aos-delay="300">
               <i class="bi bi-telephone"></i>
               <h3>Call Us</h3>
-              <p>+639691898835</p>
+              <p>+63 9691898835</p>
             </div>
           </div>
 
@@ -472,7 +473,7 @@
             <span class="sitename">Ran Serenity</span>
           </a>
           <div class="footer-contact pt-3">
-            <p>Olongapo, PH</p>
+            <p>New Cabalan, Olangapo City</p>
             <p class="mt-3"><strong>Phone:</strong> <span>+639691898835</span></p>
             <p><strong>Email:</strong> <span>ranserenity77@gmail.com</span></p>
           </div>

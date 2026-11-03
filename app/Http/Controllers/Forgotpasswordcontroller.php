@@ -7,20 +7,15 @@ use App\Mail\OtpMail;
 use App\Models\OtpVerification;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 
 class ForgotPasswordController extends Controller
 {
-    /**
-     * I-normalize ang email bago ito gamitin sa anumang lookup, OTP
-     * record, o session storage. Tinatanggal ang "+alias" na bahagi ng
-     * local part, at para sa Gmail/Googlemail, tinatanggal din ang mga
-     * tuldok — parehong loophole na pwedeng gamitin para mag-request ng
-     * paulit-ulit na password reset OTP gamit ang "magkaibang" email
-     * pero parehong totoong inbox. Kopya ito ng normalizeEmail() sa
-     * AuthController — pareho dapat lagi ang dalawa.
-     */
+    // Ilang maling try bago i-lock ang OTP
+    private const MAX_OTP_TRIES = 5;
+
     private function normalizeEmail(string $email): string
     {
         $email = strtolower(trim($email));
@@ -40,50 +35,50 @@ class ForgotPasswordController extends Controller
         return $local . '@' . $domain;
     }
 
-   public function sendOtp(Request $request)
-{
-    try {
-        $data = $request->validate(['email' => 'required|email']);
+    public function sendOtp(Request $request)
+    {
+        try {
+            $data = $request->validate(['email' => 'required|email']);
 
-        $email = $this->normalizeEmail($data['email']);
+            $email = $this->normalizeEmail($data['email']);
 
-        $user = User::where('email', $email)->first();
-        if (!$user) {
-            return response()->json(['success' => false, 'message' => 'Email not found.']);
+            $user = User::where('email', $email)->first();
+            if (!$user) {
+                return response()->json(['success' => false, 'message' => 'Email not found.']);
+            }
+
+            $otp = rand(100000, 999999);
+
+            OtpVerification::create([
+                'email'      => $user->email,
+                'otp'        => Hash::make($otp),
+                'type'       => 'forgot_password',
+                'is_used'    => false,
+                'expires_at' => now()->addMinutes(10),
+            ]);
+
+            // Bagong OTP = reset ang bilang ng maling try
+            Cache::forget('fp_tries:' . $user->email);
+
+            Mail::to($user->email)->send(new OtpMail($user->name, $otp));
+            $request->session()->put('reset_email', $user->email);
+
+            AuditLogger::log('auth.password_reset_requested', [
+                'entity_type' => 'user',
+                'entity_id'   => $user->user_id,
+                'description' => 'Requested a password reset code',
+                'actor'       => ['id' => $user->user_id, 'role' => $user->role, 'name' => $user->name],
+            ]);
+
+            return response()->json(['success' => true, 'message' => 'OTP sent to your email.']);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage(),
+            ]);
         }
-
-        $otp = rand(100000, 999999);
-
-        // I-store yung HASHED na version ng OTP — yung raw $otp ay
-        // ipinapadala lang sa email, hindi na ito naka-store kahit saan.
-        OtpVerification::create([
-            'email'      => $user->email,
-            'otp'        => Hash::make($otp),
-            'type'       => 'forgot_password',
-            'is_used'    => false,
-            'expires_at' => now()->addMinutes(10),
-        ]);
-
-        Mail::to($user->email)->send(new OtpMail($user->name, $otp));
-        $request->session()->put('reset_email', $user->email);
-
-        // Audit Logs: humingi ng reset code (hindi kasama ang OTP)
-        AuditLogger::log('auth.password_reset_requested', [
-            'entity_type' => 'user',
-            'entity_id'   => $user->user_id,
-            'description' => 'Requested a password reset code',
-            'actor'       => ['id' => $user->user_id, 'role' => $user->role, 'name' => $user->name],
-        ]);
-
-        return response()->json(['success' => true, 'message' => 'OTP sent to your email.']);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Error: ' . $e->getMessage(),
-        ]);
     }
-}
 
     public function reset(Request $request)
     {
@@ -96,10 +91,16 @@ class ForgotPasswordController extends Controller
             ]);
 
             $email = $this->normalizeEmail($data['email']);
+            $triesKey = 'fp_tries:' . $email;
 
-            // Kunin muna yung record base sa email/type/expiry/is_used lang —
-            // hindi na natin pwedeng gamitin ang WHERE otp = $data['otp']
-            // dahil hashed na siya sa DB. I-compare gamit Hash::check().
+            // Sobra na ang maling try: kailangan mag-resend
+            if ((int) Cache::get($triesKey, 0) >= self::MAX_OTP_TRIES) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Too many wrong attempts. Please request a new code.',
+                ]);
+            }
+
             $record = OtpVerification::where('email', $email)
                 ->where('type', 'forgot_password')
                 ->where('is_used', false)
@@ -108,9 +109,11 @@ class ForgotPasswordController extends Controller
                 ->first();
 
             if (!$record || !Hash::check($data['otp'], $record->otp)) {
+                Cache::put($triesKey, (int) Cache::get($triesKey, 0) + 1, now()->addMinutes(10));
                 return response()->json(['success' => false, 'message' => 'Invalid or expired OTP.']);
             }
 
+            Cache::forget($triesKey);
             $record->update(['is_used' => true]);
             $request->session()->put('reset_email', $email);
 
@@ -130,7 +133,6 @@ class ForgotPasswordController extends Controller
                 'password_hash' => Hash::make($data['password']),
             ]);
 
-            // Audit Logs: hindi kailanman nilalagay ang password
             $user = User::where('email', $email)->first();
             if ($user) {
                 AuditLogger::log('auth.password_reset', [

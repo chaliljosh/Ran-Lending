@@ -406,6 +406,14 @@
 
         </div>
 
+        {{-- Terms & Privacy note: nakikita sa step 1, 2, at 3 --}}
+        <p class="legal-note">
+          By creating an account, you agree to our
+          <a href="{{ route('legal.terms') }}" target="_blank" rel="noopener">Terms of Service</a>
+          and
+          <a href="{{ route('legal.privacy') }}" target="_blank" rel="noopener">Privacy Policy</a>.
+        </p>
+
         <p class="footer-text">
           Already have an account? <a href="{{ route('login') }}">Sign In</a>
         </p>

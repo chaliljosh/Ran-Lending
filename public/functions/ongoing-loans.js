@@ -24,7 +24,7 @@ function olGetMatchingRows() {
     // Napiling buwan (hal. "09" = September). Walang laman = All Months
     const month = document.getElementById('monthFilter')?.value || '';
 
-    // Napiling status: "awaiting" o "ongoing". Walang laman = All Status
+    // Napiling status: "awaiting", "ongoing" o "receipt". Walang laman = All Status
     // (wala ang dropdown na ito sa Waiting for Release page, kaya walang laman din)
     const status = document.getElementById('statusFilter')?.value || '';
 
@@ -35,7 +35,15 @@ function olGetMatchingRows() {
     return allRows.filter(function (row) {
         const matchSearch = !query || row.dataset.search.includes(query);
         const matchMonth = !month || row.dataset.month === month;
-        const matchStatus = !status || row.dataset.status === status;
+
+        // "receipt" = may na-upload na resibo ang borrower na hinihintay pa i-verify ng admin
+        let matchStatus = true;
+        if (status === 'receipt') {
+            matchStatus = row.dataset.receipt === '1';
+        } else if (status) {
+            matchStatus = row.dataset.status === status;
+        }
+
         return matchSearch && matchMonth && matchStatus;
     });
 }
@@ -252,9 +260,22 @@ function olUpdatePaginationControls(totalRows, totalPages, start, end) {
     }
 }
 
+// Galing sa sidebar badge: /admin/active-loans/ongoing?filter=receipt
+// Piliin agad ang "Receipt to Verify" sa Status dropdown.
+function olApplyUrlFilter() {
+    const statusSelect = document.getElementById('statusFilter');
+    if (!statusSelect) return;
+
+    const filter = new URLSearchParams(window.location.search).get('filter');
+    if (filter === 'receipt') {
+        statusSelect.value = 'receipt';
+    }
+}
+
 // Pag-load ng page: i-sort ayon sa dropdown (default Newest First) tapos page 1.
 function olInit() {
     if (document.getElementById('loanTableWrap')) {
+        olApplyUrlFilter();
         olReadDropdown();
         olSortRows();
         olUpdateHeaderArrows();

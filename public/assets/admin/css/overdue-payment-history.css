@@ -1,0 +1,191 @@
+/* ══════════════════════════════════════════
+   Admin — Overdue Payment Detail > Payment Details
+   Prefix: opd-pd-   |   Tugma sa functions/overdue-payment-history.js
+   I-save bilang: public/assets/admin/css/overdue-payment-history.css
+   ══════════════════════════════════════════ */
+
+/* Payment Schedule table: 6 columns na (dagdag ang Actions) */
+.opd-table th:nth-child(1), .opd-table td:nth-child(1) { width: 7%; }
+.opd-table th:nth-child(2), .opd-table td:nth-child(2) { width: 17%; }
+.opd-table th:nth-child(3), .opd-table td:nth-child(3) { width: 27%; }
+.opd-table th:nth-child(4), .opd-table td:nth-child(4) { width: 16%; }
+.opd-table th:nth-child(5), .opd-table td:nth-child(5) { width: 18%; }
+.opd-table th:nth-child(6), .opd-table td:nth-child(6) { width: 15%; text-align: right; }
+@media (max-width: 767.98px) {
+    .opd-table th:nth-child(n), .opd-table td:nth-child(n) { width: auto; }
+}
+
+/* ---------- Details button ---------- */
+.opd-pd-btn {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 14px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    color: #0f172a;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: border-color .15s ease, color .15s ease, background .15s ease;
+}
+.opd-pd-btn:hover { border-color: #1e3a8a; color: #1e3a8a; background: #f5f8ff; }
+.opd-pd-btn:focus-visible { outline: 2px solid #93c5fd; outline-offset: 2px; }
+.opd-pd-btn i { font-size: 0.9rem; }
+
+/* ---------- Modals ---------- */
+.opd-pd-modal .modal-content {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+    overflow: hidden;
+}
+.opd-pd-modal .modal-header {
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid #e5e7eb;
+    align-items: flex-start;
+}
+.opd-pd-modal .modal-title { font-size: 1rem; font-weight: 600; color: #1a2a3a; }
+.opd-pd-modal .modal-body { padding: 18px 22px; text-align: left; }
+.opd-pd-modal .modal-footer { padding: 14px 22px; border-top: 1px solid #e5e7eb; gap: 8px; }
+.opd-pd-sub { font-size: 0.78rem; color: #94a3b8; margin-top: 2px; }
+
+/* ---------- Summary grid ---------- */
+.opd-pd-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 18px;
+    margin: 0 0 18px;
+}
+.opd-pd-grid dt {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 4px;
+}
+.opd-pd-grid dd { margin: 0; font-size: 0.9rem; font-weight: 600; color: #0f172a; }
+.opd-pd-grid dd.is-paid,
+.opd-pd-grid dd.is-pending {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 3px 10px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    font-size: 0.72rem;
+    font-weight: 500;
+    background: #fff;
+    text-transform: none;
+}
+.opd-pd-grid dd.is-paid    { border-color: #86efac; color: #16a34a; }
+.opd-pd-grid dd.is-pending { border-color: #fcd34d; color: #b45309; }
+
+.opd-pd-section-title {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 10px;
+}
+
+/* ---------- Payment list ---------- */
+.opd-pd-list { display: flex; flex-direction: column; gap: 8px; }
+.opd-pd-list[hidden], .opd-pd-empty[hidden], .opd-pd-state[hidden] { display: none !important; }
+
+.opd-pd-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+}
+.opd-pd-row-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.opd-pd-amount { font-weight: 600; color: #0f172a; font-size: 0.9rem; }
+.opd-pd-date { font-size: 0.76rem; color: #64748b; }
+.opd-pd-penalty { font-size: 0.72rem; color: #c2410c; }
+.opd-pd-kind {
+    font-size: 0.66rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #eef3ff;
+    color: #4a7cf7;
+    margin-left: 6px;
+    text-transform: uppercase;
+}
+.opd-pd-kind.is-full { background: #ecfdf3; color: #16a34a; }
+.opd-pd-link {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #1e3a8a;
+    white-space: nowrap;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+}
+.opd-pd-link:hover { text-decoration: underline; }
+.opd-pd-none { font-size: 0.78rem; color: #94a3b8; white-space: nowrap; }
+.opd-pd-empty { font-size: 0.85rem; color: #94a3b8; padding: 8px 0; }
+
+/* ---------- Receipt viewer ---------- */
+.opd-pd-viewer-body {
+    background: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 240px;
+    border-radius: 10px;
+}
+.opd-pd-viewer-body img {
+    max-width: 100%;
+    max-height: 60vh;
+    object-fit: contain;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+}
+.opd-pd-viewer-body img[hidden],
+.opd-pd-viewer-body .spinner-border[hidden] { display: none !important; }
+.opd-pd-state { font-size: 0.85rem; color: #94a3b8; text-align: center; }
+
+@media (max-width: 480px) {
+    .opd-pd-grid { grid-template-columns: 1fr; }
+    .opd-pd-row { flex-direction: column; align-items: flex-start; }
+}
+
+/* ══════════ DARK MODE ══════════ */
+html.app-skin-dark .opd-pd-btn { background: #0d0d0d !important; border-color: #262626 !important; color: #F5F5F5 !important; }
+html.app-skin-dark .opd-pd-btn:hover { border-color: #4a4a4a !important; background: #262626 !important; }
+html.app-skin-dark .opd-pd-modal .modal-content { background: #141414 !important; }
+html.app-skin-dark .opd-pd-modal .modal-header,
+html.app-skin-dark .opd-pd-modal .modal-footer { border-color: #262626 !important; }
+html.app-skin-dark .opd-pd-modal .modal-title,
+html.app-skin-dark .opd-pd-grid dd,
+html.app-skin-dark .opd-pd-amount { color: #F5F5F5 !important; }
+html.app-skin-dark .opd-pd-modal .btn-close { filter: invert(1) grayscale(1); }
+html.app-skin-dark .opd-pd-grid dt,
+html.app-skin-dark .opd-pd-section-title,
+html.app-skin-dark .opd-pd-sub { color: #9A9A9A !important; }
+html.app-skin-dark .opd-pd-date { color: #9A9A9A !important; }
+html.app-skin-dark .opd-pd-penalty { color: #fb923c !important; }
+html.app-skin-dark .opd-pd-row { background: #0d0d0d !important; border-color: #262626 !important; }
+html.app-skin-dark .opd-pd-link { color: #93c5fd !important; }
+html.app-skin-dark .opd-pd-kind { background: rgba(37, 99, 235, 0.18) !important; color: #60A5FA !important; }
+html.app-skin-dark .opd-pd-kind.is-full { background: rgba(22, 163, 74, 0.15) !important; color: #4ADE80 !important; }
+html.app-skin-dark .opd-pd-grid dd.is-paid { background: transparent !important; border-color: #166534 !important; color: #4ade80 !important; }
+html.app-skin-dark .opd-pd-grid dd.is-pending { background: transparent !important; border-color: #78350f !important; color: #fbbf24 !important; }
+html.app-skin-dark .opd-pd-viewer-body { background: #0d0d0d !important; }
+html.app-skin-dark .opd-pd-viewer-body img { border-color: #262626 !important; }

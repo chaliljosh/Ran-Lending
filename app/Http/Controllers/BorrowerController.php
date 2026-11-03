@@ -1209,10 +1209,13 @@ class BorrowerController extends Controller
                     ->get()
                     ->groupBy('schedule_id')
                     ->map(fn($rows) => $rows->map(fn($p) => [
-                        'date'   => Carbon::parse($p->paid_on)->format('M d, Y'),
-                        'amount' => number_format((float) $p->amount, 2),
-                        'kind'   => $p->kind,
-                        'url'    => !empty($p->receipt_path)
+                        'date'       => Carbon::parse($p->paid_on)->format('M d, Y'),
+                        // Naka-format na string ("1,350.00") — pang-display lang.
+                        // Huwag i-(float) ito; gamitin ang amount_raw para sa computation.
+                        'amount'     => number_format((float) $p->amount, 2),
+                        'amount_raw' => (float) $p->amount,
+                        'kind'       => $p->kind,
+                        'url'        => !empty($p->receipt_path)
                             ? route('borrower.installment-payment-receipt', $p->id)
                             : '',
                     ])->values()->all());
@@ -1220,9 +1223,34 @@ class BorrowerController extends Controller
                 Log::warning('installment_payments query failed', ['error' => $e->getMessage()]);
             }
 
+            // Natitirang penalty kada installment (parehong formula ng admin side):
+            // penalty_amount ng unpaid na penalty - penalty na nabayad na sa ledger (hindi void).
+            // Ito ang idinadagdag sa balance para tugma sa nakikita ng admin.
+            $penaltyLeftBySchedule = collect();
+            try {
+                $unpaidPenalties = DB::table('loan_penalties')
+                    ->where('application_id', $app->application_id)
+                    ->where('status', 'unpaid')
+                    ->pluck('penalty_amount', 'schedule_id');
+
+                $penaltyPaidBySchedule = DB::table('installment_payments')
+                    ->where('application_id', $app->application_id)
+                    ->whereNull('voided_at')
+                    ->selectRaw('schedule_id, COALESCE(SUM(penalty_amount), 0) as paid')
+                    ->groupBy('schedule_id')
+                    ->pluck('paid', 'schedule_id');
+
+                $penaltyLeftBySchedule = $unpaidPenalties->map(function ($amount, $scheduleId) use ($penaltyPaidBySchedule) {
+                    return max(0.0, round((float) $amount - (float) ($penaltyPaidBySchedule[$scheduleId] ?? 0), 2));
+                });
+            } catch (\Throwable $e) {
+                Log::warning('penalty balance query failed', ['error' => $e->getMessage()]);
+            }
+
             $paymentSchedule = $realSchedule->map(function ($s) use (
                 $canUploadReceipts, $nextUnpaidRow, $receiptsByInstallment,
-                $paidReceiptIds, $confirmations, $paymentsBySchedule, $scheduleIdByInstallment
+                $paidReceiptIds, $confirmations, $paymentsBySchedule, $scheduleIdByInstallment,
+                $penaltyLeftBySchedule
             ) {
                 $due = Carbon::parse($s->due_date);
                 $rowStatus = !is_null($s->paid_at)
@@ -1247,6 +1275,12 @@ class BorrowerController extends Controller
                     'month'      => $s->installment_no,
                     'due'        => $due,
                     'amount'     => (float) $s->amount_due,
+                    // Bahagi ng installment na nabayad na (kapareho ng admin)
+                    'amount_paid' => (float) $s->amount_paid,
+                    // Natitirang penalty na babayaran pa (0 kung paid na ang installment)
+                    'penalty_due' => $rowStatus === 'paid'
+                        ? 0.0
+                        : (float) $penaltyLeftBySchedule->get($scheduleId, 0),
                     'status'     => $rowStatus,
                     'paid_at'    => !is_null($s->paid_at) ? Carbon::parse($s->paid_at) : null,
                     'can_upload' => $isUploadTarget,

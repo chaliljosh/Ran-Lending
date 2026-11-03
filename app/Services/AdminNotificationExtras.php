@@ -34,6 +34,28 @@ class AdminNotificationExtras
         });
     }
 
+    // Ito ba ang pinakamatagal na overdue na installment ng loan?
+    // Pareho ng logic ng overduePaymentDetail: hindi pa bayad at lampas na ang due date,
+    // at ang pinakamatagal ang pinipili. Kung pumalya ang query, false ang sagot,
+    // kaya sa Ongoing Loan Detail pa rin pupunta.
+    private static function isOldestOverdueSchedule($applicationId, $scheduleId): bool
+    {
+        try {
+            $oldestId = DB::table('loan_payment_schedules')
+                ->where('application_id', $applicationId)
+                ->whereNull('paid_at')
+                ->where('due_date', '<', now())
+                ->orderBy('due_date')
+                ->orderBy('installment_no')
+                ->value('id');
+
+            return $oldestId !== null && (int) $oldestId === (int) $scheduleId;
+        } catch (\Throwable $e) {
+            Log::warning('Admin notification overdue check failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
     private static function compute(int $adminId): Collection
     {
         $items = collect();
@@ -188,7 +210,7 @@ class AdminNotificationExtras
                 ->join('loan_applications as la', 'la.application_id', '=', 'pr.application_id')
                 ->leftJoin('borrowerpersonaldetails as bpd', 'bpd.user_id', '=', 'la.user_id')
                 ->where('pr.status', 'submitted')
-                ->select('pr.receipt_id', 'pr.installment_no', 'pr.submitted_at',
+                ->select('pr.receipt_id', 'pr.application_id', 'pr.schedule_id', 'pr.installment_no', 'pr.submitted_at',
                     'la.uuid', 'bpd.first_name', 'bpd.last_name')
                 ->orderByDesc('pr.submitted_at')
                 ->limit(20)
@@ -199,13 +221,25 @@ class AdminNotificationExtras
                     continue;
                 }
 
+                // Default: Ongoing Loan Detail. Kung ito ang pinakamatagal na overdue na installment,
+                // Overdue Payment Detail (yun lang ang receipt na lumalabas sa page na yun).
+                $url = route('admin.ongoing-loan-detail', $r->uuid) . '?from=ongoing-loans';
+
+                if (self::isOldestOverdueSchedule($r->application_id, $r->schedule_id)) {
+                    try {
+                        $url = route('admin.overdue-payment-detail', $r->uuid);
+                    } catch (\Throwable $e) {
+                        Log::warning("Admin notification: overdue detail route failed: " . $e->getMessage());
+                    }
+                }
+
                 $push([
                     'key'      => 'receipt:' . $r->receipt_id,
                     'title'    => 'Payment Receipt to Verify',
                     'subtitle' => $nameOf($r->first_name, $r->last_name) . ' · Installment #' . $r->installment_no,
                     'icon'     => 'feather-upload-cloud',
                     'color'    => 'primary',
-                    'url'      => route('admin.ongoing-loan-detail', $r->uuid) . '?from=ongoing-loans',
+                    'url'      => $url,
                     'ts'       => $r->submitted_at,
                 ], true);
             }

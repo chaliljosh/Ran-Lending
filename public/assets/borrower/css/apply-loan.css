@@ -439,6 +439,9 @@
 .aln-file-preview {
     margin-top: 10px;
 }
+.aln-file-preview:empty {
+    margin-top: 0;
+}
 .aln-file-preview__item {
     display: inline-flex;
     flex-direction: column;
@@ -1270,6 +1273,12 @@ html.app-skin-dark .aln-spotlight-btn__glow {
 .aln-dropzone.is-dragover {
     border-color: #2563EB;
     background: #EFF6FF;
+}
+
+/* Valid ID: Front / Back / Selfie sa isang row. Magkakapantay ang taas ng dropzone
+   kahit magkakaiba ang hint text (may saved na file o wala). */
+.aln-dropzone--id {
+    min-height: 176px;
 }
 
 .aln-dropzone__icon {

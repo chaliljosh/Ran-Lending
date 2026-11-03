@@ -10,13 +10,22 @@ class PaymentPartiallyRecorded extends Mailable
     public $displayName;
     public $loanCode;
     public $installmentNo;
-    public $amountDue;
+    public $amountDue;   // installment balance bago ang bayad na ito
+    public $penalty;     // penalty na natitira bago ang bayad na ito
     public $received;
-    public $balance;
+    public $balance;     // natitirang total (installment + penalty)
     public $remarks;
 
-    public function __construct($loan, string $displayName, int $installmentNo, float $amountDue, float $received, float $balance, ?string $remarks = null)
-    {
+    public function __construct(
+        $loan,
+        string $displayName,
+        int $installmentNo,
+        float $amountDue,
+        float $received,
+        float $balance,
+        ?string $remarks = null,
+        float $penalty = 0.0
+    ) {
         $this->loan = $loan;
         $this->displayName = $displayName;
         $this->installmentNo = $installmentNo;
@@ -24,6 +33,7 @@ class PaymentPartiallyRecorded extends Mailable
         $this->received = $received;
         $this->balance = $balance;
         $this->remarks = $remarks;
+        $this->penalty = $penalty;
 
         // Parehong format ng admin page: LN- + unang 8 chars ng uuid
         $this->loanCode = 'LN-' . strtoupper(substr($loan->uuid, 0, 8));

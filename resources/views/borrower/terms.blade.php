@@ -4,6 +4,7 @@
 
 @section('page-head-links')
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/faq.css') }}?v={{ time() }}">
+     <link href="{{ asset('assets/landingpage/img/ranlogo1.jpg') }}" rel="icon">
 @endsection
 
 @section('content')
@@ -49,14 +50,6 @@
 
         <div class="legal-section">
             <span class="legal-section__num">04</span>
-            <div class="legal-section__body">
-                <h6 class="legal-section__title">Co-Maker Responsibility</h6>
-                <p class="legal-text">If a co-maker is designated on your account, they may be contacted regarding your loan obligations in the event of missed or late payments.</p>
-            </div>
-        </div>
-
-        <div class="legal-section">
-            <span class="legal-section__num">05</span>
             <div class="legal-section__body">
                 <h6 class="legal-section__title">Changes to These Terms</h6>
                 <p class="legal-text">These terms may be updated from time to time. Continued use of Ran Serenity after changes are posted constitutes acceptance of the updated terms.</p>

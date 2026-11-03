@@ -365,10 +365,111 @@ document.addEventListener('DOMContentLoaded', function () {
             dFull.style.display = scaled ? '' : 'none';
         }
 
+        // ----- Receipt viewer (modal) -----
+        // Dalawang paraan ng pagbukas:
+        //   1) Diretso (isang full payment lang): walang babalikang Payment Details.
+        //   2) Galing sa listahan ng Payments: pagsara, balik sa Payment Details.
+        const rvModalEl = document.getElementById('olsReceiptViewerModal');
+        let returnToDetails = false;
+        let showReceiptViewer = null;
+
+        if (rvModalEl) {
+            const rvImg = el('olsRvImg');
+            const rvLoading = el('olsRvLoading');
+            const rvError = el('olsRvError');
+            const rvSub = el('olsRvSub');
+            const rvFull = el('olsRvFullLink');
+            const rvBackBtn = rvModalEl.querySelector('.modal-footer .ols-details-close');
+
+            function resetReceiptViewer() {
+                rvImg.onload = null;
+                rvImg.onerror = null;
+                rvImg.removeAttribute('src');
+                rvImg.style.display = 'none';
+                rvError.style.display = 'none';
+                rvLoading.style.display = '';
+            }
+
+            showReceiptViewer = function (url, label, backToDetails) {
+                returnToDetails = !!backToDetails;
+                resetReceiptViewer();
+
+                rvSub.textContent = label || '';
+                rvFull.href = url;
+                if (rvBackBtn) rvBackBtn.textContent = backToDetails ? 'Back' : 'Close';
+
+                rvImg.onload = function () {
+                    rvLoading.style.display = 'none';
+                    rvImg.style.display = '';
+                };
+                rvImg.onerror = function () {
+                    rvLoading.style.display = 'none';
+                    rvError.style.display = '';
+                };
+                rvImg.src = url;
+
+                bootstrap.Modal.getOrCreateInstance(rvModalEl).show();
+            };
+
+            // View receipt (galing sa listahan): isara ang details, buksan ang viewer.
+            el('olsPdPaymentsList').addEventListener('click', function (e) {
+                const link = e.target.closest('.js-pd-view-receipt');
+                if (!link) return;
+
+                const url = link.dataset.url;
+                if (!url) return;
+                const label = link.dataset.label || '';
+
+                detailsModalEl.addEventListener('hidden.bs.modal', function () {
+                    showReceiptViewer(url, label, true);
+                }, { once: true });
+
+                bootstrap.Modal.getOrCreateInstance(detailsModalEl).hide();
+            });
+
+            // Pagsara ng viewer: balik sa Payment Details kung galing doon.
+            rvModalEl.addEventListener('hidden.bs.modal', function () {
+                resetReceiptViewer();
+                if (returnToDetails) {
+                    returnToDetails = false;
+                    bootstrap.Modal.getOrCreateInstance(detailsModalEl).show();
+                }
+            });
+        }
+
+        // ----- Click sa "View Payment Details" -----
         table.addEventListener('click', function (e) {
             const btn = e.target.closest('.js-view-payment-details');
             if (!btn) return;
             const d = btn.dataset;
+
+            // Listahan ng lahat ng bayad ng installment (partial + full)
+            let payments = [];
+            try { payments = JSON.parse(d.payments || '[]'); } catch (err) {}
+
+            // Isang full payment lang na may resibo: diretso na sa picture.
+            // (Kapag partial o maraming bayad, Payment Details muna.)
+            if (showReceiptViewer && d.status === 'paid') {
+                if (payments.length === 1 && payments[0].url && payments[0].kind !== 'partial') {
+                    const p = payments[0];
+                    showReceiptViewer(
+                        p.url,
+                        '#' + d.installmentNo + ' \u00B7 Full \u00B7 \u20B1' + p.amount + ' \u00B7 ' + p.date,
+                        false
+                    );
+                    return;
+                }
+
+                // Lumang record na walang ledger row pero may receipt
+                if (!payments.length && d.receiptUrl) {
+                    showReceiptViewer(
+                        d.receiptUrl,
+                        '#' + d.installmentNo + ' \u00B7 \u20B1' + d.amount + (d.paid ? ' \u00B7 ' + d.paid : ''),
+                        false
+                    );
+                    return;
+                }
+            }
 
             el('olsPdInstallment').textContent = '#' + d.installmentNo;
             el('olsPdDue').textContent = d.due || '—';
@@ -379,10 +480,6 @@ document.addEventListener('DOMContentLoaded', function () {
             const [cls, label] = STATUS[d.status] || STATUS.upcoming;
             dStatus.className = 'ols-status-pill ' + cls;
             dStatus.textContent = label;
-
-            // Listahan ng lahat ng bayad ng installment (partial + full)
-            let payments = [];
-            try { payments = JSON.parse(d.payments || '[]'); } catch (err) {}
 
             const paySection = el('olsPdPaymentsSection');
             const payList = el('olsPdPaymentsList');
@@ -440,61 +537,6 @@ document.addEventListener('DOMContentLoaded', function () {
             dImg.onerror = null;
             dImg.removeAttribute('src');
         });
-
-        // ----- Receipt viewer: modal imbes na bagong tab -----
-        // Isasara muna ang Payment Details, tapos bubuksan ang viewer.
-        // Pagsara ng viewer, babalik sa Payment Details.
-        const rvModalEl = document.getElementById('olsReceiptViewerModal');
-        if (rvModalEl) {
-            const rvImg = el('olsRvImg');
-            const rvLoading = el('olsRvLoading');
-            const rvError = el('olsRvError');
-            const rvSub = el('olsRvSub');
-            const rvFull = el('olsRvFullLink');
-
-            function resetReceiptViewer() {
-                rvImg.onload = null;
-                rvImg.onerror = null;
-                rvImg.removeAttribute('src');
-                rvImg.style.display = 'none';
-                rvError.style.display = 'none';
-                rvLoading.style.display = '';
-            }
-
-            el('olsPdPaymentsList').addEventListener('click', function (e) {
-                const link = e.target.closest('.js-pd-view-receipt');
-                if (!link) return;
-
-                const url = link.dataset.url;
-                if (!url) return;
-
-                rvSub.textContent = link.dataset.label || '';
-                rvFull.href = url;
-
-                detailsModalEl.addEventListener('hidden.bs.modal', function () {
-                    resetReceiptViewer();
-
-                    rvImg.onload = function () {
-                        rvLoading.style.display = 'none';
-                        rvImg.style.display = '';
-                    };
-                    rvImg.onerror = function () {
-                        rvLoading.style.display = 'none';
-                        rvError.style.display = '';
-                    };
-                    rvImg.src = url;
-
-                    bootstrap.Modal.getOrCreateInstance(rvModalEl).show();
-                }, { once: true });
-
-                bootstrap.Modal.getOrCreateInstance(detailsModalEl).hide();
-            });
-
-            rvModalEl.addEventListener('hidden.bs.modal', function () {
-                resetReceiptViewer();
-                bootstrap.Modal.getOrCreateInstance(detailsModalEl).show();
-            });
-        }
     }
 
     const brModalEl = document.getElementById('olsBorrowerReceiptModal');

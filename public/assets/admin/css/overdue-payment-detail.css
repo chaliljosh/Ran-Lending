@@ -106,8 +106,20 @@ html body .main-content i[class*="feather-"]::before {
     cursor: pointer;
     transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
-.opd-btn-mark-paid { background: #1E293B; color: #fff; }
-.opd-btn-mark-paid:hover { background: #0F172A; color: #fff; }
+.opd-btn-mark-paid {
+    background: #1E3A8A;
+    border-color: #1E3A8A;
+    color: #ffffff;
+}
+.opd-btn-mark-paid:hover {
+    background: #172E73;
+    border-color: #172E73;
+    color: #ffffff;
+}
+.opd-btn-mark-paid:focus-visible {
+    outline: 2px solid #93c5fd;
+    outline-offset: 2px;
+}
 .opd-btn-waive { background: #FFFFFF; border-color: #e5e7eb; color: #0f172a; }
 .opd-btn-waive:hover { border-color: #94a3b8; color: #0f172a; background: #f8fafc; }
 .opd-btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -613,10 +625,14 @@ html.app-skin-dark .opd-outstanding-inline .opd-outstanding-label { color: #9A9A
 html.app-skin-dark .opd-outstanding-inline .opd-outstanding-value { color: #f87171 !important; }
 
 html.app-skin-dark .opd-btn-mark-paid {
-    background: #262626 !important;
-    color: #fff !important;
+    background: #1E3A8A !important;
+    border-color: #2F4FA8 !important;
+    color: #ffffff !important;
 }
-html.app-skin-dark .opd-btn-mark-paid:hover { background: #1a1a1a !important; }
+html.app-skin-dark .opd-btn-mark-paid:hover {
+    background: #2A4BB0 !important;
+    border-color: #3B5BC4 !important;
+}
 html.app-skin-dark .opd-overdue-card .opd-btn-waive,
 html.app-skin-dark .opd-btn-waive {
     background: #0d0d0d !important;
@@ -754,3 +770,497 @@ html.app-skin-dark .ols-dp-weekdays span { color: #9A9A9A !important; }
 html.app-skin-dark .ols-dp-day.is-today { border-color: #6b6b6b !important; }
 html.app-skin-dark .ols-dp-day.is-selected, html.app-skin-dark .ols-dp-year.is-selected { background: #F5F5F5 !important; border-color: #F5F5F5 !important; color: #0A0A0A !important; }
 html.app-skin-dark .ols-dp-day:disabled { color: #4a4a4a !important; }
+
+.opd-btn-reject {
+    background: #FFFFFF;
+    border-color: #fca5a5;
+    color: #dc2626;
+}
+.opd-btn-reject:hover {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: #FFFFFF;
+}
+
+.opd-awaiting-note {
+    display: inline-flex;
+    align-items: center;
+    height: 36px;
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: #64748B;
+}
+
+.opd-br-list dd.is-muted {
+    opacity: 0.7;
+    font-weight: 500;
+}
+
+html.app-skin-dark .opd-btn-reject {
+    background: #0d0d0d !important;
+    border-color: #7F1D1D !important;
+    color: #f87171 !important;
+}
+html.app-skin-dark .opd-btn-reject:hover {
+    background: #dc2626 !important;
+    border-color: #dc2626 !important;
+    color: #FFFFFF !important;
+}
+html.app-skin-dark .opd-awaiting-note { color: #9A9A9A !important; }
+
+.opd-ov {
+    padding: 22px 24px 24px;
+    border-color: #fecaca;
+}
+.opd-ov-head {
+    display: flex;
+    align-items: center;
+    margin-bottom: 18px;
+}
+.opd-ov-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #b91c1c;
+}
+.opd-ov-title::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #dc2626;
+    box-shadow: 0 0 0 4px #fee2e2;
+}
+
+.opd-ov-body {
+    display: grid;
+    grid-template-columns: minmax(240px, 340px) 1fr;
+    gap: 28px;
+    align-items: stretch;
+}
+
+.opd-ov-total {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: 18px 20px;
+    border: 1px solid #fee2e2;
+    border-radius: 12px;
+    background: #fef2f2;
+}
+.opd-ov-total-label {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #991b1b;
+}
+.opd-ov-total-amount {
+    font-size: 2.2rem;
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #dc2626;
+    font-variant-numeric: tabular-nums;
+}
+.opd-ov-total-sum {
+    margin-top: 6px;
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: #64748b;
+    font-variant-numeric: tabular-nums;
+}
+.opd-ov-total-sum .opd-ov-plus {
+    margin: 0 2px;
+    color: #94a3b8;
+}
+.opd-ov-total-sum .is-orange {
+    color: #c2410c;
+    font-weight: 500;
+}
+
+.opd-ov-facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: center;
+    margin: 0;
+}
+.opd-ov-fact {
+    padding: 0 24px;
+    border-left: 1px solid #eef1f6;
+}
+.opd-ov-fact:first-child {
+    padding-left: 4px;
+    border-left: 0;
+}
+.opd-ov-fact dt {
+    margin-bottom: 6px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: #64748b;
+}
+.opd-ov-fact dd {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #0f172a;
+    font-variant-numeric: tabular-nums;
+}
+.opd-ov-fact dd.is-danger {
+    color: #dc2626;
+}
+
+.opd-ov-receipt {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 20px;
+    padding: 14px 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+.opd-ov-receipt.is-waiting {
+    border-style: dashed;
+    border-color: #cbd5e1;
+    background: transparent;
+}
+.opd-ov-receipt-icon {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 1.1rem;
+}
+.opd-ov-receipt.is-ready .opd-ov-receipt-icon {
+    background: #dcfce7;
+    color: #15803d;
+}
+.opd-ov-receipt.is-waiting .opd-ov-receipt-icon {
+    background: #f1f5f9;
+    color: #64748b;
+}
+.opd-ov-receipt-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+.opd-ov-receipt-title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #0f172a;
+}
+.opd-ov-receipt-sub {
+    font-size: 0.78rem;
+    font-weight: 400;
+    line-height: 1.4;
+    color: #64748b;
+}
+
+.opd-btn-review {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 20px;
+    border: 1px solid #1e3a8a;
+    border-radius: 10px;
+    background: #1e3a8a;
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+.opd-btn-review i {
+    font-size: 1rem;
+}
+.opd-btn-review:hover {
+    background: #172e73;
+    border-color: #172e73;
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+.opd-btn-review:active {
+    transform: translateY(0);
+}
+.opd-btn-review:focus-visible {
+    outline: 2px solid #93c5fd;
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .opd-btn-review {
+        transition: none;
+    }
+    .opd-btn-review:hover {
+        transform: none;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .opd-ov-body {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .opd-ov {
+        padding: 18px 16px;
+    }
+    .opd-ov-total-amount {
+        font-size: 1.9rem;
+    }
+    .opd-ov-facts {
+        grid-template-columns: 1fr 1fr;
+        row-gap: 16px;
+    }
+    .opd-ov-fact,
+    .opd-ov-fact:first-child {
+        padding: 0;
+        border-left: 0;
+    }
+    .opd-ov-receipt {
+        flex-wrap: wrap;
+    }
+    .opd-ov-receipt-text {
+        flex-basis: calc(100% - 60px);
+    }
+    .opd-btn-review {
+        width: 100%;
+    }
+}
+
+html.app-skin-dark .opd-ov {
+    border-color: #3b1515 !important;
+}
+html.app-skin-dark .opd-ov-title {
+    color: #f87171 !important;
+}
+html.app-skin-dark .opd-ov-title::before {
+    background: #ef4444;
+    box-shadow: 0 0 0 4px #3b1515;
+}
+html.app-skin-dark .opd-ov-total {
+    background: #1f1111 !important;
+    border-color: #3b1515 !important;
+}
+html.app-skin-dark .opd-ov-total-label {
+    color: #fca5a5 !important;
+}
+html.app-skin-dark .opd-ov-total-amount {
+    color: #f87171 !important;
+}
+html.app-skin-dark .opd-ov-total-sum {
+    color: #C4C4C4 !important;
+}
+html.app-skin-dark .opd-ov-total-sum .opd-ov-plus {
+    color: #6b6b6b !important;
+}
+html.app-skin-dark .opd-ov-total-sum .is-orange {
+    color: #fb923c !important;
+}
+html.app-skin-dark .opd-ov-fact {
+    border-left-color: #262626 !important;
+}
+html.app-skin-dark .opd-ov-fact dt {
+    color: #9A9A9A !important;
+}
+html.app-skin-dark .opd-ov-fact dd {
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .opd-ov-fact dd.is-danger {
+    color: #f87171 !important;
+}
+html.app-skin-dark .opd-ov-receipt {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .opd-ov-receipt.is-waiting {
+    background: transparent !important;
+    border-color: #3a3a3a !important;
+}
+html.app-skin-dark .opd-ov-receipt.is-ready .opd-ov-receipt-icon {
+    background: #052e16 !important;
+    color: #4ade80 !important;
+}
+html.app-skin-dark .opd-ov-receipt.is-waiting .opd-ov-receipt-icon {
+    background: #262626 !important;
+    color: #C4C4C4 !important;
+}
+html.app-skin-dark .opd-ov-receipt-title {
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .opd-ov-receipt-sub {
+    color: #9A9A9A !important;
+}
+html.app-skin-dark .opd-btn-review {
+    background: #1E3A8A !important;
+    border-color: #2F4FA8 !important;
+    color: #ffffff !important;
+}
+html.app-skin-dark .opd-btn-review:hover {
+    background: #2A4BB0 !important;
+    border-color: #3B5BC4 !important;
+}
+
+.opd-bh-side {
+    flex: 0 1 460px;
+    min-width: 300px;
+    margin-left: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding-left: 28px;
+    border-left: 1px solid #eef1f6;
+}
+.opd-bh-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin: 0;
+}
+.opd-bh-stat dt {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: #64748b;
+}
+.opd-bh-stat dt i {
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
+.opd-bh-stat dd {
+    margin: 0;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #0f172a;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+}
+.opd-bh-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #1e3a8a;
+    text-decoration: none;
+}
+.opd-bh-link:hover {
+    color: #172e73;
+    text-decoration: underline;
+}
+.opd-bh-link i {
+    font-size: 0.85rem;
+}
+.opd-bh-progress-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 6px;
+    font-size: 0.75rem;
+    color: #64748b;
+}
+.opd-bh-progress-top strong {
+    font-weight: 600;
+    color: #0f172a;
+}
+.opd-bh-bar {
+    height: 6px;
+    border-radius: 999px;
+    background: #e5e7eb;
+    overflow: hidden;
+}
+.opd-bh-bar span {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: #1e3a8a;
+}
+
+.opd-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.opd-badge i {
+    font-size: 0.8rem;
+}
+
+.opd-summary-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+.opd-sum-ico {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 1199.98px) {
+    .opd-bh-side {
+        flex: 1 1 100%;
+        padding: 16px 0 0;
+        border-left: 0;
+        border-top: 1px solid #eef1f6;
+    }
+}
+@media (max-width: 575.98px) {
+    .opd-bh-stats {
+        grid-template-columns: 1fr 1fr;
+    }
+    .opd-bh-side {
+        text-align: left;
+    }
+}
+
+html.app-skin-dark .opd-bh-side {
+    border-color: #262626 !important;
+}
+html.app-skin-dark .opd-bh-stat dt {
+    color: #9A9A9A !important;
+}
+html.app-skin-dark .opd-bh-stat dt i {
+    color: #6b6b6b !important;
+}
+html.app-skin-dark .opd-bh-stat dd {
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .opd-bh-link {
+    color: #93c5fd !important;
+}
+html.app-skin-dark .opd-bh-progress-top {
+    color: #9A9A9A !important;
+}
+html.app-skin-dark .opd-bh-progress-top strong {
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .opd-bh-bar {
+    background: #262626 !important;
+}
+html.app-skin-dark .opd-bh-bar span {
+    background: #3B5BC4 !important;
+}
+html.app-skin-dark .opd-sum-ico {
+    background: #262626 !important;
+    color: #C4C4C4 !important;
+}

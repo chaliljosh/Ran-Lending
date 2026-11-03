@@ -1,5 +1,6 @@
 @php
     $due      = (float) $amountDue;
+    $penalty  = (float) ($penalty ?? 0);
     $received = (float) $received;
     $balance  = (float) $balance;
 
@@ -17,6 +18,7 @@
     $purpleDark = '#6b4bb8';
     $lavender   = '#efebf7';
     $danger     = '#b42318';
+    $orange     = '#c2410c';
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -66,7 +68,10 @@
                         <td style="padding:0 0 28px;{{ $f }}font-size:16px;font-weight:400;line-height:1.6;color:{{ $muted }};">
                             We received your payment for
                             <strong style="color:{{ $ink }};">installment #{{ $installmentNo }}</strong>,
-                            but it is not enough to cover the full amount due. Please pay the remaining balance
+                            but it is not enough to cover the full amount due
+                            @if ($penalty > 0)
+                                (including the late payment penalty)@endif.
+                            Please pay the remaining balance
                             of <strong style="color:{{ $ink }};">&#8369;{{ number_format($balance, 2) }}</strong>.
                         </td>
                     </tr>
@@ -102,6 +107,12 @@
                                                 <td style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $muted }};">Amount due</td>
                                                 <td align="right" style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $ink }};">&#8369;{{ number_format($due, 2) }}</td>
                                             </tr>
+                                            @if ($penalty > 0)
+                                                <tr>
+                                                    <td style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $muted }};">Late payment penalty</td>
+                                                    <td align="right" style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $orange }};">&#8369;{{ number_format($penalty, 2) }}</td>
+                                                </tr>
+                                            @endif
                                             <tr>
                                                 <td style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $muted }};">Amount received</td>
                                                 <td align="right" style="padding:14px 0;border-top:1px solid {{ $line }};{{ $f }}font-size:15px;font-weight:400;color:{{ $ink }};">&#8369;{{ number_format($received, 2) }}</td>

@@ -5,10 +5,13 @@
     const csrfToken = config.dataset.csrf;
     const markPaidUrl = config.dataset.markPaidUrl || null;
     const waivePenaltyUrl = config.dataset.waiveUrl || null;
+    const scheduleId = config.dataset.scheduleId || '';
+    const rejectUrl = scheduleId ? '/admin/installments/' + scheduleId + '/reject-receipt' : null;
 
     const confirmPaidModalEl = document.getElementById('opdConfirmPaidModal');
     const partialModalEl = document.getElementById('opdPartialModal');
     const waiveModalEl = document.getElementById('opdWaiveModal');
+    const rejectModalEl = document.getElementById('opdRejectModal');
 
     const fullEls = {
         btn: document.getElementById('opdConfirmPaidBtn'),
@@ -36,6 +39,14 @@
         receiptRemove: document.getElementById('opdPUseNoReceiptBtn'),
     };
 
+    const rejectEls = {
+        btn: document.getElementById('opdRejectConfirmBtn'),
+        text: document.getElementById('opdRejectConfirmText'),
+        spinner: document.getElementById('opdRejectSpinner'),
+        error: document.getElementById('opdRejectError'),
+        reason: document.getElementById('opdRejectReason'),
+    };
+
     const brModalEl = document.getElementById('opdBorrowerReceiptModal');
     const brLoading = document.getElementById('opdBrLoading');
     const brError = document.getElementById('opdBrError');
@@ -44,7 +55,9 @@
     const brHint = document.getElementById('opdBrHint');
     const brRecordBtn = document.getElementById('opdBrRecordBtn');
     const brPartialBtn = document.getElementById('opdBrPartialBtn');
+    const brRejectBtn = document.getElementById('opdBrRejectBtn');
     const brFileUrl = brModalEl ? (brModalEl.dataset.fileUrl || '') : '';
+    const brPaidYmd = brModalEl ? (brModalEl.dataset.paidYmd || '') : '';
 
     let pendingTarget = null;
     let fullUsesReceipt = false;
@@ -79,6 +92,12 @@
 
     function formatPeso(value) {
         return value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function setLoading(els, loading) {
+        els.btn.disabled = loading;
+        els.text.classList.toggle('d-none', loading);
+        els.spinner.classList.toggle('d-none', !loading);
     }
 
     function createDatePicker(displayEl, hiddenEl, hostEl) {
@@ -305,6 +324,14 @@
         ? createDatePicker(partialEls.dateDisplay, partialEls.dateInput, partialModalEl)
         : null;
 
+    function initialDate(fromReceipt) {
+        const today = todayLocal();
+        if (fromReceipt && brPaidYmd && brPaidYmd <= today) {
+            return brPaidYmd;
+        }
+        return today;
+    }
+
     function applyReceipt(wrap, thumb, on) {
         const active = !!on && !!wrap;
         if (wrap) {
@@ -316,52 +343,114 @@
         return active;
     }
 
-    function partialBalance() {
-        return partialEls.amount ? parseFloat(partialEls.amount.dataset.balance || '0') : 0;
+    /* ------------------------------------------------------------
+     | Partial payment amounts
+     | total outstanding = installment balance + penalty
+     | max partial       = total - 0.01 (full amount => Record Payment)
+     |------------------------------------------------------------*/
+    function partialInstallment() {
+        return partialEls.amount ? parseFloat(partialEls.amount.dataset.installment || '0') : 0;
     }
 
-    function refreshPartialHint() {
+    function partialPenalty() {
+        return partialEls.amount ? parseFloat(partialEls.amount.dataset.penalty || '0') : 0;
+    }
+
+    function partialTotal() {
+        return Math.round((partialInstallment() + partialPenalty()) * 100) / 100;
+    }
+
+    function partialMax() {
+        return Math.max(0, Math.round((partialTotal() - 0.01) * 100) / 100);
+    }
+
+    function clampPartialAmount() {
+        const input = partialEls.amount;
+        if (!input || input.value === '') return false;
+
+        let raw = input.value;
+        const dot = raw.indexOf('.');
+        if (dot !== -1 && raw.length - dot - 1 > 2) {
+            raw = raw.slice(0, dot + 3);
+        }
+
+        const value = parseFloat(raw);
+        let capped = false;
+
+        if (!isFinite(value) || value < 0) {
+            raw = '';
+        } else if (value > partialMax()) {
+            raw = partialMax().toFixed(2);
+            capped = true;
+        }
+
+        if (raw !== input.value) {
+            input.value = raw;
+        }
+        return capped;
+    }
+
+    function refreshPartialHint(capped) {
         if (!partialEls.amount || !partialEls.hint) return;
-        const balance = partialBalance();
+        const max = partialMax();
         const value = parseFloat(partialEls.amount.value);
 
+        if (capped) {
+            partialEls.hint.textContent = 'The most you can record here is \u20B1' + formatPeso(max) + '. For the full amount, use Record Payment.';
+            return;
+        }
         if (!value || value <= 0) {
-            partialEls.hint.textContent = 'Enter the amount the borrower paid.';
+            partialEls.hint.textContent = 'Enter the amount shown on the receipt (up to \u20B1' + formatPeso(max) + ').';
             return;
         }
-        if (value >= balance) {
-            partialEls.hint.textContent = 'This covers the full balance. Use Mark as Paid instead.';
-            return;
+
+        // Installment muna, penalty ang sumunod
+        const toInstallment = Math.min(value, partialInstallment());
+        const toPenalty = Math.max(0, Math.round((value - toInstallment) * 100) / 100);
+        const remaining = Math.max(0, Math.round((partialTotal() - value) * 100) / 100);
+
+        let text = '\u20B1' + formatPeso(toInstallment) + ' goes to the installment';
+        if (toPenalty > 0) {
+            text += ' and \u20B1' + formatPeso(toPenalty) + ' to the penalty';
         }
-        partialEls.hint.textContent = '\u20B1' + formatPeso(balance - value) + ' will remain due after this payment.';
+        text += '. \u20B1' + formatPeso(remaining) + ' will remain outstanding.';
+        partialEls.hint.textContent = text;
     }
 
     function resetFull() {
         clearError(fullEls.error);
+        const fromReceipt = pendingTarget === 'full';
         if (fullPicker) {
-            const today = todayLocal();
             fullPicker.close();
-            fullPicker.setRange('', today);
-            fullPicker.setValue(today);
+            fullPicker.setRange('', todayLocal());
+            fullPicker.setValue(initialDate(fromReceipt));
         }
-        fullUsesReceipt = applyReceipt(fullEls.receiptWrap, fullEls.receiptThumb, pendingTarget === 'full');
-        if (pendingTarget === 'full') pendingTarget = null;
+        fullUsesReceipt = applyReceipt(fullEls.receiptWrap, fullEls.receiptThumb, fromReceipt);
+        if (fromReceipt) pendingTarget = null;
     }
 
     function resetPartial() {
         clearError(partialEls.error);
+        const fromReceipt = pendingTarget === 'partial';
         if (partialPicker) {
-            const today = todayLocal();
             partialPicker.close();
-            partialPicker.setRange('', today);
-            partialPicker.setValue(today);
+            partialPicker.setRange('', todayLocal());
+            partialPicker.setValue(initialDate(fromReceipt));
         }
         if (partialEls.amount) {
             partialEls.amount.value = '';
         }
-        refreshPartialHint();
-        partialUsesReceipt = applyReceipt(partialEls.receiptWrap, partialEls.receiptThumb, pendingTarget === 'partial');
-        if (pendingTarget === 'partial') pendingTarget = null;
+        refreshPartialHint(false);
+        partialUsesReceipt = applyReceipt(partialEls.receiptWrap, partialEls.receiptThumb, fromReceipt);
+        if (fromReceipt) pendingTarget = null;
+    }
+
+    function resetReject() {
+        clearError(rejectEls.error);
+        if (rejectEls.reason) {
+            rejectEls.reason.value = '';
+        }
+        if (pendingTarget === 'reject') pendingTarget = null;
     }
 
     if (confirmPaidModalEl) {
@@ -374,8 +463,19 @@
         partialModalEl.addEventListener('hidden.bs.modal', resetPartial);
     }
 
+    if (rejectModalEl) {
+        rejectModalEl.addEventListener('show.bs.modal', resetReject);
+    }
+
     if (partialEls.amount) {
-        partialEls.amount.addEventListener('input', refreshPartialHint);
+        partialEls.amount.addEventListener('keydown', function (e) {
+            if (['e', 'E', '+', '-'].indexOf(e.key) !== -1) {
+                e.preventDefault();
+            }
+        });
+        partialEls.amount.addEventListener('input', function () {
+            refreshPartialHint(clampPartialAmount());
+        });
     }
 
     if (fullEls.receiptRemove) {
@@ -391,13 +491,13 @@
     }
 
     function openAfterReceipt(target, modalEl) {
-        if (!modalEl) return;
+        if (!modalEl || !brModalEl) return;
         brModalEl.addEventListener('hidden.bs.modal', function openNext() {
             brModalEl.removeEventListener('hidden.bs.modal', openNext);
             pendingTarget = target;
             bootstrap.Modal.getOrCreateInstance(modalEl).show();
         });
-        bootstrap.Modal.getInstance(brModalEl).hide();
+        bootstrap.Modal.getOrCreateInstance(brModalEl).hide();
     }
 
     if (brModalEl && brImg) {
@@ -432,6 +532,12 @@
                 openAfterReceipt('partial', partialModalEl);
             });
         }
+
+        if (brRejectBtn) {
+            brRejectBtn.addEventListener('click', function () {
+                openAfterReceipt('reject', rejectModalEl);
+            });
+        }
     }
 
     function validateFull() {
@@ -455,8 +561,8 @@
         if (!value || value <= 0) {
             return 'Please enter the amount received.';
         }
-        if (value >= partialBalance()) {
-            return 'A partial payment must be less than the installment balance. Use Mark as Paid for a full payment.';
+        if (value > partialMax()) {
+            return 'A partial payment cannot be more than \u20B1' + formatPeso(partialMax()) + '. Use Record Payment for the full amount.';
         }
         return '';
     }
@@ -472,9 +578,7 @@
             return;
         }
 
-        opts.els.btn.disabled = true;
-        opts.els.text.classList.add('d-none');
-        opts.els.spinner.classList.remove('d-none');
+        setLoading(opts.els, true);
 
         const formData = new FormData();
         formData.append('paid_date', opts.els.dateInput.value);
@@ -490,6 +594,7 @@
             headers: {
                 'X-CSRF-TOKEN': csrfToken,
                 'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
             },
             body: formData,
         })
@@ -519,9 +624,7 @@
                 showError(opts.els.error, 'Something went wrong. Please try again.');
             })
             .finally(function () {
-                opts.els.btn.disabled = false;
-                opts.els.text.classList.remove('d-none');
-                opts.els.spinner.classList.add('d-none');
+                setLoading(opts.els, false);
             });
     }
 
@@ -550,6 +653,61 @@
                 successTitle: 'Partial Payment Recorded',
                 successDesc: 'The partial payment was recorded. The remaining balance is still due.',
             });
+        });
+    }
+
+    if (rejectEls.btn) {
+        rejectEls.btn.addEventListener('click', function () {
+            if (!rejectUrl) return;
+
+            clearError(rejectEls.error);
+
+            const reason = rejectEls.reason.value.trim();
+            if (reason.length < 5) {
+                showError(rejectEls.error, 'Please enter a reason (at least 5 characters).');
+                return;
+            }
+
+            setLoading(rejectEls, true);
+
+            fetch(rejectUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ remarks: reason }),
+            })
+                .then(function (res) {
+                    return res.json().then(function (data) {
+                        return { status: res.status, data: data };
+                    });
+                })
+                .then(function (result) {
+                    const data = result.data;
+
+                    if (data.success) {
+                        bootstrap.Modal.getInstance(rejectModalEl).hide();
+                        showSuccessThenReload('Receipt Rejected', data.message || 'The borrower was notified and can upload a new receipt.');
+                        return;
+                    }
+
+                    if (result.status === 422 && data.errors) {
+                        const firstKey = Object.keys(data.errors)[0];
+                        showError(rejectEls.error, data.errors[firstKey][0]);
+                        return;
+                    }
+
+                    showError(rejectEls.error, data.message || 'Failed to reject the receipt.');
+                })
+                .catch(function () {
+                    showError(rejectEls.error, 'Something went wrong. Please try again.');
+                })
+                .finally(function () {
+                    setLoading(rejectEls, false);
+                });
         });
     }
 

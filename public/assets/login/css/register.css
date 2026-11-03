@@ -818,3 +818,18 @@ body {
   .input-wrap.no-icon select { padding-left: 8px; padding-right: 26px; font-size: 0.8rem; }
   .dd-trigger { padding-left: 8px; padding-right: 26px; font-size: 0.8rem; }
 }
+
+
+/* Terms & Privacy note sa taas ng "Already have an account?" */
+.legal-note {
+  text-align: center;
+  font-size: 0.76rem;
+  color: var(--muted);
+  margin: 14px 0 0;
+}
+.legal-note a {
+  color: var(--navy);
+  font-weight: 600;
+  text-decoration: none;
+}
+.legal-note a:hover { text-decoration: underline; }

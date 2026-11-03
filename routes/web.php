@@ -66,8 +66,11 @@ Route::get('/api/zipcode', [ZipcodeController::class, 'show'])->middleware('thro
 Route::post('/api/login',               [AuthController::class, 'login']);
 Route::post('/api/logout',              [AuthController::class, 'logout'])->name('logout');
 
+// send-otp: 5 kada 10 minuto (pinipigilan ang email spam).
+// reset: 15 kada 10 minuto, kasi dito dumadaan ang verify_otp at reset_password.
+// Ang limit sa maling OTP ay nasa ForgotPasswordController (5 tries kada OTP).
 Route::post('/api/forgot-password/send-otp', [ForgotPasswordController::class, 'sendOtp'])->middleware('throttle:5,10');
-Route::post('/api/forgot-password/reset',    [ForgotPasswordController::class, 'reset'])->middleware('throttle:5,10');
+Route::post('/api/forgot-password/reset',    [ForgotPasswordController::class, 'reset'])->middleware('throttle:15,10');
 
 // Borrower pages — Blade, protected by 'borrower' middleware
 // AuditRequests = Audit Logs safety net para sa borrower (records successful write requests only).
@@ -228,7 +231,7 @@ Route::middleware(['admin', 'no-cache', 'throttle:60,1', AuditRequests::class])-
 
     // Active Borrowers > View Details (focused view — borrower profile +
     // overview of loans, payments, and penalties)
-       Route::get('/active-borrower-detail/{uuid}', [AdminController::class, 'activeBorrowerDetail'])
+    Route::get('/active-borrower-detail/{uuid}', [AdminController::class, 'activeBorrowerDetail'])
         ->whereUuid('uuid')
         ->name('active-borrower-detail');
 

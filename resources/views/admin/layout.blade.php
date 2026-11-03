@@ -55,6 +55,18 @@
         $isPenaltyPage = request()->routeIs('admin.penalty-tracking*');
         $isOngoingSection = $isPendingPaymentsPage || $isOverduePaymentsPage || $isPenaltyPage;
 
+        // Bilang ng loans na may resibong na-upload ng borrower na hinihintay pa i-verify ng admin
+        // (payment_receipts.status = 'submitted'). Isang loan = isang bilang, kahit ilang resibo.
+        // Kung may ibinigay na $receiptsToVerifyCount ang controller / view composer, yun ang gagamitin.
+        $receiptsToVerifyCount = $receiptsToVerifyCount
+            ?? \Illuminate\Support\Facades\DB::table('payment_receipts')
+                ->where('status', 'submitted')
+                ->distinct()
+                ->count('application_id');
+
+        // Badge ng "Ongoing Loans" = Receipts to verify + Overdue
+        $ongoingParentCount = (int) $receiptsToVerifyCount + (int) ($overdueLoanCount ?? 0);
+
         // Borrower Records dropdown: All Borrowers + Active Borrowers + Completed Loans
         $isAllBorrowersPage = request()->routeIs(['admin.borrowers', 'admin.verification-detail']);
         $isActiveBorrowersPage = request()->routeIs(['admin.active-borrowers', 'admin.active-borrower-detail']);
@@ -192,8 +204,8 @@
                                 class="nxl-link nxl-flat-parent-link {{ $isOngoingSection ? 'active' : '' }}">
                               <span class="nxl-micon"><i class="feather-dollar-sign"></i></span>
 <span class="nxl-mtext">Ongoing Loans</span>
-@if (($overdueLoanCount ?? 0) > 0)
-    <span class="nxl-badge-circle">{{ $overdueLoanCount }}</span>
+@if ($ongoingParentCount > 0)
+    <span class="nxl-badge-circle">{{ $ongoingParentCount }}</span>
 @endif
                             </a>
                             <button type="button" class="nxl-flat-toggle" tabindex="-1">
@@ -203,10 +215,14 @@
 
                         <ul class="nxl-flat-submenu" id="nxlOngoingSubmenu">
     <li class="nxl-flat-sub-item">
-        <a href="{{ route('admin.ongoing-loans') }}"
+        {{-- May resibong hinihintay: diretso sa Ongoing Loans na naka-filter sa "Receipt to Verify" --}}
+        <a href="{{ $receiptsToVerifyCount > 0 ? route('admin.ongoing-loans', ['filter' => 'receipt']) : route('admin.ongoing-loans') }}"
             class="nxl-sublink {{ $isPendingPaymentsPage ? 'active' : '' }}">
             <i class="feather-calendar nxl-sub-icon"></i>
             <span class="nxl-sub-label">Pending Payments</span>
+            @if ($receiptsToVerifyCount > 0)
+                <span class="nxl-badge-circle nxl-badge-sm">{{ $receiptsToVerifyCount }}</span>
+            @endif
         </a>
     </li>
    <li class="nxl-flat-sub-item">
