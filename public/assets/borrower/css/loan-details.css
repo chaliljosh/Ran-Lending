@@ -1232,3 +1232,62 @@ html.app-skin-dark .bwl-ld-dots { background: #1C1C1C; border-color: #262626; co
 html.app-skin-dark .bwl-ld-dots:hover,
 html.app-skin-dark .bwl-ld-dots.show { background: #262626; }
 
+/* ══════════════════════════════════════════════════════════════
+   PAYMENT SCHEDULE — Download SOA button (nasa header ng card)
+   ══════════════════════════════════════════════════════════════ */
+
+.bwl-ld-card-header--split {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.bwl-ld-soa-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 18px;
+    border-radius: 999px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    color: #0f172a;
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+.bwl-ld-soa-btn i {
+    font-size: 16px;
+    line-height: 1;
+}
+.bwl-ld-soa-btn:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #0f172a;
+}
+.bwl-ld-soa-btn:focus-visible {
+    outline: 2px solid #86efac;
+    outline-offset: 2px;
+}
+
+/* Dark mode */
+html.app-skin-dark .bwl-ld-soa-btn {
+    background: transparent;
+    border-color: #262626;
+    color: #F5F5F5;
+}
+html.app-skin-dark .bwl-ld-soa-btn:hover {
+    background: #1C1C1C;
+    border-color: #404040;
+    color: #F5F5F5;
+}
+@media (max-width: 480px) {
+    .bwl-ld-soa-btn { width: 100%; }
+}
+

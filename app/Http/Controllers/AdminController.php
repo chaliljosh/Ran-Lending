@@ -215,6 +215,16 @@ public function verificationDetail(Request $request, $id)
             'u.email as reg_email', 'u.profile_picture', 'u.user_id as borrower_user_id',
             'ba.region', 'ba.province', 'ba.city', 'ba.barangay', 'ba.zipcode', 'ba.home_address',
             'ba.house_no', 'ba.street', 'ba.subdivision', 'ba.address_details',
+
+                // BAGO: permanent address
+    'ba.perm_same_as_current', 'ba.perm_region', 'ba.perm_province', 'ba.perm_city',
+    'ba.perm_barangay', 'ba.perm_zipcode', 'ba.perm_home_address',
+    'bwi.employment_status', 'bwi.company_name', 'bwi.position', 'bwi.years_in_company',
+    // BAGO: source of income
+    'bwi.employment_status_other', 'bwi.primary_source', 'bwi.other_sources',
+    'ci.last_name as co_last', 'ci.first_name as co_first', 'ci.middle_name as co_middle',
+    'ci.relationship', 'ci.contact_number as co_contact',
+
             'bwi.employment_status', 'bwi.company_name', 'bwi.position', 'bwi.years_in_company',
             'ci.last_name as co_last', 'ci.first_name as co_first', 'ci.middle_name as co_middle',
             'ci.relationship', 'ci.contact_number as co_contact'
@@ -230,6 +240,11 @@ public function verificationDetail(Request $request, $id)
 
     $detailId = $d->detail_id;
     $detailUuid = $d->uuid;
+
+    // BAGO
+$work = $this->getBorrowerWork($detailId);
+$appDisplay = $this->applicationDisplayData($d, $work);
+$appDocs = $this->applicationDocuments($d, $work);
 
     $idFrontUrl = !empty($d->id_file_path)
         ? Storage::disk('valid_ids')->temporaryUrl($d->id_file_path, now()->addMinutes(30))
@@ -268,6 +283,12 @@ public function verificationDetail(Request $request, $id)
         'd' => $d,
         'detailId' => $detailId,
         'detailUuid' => $detailUuid,
+
+        // BAGO
+    'work' => $work,
+    'appDisplay' => $appDisplay,
+    'appDocs' => $appDocs,
+    
         'borrowerProfilePicture' => $this->getProfilePictureUrl((object) ['profile_picture' => $d->profile_picture]),
         'idFrontUrl' => $idFrontUrl,
         'idBackUrl' => $idBackUrl,
@@ -1039,7 +1060,6 @@ public function ongoingLoanDetail(Request $request, $uuid)
         return redirect()->route('admin.ongoing-loans');
     }
 
-    // Hindi pa na-release: doon sa Waiting for Release page
     if (empty($app->proof_sent_at)) {
         return redirect()->route('admin.waiting-for-release-detail', $uuid);
     }
@@ -1132,6 +1152,7 @@ public function ongoingLoanDetail(Request $request, $uuid)
         'voidWindowDays' => self::VOID_WINDOW_DAYS,
         'pendingCount' => $this->getPendingVerificationCount($adminId),
         'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+        'creditStanding' => \App\Services\CreditStanding::forUser((int) $app->user_id), // BAGO
     ]);
 }
 
@@ -1201,7 +1222,6 @@ public function waitingForReleaseDetail(Request $request, $uuid)
         return redirect()->route('admin.waiting-for-release');
     }
 
-    // Na-release na: doon na sa Ongoing Loan Detail
     if (!empty($app->proof_sent_at)) {
         return redirect()->route('admin.ongoing-loan-detail', $uuid);
     }
@@ -1229,6 +1249,7 @@ public function waitingForReleaseDetail(Request $request, $uuid)
             : 0,
         'pendingCount'           => $this->getPendingVerificationCount($adminId),
         'pendingLoanCount'       => $this->getPendingLoanCount($adminId),
+        'creditStanding'         => \App\Services\CreditStanding::forUser((int) $app->user_id), // BAGO
     ]);
 }
           public function overduePayments(Request $request)
@@ -1493,11 +1514,10 @@ private function sendPartialPaymentEmail($schedule, int $applicationId, float $r
         ]
     ));
 }
-     public function loanApplicationDetail(Request $request, $uuid)
+    public function loanApplicationDetail(Request $request, $uuid)
 {
     $adminId = Session::get('user_id');
 
-    // UUID lang ang nasa URL. Ang integer na application_id ay internal na lang.
     $internalId = DB::table('loan_applications')
         ->where('uuid', $uuid)
         ->value('application_id');
@@ -1515,7 +1535,6 @@ private function sendPartialPaymentEmail($schedule, int $applicationId, float $r
         }
 
         if ($request->filled('action')) {
-            // Integer ang kailangan ng saveLoanDecision, hindi ang uuid
             $this->saveLoanDecision($request->merge(['application_id' => $internalId]), $adminId);
 
             $newStatus = DB::table('loan_applications')
@@ -1536,16 +1555,9 @@ private function sendPartialPaymentEmail($schedule, int $applicationId, float $r
         }
     }
 
-    // Address at source of income ng borrower
     $address = $this->getBorrowerAddress($app->detail_id);
     $work = $this->getBorrowerWork($app->detail_id);
-
-    // Readable labels (galing sa config/loan_labels.php) imbes na raw codes
     $appDisplay = $this->applicationDisplayData($app, $work);
-
-    // Signed URLs (private bucket, 30 minutes validity) para sa Front ID, Back ID,
-    // Selfie with ID at Pay Slip. Walang file = null, kaya hindi nag-e-error ang
-    // page sa mga lumang application.
     $appDocs = $this->applicationDocuments($app, $work);
 
     return view('admin.loan-application-detail', [
@@ -1554,7 +1566,7 @@ private function sendPartialPaymentEmail($schedule, int $applicationId, float $r
         'work' => $work,
         'appDisplay' => $appDisplay,
         'appDocs' => $appDocs,
-        'applicationId' => $uuid, // uuid na para gumana ang route() sa Blade forms
+        'applicationId' => $uuid,
         'adminId' => $adminId,
         'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
         'idFrontUrl' => $appDocs['front']['url'] ?? null,
@@ -1567,10 +1579,10 @@ private function sendPartialPaymentEmail($schedule, int $applicationId, float $r
         'pendingCount' => $this->getPendingVerificationCount($adminId),
         'pendingLoanCount' => $this->getPendingLoanCount($adminId),
         'viewStatus' => $app->status,
-        // Borrower info editing
         'canEditInfo' => $this->canEditBorrowerInfo($app),
         'infoEdits' => $this->buildBorrowerInfoEdits($app->detail_id, $app, $address, $work),
         'editOptions' => $this->borrowerEditOptions(),
+        'creditStanding' => \App\Services\CreditStanding::forUser((int) $app->user_id), // BAGO
     ]);
 }
    public function activeBorrowerDetail(Request $request, $uuid)
@@ -1632,139 +1644,131 @@ private function sendPartialPaymentEmail($schedule, int $applicationId, float $r
     ]);
 }
 public function overduePaymentDetail(Request $request, $uuid)
-    {
-        $adminId = Session::get('user_id');
- 
-        // UUID lang ang nasa URL. Ang integer na application_id ay internal na lang.
-        $applicationId = (int) DB::table('loan_applications')
-            ->where('uuid', $uuid)
-            ->value('application_id');
- 
-        if (!$applicationId) {
-            return redirect()->route('admin.overdue-payments');
+{
+    $adminId = Session::get('user_id');
+
+    $applicationId = (int) DB::table('loan_applications')
+        ->where('uuid', $uuid)
+        ->value('application_id');
+
+    if (!$applicationId) {
+        return redirect()->route('admin.overdue-payments');
+    }
+
+    $app = $this->getLoanApplication($applicationId);
+
+    if (!$app) {
+        return redirect()->route('admin.overdue-payments');
+    }
+
+    $schedule = $this->getPaymentSchedule($applicationId);
+
+    $overdueSchedules = $schedule->filter(function ($s) {
+        return is_null($s->paid_at) && \Carbon\Carbon::parse($s->due_date)->isPast();
+    })->sortBy('due_date')->values();
+
+    $oldestOverdue = $overdueSchedules->first();
+
+    $currentPenalty = 0.0;
+    $penaltyPaid = 0.0;
+    $penaltyId = null;
+
+    foreach ($overdueSchedules as $s) {
+        $calc = PenaltyHelper::calculatePenalty($s);
+
+        if ($calc['amount'] <= 0) {
+            continue;
         }
- 
-        $app = $this->getLoanApplication($applicationId);
- 
-        if (!$app) {
-            return redirect()->route('admin.overdue-payments');
+
+        $row = DB::table('loan_penalties')->where('schedule_id', $s->id)->first();
+
+        if (!$row) {
+            DB::table('loan_penalties')->insert([
+                'schedule_id'      => $s->id,
+                'application_id'   => $s->application_id,
+                'days_late'        => $calc['days_late'],
+                'late_fee_periods' => $calc['periods'],
+                'penalty_amount'   => $calc['amount'],
+                'status'           => 'unpaid',
+                'created_at'       => now(),
+                'updated_at'       => now(),
+            ]);
+        } elseif ($row->status === 'unpaid') {
+            DB::table('loan_penalties')->where('id', $row->id)->update([
+                'days_late'        => $calc['days_late'],
+                'late_fee_periods' => $calc['periods'],
+                'penalty_amount'   => $calc['amount'],
+                'updated_at'       => now(),
+            ]);
         }
- 
-        $schedule = $this->getPaymentSchedule($applicationId);
- 
-        $overdueSchedules = $schedule->filter(function ($s) {
-            return is_null($s->paid_at) && \Carbon\Carbon::parse($s->due_date)->isPast();
-        })->sortBy('due_date')->values();
- 
-        $oldestOverdue = $overdueSchedules->first();
- 
-        $currentPenalty = 0.0;   // penalty na natitira pang babayaran (oldest overdue)
-        $penaltyPaid = 0.0;      // penalty na nabayad na (partial)
-        $penaltyId = null;
- 
-        // Gamit ang existing na PenaltyHelper (galing config/penalty.php)
-        // para laging updated ang penalty pagbukas ng page, at may row na para sa Waive.
-        foreach ($overdueSchedules as $s) {
-            $calc = PenaltyHelper::calculatePenalty($s);
- 
-            if ($calc['amount'] <= 0) {
-                continue; // wala pang 7 days
-            }
- 
-            $row = DB::table('loan_penalties')->where('schedule_id', $s->id)->first();
- 
-            if (!$row) {
-                DB::table('loan_penalties')->insert([
-                    'schedule_id'      => $s->id,
-                    'application_id'   => $s->application_id,
-                    'days_late'        => $calc['days_late'],
-                    'late_fee_periods' => $calc['periods'],
-                    'penalty_amount'   => $calc['amount'],
-                    'status'           => 'unpaid',
-                    'created_at'       => now(),
-                    'updated_at'       => now(),
-                ]);
-            } elseif ($row->status === 'unpaid') {
-                // Huwag galawin ang paid/waived na
-                DB::table('loan_penalties')->where('id', $row->id)->update([
-                    'days_late'        => $calc['days_late'],
-                    'late_fee_periods' => $calc['periods'],
-                    'penalty_amount'   => $calc['amount'],
-                    'updated_at'       => now(),
-                ]);
-            }
- 
-            if ($oldestOverdue && $s->id === $oldestOverdue->id) {
-                $current = DB::table('loan_penalties')
-                    ->where('schedule_id', $s->id)
-                    ->where('status', 'unpaid')
-                    ->first();
- 
-                if ($current) {
-                    $penaltyPaid = $this->penaltyPaidSoFar($s->id);
-                    $currentPenalty = max(0.0, round((float) $current->penalty_amount - $penaltyPaid, 2));
-                    $penaltyId = $current->id;
-                }
+
+        if ($oldestOverdue && $s->id === $oldestOverdue->id) {
+            $current = DB::table('loan_penalties')
+                ->where('schedule_id', $s->id)
+                ->where('status', 'unpaid')
+                ->first();
+
+            if ($current) {
+                $penaltyPaid = $this->penaltyPaidSoFar($s->id);
+                $currentPenalty = max(0.0, round((float) $current->penalty_amount - $penaltyPaid, 2));
+                $penaltyId = $current->id;
             }
         }
- 
-        // Kabuuang penalty na natitira pang bayaran (lahat ng installment ng loan).
-        // Dapat nasa labas ng loop para updated na ang lahat ng rows.
-        $unpaidPenaltiesTotal = 0.0;
-        $unpaidPenaltyRows = DB::table('loan_penalties')
-            ->where('application_id', $applicationId)
-            ->where('status', 'unpaid')
-            ->get(['schedule_id', 'penalty_amount']);
- 
-        foreach ($unpaidPenaltyRows as $pr) {
-            $unpaidPenaltiesTotal += max(0.0, (float) $pr->penalty_amount - $this->penaltyPaidSoFar($pr->schedule_id));
-        }
- 
-        $amountDue = $oldestOverdue ? ((float) $oldestOverdue->amount_due - (float) $oldestOverdue->amount_paid) : 0.0;
-        $totalOutstanding = $amountDue + $currentPenalty;
- 
-        // Receipt na in-upload ng borrower para sa installment na ito (hinihintay pa ang admin).
-        $borrowerReceipt = $oldestOverdue
-            ? DB::table('payment_receipts')
-                ->where('schedule_id', $oldestOverdue->id)
-                ->where('status', 'submitted')
-                ->orderByDesc('submitted_at')
-                ->first()
-            : null;
- 
-        // BAGO: mga na-record na bayad (ledger) kada installment, para sa Payment Details modal.
-        // Hindi kasama ang void.
-        $paymentsBySchedule = DB::table('installment_payments')
-            ->where('application_id', $applicationId)
-            ->whereNull('voided_at')
-            ->orderBy('paid_on')
-            ->orderBy('id')
-            ->get()
-            ->groupBy('schedule_id')
-            ->map(fn ($rows) => $this->ledgerPayload($rows));
- 
-        return view('admin.overdue-payment-detail', [
-            'app' => $app,
-            'applicationId' => $applicationId,
-            'loanUuid' => $uuid,
-            'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
-            'paymentSchedule' => $schedule,
-            'paymentsBySchedule' => $paymentsBySchedule,
-            'overdueCount' => $overdueSchedules->count(),
-            'daysLate' => $oldestOverdue ? \Carbon\Carbon::parse($oldestOverdue->due_date)->diffInDays(now()) : 0,
-            'overdueAmount' => $overdueSchedules->sum(fn($s) => $s->amount_due - $s->amount_paid),
-            'oldestOverdue' => $oldestOverdue,
-            'currentPenalty' => $currentPenalty,
-            'penaltyPaid' => $penaltyPaid,
-            'penaltyId' => $penaltyId,
-            'unpaidPenaltiesTotal' => $unpaidPenaltiesTotal,
-            'amountDue' => $amountDue,
-            'totalOutstanding' => $totalOutstanding,
-            'borrowerReceipt' => $borrowerReceipt,
-            'pendingCount' => $this->getPendingVerificationCount($adminId),
-            'pendingLoanCount' => $this->getPendingLoanCount($adminId),
-        ]);
-    }   
+    }
+
+    $unpaidPenaltiesTotal = 0.0;
+    $unpaidPenaltyRows = DB::table('loan_penalties')
+        ->where('application_id', $applicationId)
+        ->where('status', 'unpaid')
+        ->get(['schedule_id', 'penalty_amount']);
+
+    foreach ($unpaidPenaltyRows as $pr) {
+        $unpaidPenaltiesTotal += max(0.0, (float) $pr->penalty_amount - $this->penaltyPaidSoFar($pr->schedule_id));
+    }
+
+    $amountDue = $oldestOverdue ? ((float) $oldestOverdue->amount_due - (float) $oldestOverdue->amount_paid) : 0.0;
+    $totalOutstanding = $amountDue + $currentPenalty;
+
+    $borrowerReceipt = $oldestOverdue
+        ? DB::table('payment_receipts')
+            ->where('schedule_id', $oldestOverdue->id)
+            ->where('status', 'submitted')
+            ->orderByDesc('submitted_at')
+            ->first()
+        : null;
+
+    $paymentsBySchedule = DB::table('installment_payments')
+        ->where('application_id', $applicationId)
+        ->whereNull('voided_at')
+        ->orderBy('paid_on')
+        ->orderBy('id')
+        ->get()
+        ->groupBy('schedule_id')
+        ->map(fn ($rows) => $this->ledgerPayload($rows));
+
+    return view('admin.overdue-payment-detail', [
+        'app' => $app,
+        'applicationId' => $applicationId,
+        'loanUuid' => $uuid,
+        'borrowerProfilePicture' => $this->getProfilePictureUrl($app),
+        'paymentSchedule' => $schedule,
+        'paymentsBySchedule' => $paymentsBySchedule,
+        'overdueCount' => $overdueSchedules->count(),
+        'daysLate' => $oldestOverdue ? \Carbon\Carbon::parse($oldestOverdue->due_date)->diffInDays(now()) : 0,
+        'overdueAmount' => $overdueSchedules->sum(fn($s) => $s->amount_due - $s->amount_paid),
+        'oldestOverdue' => $oldestOverdue,
+        'currentPenalty' => $currentPenalty,
+        'penaltyPaid' => $penaltyPaid,
+        'penaltyId' => $penaltyId,
+        'unpaidPenaltiesTotal' => $unpaidPenaltiesTotal,
+        'amountDue' => $amountDue,
+        'totalOutstanding' => $totalOutstanding,
+        'borrowerReceipt' => $borrowerReceipt,
+        'pendingCount' => $this->getPendingVerificationCount($adminId),
+        'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+        'creditStanding' => \App\Services\CreditStanding::forUser((int) $app->user_id), // BAGO
+    ]);
+}
 
 /** Kabuuang penalty na nabayad na sa isang installment (galing sa ledger, hindi kasama ang void). */
 private function penaltyPaidSoFar($scheduleId): float
@@ -2925,10 +2929,10 @@ private function executeVoid($voidRequest)
     private const BORROWER_INFO_FIELDS = [
         // ---- personal ----
         'first_name'     => ['table' => 'borrowerpersonaldetails', 'src' => 'app', 'section' => 'personal', 'label' => 'First name',       'rules' => ['required', 'string', 'max:50']],
-        'middle_name'    => ['table' => 'borrowerpersonaldetails', 'src' => 'app', 'section' => 'personal', 'label' => 'Middle name',      'rules' => ['nullable', 'string', 'max:50']],
+        'middle_name' => ['table' => 'borrowerpersonaldetails', 'src' => 'app', 'section' => 'personal', 'label' => 'Middle initial', 'rules' => ['nullable', 'regex:/^[A-Za-z]$/']],
         'last_name'      => ['table' => 'borrowerpersonaldetails', 'src' => 'app', 'section' => 'personal', 'label' => 'Last name',        'rules' => ['required', 'string', 'max:50']],
         'suffix'         => ['table' => 'borrowerpersonaldetails', 'src' => 'app', 'section' => 'personal', 'label' => 'Suffix',           'rules' => ['nullable', 'string', 'max:10']],
-        'birthday'       => ['table' => 'borrowerpersonaldetails', 'src' => 'app', 'section' => 'personal', 'label' => 'Birthday',         'rules' => ['required', 'date_format:Y-m-d', 'before:today']],
+       'birthday'    => ['table' => 'borrowerpersonaldetails', 'src' => 'app', 'section' => 'personal', 'label' => 'Birthday', 'rules' => ['required', 'date_format:Y-m-d', 'before:today', 'before_or_equal:-18 years']],
         'birth_city'     => ['table' => 'borrowerpersonaldetails', 'src' => 'app', 'section' => 'personal', 'label' => 'Birth city',       'rules' => ['nullable', 'string', 'max:100']],
         'birth_province' => ['table' => 'borrowerpersonaldetails', 'src' => 'app', 'section' => 'personal', 'label' => 'Birth province',   'rules' => ['nullable', 'string', 'max:100']],
         'birth_country'  => ['table' => 'borrowerpersonaldetails', 'src' => 'app', 'section' => 'personal', 'label' => 'Birth country',    'rules' => ['nullable', 'string', 'max:100']],
@@ -2938,16 +2942,24 @@ private function executeVoid($voidRequest)
         'cellphone_num'  => ['table' => 'borrowerpersonaldetails', 'src' => 'app', 'section' => 'personal', 'label' => 'Cellphone',        'rules' => ['required', 'string', 'regex:/^[0-9+\-\s()]{7,20}$/']],
 
         // ---- address ----
-        'region'          => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'Region',               'rules' => ['required', 'string', 'max:100']],
-        'province'        => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'Province',             'rules' => ['required', 'string', 'max:100']],
-        'city'            => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'City / Municipality', 'rules' => ['required', 'string', 'max:100']],
-        'barangay'        => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'Barangay',             'rules' => ['required', 'string', 'max:100']],
-        'zipcode'         => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'Zipcode',              'rules' => ['nullable', 'string', 'max:10']],
+     'region'          => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'Region',               'rules' => ['required', 'string', 'max:150']],
+'province'        => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'Province',             'rules' => ['required', 'string', 'max:150']],
+'city'            => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'City / Municipality', 'rules' => ['required', 'string', 'max:150']],
+'barangay'        => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'Barangay',             'rules' => ['required', 'string', 'max:150']],
+        'zipcode' => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'Zipcode', 'rules' => ['nullable', 'digits:4']],
         'house_no'        => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'House / Building No.', 'rules' => ['nullable', 'string', 'max:255']],
         'street'          => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'Street',               'rules' => ['nullable', 'string', 'max:255']],
         'subdivision'     => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'Subdivision / Village', 'rules' => ['nullable', 'string', 'max:255']],
         'address_details' => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'Additional details',  'rules' => ['nullable', 'string', 'max:255']],
         'home_address'    => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'Home address',        'rules' => ['nullable', 'string', 'max:255']],
+
+        // ---- permanent address ----
+'perm_region'       => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'Permanent region',        'rules' => ['nullable', 'string', 'max:150']],
+'perm_province'     => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'Permanent province',      'rules' => ['nullable', 'string', 'max:150']],
+'perm_city'         => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'Permanent city / municipality', 'rules' => ['nullable', 'string', 'max:150']],
+'perm_barangay'     => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'Permanent barangay',      'rules' => ['nullable', 'string', 'max:150']],
+'perm_zipcode'      => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'Permanent zipcode',       'rules' => ['nullable', 'digits:4']],
+'perm_home_address' => ['table' => 'borroweraddress', 'src' => 'address', 'section' => 'address', 'label' => 'Permanent home address',  'rules' => ['nullable', 'string', 'max:255']],
 
         // ---- source of income ----
         'company_name'     => ['table' => 'borrowerworkinfo',        'src' => 'work', 'section' => 'income', 'label' => 'Company / School',        'rules' => ['nullable', 'string', 'max:150']],
@@ -3089,7 +3101,7 @@ private function executeVoid($voidRequest)
      * POST /admin/loan-application-detail/{uuid}/borrower-info
      * Expects: section (personal|address|income|id), fields {key: value}, reason.
      */
-         public function updateBorrowerInfo(Request $request, $uuid)
+           public function updateBorrowerInfo(Request $request, $uuid)
     {
         $request->validate([
             'section' => 'required|in:personal,address,income,id',
@@ -3150,9 +3162,10 @@ private function executeVoid($voidRequest)
         }
 
         $validator = Validator::make($values, $rules, [
-            'birthday.before'     => 'The birthday must be a date in the past.',
-            'cellphone_num.regex' => 'Please enter a valid cellphone number.',
-            'id_number.unique'    => 'This ID number is already used by another borrower.',
+            'middle_name.regex'        => 'Middle name must be a single letter (initial).',
+            'birthday.before_or_equal' => 'The borrower must be at least 18 years old.',
+            'zipcode.digits'           => 'Zipcode must be 4 digits.',
+            'perm_zipcode.digits'      => 'Zipcode must be 4 digits.',
         ]);
 
         if ($validator->fails()) {
@@ -3197,6 +3210,42 @@ private function executeVoid($voidRequest)
             }
         }
 
+        // ---- Permanent address ----
+        // Kapag "same as present" ang permanent address:
+        //  - kung present address lang ang binago, sumusunod ang permanent address
+        //  - kung permanent address mismo ang binago, hindi na "same" (naghiwalay na)
+        $presentToPerm = [
+            'region'       => 'perm_region',
+            'province'     => 'perm_province',
+            'city'         => 'perm_city',
+            'barangay'     => 'perm_barangay',
+            'zipcode'      => 'perm_zipcode',
+            'home_address' => 'perm_home_address',
+        ];
+        $permFlagOff = false;
+
+        if (!empty($address->perm_same_as_current ?? null)) {
+            if (array_intersect(array_keys($changes), array_values($presentToPerm))) {
+                $permFlagOff = true;
+            } else {
+                foreach ($presentToPerm as $presentKey => $permKey) {
+                    if (!isset($changes[$presentKey])) {
+                        continue;
+                    }
+                    $oldPerm = trim((string) ($address->{$permKey} ?? ''));
+                    $newPerm = $changes[$presentKey]['new'];
+                    if ($oldPerm === $newPerm) {
+                        continue;
+                    }
+                    $changes[$permKey] = [
+                        'def' => self::BORROWER_INFO_FIELDS[$permKey],
+                        'old' => $oldPerm,
+                        'new' => $newPerm,
+                    ];
+                }
+            }
+        }
+
         if (!$changes) {
             return response()->json(['success' => false, 'message' => 'No changes to save.'], 422);
         }
@@ -3204,10 +3253,14 @@ private function executeVoid($voidRequest)
         $batchId = (string) Str::uuid();
 
         try {
-            DB::transaction(function () use ($changes, $app, $applicationId, $adminId, $section, $reason, $batchId) {
+            DB::transaction(function () use ($changes, $app, $applicationId, $adminId, $section, $reason, $batchId, $permFlagOff) {
                 $byTable = [];
                 foreach ($changes as $key => $c) {
                     $byTable[$c['def']['table']][$key] = $c['new'] !== '' ? $c['new'] : null;
+                }
+
+                if ($permFlagOff) {
+                    $byTable['borroweraddress']['perm_same_as_current'] = false;
                 }
 
                 foreach ($byTable as $table => $data) {
@@ -3693,6 +3746,197 @@ private function executeVoid($voidRequest)
         'sort'             => $sort,
         'pendingCount'     => $this->getPendingVerificationCount($adminId),
         'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+    ]);
+}
+
+/**
+ * Credit Standing page: lahat ng borrower na may natapos nang loan,
+ * may filter (?standing=all|good|bad|watch).
+ */
+public function creditStanding(Request $request)
+{
+    $adminId = Session::get('user_id');
+    $filter = $request->query('standing', 'all');
+
+    if (!in_array($filter, ['all', 'good', 'bad', 'watch'], true)) {
+        $filter = 'all';
+    }
+
+    // Lahat ng borrower na may completed/defaulted loan
+    $rows = DB::table('borrowerpersonaldetails as bpd')
+        ->join('users as u', 'u.user_id', '=', 'bpd.user_id')
+        ->whereExists(function ($q) {
+            $q->select(DB::raw(1))->from('loan_applications as la')
+                ->whereColumn('la.user_id', 'bpd.user_id')
+                ->whereIn('la.status', ['completed', 'defaulted']);
+        })
+        ->select('bpd.user_id', 'bpd.detail_id', 'bpd.uuid', 'bpd.first_name', 'bpd.last_name', 'u.email')
+        ->get();
+
+    $userIds = $rows->pluck('user_id')->all();
+    $standings = \App\Services\CreditStanding::forUsers($userIds);
+
+    $loanInfo = DB::table('loan_applications')
+        ->whereIn('user_id', $userIds)
+        ->whereIn('status', ['completed', 'defaulted'])
+        ->selectRaw('user_id, COUNT(*) as total, MAX(applied_at) as last_applied')
+        ->groupBy('user_id')
+        ->get()
+        ->keyBy('user_id');
+
+    $all = [];
+    foreach ($rows as $r) {
+        $c = $standings[$r->user_id] ?? null;
+        if (!$c) {
+            continue;
+        }
+
+        $fullName = trim(($r->first_name ?? '') . ' ' . ($r->last_name ?? ''));
+        $info = $loanInfo[$r->user_id] ?? null;
+
+        $all[] = [
+            'user_id'      => $r->user_id,
+            'uuid'         => $r->uuid,     
+            'detail_id'    => $r->detail_id,
+            'borrower_id'  => $r->uuid ? 'BRW-' . strtoupper(substr($r->uuid, 0, 8)) : '—',
+            'name'         => $fullName !== '' ? $fullName : $r->email,
+            'email'        => $r->email,
+            'total_loans'  => $info->total ?? 0,
+            'last_applied' => $info->last_applied ?? null,
+            'credit'       => $c,
+        ];
+    }
+
+    // Bilang kada standing (para sa tabs), bago mag-filter
+    $counts = [
+        'all'   => count($all),
+        'good'  => count(array_filter($all, fn ($b) => $b['credit']['standing'] === 'good')),
+        'bad'   => count(array_filter($all, fn ($b) => $b['credit']['standing'] === 'bad')),
+        'watch' => count(array_filter($all, fn ($b) => $b['credit']['standing'] === 'watch')),
+    ];
+
+    $borrowers = $filter === 'all'
+        ? $all
+        : array_values(array_filter($all, fn ($b) => $b['credit']['standing'] === $filter));
+
+    usort($borrowers, fn ($a, $b) => strtotime($b['last_applied'] ?? 0) <=> strtotime($a['last_applied'] ?? 0));
+
+    return view('admin.credit-standing', [
+        'borrowers'        => $borrowers,
+        'counts'           => $counts,
+        'filter'           => $filter,
+        'pendingCount'     => $this->getPendingVerificationCount($adminId),
+        'pendingLoanCount' => $this->getPendingLoanCount($adminId),
+    ]);
+}
+
+public function creditStandingProfile($uuid)
+{
+    $b = DB::table('borrowerpersonaldetails as bpd')
+        ->join('users as u', 'u.user_id', '=', 'bpd.user_id')
+        ->where('bpd.uuid', $uuid)
+        ->select('bpd.user_id', 'bpd.uuid', 'bpd.first_name', 'bpd.last_name', 'u.email')
+        ->first();
+ 
+    if (!$b) {
+        return response()->json(['success' => false, 'message' => 'Borrower not found.'], 404);
+    }
+ 
+    $threshold = \App\Services\CreditStanding::LATE_DAYS;
+    $credit    = \App\Services\CreditStanding::forUser((int) $b->user_id);
+ 
+    // Lahat ng natapos (o defaulted) na loan, pinakabago ang una
+    $loans = DB::table('loan_applications')
+        ->where('user_id', $b->user_id)
+        ->whereIn('status', ['completed', 'defaulted'])
+        ->orderByDesc('applied_at')
+        ->get();
+ 
+    $schedules = DB::table('loan_payment_schedules')
+        ->whereIn('application_id', $loans->pluck('application_id')->all())
+        ->orderBy('installment_no')
+        ->get()
+        ->groupBy('application_id');
+ 
+    $today = \Carbon\Carbon::today();
+ 
+    // ---- Loan history ----
+    $history = $loans->map(function ($loan) use ($schedules) {
+        $rows  = $schedules->get($loan->application_id, collect());
+        $count = $rows->count() ?: (int) $loan->loan_term;
+        $lastPaid = $rows->whereNotNull('paid_at')->max('paid_at');
+ 
+        return [
+            'code'           => 'LN-' . strtoupper(substr((string) $loan->uuid, 0, 8)),
+            'status'         => $loan->status,
+            'status_label'   => $loan->status === 'defaulted' ? 'Defaulted' : 'Completed',
+            'original'       => (float) $loan->loan_amount,
+            'term'           => (int) $loan->loan_term,
+            'monthly'        => $count > 0 ? round((float) $loan->total_amount / $count, 2) : 0,
+            'payments_made'  => $rows->whereNotNull('paid_at')->count(),
+            'payments_total' => $rows->count(),
+            'outstanding'    => round((float) $rows->sum(fn ($s) => max(0, $s->amount_due - $s->amount_paid)), 2),
+            'completed_on'   => $lastPaid ? \Carbon\Carbon::parse($lastPaid)->format('M d, Y') : '—',
+        ];
+    })->values()->all();
+ 
+    // ---- Payment behavior: parehong loan at parehong rule ng CreditStanding
+    //      (pinakabagong loan, late = 7+ days) para tugma sa Bad/Good Credit ----
+    $lateRecords = [];
+    $total = 0;
+    $worst = 0;
+ 
+    if ($last = $loans->first()) {
+        $rows  = $schedules->get($last->application_id, collect());
+        $total = $rows->count();
+ 
+        foreach ($rows as $s) {
+            $due  = \Carbon\Carbon::parse($s->due_date)->startOfDay();
+            $paid = $s->paid_at ? \Carbon\Carbon::parse($s->paid_at)->startOfDay() : $today;
+            $days = (int) $due->diffInDays($paid, false);
+ 
+            if ($days >= $threshold) {
+                $worst = max($worst, $days);
+                $lateRecords[] = [
+                    'installment_no' => (int) $s->installment_no,
+                    'due'            => $due->format('M d, Y'),
+                    'paid'           => $s->paid_at ? $paid->format('M d, Y') : 'Not yet paid',
+                    'delay'          => $days,
+                ];
+            }
+        }
+    }
+ 
+    $late = count($lateRecords);
+    $fullName = trim(($b->first_name ?? '') . ' ' . ($b->last_name ?? ''));
+ 
+    return response()->json([
+        'success'   => true,
+        'threshold' => $threshold,
+        'borrower'  => [
+            'name'        => $fullName !== '' ? $fullName : $b->email,
+            'borrower_id' => 'BRW-' . strtoupper(substr((string) $b->uuid, 0, 8)),
+            'email'       => $b->email,
+        ],
+        'standing'  => [
+            'label'      => $credit['label'],
+            'color'      => $credit['color'],      // success | danger | ...
+            'reason'     => $credit['reason'],
+            'wait_until' => $credit['wait_until'] ? $credit['wait_until']->format('M d, Y') : null,
+        ],
+        'stats'     => [
+            'completed_loans'   => $loans->where('status', 'completed')->count(),
+            'late_installments' => $late,
+            'worst_delay'       => $worst,
+        ],
+        'behavior'  => [
+            'total'   => $total,
+            'on_time' => $total - $late,
+            'late'    => $late,
+            'worst'   => $worst,
+        ],
+        'late_records' => $lateRecords,
+        'loans'        => $history,
     ]);
 }
 

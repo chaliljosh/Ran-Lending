@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/borrower-pending-review.css') }}?v={{ time() }}">
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/borrower-status.css') }}?v={{ time() }}">
     <link rel="stylesheet" href="{{ asset('assets/borrower/css/borrower-rejected.css') }}?v={{ time() }}">
+    <link rel="stylesheet" href="{{ asset('assets/borrower/css/borrower-fully-paid.css') }}?v={{ time() }}">
 @endsection
 
 @section('content')
@@ -310,11 +311,7 @@
                             We'll notify you once it's available.</p>
                     </div>
                 </div>
-                <div class="bwl-wr-help">
-                    <h3 class="bwl-wr-box-title">Need Help?</h3>
-                    <p class="bwl-wr-box-desc">If you have any concerns, feel free to contact our support team.</p>
-                    <a href="{{ route('borrower.faq') }}" class="bwl-wr-help-btn">Contact Support</a>
-                </div>
+               
             </div>
         </div>
 
@@ -736,6 +733,10 @@
 
         </div>
     @endif
+
+@elseif ($totalCount > 0 && $paidCount >= $totalCount)
+    {{-- Fully paid: lahat ng installment ay bayad na --}}
+    @include('borrower.partials.dashboard-fully-paid')
 
 @else
     <div class="bwl-dash-widgets">

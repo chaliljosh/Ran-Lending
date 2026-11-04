@@ -32,9 +32,9 @@ const FIELD_STEP = {
   firstName: 0, middleName: 0, lastName: 0, email: 0, password: 0, confirmPassword: 0,
   birthMonth: 0, birthDay: 0, birthYear: 0, birthday: 0,
   suffix: 1, gender: 1, civilStatus: 1, citizenship: 1, cellphone: 1,
-  birthCountry: 1, birthProvince: 1, birthCity: 1, monthlyIncome: 1, monthlyIncomeOther: 1,
-  region: 2, province: 2, city: 2, barangay: 2, zipcode: 2, homeAddress: 2, agreeTerms: 2,
-  houseNo: 2, street: 2, subdivision: 2, addressDetails: 2,
+  birthCountry: 1, birthProvince: 1, birthCity: 1,
+  region: 2, province: 2, city: 2, barangay: 2, zipcode: 2, homeAddress: 2,
+  permSame: 2, permRegion: 2, permProvince: 2, permCity: 2, permBarangay: 2, permZipcode: 2, permHomeAddress: 2,
 };
 
 const FALLBACK_NATIONALITIES = [
@@ -51,9 +51,19 @@ const FALLBACK_NATIONALITIES = [
 const BIRTH_IDS = ['birthMonth', 'birthDay', 'birthYear'];
 const TEXT_SWAP = ['birthProvince', 'birthCity'];
 
+// Mga field na bumubuo sa buong pangalan. Ang error na "name already registered"
+// ay nasa ilalim ng buong name row (key: 'fullName'), hindi sa isang column lang.
+const NAME_IDS = ['firstName', 'middleName', 'lastName', 'suffix'];
+
+// Middle name: letters (kasama ang accented), spaces, hyphen, apostrophe at period.
+// Dapat letra ang simula.
+const MIDDLE_NAME_RE = /^[A-Za-z\u00C0-\u024F][A-Za-z\u00C0-\u024F\s'.-]*$/;
+
 let pendingRegisterEmail = '';
 let lastInvalid = null;
 let lastAvailableEmail = '';
+let lastAvailableName = '';
+let lastAvailableCellphone = '';
 let phProvincesCache = null;
 let zipCache = {};
 
@@ -81,6 +91,13 @@ function getCsrfToken() {
 
 function val(id) {
   return document.getElementById(id).value.trim();
+}
+
+// Full middle name ang tina-type ng user (hal. "Lagman"),
+// pero initial lang ("L") ang ipinapadala at sine-save sa system.
+function middleInitial() {
+  const name = val('middleName');
+  return name ? name.charAt(0).toUpperCase() : '';
 }
 
 function togglePw(id, btn) {
@@ -314,8 +331,8 @@ function errorKey(id) {
 }
 
 function errorAnchor(id) {
+  if (id === 'fullName') return document.querySelector('.name-row-4');
   if (errorKey(id) === 'birthday') return document.querySelector('.birthday-row');
-  if (id === 'agreeTerms') return document.querySelector('.consent-check');
   const el = document.getElementById(id);
   return el ? (el.closest('.input-wrap') || el) : null;
 }
@@ -349,6 +366,10 @@ function showFieldError(id, msg) {
     BIRTH_IDS.forEach(markInvalid);
     const hint = birthdayHint();
     if (hint) hint.classList.add('is-hidden');
+  } else if (key === 'fullName') {
+    markInvalid('firstName');
+    if (val('middleName')) markInvalid('middleName');
+    markInvalid('lastName');
   } else {
     markInvalid(realId);
   }
@@ -365,6 +386,19 @@ function showFieldError(id, msg) {
 }
 
 function clearFieldError(id) {
+  // Kapag may inedit na kahit anong name field, alisin ang "name already registered"
+  // error at ang pulang border ng lahat ng name field.
+  if (NAME_IDS.includes(id)) {
+    const nameBox = document.querySelector('.field-error[data-for="fullName"]');
+    if (nameBox) {
+      nameBox.remove();
+      NAME_IDS.forEach(n => {
+        const el = document.getElementById(n);
+        if (el) el.classList.remove('is-invalid');
+      });
+    }
+  }
+
   const key = errorKey(id);
   document.querySelectorAll('.field-error[data-for="' + key + '"]').forEach(el => el.remove());
   if (key === 'birthday') {
@@ -398,6 +432,88 @@ async function checkEmailAvailable() {
     }
 
     showFieldError('email', data.message || 'Email is already registered.');
+    focusInvalid();
+    return false;
+  } catch (error) {
+    showError('Unable to reach the server. Please check your connection and try again.');
+    return false;
+  }
+}
+
+// Bawal ang parehong buong pangalan, kahit ibang email ang gamit.
+// (First name + middle initial + last name + suffix)
+async function checkNameAvailable() {
+  const nameKey = [val('firstName'), middleInitial(), val('lastName'), val('suffix')]
+    .join('|')
+    .toLowerCase();
+  if (nameKey === lastAvailableName) return true;
+
+  const formData = new FormData();
+  formData.append('firstName', val('firstName'));
+  formData.append('middleName', middleInitial());
+  formData.append('lastName', val('lastName'));
+  formData.append('suffix', val('suffix'));
+
+  try {
+    const res  = await fetch('/api/register/check-name', {
+      method: 'POST',
+      headers: {
+        'X-CSRF-TOKEN': getCsrfToken(),
+        'Accept': 'application/json'
+      },
+      body: formData
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      lastAvailableName = nameKey;
+      return true;
+    }
+
+    // Nasa ilalim ng buong name row ang mensahe (full width), at pula ang mga name field.
+    clearInvalid();
+    showFieldError('fullName', data.message || 'An account with this name is already registered. If this is you, please sign in instead.');
+    focusInvalid();
+    return false;
+  } catch (error) {
+    showError('Unable to reach the server. Please check your connection and try again.');
+    return false;
+  }
+}
+
+// Peke o halatang mali: 9111111111, 9999999999, 9123456789, 9876543210.
+// 10 digits na nagsisimula sa 9 ang tinatanggap dito.
+function isFakePhone(digits) {
+  return /^9(\d)\1{8}$/.test(digits)
+    || digits === '9123456789'
+    || digits === '9876543210';
+}
+
+// Bawal ang numerong nakarehistro na, kahit ibang email ang gamit.
+async function checkCellphoneAvailable() {
+  const cellphone = val('cellphone');
+  if (cellphone === lastAvailableCellphone) return true;
+
+  const formData = new FormData();
+  formData.append('cellphone', cellphone);
+
+  try {
+    const res  = await fetch('/api/register/check-cellphone', {
+      method: 'POST',
+      headers: {
+        'X-CSRF-TOKEN': getCsrfToken(),
+        'Accept': 'application/json'
+      },
+      body: formData
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      lastAvailableCellphone = cellphone;
+      return true;
+    }
+
+    showFieldError('cellphone', data.message || 'This mobile number is already registered.');
     focusInvalid();
     return false;
   } catch (error) {
@@ -575,71 +691,77 @@ function fillSelect(id, items, placeholder) {
   sel.disabled = false;
 }
 
-function setNotApplicableProvince(value, label) {
-  const sel = document.getElementById('province');
+// Prefix ng ID ng address fields. Walang prefix ('') ang current address
+// (region, province, ...). 'perm' ang permanent address (permRegion, permProvince, ...).
+function addrId(prefix, name) {
+  return prefix ? prefix + name.charAt(0).toUpperCase() + name.slice(1) : name;
+}
+
+function setNotApplicableProvince(value, label, prefix) {
+  const sel = document.getElementById(addrId(prefix, 'province'));
   sel.innerHTML = '<option value="' + value + '">' + label + '</option>';
   sel.value = value;
   sel.disabled = true;
 }
 
-async function loadRegions() {
+async function loadRegions(prefix) {
   try {
     const regions = await fetchWithFallback(PSGC_API_BASE + '/regions/');
-    fillSelect('region', regions, 'Select Region');
+    fillSelect(addrId(prefix, 'region'), regions, 'Select Region');
   } catch (error) {
     showError('Unable to load the address list. Please refresh the page.');
   }
 }
 
-async function loadCitiesByRegion(regionCode) {
+async function loadCitiesByRegion(regionCode, prefix) {
   try {
     const cities = await fetchWithFallback(PSGC_API_BASE + '/regions/' + regionCode + '/cities-municipalities/');
-    fillSelect('city', cities, 'Select City/Municipality');
+    fillSelect(addrId(prefix, 'city'), cities, 'Select City/Municipality');
   } catch (error) {
     showError('Unable to load cities. Please try again.');
   }
 }
 
-async function loadProvinces(regionCode) {
-  resetSelect('province', 'Select Province');
-  resetSelect('city', 'Select City/Municipality');
-  resetSelect('barangay', 'Select Barangay');
+async function loadProvinces(regionCode, prefix) {
+  resetSelect(addrId(prefix, 'province'), 'Select Province');
+  resetSelect(addrId(prefix, 'city'), 'Select City/Municipality');
+  resetSelect(addrId(prefix, 'barangay'), 'Select Barangay');
 
   if (regionCode === NCR_CODE) {
-    setNotApplicableProvince('NCR', 'N/A (NCR)');
-    await loadCitiesByRegion(NCR_CODE);
+    setNotApplicableProvince('NCR', 'N/A (NCR)', prefix);
+    await loadCitiesByRegion(NCR_CODE, prefix);
     return;
   }
 
   try {
     const provinces = await fetchWithFallback(PSGC_API_BASE + '/regions/' + regionCode + '/provinces/');
     if (provinces.length === 0) {
-      setNotApplicableProvince('N/A', 'N/A');
-      await loadCitiesByRegion(regionCode);
+      setNotApplicableProvince('N/A', 'N/A', prefix);
+      await loadCitiesByRegion(regionCode, prefix);
       return;
     }
-    fillSelect('province', provinces, 'Select Province');
+    fillSelect(addrId(prefix, 'province'), provinces, 'Select Province');
   } catch (error) {
     showError('Unable to load provinces. Please try again.');
   }
 }
 
-async function loadCities(provinceCode) {
-  resetSelect('city', 'Select City/Municipality');
-  resetSelect('barangay', 'Select Barangay');
+async function loadCities(provinceCode, prefix) {
+  resetSelect(addrId(prefix, 'city'), 'Select City/Municipality');
+  resetSelect(addrId(prefix, 'barangay'), 'Select Barangay');
   try {
     const cities = await fetchWithFallback(PSGC_API_BASE + '/provinces/' + provinceCode + '/cities-municipalities/');
-    fillSelect('city', cities, 'Select City/Municipality');
+    fillSelect(addrId(prefix, 'city'), cities, 'Select City/Municipality');
   } catch (error) {
     showError('Unable to load cities. Please try again.');
   }
 }
 
-async function loadBarangays(cityCode) {
-  resetSelect('barangay', 'Select Barangay');
+async function loadBarangays(cityCode, prefix) {
+  resetSelect(addrId(prefix, 'barangay'), 'Select Barangay');
   try {
     const barangays = await fetchWithFallback(PSGC_API_BASE + '/cities-municipalities/' + cityCode + '/barangays/');
-    fillSelect('barangay', barangays, 'Select Barangay');
+    fillSelect(addrId(prefix, 'barangay'), barangays, 'Select Barangay');
   } catch (error) {
     showError('Unable to load barangays. Please try again.');
   }
@@ -668,25 +790,28 @@ async function fetchZip(cityCode) {
   }
 }
 
-function clearAutoZip() {
-  const zip = document.getElementById('zipcode');
+function clearAutoZip(prefix) {
+  const zip = document.getElementById(addrId(prefix, 'zipcode'));
   if (zip.dataset.auto === '1') {
     zip.value = '';
     delete zip.dataset.auto;
   }
   zip.placeholder = ZIP_PLACEHOLDER;
+  copyCurrentToPermanent();
 }
 
-async function applyAutoZip() {
-  const zip = document.getElementById('zipcode');
-  const cityCode = document.getElementById('city').value;
+async function applyAutoZip(prefix) {
+  const zip        = document.getElementById(addrId(prefix, 'zipcode'));
+  const cityEl     = document.getElementById(addrId(prefix, 'city'));
+  const barangayEl = document.getElementById(addrId(prefix, 'barangay'));
+  const cityCode   = cityEl.value;
   zipDebug('applyAutoZip tumakbo, city=' + cityCode);
   if (!cityCode) return;
 
   const result = await fetchZip(cityCode);
   zipDebug('city=' + cityCode + ' zip=' + result.zip + ' zips=' + result.zips.join(','));
 
-  if (document.getElementById('city').value !== cityCode || !document.getElementById('barangay').value) return;
+  if (cityEl.value !== cityCode || !barangayEl.value) return;
 
   if (zip.value && zip.dataset.auto !== '1') return;
 
@@ -694,11 +819,12 @@ async function applyAutoZip() {
     zip.value = result.zip;
     zip.dataset.auto = '1';
     zip.placeholder = ZIP_PLACEHOLDER;
-    clearFieldError('zipcode');
+    clearFieldError(addrId(prefix, 'zipcode'));
+    copyCurrentToPermanent();
     return;
   }
 
-  clearAutoZip();
+  clearAutoZip(prefix);
   if (result.zips.length > 1) {
     zip.placeholder = 'e.g. ' + result.zips.slice(0, 3).join(' / ');
   }
@@ -819,15 +945,136 @@ function birthPlace(base) {
   return sel.classList.contains('is-off') ? val(base + 'Text') : selectedText(base);
 }
 
-function incomeValue() {
-  return val('monthlyIncome') === 'Others' ? val('monthlyIncomeOther') : val('monthlyIncome');
+// Mga field ng permanent address.
+const PERM_IDS = ['permRegion', 'permProvince', 'permCity', 'permBarangay', 'permZipcode', 'permHomeAddress'];
+
+// Mga field ng current address na kinokopya (select muna, tapos text input).
+const ADDR_SELECTS = ['region', 'province', 'city', 'barangay'];
+const ADDR_INPUTS  = ['zipcode', 'homeAddress'];
+
+function isSamePermanent() {
+  const el = document.getElementById('sameAsCurrent');
+  return !el || el.checked;
 }
 
-function buildHomeAddress() {
-  return ['houseNo', 'street', 'subdivision', 'addressDetails']
-    .map(id => val(id))
-    .filter(Boolean)
-    .join(', ');
+// Kapag naka-check ang "same as current": kinokopya ang current address
+// papunta sa permanent address, tapos naka-lock ang mga field (hindi na nagha-hide).
+function copyCurrentToPermanent() {
+  if (!isSamePermanent()) return;
+
+  ADDR_SELECTS.forEach(name => {
+    const from = document.getElementById(name);
+    const to   = document.getElementById(addrId('perm', name));
+    to.innerHTML = from.innerHTML;   // kopyahin ang listahan ng options
+    to.value     = from.value;       // tapos ang napili
+    to.disabled  = true;
+  });
+
+  ADDR_INPUTS.forEach(name => {
+    const from = document.getElementById(name);
+    const to   = document.getElementById(addrId('perm', name));
+    to.value    = from.value;
+    to.readOnly = true;
+  });
+}
+
+// Kapag in-uncheck: linisin ang permanent address para makapag-type ang user ng ibang address.
+function unlockPermanentFields() {
+  const region = document.getElementById('permRegion');
+
+  // Kung may listahan na ng regions (galing sa kopya), gamitin ulit. Kung wala, kunin sa API.
+  if (region.options.length > 1) {
+    region.value = '';
+    region.disabled = false;
+  } else {
+    loadRegions('perm');
+  }
+
+  resetSelect('permProvince', 'Select Province');
+  resetSelect('permCity', 'Select City/Municipality');
+  resetSelect('permBarangay', 'Select Barangay');
+
+  ADDR_INPUTS.forEach(name => {
+    const el = document.getElementById(addrId('perm', name));
+    el.value    = '';
+    el.readOnly = false;
+  });
+}
+
+function togglePermanentFields() {
+  PERM_IDS.forEach(id => {
+    clearFieldError(id);
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('is-invalid');
+  });
+  closeAllDropdowns();
+
+  if (isSamePermanent()) {
+    copyCurrentToPermanent();
+  } else {
+    unlockPermanentFields();
+  }
+}
+
+// Habang naka-check, sumusunod ang permanent address sa anumang binabago sa current address.
+function watchCurrentAddress() {
+  ADDR_SELECTS.concat(ADDR_INPUTS).forEach(name => {
+    const el = document.getElementById(name);
+    el.addEventListener('input', copyCurrentToPermanent);
+    el.addEventListener('change', copyCurrentToPermanent);
+  });
+
+  // Ang province/city/barangay ay napapalitan ng laman ng API (walang event), kaya binabantayan ang options.
+  ADDR_SELECTS.forEach(name => {
+    new MutationObserver(copyCurrentToPermanent)
+      .observe(document.getElementById(name), { childList: true });
+  });
+}
+
+// Pareho ang logic ng current at permanent address, ang prefix lang ang magkaiba.
+function setupAddressSelects(prefix) {
+  const id  = name => addrId(prefix, name);
+  const get = name => document.getElementById(id(name));
+
+  ['region', 'province', 'city'].forEach(name => {
+    get(name).addEventListener('change', () => clearAutoZip(prefix));
+  });
+
+  get('barangay').addEventListener('change', function () {
+    if (this.value) applyAutoZip(prefix); else clearAutoZip(prefix);
+  });
+
+  get('region').addEventListener('change', function () {
+    if (this.value) {
+      loadProvinces(this.value, prefix);
+    } else {
+      resetSelect(id('province'), 'Select Province');
+      resetSelect(id('city'), 'Select City/Municipality');
+      resetSelect(id('barangay'), 'Select Barangay');
+    }
+  });
+
+  get('province').addEventListener('change', function () {
+    if (this.value) {
+      loadCities(this.value, prefix);
+    } else {
+      resetSelect(id('city'), 'Select City/Municipality');
+      resetSelect(id('barangay'), 'Select Barangay');
+    }
+  });
+
+  get('city').addEventListener('change', function () {
+    if (this.value) {
+      loadBarangays(this.value, prefix);
+    } else {
+      resetSelect(id('barangay'), 'Select Barangay');
+    }
+  });
+
+  get('zipcode').addEventListener('input', function () {
+    this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4);
+    delete this.dataset.auto;
+  });
 }
 
 function setupPhoneInput(id) {
@@ -865,8 +1112,8 @@ function validateAccount() {
   }
 
   const middleName = val('middleName');
-  if (middleName && !/^[A-Za-z]$/.test(middleName)) {
-    showFieldError('middleName', 'Middle initial must be a single letter.');
+  if (middleName && !MIDDLE_NAME_RE.test(middleName)) {
+    showFieldError('middleName', 'Middle name can only have letters, spaces, hyphens, apostrophes and periods.');
     return false;
   }
 
@@ -900,8 +1147,7 @@ function validatePersonal() {
   clearInvalid();
   hideError();
 
-  const required = ['gender', 'civilStatus', 'citizenship', 'cellphone', 'birthCountry', 'birthProvince', 'birthCity', 'monthlyIncome'];
-  if (val('monthlyIncome') === 'Others') required.push('monthlyIncomeOther');
+  const required = ['gender', 'civilStatus', 'citizenship', 'cellphone', 'birthCountry', 'birthProvince', 'birthCity'];
 
   if (!checkRequired(required)) {
     return false;
@@ -912,8 +1158,8 @@ function validatePersonal() {
     return fail('cellphone', 'Please enter a valid mobile number (e.g. +63 912 345 6789).');
   }
 
-  if (val('monthlyIncome') === 'Others' && !/\d/.test(val('monthlyIncomeOther'))) {
-    return fail('monthlyIncomeOther', 'Please enter a valid monthly income.');
+  if (isFakePhone(digits)) {
+    return fail('cellphone', 'Please enter a valid mobile number.');
   }
 
   return true;
@@ -923,7 +1169,12 @@ function validateAddress() {
   clearInvalid();
   hideError();
 
-  if (!checkRequired(['region', 'province', 'city', 'barangay', 'houseNo', 'street'])) {
+  const required = ['region', 'province', 'city', 'barangay', 'homeAddress'];
+  if (!isSamePermanent()) {
+    required.push('permRegion', 'permProvince', 'permCity', 'permBarangay', 'permHomeAddress');
+  }
+
+  if (!checkRequired(required)) {
     return false;
   }
 
@@ -932,8 +1183,77 @@ function validateAddress() {
     return fail('zipcode', 'Zipcode must be 4 digits.');
   }
 
+  if (!isSamePermanent()) {
+    const permZip = val('permZipcode');
+    if (permZip && !/^[0-9]{4}$/.test(permZip)) {
+      return fail('permZipcode', 'Zipcode must be 4 digits.');
+    }
+  }
+
   return true;
 }
+
+// Terms & Privacy modal. Lalabas pagpindot ng "Create Account" kapag pasado na ang validation.
+// Nasa loob ng modal ang checkbox; naka-disable ang "I Agree" hangga't hindi naka-check.
+const TermsModal = (function () {
+  let overlay, body, agree, agreeBtn, cancelBtn, tabs, panels;
+  const api = { init: init, open: open, close: close, onAgree: null };
+
+  function showTab(name) {
+    tabs.forEach(t => t.classList.toggle('is-active', t.dataset.tab === name));
+    panels.forEach(p => p.classList.toggle('is-active', p.dataset.panel === name));
+    body.scrollTop = 0;
+  }
+
+  function isOpen() {
+    return overlay.classList.contains('is-open');
+  }
+
+  function open() {
+    agree.checked = false;
+    agreeBtn.disabled = true;
+    showTab('terms');
+    overlay.classList.add('is-open');
+    overlay.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('tp-lock');
+    agree.focus();
+  }
+
+  function close() {
+    overlay.classList.remove('is-open');
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('tp-lock');
+  }
+
+  function init() {
+    overlay   = document.getElementById('termsOverlay');
+    body      = document.getElementById('tpBody');
+    agree     = document.getElementById('termsAgree');
+    agreeBtn  = document.getElementById('termsAgreeBtn');
+    cancelBtn = document.getElementById('termsCancel');
+    tabs      = Array.from(overlay.querySelectorAll('.tp-tab'));
+    panels    = Array.from(overlay.querySelectorAll('.tp-panel'));
+
+    tabs.forEach(t => t.addEventListener('click', () => showTab(t.dataset.tab)));
+
+    agree.addEventListener('change', () => { agreeBtn.disabled = !agree.checked; });
+
+    cancelBtn.addEventListener('click', close);
+
+    // Click sa labas ng modal = cancel
+    overlay.addEventListener('mousedown', e => { if (e.target === overlay) close(); });
+
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && isOpen()) close(); });
+
+    agreeBtn.addEventListener('click', function () {
+      if (!agree.checked) return;
+      close();
+      if (api.onAgree) api.onAgree();
+    });
+  }
+
+  return api;
+})();
 
 const RegWizard = (function () {
   const validators = [validateAccount, validatePersonal, validateAddress];
@@ -1005,7 +1325,12 @@ const RegWizard = (function () {
       const started = Date.now();
 
       let ok = true;
-      if (current === 0) ok = await checkEmailAvailable();
+      if (current === 0) {
+        ok = await checkEmailAvailable();
+        if (ok) ok = await checkNameAvailable();
+      } else if (current === 1) {
+        ok = await checkCellphoneAvailable();
+      }
 
       const wait = NEXT_MIN_LOADING_MS - (Date.now() - started);
       if (wait > 0) await new Promise(resolve => setTimeout(resolve, wait));
@@ -1032,7 +1357,7 @@ document.addEventListener('DOMContentLoaded', function () {
   populateBirthdaySelects();
   enhanceAllSelects();
   setupPhoneInput('cellphone');
-  loadRegions();
+  loadRegions('');
   loadCountries();
 
   const passwordInputEl = document.getElementById('password');
@@ -1041,39 +1366,11 @@ document.addEventListener('DOMContentLoaded', function () {
     updatePasswordStrengthUI();
   }
 
-  ['region', 'province', 'city'].forEach(id => {
-    document.getElementById(id).addEventListener('change', clearAutoZip);
-  });
-  document.getElementById('barangay').addEventListener('change', function () {
-    if (this.value) applyAutoZip(); else clearAutoZip();
-  });
-
-  document.getElementById('region').addEventListener('change', function () {
-    if (this.value) {
-      loadProvinces(this.value);
-    } else {
-      resetSelect('province', 'Select Province');
-      resetSelect('city', 'Select City/Municipality');
-      resetSelect('barangay', 'Select Barangay');
-    }
-  });
-
-  document.getElementById('province').addEventListener('change', function () {
-    if (this.value) {
-      loadCities(this.value);
-    } else {
-      resetSelect('city', 'Select City/Municipality');
-      resetSelect('barangay', 'Select Barangay');
-    }
-  });
-
-  document.getElementById('city').addEventListener('change', function () {
-    if (this.value) {
-      loadBarangays(this.value);
-    } else {
-      resetSelect('barangay', 'Select Barangay');
-    }
-  });
+  setupAddressSelects('');
+  setupAddressSelects('perm');
+  watchCurrentAddress();
+  document.getElementById('sameAsCurrent').addEventListener('change', togglePermanentFields);
+  togglePermanentFields();
 
   document.getElementById('birthCountry').addEventListener('change', function () {
     clearFieldError('birthProvince');
@@ -1103,22 +1400,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  document.getElementById('monthlyIncome').addEventListener('change', function () {
-    const isOther = this.value === 'Others';
-    document.getElementById('monthlyIncomeOtherWrap').classList.toggle('is-off', !isOther);
-    if (isOther) {
-      document.getElementById('monthlyIncomeOther').focus();
-    } else {
-      document.getElementById('monthlyIncomeOther').value = '';
-      clearFieldError('monthlyIncomeOther');
-    }
-  });
-
-  document.getElementById('zipcode').addEventListener('input', function () {
-    this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4);
-    delete this.dataset.auto;
-  });
-
   const regForm = document.getElementById('regForm');
   function clearOnEdit(e) {
     if (!e.target.classList) return;
@@ -1132,11 +1413,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const signupBtn = document.getElementById('signupBtn');
 
-  const agreeEl = document.getElementById('agreeTerms');
   let signupBusy = false;
 
   function updateSignupState() {
-    signupBtn.disabled = signupBusy || !agreeEl.checked;
+    signupBtn.disabled = signupBusy;
   }
 
   function showLoading() {
@@ -1151,9 +1431,10 @@ document.addEventListener('DOMContentLoaded', function () {
     updateSignupState();
   }
 
-  agreeEl.addEventListener('change', updateSignupState);
   updateSignupState();
+  TermsModal.init();
 
+  // Pagpindot ng Create Account: i-validate muna, tapos lalabas ang Terms & Privacy modal.
   signupBtn.addEventListener('click', function () {
     if (signupBtn.disabled) return;
 
@@ -1161,16 +1442,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (!RegWizard.validateAll()) return;
 
-    if (!document.getElementById('agreeTerms').checked) {
-      showFieldError('agreeTerms', 'Please agree to the Terms of Service and Privacy Policy.');
-      return;
-    }
+    TermsModal.open();
+  });
 
+  // Pagpindot ng "I Agree & Create Account" sa modal: dito na ipapadala ang registration.
+  TermsModal.onAgree = submitRegistration;
+
+  function submitRegistration() {
     showLoading();
 
     const fields = {
       firstName:       val('firstName'),
-      middleName:      val('middleName'),
+      // Initial lang ang ipinapadala (hal. "Lagman" -> "L"),
+      // kaya initial pa rin ang nakikita sa buong system.
+      middleName:      middleInitial(),
       lastName:        val('lastName'),
       email:           val('email'),
       password:        document.getElementById('password').value,
@@ -1186,14 +1471,25 @@ document.addEventListener('DOMContentLoaded', function () {
       birthCountry:    val('birthCountry'),
       birthProvince:   birthPlace('birthProvince'),
       birthCity:       birthPlace('birthCity'),
-      monthlyIncome:   incomeValue(),
       region:          selectedText('region'),
       province:        selectedText('province'),
       city:            selectedText('city'),
       barangay:        selectedText('barangay'),
       zipcode:         val('zipcode'),
-      homeAddress:     buildHomeAddress(),
+      homeAddress:     val('homeAddress'),
+      permSame:        isSamePermanent() ? '1' : '0',
     };
+
+    // Permanent address: ipinapadala lang kapag hindi "same as current".
+    // Kapag same, ang server na ang kokopya ng current address.
+    if (!isSamePermanent()) {
+      fields.permRegion      = selectedText('permRegion');
+      fields.permProvince    = selectedText('permProvince');
+      fields.permCity        = selectedText('permCity');
+      fields.permBarangay    = selectedText('permBarangay');
+      fields.permZipcode     = val('permZipcode');
+      fields.permHomeAddress = val('permHomeAddress');
+    }
 
     const formData = new FormData();
     Object.entries(fields).forEach(([key, value]) => formData.append(key, value));
@@ -1224,8 +1520,8 @@ document.addEventListener('DOMContentLoaded', function () {
         let unmapped = null;
         fieldNames.forEach(field => {
           let target = field;
-          if (field === 'homeAddress') target = 'houseNo';
-          if (field === 'monthlyIncome' && val('monthlyIncome') === 'Others') target = 'monthlyIncomeOther';
+          // Duplicate name galing sa server: ilagay sa ilalim ng buong name row
+          if (field === 'firstName' && /account with this name/i.test(data.errors[field][0])) target = 'fullName';
           const shown = showFieldError(target, data.errors[field][0]);
           if (!shown && !unmapped) unmapped = data.errors[field][0];
         });
@@ -1240,7 +1536,7 @@ document.addEventListener('DOMContentLoaded', function () {
       hideLoading();
       showError('Unable to reach the server. Please check your connection and try again.');
     });
-  });
+  }
 });
 
 function openRegisterOtpModal(email) {

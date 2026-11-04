@@ -156,8 +156,15 @@
             </div>
 
             <div class="bwl-ld-card">
-                <div class="bwl-ld-card-header">
+                                        <div class="bwl-ld-card-header bwl-ld-card-header--split">
                     <h6>Payment Schedule</h6>
+
+                    @if(!empty($isFullyPaid))
+                        <a href="{{ route('borrower.loan-soa', $app->application_id) }}"
+                           class="bwl-ld-soa-btn">
+                            <i class="feather-download"></i>Download SOA
+                        </a>
+                    @endif
                 </div>
                 <div class="bwl-ld-card-body">
 
@@ -176,6 +183,8 @@
                                 All payments on this loan have been received. This is your final payment record.
                             </p>
                         @endif
+
+              
 
                         @if($totalCount > 0)
                             @php $progressPct = (int) round(($paidCount / $totalCount) * 100); @endphp

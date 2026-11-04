@@ -67,11 +67,14 @@
         // Badge ng "Ongoing Loans" = Receipts to verify + Overdue
         $ongoingParentCount = (int) $receiptsToVerifyCount + (int) ($overdueLoanCount ?? 0);
 
-        // Borrower Records dropdown: All Borrowers + Active Borrowers + Completed Loans
+        // Borrower Records dropdown: All Borrowers + Active Borrowers + Completed Loans + Credit Standing
         $isAllBorrowersPage = request()->routeIs(['admin.borrowers', 'admin.verification-detail']);
         $isActiveBorrowersPage = request()->routeIs(['admin.active-borrowers', 'admin.active-borrower-detail']);
         $isCompletedLoansPage = request()->routeIs(['admin.completed-loans', 'admin.completed-loan-detail']);
-        $isBorrowersSection = $isAllBorrowersPage || $isActiveBorrowersPage || $isCompletedLoansPage;
+        // BAGO: Credit Standing (Good / Bad / Watchlist, may filter sa loob ng page)
+        $isCreditStandingPage = request()->routeIs('admin.credit-standing');
+        $isBorrowersSection = $isAllBorrowersPage || $isActiveBorrowersPage || $isCompletedLoansPage
+            || $isCreditStandingPage;
 
         // Waiting for Release
         $isWaitingReleasePage = request()->routeIs('admin.waiting-for-release*');
@@ -256,7 +259,7 @@
 
                     <li class="nxl-flat-label">Borrowers</li>
 
-                    {{-- Borrower Records dropdown: All Borrowers + Active Borrowers + Completed Loans --}}
+                    {{-- Borrower Records dropdown: All Borrowers + Active Borrowers + Completed Loans + Credit Standing --}}
                     <li class="nxl-item nxl-flat-parent {{ $isBorrowersSection ? 'is-open' : '' }}">
                         <div class="nxl-flat-row nxl-flat-toggle-trigger" role="button" tabindex="0"
                             aria-expanded="{{ $isBorrowersSection ? 'true' : 'false' }}"
@@ -291,6 +294,14 @@
             class="nxl-sublink {{ $isCompletedLoansPage ? 'active' : '' }}">
             <i class="feather-check-square nxl-sub-icon"></i>
             <span class="nxl-sub-label">Completed Loans</span>
+        </a>
+    </li>
+    {{-- BAGO: Credit Standing (Good / Bad / Watchlist) --}}
+    <li class="nxl-flat-sub-item">
+        <a href="{{ route('admin.credit-standing') }}"
+            class="nxl-sublink {{ $isCreditStandingPage ? 'active' : '' }}">
+            <i class="feather-shield nxl-sub-icon"></i>
+            <span class="nxl-sub-label">Credit Standing</span>
         </a>
     </li>
 </ul>

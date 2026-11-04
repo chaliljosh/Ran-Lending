@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
   <link rel="stylesheet" href="{{ asset('assets/login/css/register.css') }}?v={{ filemtime(public_path('assets/login/css/register.css')) }}" />
   <link rel="stylesheet" href="{{ asset('css/otp-modal.css') }}" />
+  <link rel="stylesheet" href="{{ asset('assets/login/css/register-terms-modal.css') }}?v={{ filemtime(public_path('assets/login/css/register-terms-modal.css')) }}" />
 </head>
 <body>
 
@@ -66,11 +67,12 @@
                   </div>
                 </div>
                 <div>
-                  <label for="middleName">Middle Initial</label>
+                  {{-- Full middle name ang tina-type ng user. Initial lang ang ipinapadala sa system (tingnan ang register.js). --}}
+                  <label for="middleName">Middle Name</label>
                   <div class="input-wrap">
                     <i class="bi bi-person-badge field-icon"></i>
-                    <input type="text" id="middleName" placeholder="e.g. D" maxlength="1" autocomplete="off"
-                      oninput="this.value = this.value.replace(/[^A-Za-z]/g, '').toUpperCase()">
+                    <input type="text" id="middleName" placeholder="Enter middle name" maxlength="50" autocomplete="off"
+                      oninput="this.value = this.value.replace(/[^A-Za-z\u00C0-\u024F\s'.-]/g, '').replace(/\b\w/g, c => c.toUpperCase())">
                   </div>
                 </div>
                 <div>
@@ -268,31 +270,12 @@
               </div>
             </div>
 
-            <div class="field col-span-2">
-              <label for="monthlyIncome">Monthly Income<span class="required-asterisk">*</span></label>
-              <div class="input-wrap no-icon">
-                <select id="monthlyIncome">
-                  <option value="">Select income range</option>
-                  <option value="Below ₱10,000">Below ₱10,000</option>
-                  <option value="₱10,000 - ₱20,000">₱10,000 - ₱20,000</option>
-                  <option value="₱20,001 - ₱30,000">₱20,001 - ₱30,000</option>
-                  <option value="₱30,001 - ₱50,000">₱30,001 - ₱50,000</option>
-                  <option value="₱50,001 - ₱100,000">₱50,001 - ₱100,000</option>
-                  <option value="Above ₱100,000">Above ₱100,000</option>
-                  <option value="Others">Others</option>
-                </select>
-              </div>
-              <div class="input-wrap no-icon income-other is-off" id="monthlyIncomeOtherWrap">
-                <input type="text" id="monthlyIncomeOther" maxlength="50" placeholder="Please specify your monthly income (e.g. ₱150,000)">
-              </div>
-            </div>
-
           </div>
 
           <div class="form-grid reg-step">
 
             <div class="col-span-2 step-head">
-              <h3>Address Details</h3>
+              <h3>Current Address</h3>
               <p>Please provide your current residential address.</p>
             </div>
 
@@ -350,44 +333,84 @@
               </div>
             </div>
 
-            <div class="field">
-              <label for="houseNo">House / Building No.<span class="required-asterisk">*</span></label>
+            <div class="field col-span-2">
+              <label for="homeAddress">House No., Street, Subdivision / Sitio<span class="required-asterisk">*</span></label>
               <div class="input-wrap no-icon">
-                <input type="text" id="houseNo" maxlength="30" placeholder="e.g. Block 5 Lot 10">
+                <input type="text" id="homeAddress" maxlength="200" placeholder="e.g. Block 5 Lot 10, Rizal Street, Greenfield Subdivision">
               </div>
             </div>
 
-            <div class="field">
-              <label for="street">Street / Sitio / Zone<span class="required-asterisk">*</span></label>
-              <div class="input-wrap no-icon">
-                <input type="text" id="street" maxlength="60" placeholder="e.g. Rizal Street, Sitio Mabini, Zone 3">
-              </div>
-            </div>
-
-            <div class="field">
-              <label for="subdivision">Subdivision / Village <span class="optional-tag">(Optional)</span></label>
-              <div class="input-wrap no-icon">
-                <input type="text" id="subdivision" maxlength="60" placeholder="e.g. Greenfield Subdivision">
-              </div>
-            </div>
-
-            <div class="field">
-              <label for="addressDetails">Landmark <span class="optional-tag">(Optional)</span></label>
-              <div class="input-wrap no-icon">
-                <input type="text" id="addressDetails" maxlength="60" placeholder="e.g. Near the park, beside the chapel">
-              </div>
+            <div class="col-span-2 step-head">
+              <h3>Permanent Address</h3>
+              <p>Check the box below if your permanent address is the same as your current address.</p>
             </div>
 
             <div class="col-span-2">
               <label class="consent-check">
-                <input type="checkbox" id="agreeTerms">
-                <span>
-                  I agree to the
-                  <a href="{{ route('legal.terms') }}" target="_blank" rel="noopener">Terms of Service</a>
-                  and
-                  <a href="{{ route('legal.privacy') }}" target="_blank" rel="noopener">Privacy Policy</a>
-                </span>
+               <input type="checkbox" id="sameAsCurrent">
+                <span>My permanent address is the same as my current address</span>
               </label>
+            </div>
+
+          <div class="col-span-2" id="permFields">
+              <div class="form-grid">
+
+                <div class="field col-span-2">
+                  <div class="name-row">
+                    <div>
+                      <label for="permRegion">Region<span class="required-asterisk">*</span></label>
+                      <div class="input-wrap no-icon">
+                        <select id="permRegion">
+                          <option value="">Select Region</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label for="permProvince">Province<span class="required-asterisk">*</span></label>
+                      <div class="input-wrap no-icon">
+                        <select id="permProvince" disabled>
+                          <option value="">Select Province</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label for="permCity">City/Municipality<span class="required-asterisk">*</span></label>
+                      <div class="input-wrap no-icon">
+                        <select id="permCity" disabled>
+                          <option value="">Select City/Municipality</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="field col-span-2">
+                  <div class="name-row name-row-2">
+                    <div>
+                      <label for="permBarangay">Barangay<span class="required-asterisk">*</span></label>
+                      <div class="input-wrap no-icon">
+                        <select id="permBarangay" disabled>
+                          <option value="">Select Barangay</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label for="permZipcode">Zipcode <span class="optional-tag">(Optional)</span></label>
+                      <div class="input-wrap no-icon">
+                        <input type="text" id="permZipcode" placeholder="e.g. 2000" maxlength="4" inputmode="numeric">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="field col-span-2">
+                  <label for="permHomeAddress">House No., Street, Subdivision / Sitio<span class="required-asterisk">*</span></label>
+                  <div class="input-wrap no-icon">
+                    <input type="text" id="permHomeAddress" maxlength="200" placeholder="e.g. Block 5 Lot 10, Rizal Street, Greenfield Subdivision">
+                  </div>
+                </div>
+
+              </div>
             </div>
 
           </div>
@@ -430,6 +453,119 @@
       <h5>Account Created!</h5>
       <p>Your email has been verified and your account has been successfully created. You can now sign in.</p>
       <button class="modal-btn" onclick="window.location.href='{{ route('login') }}'">Go to Login</button>
+    </div>
+  </div>
+
+  {{-- Terms & Privacy modal: lalabas pagpindot ng "Create Account" (pagkatapos pumasa ang validation) --}}
+  <div class="tp-overlay" id="termsOverlay" aria-hidden="true">
+    <div class="tp-modal" role="dialog" aria-modal="true" aria-labelledby="tpTitle">
+
+      <div class="tp-head">
+        <h5 id="tpTitle">Terms &amp; Privacy</h5>
+        <p>Please read and accept before creating your account.</p>
+      </div>
+
+      <div class="tp-tabs" role="tablist">
+        <button type="button" class="tp-tab is-active" data-tab="terms" role="tab">Terms of Service</button>
+        <button type="button" class="tp-tab" data-tab="privacy" role="tab">Privacy Policy</button>
+      </div>
+
+      <div class="tp-body" id="tpBody">
+
+        <div class="tp-panel is-active" data-panel="terms" role="tabpanel">
+
+
+          <div class="tp-section">
+            <span class="tp-num">01</span>
+            <div>
+              <h6>Eligibility &amp; Registration</h6>
+              <p>You must be at least 18 years old and complete the registration form with accurate personal and address information. Your account is activated once you verify your email with the one-time code (OTP) we send you. After that, you can sign in and apply for a loan right away. You are responsible for keeping your information accurate and up to date.</p>
+            </div>
+          </div>
+
+          <div class="tp-section">
+            <span class="tp-num">02</span>
+            <div>
+              <h6>Loan Terms</h6>
+              <p>Approved loans carry a fixed interest rate of 5% per month, applied over your chosen loan term. First-time borrowers can borrow up to ₱15,000, with a maximum loan term of 6 months. The total amount payable, including interest, is disclosed to you before you confirm your application. Monthly payments are due on the agreed schedule shown on your Loan Details page.</p>
+            </div>
+          </div>
+
+          <div class="tp-section">
+            <span class="tp-num">03</span>
+            <div>
+              <h6>Late Payments &amp; Penalties</h6>
+              <p>Payments not received by their due date may incur penalty charges. Repeated or prolonged late payments may affect your eligibility for future loans.</p>
+            </div>
+          </div>
+
+          <div class="tp-section">
+            <span class="tp-num">04</span>
+            <div>
+              <h6>Changes to These Terms</h6>
+              <p>These terms may be updated from time to time. Continued use of Ran Serenity after changes are posted constitutes acceptance of the updated terms.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="tp-panel" data-panel="privacy" role="tabpanel">
+      
+
+          <div class="tp-section">
+            <span class="tp-num">01</span>
+            <div>
+              <h6>Information We Collect</h6>
+              <p>We collect the personal information you provide when you register and when you apply for a loan, including your name, birthday, gender, civil status, citizenship, place of birth, contact number, email address, current and permanent address, valid ID and a selfie with your ID, employment details, monthly income, and the payment receipts you upload.</p>
+            </div>
+          </div>
+
+          <div class="tp-section">
+            <span class="tp-num">02</span>
+            <div>
+              <h6>How We Use Your Information</h6>
+              <p>Your information is used to create and secure your account, send you one-time verification codes and account notifications by email, verify your identity, process and manage your loans, and record your payments. When you apply for a loan, your application is reviewed by authorized admin staff.</p>
+            </div>
+          </div>
+
+          <div class="tp-section">
+            <span class="tp-num">03</span>
+            <div>
+              <h6>How We Protect Your Information</h6>
+              <p>Your data is stored securely and access is limited to authorized personnel involved in reviewing and managing borrower accounts and loan applications.</p>
+            </div>
+          </div>
+
+          <div class="tp-section">
+            <span class="tp-num">04</span>
+            <div>
+              <h6>Data Sharing</h6>
+              <p>We do not sell or share your personal information with third parties outside of what is necessary to operate and administer your loan account.</p>
+            </div>
+          </div>
+
+          <div class="tp-section">
+            <span class="tp-num">05</span>
+            <div>
+              <h6>Questions</h6>
+              <p>If you have questions about how your information is handled, please reach out through the Help &amp; FAQ page.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="tp-foot">
+        <label class="tp-check">
+          <input type="checkbox" id="termsAgree">
+          <span>I agree to the <strong>Terms of Service</strong> and <strong>Privacy Policy</strong></span>
+        </label>
+
+        <div class="tp-actions">
+          <button type="button" class="tp-btn tp-btn--ghost" id="termsCancel">Cancel</button>
+          <button type="button" class="tp-btn tp-btn--primary" id="termsAgreeBtn" disabled>I Agree &amp; Create Account</button>
+        </div>
+      </div>
+
     </div>
   </div>
 

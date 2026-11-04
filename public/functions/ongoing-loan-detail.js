@@ -359,6 +359,10 @@ document.addEventListener('DOMContentLoaded', function () {
             upcoming: ['is-upcoming', 'Pending'],
         };
 
+        // Due Date at Installment Amount ng installment na binuksan sa Payment Details
+        // (ginagamit ng Receipt Viewer para sa details grid)
+        let currentInstallment = { due: '', installmentAmount: '' };
+
         function updateFullLink() {
             if (dImg.style.display === 'none') { dFull.style.display = 'none'; return; }
             const scaled = dImg.naturalWidth > dImg.clientWidth + 1 || dImg.naturalHeight > dImg.clientHeight + 1;
@@ -369,6 +373,8 @@ document.addEventListener('DOMContentLoaded', function () {
         // Dalawang paraan ng pagbukas:
         //   1) Diretso (isang full payment lang): walang babalikang Payment Details.
         //   2) Galing sa listahan ng Payments: pagsara, balik sa Payment Details.
+        // May details grid sa taas (Due Date, Date Paid, Installment Amount, Amount Paid,
+        // Payment Type, Status), kapareho ng borrower side.
         const rvModalEl = document.getElementById('olsReceiptViewerModal');
         let returnToDetails = false;
         let showReceiptViewer = null;
@@ -381,6 +387,26 @@ document.addEventListener('DOMContentLoaded', function () {
             const rvFull = el('olsRvFullLink');
             const rvBackBtn = rvModalEl.querySelector('.modal-footer .ols-details-close');
 
+            const peso = v => (v ? '\u20B1' + v : '\u2014');
+            const orDash = v => (v ? v : '\u2014');
+
+            // meta: { due, paidOn, installment, paid, kind: 'full' | 'partial' }
+            function fillReceiptDetails(meta) {
+                meta = meta || {};
+                const isPartial = meta.kind === 'partial';
+
+                el('olsRvDue').textContent = orDash(meta.due);
+                el('olsRvPaidOn').textContent = orDash(meta.paidOn);
+                el('olsRvInstallment').textContent = peso(meta.installment);
+                el('olsRvPaid').textContent = peso(meta.paid);
+                el('olsRvKind').textContent = isPartial ? 'Partial' : 'Full';
+
+                const pill = el('olsRvStatus');
+                pill.classList.remove('is-paid', 'is-upcoming', 'is-overdue');
+                pill.classList.add(isPartial ? 'is-upcoming' : 'is-paid');
+                pill.textContent = isPartial ? 'Partial' : 'Paid';
+            }
+
             function resetReceiptViewer() {
                 rvImg.onload = null;
                 rvImg.onerror = null;
@@ -390,9 +416,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 rvLoading.style.display = '';
             }
 
-            showReceiptViewer = function (url, label, backToDetails) {
+            showReceiptViewer = function (url, label, backToDetails, meta) {
                 returnToDetails = !!backToDetails;
                 resetReceiptViewer();
+                fillReceiptDetails(meta);
 
                 rvSub.textContent = label || '';
                 rvFull.href = url;
@@ -419,9 +446,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 const url = link.dataset.url;
                 if (!url) return;
                 const label = link.dataset.label || '';
+                const meta = {
+                    due: currentInstallment.due,
+                    installment: currentInstallment.installmentAmount,
+                    paidOn: link.dataset.date || '',
+                    paid: link.dataset.amount || '',
+                    kind: link.dataset.kind === 'partial' ? 'partial' : 'full',
+                };
 
                 detailsModalEl.addEventListener('hidden.bs.modal', function () {
-                    showReceiptViewer(url, label, true);
+                    showReceiptViewer(url, label, true, meta);
                 }, { once: true });
 
                 bootstrap.Modal.getOrCreateInstance(detailsModalEl).hide();
@@ -443,6 +477,11 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!btn) return;
             const d = btn.dataset;
 
+            currentInstallment = {
+                due: d.due || '',
+                installmentAmount: d.installmentAmount || '',
+            };
+
             // Listahan ng lahat ng bayad ng installment (partial + full)
             let payments = [];
             try { payments = JSON.parse(d.payments || '[]'); } catch (err) {}
@@ -455,7 +494,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     showReceiptViewer(
                         p.url,
                         '#' + d.installmentNo + ' \u00B7 Full \u00B7 \u20B1' + p.amount + ' \u00B7 ' + p.date,
-                        false
+                        false,
+                        {
+                            due: d.due,
+                            installment: d.installmentAmount,
+                            paidOn: p.date,
+                            paid: p.amount,
+                            kind: 'full',
+                        }
                     );
                     return;
                 }
@@ -465,7 +511,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     showReceiptViewer(
                         d.receiptUrl,
                         '#' + d.installmentNo + ' \u00B7 \u20B1' + d.amount + (d.paid ? ' \u00B7 ' + d.paid : ''),
-                        false
+                        false,
+                        {
+                            due: d.due,
+                            installment: d.installmentAmount,
+                            paidOn: d.paid,
+                            paid: d.amount,
+                            kind: 'full',
+                        }
                     );
                     return;
                 }
@@ -493,7 +546,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     const link = p.url
                         ? '<button type="button" class="ols-pd-pay-link js-pd-view-receipt"' +
                           ' data-url="' + escapeHtml(p.url) + '"' +
-                          ' data-label="' + escapeHtml(label) + '">View receipt</button>'
+                          ' data-label="' + escapeHtml(label) + '"' +
+                          ' data-kind="' + escapeHtml(p.kind) + '"' +
+                          ' data-amount="' + escapeHtml(p.amount) + '"' +
+                          ' data-date="' + escapeHtml(p.date) + '">View receipt</button>'
                         : '<span class="ols-pd-pay-none">No receipt</span>';
                     return '<div class="ols-pd-pay-row">' +
                         '<div class="ols-pd-pay-main">' +
@@ -635,6 +691,44 @@ document.addEventListener('DOMContentLoaded', function () {
                 partialError.style.display = msg ? '' : 'none';
             }
 
+            const fmtPeso = n => '\u20B1' + Number(n).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+            });
+
+            // Pinakamataas na pwedeng ilagay: kulang pa rin sa balance (kasi partial lang ito)
+            function partialMax() {
+                if (!partialInfo) return 0;
+                return Math.max(0, Math.round((parseFloat(partialInfo.amountDue) - 0.01) * 100) / 100);
+            }
+
+            // Bawal ang e, +, - sa number input
+            partialAmount.addEventListener('keydown', function (e) {
+                if (['e', 'E', '+', '-'].includes(e.key)) e.preventDefault();
+            });
+
+            // Habang nagta-type / nagpa-paste: 2 decimals lang, at hindi lalampas sa max
+            partialAmount.addEventListener('input', function () {
+                if (!partialInfo) return;
+
+                let v = partialAmount.value;
+                const dot = v.indexOf('.');
+                if (dot !== -1 && v.length - dot - 1 > 2) {
+                    v = v.slice(0, dot + 3);
+                    partialAmount.value = v;
+                }
+
+                const max = partialMax();
+                const num = parseFloat(v);
+                if (!isNaN(num) && num > max) {
+                    partialAmount.value = max.toFixed(2);
+                    showPartialError('The most you can record as partial is ' + fmtPeso(max) +
+                        ' (balance is ' + fmtPeso(partialInfo.amountDue) + '). For the full balance, use Record Payment.');
+                } else {
+                    showPartialError('');
+                }
+            });
+
             br('olsBrPartialBtn').addEventListener('click', function () {
                 if (!brInfo) return;
                 const info = brInfo;
@@ -646,6 +740,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         maximumFractionDigits: 2,
                     });
                     partialAmount.value = '';
+                    partialAmount.max = partialMax().toFixed(2);
                     partialRemarks.value = '';
                     showPartialError('');
                     bootstrap.Modal.getOrCreateInstance(partialModalEl).show();
@@ -661,6 +756,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!amount || amount <= 0) { showPartialError('Please enter the amount received.'); return; }
                 if (amount >= balance) {
                     showPartialError('This amount covers the full balance. Use Record Payment instead.');
+                    return;
+                }
+                if (Math.round(amount * 100) !== amount * 100 && Math.abs(amount * 100 - Math.round(amount * 100)) > 1e-6) {
+                    showPartialError('Please enter a valid amount (up to 2 decimal places).');
                     return;
                 }
 

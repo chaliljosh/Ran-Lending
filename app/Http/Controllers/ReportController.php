@@ -39,6 +39,10 @@ class ReportController extends Controller
     {
         $report = $this->buildReport($request);
 
+        // Dagdag na stats para sa PDF lang (Application Overview, Loan Status, Payment Monitoring).
+        // Hindi ito kasama sa screen/AJAX para hindi madagdagan ang queries ng page.
+        $report['overview'] = $this->buildOverview($report['year'], $report['month'], (int) $report['summary']['approved']);
+
         $suffix = $report['month'] === 0
             ? $report['year'] . '-all'
             : $report['year'] . '-' . str_pad($report['month'], 2, '0', STR_PAD_LEFT);
@@ -131,6 +135,122 @@ class ReportController extends Controller
             'rows'         => $rows,
             'approvedList' => $approvedList,
             'generatedAt'  => now(),
+        ];
+    }
+
+    // ---------------------------------------------------------------
+    // Dagdag na stats para sa PDF (Executive Summary, Application Overview,
+    // Loan Status Overview, Payment Monitoring Summary).
+    //
+    // Period = napiling buwan, o ang buong taon kapag "All months".
+    //
+    //  Applications
+    //   - Approved : kapareho ng bilang sa summary (galing sa RPC)
+    //   - Rejected : na-reject sa period (petsa ng huling reject decision)
+    //   - Pending / On Hold : isinumite (applied_at) sa period at ganoon pa rin ang status
+    //
+    //  Loans
+    //   - Ongoing   : na-release na (proof_sent_at) hanggang katapusan ng period
+    //                 at hindi pa tapos bayaran sa katapusan ng period
+    //   - Completed : natapos bayaran sa period (huling paid_at)
+    //
+    //  Payments (installments na due sa period)
+    //   - Paid      : may paid_at
+    //   - Partially : walang paid_at pero may amount_paid
+    //   - Overdue   : walang bayad at lampas na ang due date
+    //   - Unpaid    : walang bayad at hindi pa due
+    // ---------------------------------------------------------------
+    private function buildOverview(int $year, int $month, int $approvedCount): array
+    {
+        if ($month === 0) {
+            $start = Carbon::create($year, 1, 1)->startOfDay();
+            $end   = Carbon::create($year, 12, 31)->endOfDay();
+        } else {
+            $start = Carbon::create($year, $month, 1)->startOfMonth();
+            $end   = $start->copy()->endOfMonth();
+        }
+
+        // ---- Applications ----
+        $rejected = DB::table('loan_applications as la')
+            ->where('la.status', 'rejected')
+            ->whereRaw(
+                "(SELECT MAX(lap.reviewed_at) FROM loan_approvals lap
+                  WHERE lap.application_id = la.application_id AND lap.decision = 'rejected') BETWEEN ? AND ?",
+                [$start, $end]
+            )
+            ->count();
+
+        $pending = DB::table('loan_applications')
+            ->where('status', 'pending')
+            ->whereBetween('applied_at', [$start, $end])
+            ->count();
+
+        $onHold = DB::table('loan_applications')
+            ->where('status', 'on_hold')
+            ->whereBetween('applied_at', [$start, $end])
+            ->count();
+
+        // ---- Loans (released lang, kasama ang petsa ng huling bayad) ----
+        $released = DB::table('loan_applications as la')
+            ->leftJoin(
+                DB::raw('(SELECT application_id, MAX(paid_at) AS completed_at
+                          FROM loan_payment_schedules GROUP BY application_id) AS s'),
+                's.application_id', '=', 'la.application_id'
+            )
+            ->whereNotNull('la.proof_sent_at')
+            ->whereIn('la.status', ['active', 'approved', 'completed', 'defaulted'])
+            ->select('la.status', 'la.proof_sent_at', 's.completed_at')
+            ->get();
+
+        $ongoing = 0;
+        $completed = 0;
+        foreach ($released as $loan) {
+            $releasedAt  = Carbon::parse($loan->proof_sent_at);
+            $completedAt = ($loan->status === 'completed' && $loan->completed_at)
+                ? Carbon::parse($loan->completed_at)
+                : null;
+
+            if ($completedAt && $completedAt->between($start, $end)) {
+                $completed++;
+            }
+
+            $finishedByEnd = $completedAt && $completedAt->lte($end);
+            if ($releasedAt->lte($end) && !$finishedByEnd) {
+                $ongoing++;
+            }
+        }
+
+        // ---- Payments ----
+        $today = now()->toDateString();
+
+        $pay = DB::table('loan_payment_schedules')
+            ->whereBetween('due_date', [$start->toDateString(), $end->toDateString()])
+            ->selectRaw(
+                "COALESCE(SUM(CASE WHEN paid_at IS NOT NULL THEN 1 ELSE 0 END), 0) AS paid,
+                 COALESCE(SUM(CASE WHEN paid_at IS NULL AND amount_paid > 0 THEN 1 ELSE 0 END), 0) AS partial,
+                 COALESCE(SUM(CASE WHEN paid_at IS NULL AND amount_paid = 0 AND due_date < ? THEN 1 ELSE 0 END), 0) AS overdue,
+                 COALESCE(SUM(CASE WHEN paid_at IS NULL AND amount_paid = 0 AND due_date >= ? THEN 1 ELSE 0 END), 0) AS unpaid",
+                [$today, $today]
+            )
+            ->first();
+
+        return [
+            'applications' => [
+                'approved' => $approvedCount,
+                'rejected' => $rejected,
+                'pending'  => $pending,
+                'on_hold'  => $onHold,
+            ],
+            'loans' => [
+                'ongoing'   => $ongoing,
+                'completed' => $completed,
+            ],
+            'payments' => [
+                'paid'    => (int) $pay->paid,
+                'partial' => (int) $pay->partial,
+                'unpaid'  => (int) $pay->unpaid,
+                'overdue' => (int) $pay->overdue,
+            ],
         ];
     }
 

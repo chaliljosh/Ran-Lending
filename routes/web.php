@@ -14,6 +14,7 @@ use App\Http\Controllers\ZipcodeController;
 use App\Http\Controllers\BorrowerAccountController;
 use App\Http\Controllers\ReceiptReviewController;
 use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\StatementOfAccountController;
 use App\Http\Middleware\AuditRequests;
 
 
@@ -58,6 +59,10 @@ Route::post('/api/register/verify-otp', [AuthController::class, 'verifyRegisterO
 Route::post('/api/register/resend-otp', [AuthController::class, 'resendRegisterOtp'])->middleware('throttle:5,10');
 Route::post('/api/register/check-email', [AuthController::class, 'checkRegisterEmail'])->middleware('throttle:30,1,register-check');
 
+// BAGO: bawal ang parehong buong pangalan (first + middle initial + last + suffix),
+// kahit ibang email ang gamit. Tinatawag ng register.js pagpindot ng "Next" sa Step 1.
+Route::post('/api/register/check-name', [AuthController::class, 'checkRegisterName'])->middleware('throttle:30,1,register-name');
+Route::post('/api/register/check-cellphone', [AuthController::class, 'checkRegisterCellphone'])->middleware('throttle:30,1,register-cellphone');
 // Zipcode lookup para sa Register page (Step 3). Public, kasi guest ang user
 // habang nagre-register. Hiwalay ang throttle prefix para hindi maapektuhan
 // ang ibang register routes.
@@ -82,6 +87,14 @@ Route::middleware(['borrower', 'no-cache', AuditRequests::class])->group(functio
     Route::get('/borrower/personal-details', [BorrowerController::class, 'personalDetails'])->name('borrower.personal-details');
     Route::get('/borrower/apply-loan', [BorrowerController::class, 'applyLoan'])->name('borrower.apply-loan');
     Route::get('/borrower/loan-details', [BorrowerController::class, 'loanDetails'])->name('borrower.loan-details');
+
+    // BAGO: Statement of Account (PDF) — pwede lang i-download kapag fully paid na ang loan.
+    // Ownership at fully-paid check ay nasa StatementOfAccountController::download().
+    // URL: /borrower/loans/{application_id}/soa  |  name: borrower.loan-soa
+    Route::get('/borrower/loans/{id}/soa', [StatementOfAccountController::class, 'download'])
+        ->whereNumber('id')
+        ->middleware('throttle:10,1')
+        ->name('borrower.loan-soa');
 
     // Opens the borrower's own uploaded receipt (redirects to a short-lived signed URL)
     Route::get('/borrower/payment-receipt/{receipt}/view', [PaymentReceiptController::class, 'view'])
@@ -153,6 +166,13 @@ Route::middleware(['admin', 'no-cache', 'throttle:60,1', AuditRequests::class])-
         ->name('notification-open');
     Route::post('/notifications/mark-all-read', [AdminController::class, 'notificationsMarkAllRead'])
         ->name('notifications-mark-all-read');
+
+    // BAGO: tinatawag ng admin-live-updates.js kada 30 segundo para i-refresh
+    // ang bell at ang receipt badge sa sidebar (walang page reload).
+    // URL: /admin/notifications/poll  |  name: admin.notifications-poll
+    Route::get('/notifications/poll', [AdminController::class, 'notificationsPoll'])
+        ->name('notifications-poll');
+
     Route::get('/notifications', [AdminController::class, 'notificationsIndex'])
         ->name('notifications');
 
@@ -180,6 +200,10 @@ Route::middleware(['admin', 'no-cache', 'throttle:60,1', AuditRequests::class])-
     // Bagong route para sa All Borrowers page — list lang, walang approve/reject
     Route::get('/borrowers', [AdminController::class, 'allBorrowers'])->name('borrowers');
     Route::get('/borrowers/active', [AdminController::class, 'activeBorrowers'])->name('active-borrowers');
+
+    // BAGO: Borrower Records > Credit Standing (may filter: ?standing=all|good|bad|watch)
+    // URL: /admin/borrowers/credit-standing  |  name: admin.credit-standing
+    Route::get('/borrowers/credit-standing', [AdminController::class, 'creditStanding'])->name('credit-standing');
 
     // Penalty Tracking
     Route::get('/penalty-tracking', [AdminController::class, 'penaltyTracking'])->name('penalty-tracking');
@@ -285,10 +309,7 @@ Route::middleware(['admin', 'no-cache', 'throttle:60,1', AuditRequests::class])-
         ->whereUuid('uuid')
         ->name('completed-loan-detail');
 
-    // Active Loans > Defaulted
-    // A loan is "defaulted" once its oldest unpaid installment has been
-    // overdue for 90+ days (see AdminController::DEFAULT_DAYS_LATE).
-    Route::get('/active-loans/defaulted', [AdminController::class, 'defaultedLoans'])->name('defaulted-loans');
-    Route::get('/defaulted-loan-detail/{id}', [AdminController::class, 'defaultedLoanDetail'])
-        ->name('defaulted-loan-detail');
+      Route::get('/borrowers/credit-standing/{uuid}/profile', [AdminController::class, 'creditStandingProfile'])
+        ->whereUuid('uuid')
+        ->name('credit-standing-profile');
 });

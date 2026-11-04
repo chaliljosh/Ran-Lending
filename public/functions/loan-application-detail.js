@@ -75,6 +75,177 @@ function decisionBackToStep1() {
         confirmBtn.className = 'btn-decision btn-decision-black';
     }
 }
+
+/* ============================================================
+   VALID ID VIEWER (fullscreen, zoom + rotate + pan)
+   Ginagamit ng: openIdViewer(url) sa mga picture (Valid ID, Pay Slip,
+   Proof of Billing) at ng mga button sa toolbar ng #idViewerOverlay.
+
+   Controls:
+   - Toolbar: zoom in / zoom out / rotate / reset
+   - Mouse wheel: zoom
+   - Double-click sa picture: 2x / balik sa 1x
+   - Drag: mag-pan kapag naka-zoom
+   - Esc / click sa madilim na bahagi / X: close
+   - Keyboard: + / - / R
+   ============================================================ */
+(function () {
+    var scale = 1;
+    var rotation = 0;
+    var posX = 0;
+    var posY = 0;
+    var dragging = false;
+    var dragStartX = 0;
+    var dragStartY = 0;
+    var isOpen = false;
+    var listenersReady = false;
+
+    function getEls() {
+        return {
+            overlay: document.getElementById('idViewerOverlay'),
+            img: document.getElementById('idViewerImage'),
+        };
+    }
+
+    function applyTransform() {
+        var els = getEls();
+        if (!els.img) return;
+        els.img.style.transform =
+            'translate(' + posX + 'px,' + posY + 'px) scale(' + scale + ') rotate(' + rotation + 'deg)';
+    }
+
+    function resetTransform() {
+        scale = 1;
+        rotation = 0;
+        posX = 0;
+        posY = 0;
+        applyTransform();
+    }
+
+    function setupListeners() {
+        if (listenersReady) return;
+
+        var els = getEls();
+        if (!els.overlay || !els.img) return;
+        listenersReady = true;
+
+        var overlay = els.overlay;
+        var img = els.img;
+
+        // Mouse wheel zoom
+        overlay.addEventListener('wheel', function (e) {
+            if (!isOpen) return;
+            e.preventDefault();
+            window.idViewerZoom(e.deltaY < 0 ? 0.15 : -0.15);
+        }, { passive: false });
+
+        // Drag para mag-pan
+        img.addEventListener('mousedown', function (e) {
+            e.preventDefault();
+            dragging = true;
+            dragStartX = e.clientX - posX;
+            dragStartY = e.clientY - posY;
+            img.style.transition = 'none';
+            img.style.cursor = 'grabbing';
+        });
+
+        window.addEventListener('mousemove', function (e) {
+            if (!dragging) return;
+            posX = e.clientX - dragStartX;
+            posY = e.clientY - dragStartY;
+            applyTransform();
+        });
+
+        window.addEventListener('mouseup', function () {
+            if (!dragging) return;
+            dragging = false;
+            img.style.transition = 'transform .15s ease';
+            img.style.cursor = 'grab';
+        });
+
+        // Double-click: zoom in / balik
+        img.addEventListener('dblclick', function () {
+            if (scale > 1) {
+                scale = 1;
+                posX = 0;
+                posY = 0;
+            } else {
+                scale = 2;
+            }
+            applyTransform();
+        });
+
+        // Click sa madilim na bahagi = close (hindi sa image o toolbar)
+        overlay.addEventListener('click', function (e) {
+            if (e.target === overlay) window.closeIdViewer();
+        });
+    }
+
+    window.openIdViewer = function (url) {
+        var els = getEls();
+        if (!els.overlay || !els.img) return;
+
+        setupListeners();
+        resetTransform();
+
+        els.img.src = url;
+        els.img.draggable = false;
+        els.img.style.maxWidth = '90vw';
+        els.img.style.maxHeight = '85vh';
+        els.img.style.transition = 'transform .15s ease';
+        els.img.style.cursor = 'grab';
+        els.img.style.transformOrigin = 'center center';
+
+        // Inline styles para gumana kahit ano ang nasa CSS ng overlay
+        els.overlay.style.display = 'flex';
+        els.overlay.style.visibility = 'visible';
+        els.overlay.style.opacity = '1';
+        els.overlay.style.position = 'fixed';
+        els.overlay.style.inset = '0';
+        els.overlay.style.alignItems = 'center';
+        els.overlay.style.justifyContent = 'center';
+        els.overlay.style.zIndex = '99999';
+        els.overlay.style.background = 'rgba(0,0,0,.85)';
+        els.overlay.classList.add('show', 'active', 'open');
+
+        document.body.style.overflow = 'hidden';
+        isOpen = true;
+    };
+
+    window.closeIdViewer = function () {
+        var els = getEls();
+        if (!els.overlay || !els.img) return;
+
+        els.overlay.style.display = 'none';
+        els.overlay.classList.remove('show', 'active', 'open');
+        els.img.src = '';
+        document.body.style.overflow = '';
+        isOpen = false;
+        dragging = false;
+    };
+
+    window.idViewerZoom = function (step) {
+        scale = Math.min(5, Math.max(0.3, scale + step));
+        applyTransform();
+    };
+
+    window.idViewerRotate = function () {
+        rotation = (rotation + 90) % 360;
+        applyTransform();
+    };
+
+    window.idViewerReset = resetTransform;
+
+    document.addEventListener('keydown', function (e) {
+        if (!isOpen) return;
+
+        if (e.key === 'Escape') window.closeIdViewer();
+        else if (e.key === '+' || e.key === '=') window.idViewerZoom(0.2);
+        else if (e.key === '-') window.idViewerZoom(-0.2);
+        else if (e.key.toLowerCase() === 'r') window.idViewerRotate();
+    });
+})();
+
 /* ============================================================
    BORROWER INFO EDITING
    Per-card Edit / Cancel / Save. Save opens a modal that asks

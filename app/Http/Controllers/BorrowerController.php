@@ -24,12 +24,12 @@ class BorrowerController extends Controller
 {
      use BorrowerPaymentNotifications;
     // ── Loan rules (isang lugar lang para madaling baguhin) ──
-    private const FIRST_TIME_MAX_AMOUNT = 15000; // max ng first-time borrower
-    private const AMOUNT_STEP           = 5000;  // dagdag sa max kada fully paid na loan
-    private const FIRST_TIME_MAX_TERM   = 6;     // max months ng first-time borrower
-    private const MAX_TERM              = 12;    // max months mula sa 2nd loan
-    private const LATE_DAYS             = 7;     // ilang araw na late = "late payment" (parehong rule ng penalty)
-    private const BAD_BORROWER_WAIT_MONTHS = 3;  // paghihintay ng bad borrower bago makapag-loan ulit
+    private const FIRST_TIME_MAX_AMOUNT = 15000;  // max ng first-time borrower
+private const RETURNING_MAX_AMOUNT  = 100000; // max mula sa 2nd loan
+private const FIRST_TIME_MAX_TERM   = 6;      // max months ng first-time borrower
+private const MAX_TERM              = 12;     // max months mula sa 2nd loan
+private const LATE_DAYS             = 7;
+private const BAD_BORROWER_WAIT_MONTHS = 3;
 
     // Ilang notification ang pinakamarami (dropdown at buong page)
     private const MAX_NOTIFICATIONS = 60;
@@ -111,21 +111,20 @@ class BorrowerController extends Controller
      *  - waitUntil: petsa kung kailan pwedeng mag-apply ulit ang "bad borrower"
      *    (null = pwede na agad).
      */
-    private function getLoanEligibility($userId)
-    {
-        $completedCount = DB::table('loan_applications')
-            ->where('user_id', $userId)
-            ->where('status', 'completed')
-            ->count();
+   private function getLoanEligibility($userId)
+{
+    $completedCount = DB::table('loan_applications')
+        ->where('user_id', $userId)
+        ->where('status', 'completed')
+        ->count();
 
-        $isFirstTime = $completedCount === 0;
-        $maxAmount = self::FIRST_TIME_MAX_AMOUNT + (self::AMOUNT_STEP * $completedCount);
-        $maxTerm = $isFirstTime ? self::FIRST_TIME_MAX_TERM : self::MAX_TERM;
-        $waitUntil = $this->getReapplyDate($userId);
+    $isFirstTime = $completedCount === 0;
+    $maxAmount = $isFirstTime ? self::FIRST_TIME_MAX_AMOUNT : self::RETURNING_MAX_AMOUNT;
+    $maxTerm = $isFirstTime ? self::FIRST_TIME_MAX_TERM : self::MAX_TERM;
+    $waitUntil = $this->getReapplyDate($userId);
 
-        return compact('isFirstTime', 'maxAmount', 'maxTerm', 'waitUntil');
-    }
-
+    return compact('isFirstTime', 'maxAmount', 'maxTerm', 'waitUntil');
+}
     /**
      * Bad borrower = ang pinakahuling natapos na loan (completed o defaulted)
      * ay defaulted, O may installment na na-late nang 7 araw pataas
@@ -136,50 +135,10 @@ class BorrowerController extends Controller
      * Good payer = walang paghihintay, pwedeng mag-apply agad.
      * Ibinabalik ang petsa kung kailan pwede ulit mag-apply, o null kung pwede na ngayon.
      */
-    private function getReapplyDate($userId)
-    {
-        $lastLoan = DB::table('loan_applications')
-            ->where('user_id', $userId)
-            ->whereIn('status', ['completed', 'defaulted'])
-            ->orderByDesc('applied_at')
-            ->first();
-
-        if (!$lastLoan) {
-            return null;
-        }
-
-        $rows = DB::table('loan_payment_schedules')
-            ->where('application_id', $lastLoan->application_id)
-            ->select('due_date', 'paid_at')
-            ->get();
-
-        if ($rows->isEmpty()) {
-            return null;
-        }
-
-        $isBadBorrower = $lastLoan->status === 'defaulted'
-            || $rows->contains(function ($s) {
-                $due = Carbon::parse($s->due_date)->startOfDay();
-                $paid = $s->paid_at
-                    ? Carbon::parse($s->paid_at)->startOfDay()
-                    : Carbon::today();
-
-                return $due->diffInDays($paid, false) >= self::LATE_DAYS;
-            });
-
-        if (!$isBadBorrower) {
-            return null;
-        }
-
-        $lastPaid = $rows->whereNotNull('paid_at')->max('paid_at');
-        $finishedOn = $lastPaid
-            ? Carbon::parse($lastPaid)->startOfDay()
-            : Carbon::parse($rows->max('due_date'))->startOfDay();
-
-        $canApplyOn = $finishedOn->copy()->addMonths(self::BAD_BORROWER_WAIT_MONTHS);
-
-        return Carbon::today()->lt($canApplyOn) ? $canApplyOn : null;
-    }
+  private function getReapplyDate($userId)
+{
+    return \App\Services\CreditStanding::forUser((int) $userId)['wait_until'];
+}
 
     private function buildPaymentSchedule($app)
     {
@@ -391,7 +350,7 @@ class BorrowerController extends Controller
             ->take(self::MAX_NOTIFICATIONS);
     }
 
-    public function dashboard(Request $request)
+   public function dashboard(Request $request)
     {
         $userId = Session::get('user_id');
 
@@ -437,6 +396,9 @@ class BorrowerController extends Controller
         $calDaysWithPayments = collect();
         $notifications = collect();
         $recentPayments = collect();
+        // Para sa fully paid dashboard
+        $allPayments = collect();
+        $settledAt = null;
 
         $calMonthParam = $request->query('cal_month');
         try {
@@ -505,6 +467,17 @@ class BorrowerController extends Controller
                     ->sortByDesc('paid_at')
                     ->take(3)
                     ->values();
+
+                // Lahat ng bayad na installment (para sa Payment History ng fully paid view)
+                $allPayments = $schedule
+                    ->filter(fn($s) => !is_null($s->paid_at))
+                    ->sortByDesc('paid_at')
+                    ->values();
+
+                // Petsa kung kailan nabayaran ang huling installment (kung fully paid na)
+                $settledAt = ($totalCount > 0 && $paidCount >= $totalCount)
+                    ? $schedule->max('paid_at')
+                    : null;
             }
         }
 
@@ -515,7 +488,8 @@ class BorrowerController extends Controller
             'outstandingAmount', 'amountPaid', 'progressPct', 'totalCount', 'paidCount', 'nextUnpaid',
             'isOverdue', 'daysOverdue', 'approvedAt', 'activatedAt',
             'calMonth', 'calDaysWithPayments', 'calPrevMonth', 'calNextMonth',
-            'headerNotifications', 'unreadNotifCount'
+            'headerNotifications', 'unreadNotifCount',
+            'allPayments', 'settledAt'
         ));
     }
 
@@ -1131,7 +1105,8 @@ class BorrowerController extends Controller
         $remainingBalance = $app->total_amount ?? 0;
         $nextUnpaid = null;
         $isOverdue = false;
-        $paymentSchedule = [];
+       $paymentSchedule = [];
+$isFullyPaid = false;
 
         $canUploadReceipts = $app
             && !$awaitingRelease
@@ -1306,6 +1281,7 @@ class BorrowerController extends Controller
 
             $totalCount = $realSchedule->count();
             $paidCount = $realSchedule->filter(fn($s) => !is_null($s->paid_at))->count();
+$isFullyPaid = $totalCount > 0 && $paidCount >= $totalCount;
             $amountCollected = (float) $realSchedule->sum('amount_paid');
             $remainingBalance = max(0, (float) $app->total_amount - $amountCollected);
 
@@ -1328,7 +1304,7 @@ class BorrowerController extends Controller
             'userName', 'initials', 'profilePicture', 'isFullyApproved', 'app', 'status', 'loanId', 'paymentSchedule',
             'userEmail', 'userPhone', 'isActive', 'lastLoginAt',
             'headerNotifications', 'unreadNotifCount',
-            'totalCount', 'paidCount', 'amountCollected', 'remainingBalance', 'nextUnpaid', 'isOverdue',
+            'totalCount', 'paidCount', 'isFullyPaid', 'amountCollected', 'remainingBalance', 'nextUnpaid', 'isOverdue',
             'loans', 'canUploadReceipts', 'awaitingRelease', 'scheduleMessage', 'assignedPaymentMethod'
         ));
     }

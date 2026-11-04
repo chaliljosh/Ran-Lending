@@ -133,6 +133,15 @@
     const referralNameField = document.getElementById("referralNameField");
     const referralNameInput = document.getElementById("referralName");
 
+    // Monthly income (range dropdown + "Others" please specify)
+    const monthlyIncomeSelect = document.getElementById("monthlyIncome");
+    const monthlyIncomeOtherField = document.getElementById(
+        "monthlyIncomeOtherField",
+    );
+    const monthlyIncomeOtherInput = document.getElementById(
+        "monthlyIncomeOther",
+    );
+
     // Valid ID
     const idTypeSelect = document.getElementById("idType");
     const idTypeOthersWrapper = document.getElementById("idTypeOthersWrapper");
@@ -194,6 +203,7 @@
     const displayMonthlyPayment = document.getElementById(
         "displayMonthlyPayment",
     );
+    const termInfo = document.getElementById("termInfo");
 
     // =========================================================
     // STOP HERE IF FORM DOES NOT EXIST
@@ -413,6 +423,60 @@
         let seen = 0;
         while (pos < value.length && seen < digitsBeforeCaret) {
             if (/\d/.test(value[pos])) {
+                seen++;
+            }
+            pos++;
+        }
+
+        try {
+            el.setSelectionRange(pos, pos);
+        } catch (err) {
+            // Hindi suportado ng ibang browser — hindi mahalaga.
+        }
+    }
+
+    // =========================================================
+    // MONTHLY INCOME "OTHERS" — numbers lang, may kuwit
+    // =========================================================
+    //
+    // Katulad ng Loan Amount: digits lang ang tinatanggap, nilalagyan
+    // ng kuwit habang nagta-type, at digits lang ang ipinapadala sa server.
+
+    const MAX_MONTHLY_INCOME = 100000000; // ₱100,000,000
+
+    function getMonthlyIncomeOtherValue() {
+        return monthlyIncomeOtherInput
+            ? rawDigits(monthlyIncomeOtherInput.value).replace(/^0+/, "")
+            : "";
+    }
+
+    function formatMonthlyIncomeOther() {
+        const el = monthlyIncomeOtherInput;
+        if (!el) return;
+
+        const caret = el.selectionStart;
+        const digitsBeforeCaret =
+            caret === null ? null : rawDigits(el.value.slice(0, caret)).length;
+
+        let amount = getMonthlyIncomeOtherValue();
+
+        if (amount !== "" && parseInt(amount, 10) > MAX_MONTHLY_INCOME) {
+            amount = String(MAX_MONTHLY_INCOME);
+        }
+
+        const formatted =
+            amount === "" ? "" : parseInt(amount, 10).toLocaleString("en-US");
+
+        if (el.value !== formatted) {
+            el.value = formatted;
+        }
+
+        if (digitsBeforeCaret === null) return;
+
+        let pos = 0;
+        let seen = 0;
+        while (pos < formatted.length && seen < digitsBeforeCaret) {
+            if (/\d/.test(formatted[pos])) {
                 seen++;
             }
             pos++;
@@ -1020,6 +1084,17 @@
             referralSelect.value !== "friend_family" ||
             isFilled(referralNameInput);
 
+        // Monthly income: kailangang may napiling range.
+        const validMonthlyIncome =
+            monthlyIncomeSelect && !!monthlyIncomeSelect.value;
+
+        // Kapag "Others" ang monthly income, kailangang may numerong higit sa 0.
+        const validMonthlyIncomeOther =
+            !monthlyIncomeSelect ||
+            monthlyIncomeSelect.value !== "others" ||
+            (getMonthlyIncomeOtherValue() !== "" &&
+                parseInt(getMonthlyIncomeOtherValue(), 10) > 0);
+
         return (
             validAmount &&
             validTerm &&
@@ -1027,7 +1102,9 @@
             validPurposeOther &&
             validReferral &&
             validReferralOther &&
-            validReferralName
+            validReferralName &&
+            validMonthlyIncome &&
+            validMonthlyIncomeOther
         );
     }
 
@@ -1207,15 +1284,12 @@
         const selectedTerm = getSelectedTerm();
         const term = selectedTerm ? parseInt(selectedTerm, 10) : 0;
 
-        // Total is still computed here only to get the monthly payment;
-        // it is no longer shown in the modal.
         const totalInterest = amount * INTEREST_RATE * term;
 
         const totalAmount = amount + totalInterest;
 
         const monthlyPayment = term > 0 ? totalAmount / term : 0;
 
-        // Only update elements that exist.
         if (displayPrincipal) {
             displayPrincipal.textContent = formatPeso(amount);
         }
@@ -1227,6 +1301,22 @@
 
         if (displayMonthlyPayment) {
             displayMonthlyPayment.textContent = formatPeso(monthlyPayment);
+        }
+
+        // Rate at monthly payment sa ilalim ng Term
+        if (termInfo) {
+            if (term > 0) {
+                const monthlyText =
+                    amount > 0 ? formatPeso(monthlyPayment) : "enter loan amount";
+                termInfo.textContent =
+                    "Interest: " +
+                    INTEREST_RATE * 100 +
+                    "% / month  |  Monthly payment: " +
+                    monthlyText;
+                termInfo.style.display = "";
+            } else {
+                termInfo.style.display = "none";
+            }
         }
 
         validateForm();
@@ -1342,6 +1432,36 @@
         });
     }
 
+    // Monthly income (may text box kapag "Others")
+    if (monthlyIncomeSelect) {
+        monthlyIncomeSelect.addEventListener("change", function () {
+            const isOthers = this.value === "others";
+
+            if (monthlyIncomeOtherField) {
+                monthlyIncomeOtherField.style.display = isOthers
+                    ? "block"
+                    : "none";
+            }
+
+            if (isOthers) {
+                if (monthlyIncomeOtherInput) {
+                    monthlyIncomeOtherInput.focus();
+                }
+            } else if (monthlyIncomeOtherInput) {
+                monthlyIncomeOtherInput.value = "";
+            }
+
+            validateForm();
+        });
+    }
+    // Numbers lang + kuwit habang nagta-type
+    if (monthlyIncomeOtherInput) {
+        monthlyIncomeOtherInput.addEventListener("input", function () {
+            formatMonthlyIncomeOther();
+            validateForm();
+        });
+    }
+
     // Valid ID
     if (idTypeSelect) {
         idTypeSelect.addEventListener("change", function () {
@@ -1423,7 +1543,7 @@
     }
 
     // =========================================================
-    // LOAN SUMMARY MODAL — purpose + documents checklist
+    // LOAN SUMMARY MODAL — purpose + monthly income + documents checklist
     // =========================================================
     //
     // Refreshed every time the modal opens, so it always matches
@@ -1431,6 +1551,7 @@
     // each time, so Confirm & Submit stays disabled until ticked.
 
     const displayPurpose = document.getElementById("displayPurpose");
+    const displayIncome = document.getElementById("displayIncome");
     const displayDocs = document.getElementById("displayDocs");
     const summaryModalEl = document.getElementById("loanSummaryModal");
 
@@ -1450,6 +1571,23 @@
                 }
             }
             displayPurpose.textContent = text;
+        }
+
+        if (displayIncome && monthlyIncomeSelect) {
+            let incomeText = "—";
+            if (monthlyIncomeSelect.value === "others") {
+                const otherIncome = getMonthlyIncomeOtherValue();
+                incomeText = otherIncome
+                    ? formatPeso(parseInt(otherIncome, 10))
+                    : "Others";
+            } else if (monthlyIncomeSelect.selectedIndex >= 0) {
+                const incomeOpt =
+                    monthlyIncomeSelect.options[monthlyIncomeSelect.selectedIndex];
+                if (incomeOpt && monthlyIncomeSelect.value) {
+                    incomeText = incomeOpt.textContent.trim();
+                }
+            }
+            displayIncome.textContent = incomeText;
         }
 
         if (displayDocs) {
@@ -1517,6 +1655,8 @@
         referralSource: referralSelect,
         referralOther: referralOtherInput,
         referralName: referralNameInput,
+        monthlyIncome: monthlyIncomeSelect,
+        monthlyIncomeOther: monthlyIncomeOtherInput,
         idType: idTypeSelect,
         idTypeOthers: idTypeOthersInput,
         employmentStatus: employmentSelect,
@@ -1535,10 +1675,13 @@
             const el = DRAFT_FIELDS[key];
             if (!el) return;
 
-            data[key] =
-                key === "loanAmount"
-                    ? String(getLoanAmountValue() || "")
-                    : el.value;
+            if (key === "loanAmount") {
+                data[key] = String(getLoanAmountValue() || "");
+            } else if (key === "monthlyIncomeOther") {
+                data[key] = getMonthlyIncomeOtherValue();
+            } else {
+                data[key] = el.value;
+            }
         });
 
         return data;
@@ -1621,13 +1764,18 @@
 
         // Run the existing change handlers so the "Others" boxes,
         // work fields and labels show up correctly.
-        [loanPurposeSelect, referralSelect, idTypeSelect, employmentSelect].forEach(
-            function (el) {
-                if (el) el.dispatchEvent(new Event("change"));
-            },
-        );
+        [
+            loanPurposeSelect,
+            referralSelect,
+            monthlyIncomeSelect,
+            idTypeSelect,
+            employmentSelect,
+        ].forEach(function (el) {
+            if (el) el.dispatchEvent(new Event("change"));
+        });
 
         clampLoanAmount();
+        formatMonthlyIncomeOther(); // lagyan ng kuwit ang na-restore na halaga
 
         if (document.activeElement && document.activeElement.blur) {
             document.activeElement.blur();
@@ -1705,6 +1853,21 @@
         formData.append(
             "referralName",
             referralNameInput ? referralNameInput.value : "",
+        );
+
+        // Monthly income
+        // monthlyIncome = napiling range (hal. "0_10k") o "others"
+        // monthlyIncomeOther = digits lang (walang kuwit); may laman lang kapag "others" ang napili
+        formData.append(
+            "monthlyIncome",
+            monthlyIncomeSelect ? monthlyIncomeSelect.value : "",
+        );
+
+        formData.append(
+            "monthlyIncomeOther",
+            monthlyIncomeSelect && monthlyIncomeSelect.value === "others"
+                ? getMonthlyIncomeOtherValue()
+                : "",
         );
 
         // Valid ID

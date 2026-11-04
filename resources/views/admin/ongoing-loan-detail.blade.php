@@ -403,6 +403,7 @@
                                                             data-installment-no="{{ $s->installment_no }}"
                                                             data-due="{{ $dueCarbon->format('F j, Y') }}"
                                                             data-amount="{{ number_format($isPaid ? $s->amount_paid : $s->amount_due, 2) }}"
+                                                            data-installment-amount="{{ number_format($s->amount_due, 2) }}"
                                                             data-status="{{ $rowStatus }}"
                                                             data-paid="{{ $isPaid ? \Carbon\Carbon::parse($s->paid_at)->format('F j, Y') : '' }}"
                                                             data-recorded="{{ $isPaid && !empty($s->updated_at) ? \Carbon\Carbon::parse($s->updated_at)->format('F j, Y') : '' }}"
@@ -802,16 +803,28 @@
     </div>
 
     {{-- RECEIPT VIEWER: bubukas kapag na-click ang "View receipt" sa Payment Details.
-         Pagsara nito, babalik sa Payment Details. --}}
+         Pagsara nito, babalik sa Payment Details.
+         Kapareho na ng borrower side: may details grid sa taas, tapos ang receipt image. --}}
     <div class="modal fade" id="olsReceiptViewerModal" tabindex="-1" aria-labelledby="olsRvTitle" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content ols-rv-modal">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content ols-rv-modal ols-details-modal">
                 <div class="modal-header">
                     <div>
                         <h6 class="modal-title" id="olsRvTitle">Payment Receipt</h6>
                         <div class="ols-rv-sub" id="olsRvSub"></div>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <dl class="ols-details-grid">
+                        <div><dt>Due Date</dt><dd id="olsRvDue">—</dd></div>
+                        <div><dt>Date Paid</dt><dd id="olsRvPaidOn">—</dd></div>
+                        <div><dt>Installment Amount</dt><dd id="olsRvInstallment">—</dd></div>
+                        <div><dt>Amount Paid</dt><dd id="olsRvPaid">—</dd></div>
+                        <div><dt>Payment Type</dt><dd id="olsRvKind">—</dd></div>
+                        <div><dt>Status</dt><dd><span id="olsRvStatus" class="ols-status-pill is-paid">Paid</span></dd></div>
+                    </dl>
                 </div>
 
                 <div class="ols-rv-body">

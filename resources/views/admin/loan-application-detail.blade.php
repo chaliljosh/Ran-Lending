@@ -30,7 +30,7 @@
             ->filter(fn($v) => !empty($v))
             ->implode(', ');
 
-        // Dagdag na address details (lalabas lang sa view mode kung may laman; sa edit mode lahat)
+        // Dagdag na address details (lalabas lang kung may laman)
         $addressExtraFields = [
             'house_no' => 'House / Building No.',
             'street' => 'Street',
@@ -108,6 +108,35 @@
         $birthdayRaw = !empty($app->birthday) ? \Carbon\Carbon::parse($app->birthday)->format('Y-m-d') : '';
         $nameKeys = ['first_name', 'middle_name', 'last_name', 'suffix'];
         $birthKeys = ['birth_city', 'birth_province', 'birth_country'];
+
+        // Age (auto-compute mula sa birthday, katulad ng register)
+        $age = !empty($app->birthday) ? \Carbon\Carbon::parse($app->birthday)->age : null;
+
+        // Initial lang ang sine-save ng register. Lagyan ng tuldok kung isang letra lang.
+        $mi = trim((string) ($app->middle_name ?? ''));
+        $middleDisplay = ($mi !== '' && mb_strlen($mi) === 1) ? $mi . '.' : $mi;
+
+        // Permanent address
+        $permSame = !empty($address->perm_same_as_current ?? null);
+        $permList = [
+            'perm_region'       => ['Region', 150, 6],
+            'perm_province'     => ['Province', 150, 6],
+            'perm_city'         => ['City / Municipality', 150, 6],
+            'perm_barangay'     => ['Barangay', 150, 6],
+            'perm_zipcode'      => ['Zipcode', 4, 6],
+            'perm_home_address' => ['House No., Street, Subdivision / Sitio', 255, 12],
+        ];
+
+        // Kapag "same as present" at walang naka-save sa perm_* columns,
+        // gamitin ang present address value para laging may makita.
+        $permFallback = [
+            'perm_region'       => 'region',
+            'perm_province'     => 'province',
+            'perm_city'         => 'city',
+            'perm_barangay'     => 'barangay',
+            'perm_zipcode'      => 'zipcode',
+            'perm_home_address' => 'home_address',
+        ];
 
         // Pwede pang baguhin ng admin ang decision niya kung on hold pa ang application
         $canChangeDecision = $app->status === 'on_hold' && !empty($myReview);
@@ -390,7 +419,7 @@
                         {{-- View mode: combined full name --}}
                         <div class="col-6 ld-view-only">
                             <div {!! $fld('', null, 'text', ['any' => $nameKeys]) !!}><span class="info-label">Full Name</span><span
-                                    class="info-value">{{ $app->first_name }} {{ $app->middle_name }}
+                                    class="info-value">{{ $app->first_name }} {{ $middleDisplay }}
                                     {{ $app->last_name }}{{ $app->suffix ?? null ? ', ' . $app->suffix : '' }}</span>{!! $editNote($nameKeys, false) !!}
                             </div>
                         </div>
@@ -400,7 +429,7 @@
                             <div {!! $fld('first_name', $app->first_name, 'text', ['max' => 50, 'req' => true]) !!}><span class="info-label">First Name</span></div>
                         </div>
                         <div class="col-6 ld-edit-only">
-                            <div {!! $fld('middle_name', $app->middle_name, 'text', ['max' => 50]) !!}><span class="info-label">Middle Name</span></div>
+                            <div {!! $fld('middle_name', $app->middle_name, 'text', ['max' => 1]) !!}><span class="info-label">Middle Initial</span></div>
                         </div>
                         <div class="col-6 ld-edit-only">
                             <div {!! $fld('last_name', $app->last_name, 'text', ['max' => 50, 'req' => true]) !!}><span class="info-label">Last Name</span></div>
@@ -413,6 +442,11 @@
                             <div {!! $fld('birthday', $birthdayRaw, 'date', ['req' => true]) !!}><span class="info-label">Birthday</span><span
                                     class="info-value">{{ $app->birthday ?? null ? \Carbon\Carbon::parse($app->birthday)->format('F d, Y') : '—' }}</span>{!! $editNote('birthday') !!}
                             </div>
+                        </div>
+
+                        <div class="col-6">
+                            <div class="ld-field"><span class="info-label">Age</span><span
+                                    class="info-value">{{ $age !== null ? $age . ' years old' : '—' }}</span></div>
                         </div>
 
                         {{-- View mode: combined place of birth --}}
@@ -462,36 +496,70 @@
                     <p class="section-title"><span>Present Address</span>{!! $editControls('address') !!}</p>
                     <div class="row g-3">
                         <div class="col-6">
-                            <div {!! $fld('region', $address->region ?? '', 'text', ['max' => 100, 'req' => true]) !!}><span class="info-label">Region</span><span
+                            <div class="ld-field"><span class="info-label">Country</span><span class="info-value">Philippines</span></div>
+                        </div>
+                        <div class="col-6">
+                            <div {!! $fld('region', $address->region ?? '', 'text', ['max' => 150, 'req' => true]) !!}><span class="info-label">Region</span><span
                                     class="info-value">{{ $address->region ?? '—' }}</span>{!! $editNote('region') !!}</div>
                         </div>
                         <div class="col-6">
-                            <div {!! $fld('province', $address->province ?? '', 'text', ['max' => 100, 'req' => true]) !!}><span class="info-label">Province</span><span
+                            <div {!! $fld('province', $address->province ?? '', 'text', ['max' => 150, 'req' => true]) !!}><span class="info-label">Province</span><span
                                     class="info-value">{{ $address->province ?? '—' }}</span>{!! $editNote('province') !!}</div>
                         </div>
                         <div class="col-6">
-                            <div {!! $fld('city', $address->city ?? '', 'text', ['max' => 100, 'req' => true]) !!}><span class="info-label">City / Municipality</span><span
+                            <div {!! $fld('city', $address->city ?? '', 'text', ['max' => 150, 'req' => true]) !!}><span class="info-label">City / Municipality</span><span
                                     class="info-value">{{ $address->city ?? '—' }}</span>{!! $editNote('city') !!}</div>
                         </div>
                         <div class="col-6">
-                            <div {!! $fld('barangay', $address->barangay ?? '', 'text', ['max' => 100, 'req' => true]) !!}><span class="info-label">Barangay</span><span
+                            <div {!! $fld('barangay', $address->barangay ?? '', 'text', ['max' => 150, 'req' => true]) !!}><span class="info-label">Barangay</span><span
                                     class="info-value">{{ $address->barangay ?? '—' }}</span>{!! $editNote('barangay') !!}</div>
                         </div>
                         <div class="col-6">
-                            <div {!! $fld('zipcode', $address->zipcode ?? '', 'text', ['max' => 10]) !!}><span class="info-label">Zipcode</span><span
+                            <div {!! $fld('zipcode', $address->zipcode ?? '', 'text', ['max' => 4]) !!}><span class="info-label">Zipcode</span><span
                                     class="info-value">{{ !empty($address->zipcode ?? null) ? $address->zipcode : '—' }}</span>{!! $editNote('zipcode') !!}</div>
                         </div>
+
+                        {{-- Address extras: lalabas lang kapag may laman (hindi na pinupunan ng register) --}}
                         @foreach ($addressExtraFields as $extraKey => $extraLabel)
                             @php $extraValue = $address->{$extraKey} ?? null; @endphp
-                            <div class="col-6 {{ empty($extraValue) ? 'ld-edit-only' : '' }}">
-                                <div {!! $fld($extraKey, $extraValue ?? '', 'text', ['max' => 255]) !!}><span class="info-label">{{ $extraLabel }}</span><span
-                                        class="info-value">{{ $extraValue }}</span>{!! $editNote($extraKey) !!}</div>
-                            </div>
+                            @if (!empty($extraValue))
+                                <div class="col-6">
+                                    <div {!! $fld($extraKey, $extraValue, 'text', ['max' => 255]) !!}><span class="info-label">{{ $extraLabel }}</span><span
+                                            class="info-value">{{ $extraValue }}</span>{!! $editNote($extraKey) !!}</div>
+                                </div>
+                            @endif
                         @endforeach
+
                         <div class="col-12">
-                            <div {!! $fld('home_address', $address->home_address ?? '', 'text', ['max' => 255]) !!}><span class="info-label">Home Address</span><span
+                            <div {!! $fld('home_address', $address->home_address ?? '', 'text', ['max' => 200]) !!}><span class="info-label">House No., Street, Subdivision / Sitio</span><span
                                     class="info-value">{{ !empty($address->home_address ?? null) ? $address->home_address : '—' }}</span>{!! $editNote('home_address') !!}</div>
                         </div>
+
+                        {{-- Permanent Address --}}
+                        <div class="col-12">
+                            <hr class="my-1">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span class="info-label mb-0">Permanent Address</span>
+                                @if ($permSame)
+                                    <span class="badge badge-approved px-2 py-1" style="font-size:0.7rem;">Same as present address</span>
+                                @endif
+                            </div>
+                        </div>
+
+                        {{-- Laging nakikita lahat ng permanent fields, kahit "same as present".
+                             Kapag walang naka-save sa perm_* at same as present, present address ang ipinapakita. --}}
+                        @foreach ($permList as $pk => [$pLabel, $pMax, $pCol])
+                            @php
+                                $pv = $address->{$pk} ?? null;
+                                $shown = !empty($pv)
+                                    ? $pv
+                                    : ($permSame ? ($address->{$permFallback[$pk]} ?? null) : null);
+                            @endphp
+                            <div class="col-{{ $pCol }}">
+                                <div {!! $fld($pk, $pv ?? '', 'text', ['max' => $pMax]) !!}><span class="info-label">{{ $pLabel }}</span><span
+                                        class="info-value">{{ !empty($shown) ? $shown : '—' }}</span>{!! $editNote($pk) !!}</div>
+                            </div>
+                        @endforeach
                     </div>
                 </div>
             </div>
@@ -566,13 +634,13 @@
                             <tr>
                                 <td>{{ $review->admin_name ?? 'Admin ' . ($i + 1) }}</td>
                                 <td>
-                                   @if ($review)
-    <span class="ld-review-text {{ $review->decision === 'approved' ? 'is-approved' : 'is-rejected' }}">
-        {{ ucfirst($review->decision) }}
-    </span>
-@else
-    <span class="ld-review-text is-awaiting">Awaiting</span>
-@endif
+                                    @if ($review)
+                                        <span class="ld-review-text {{ $review->decision === 'approved' ? 'is-approved' : 'is-rejected' }}">
+                                            {{ ucfirst($review->decision) }}
+                                        </span>
+                                    @else
+                                        <span class="ld-review-text is-awaiting">Awaiting</span>
+                                    @endif
                                 </td>
                                 <td>
                                     {{ $review ? \Carbon\Carbon::parse($review->reviewed_at)->format('M d, Y g:i A') : '—' }}
@@ -679,7 +747,7 @@
                 <div class="ld-decision-main">
                     <h6 class="ld-decision-title">Your Review Decision</h6>
                     <div class="ld-decision-row">
-                     <span class="ld-decision-pill is-{{ $myReview->decision }}">{{ ucfirst($myReview->decision) }}</span>
+                        <span class="ld-decision-pill is-{{ $myReview->decision }}">{{ ucfirst($myReview->decision) }}</span>
                         <span class="ld-decision-divider"></span>
                         <p class="ld-decision-text">
                             @if ($canChangeDecision)

@@ -1,0 +1,232 @@
+/* ============================================================
+   credit-standing.css
+   Dagdag lang ito sa ongoing-loans.css (i-load pagkatapos nito).
+   Para sa: 2-card stats, filter tabs, status pills.
+============================================================ */
+
+/* ── 2 stat cards lang (Good / Bad) ── */
+.stats-grid-v2.is-two { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 575px) {
+    .stats-grid-v2.is-two { grid-template-columns: 1fr; }
+}
+
+/* Search sa kaliwa (katabi ng tabs), Sort sa pinakakanan */
+.filter-bar-v2 #sortFilter { margin-left: auto; }
+@media (max-width: 575px) {
+    .filter-bar-v2 #sortFilter { margin-left: 0; }
+}
+
+/* ── Filter tabs (All / Good / Bad) ── */
+.credit-tabs-v2 {
+    display: inline-flex;
+    border: 1px solid var(--rs-border);
+    border-radius: var(--rs-radius-sm);
+    overflow: hidden;
+    background: #fff;
+    flex-shrink: 0;
+}
+.credit-tab-v2 {
+    display: inline-flex; align-items: center; gap: 8px;
+    height: 44px; padding: 0 16px;
+    font-size: 0.78rem; font-weight: 600;
+    color: var(--rs-body); text-decoration: none;
+    border-right: 1px solid var(--rs-border);
+    white-space: nowrap;
+    transition: background-color .15s ease, color .15s ease;
+}
+/* Button na ang tab (hindi na link), kaya i-reset ang default style */
+button.credit-tab-v2 {
+    background: transparent;
+    border: 0;
+    border-right: 1px solid var(--rs-border);
+    font-family: inherit;
+    cursor: pointer;
+}
+.credit-tab-v2:last-child { border-right: none; }
+.credit-tab-v2:hover:not(.is-active) { background: var(--rs-brand-soft); color: var(--rs-brand); }
+.credit-tab-v2.is-active { background: var(--rs-brand); color: #fff; }
+
+.credit-tab-count-v2 {
+    min-width: 22px; height: 22px; padding: 0 6px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 6px; background: var(--rs-bg); color: var(--rs-ink);
+    font-size: 0.74rem; font-weight: 700;
+}
+.credit-tab-v2.is-active .credit-tab-count-v2 { background: rgba(255,255,255,.22); color: #fff; }
+
+@media (max-width: 575px) {
+    .credit-tabs-v2 { width: 100%; }
+    .credit-tab-v2 { flex: 1; justify-content: center; padding: 0 8px; }
+}
+
+/* ── Credit standing pill ── */
+.status-pill-v2 {
+    display: inline-block; padding: 4px 10px; border-radius: 6px;
+    font-size: 0.74rem; font-weight: 600;
+}
+.status-pill-v2.is-success { background: var(--rs-green-soft); color: var(--rs-green); }
+.status-pill-v2.is-danger  { background: var(--rs-red-soft);   color: var(--rs-red); }
+.status-pill-v2.is-warning { background: var(--rs-amber-soft); color: var(--rs-amber); }
+
+.credit-reason-v2 { margin-top: 6px; font-size: 0.76rem; color: var(--rs-muted); }
+.credit-wait-v2   { margin-top: 2px; font-size: 0.76rem; color: var(--rs-red); font-weight: 600; }
+
+/* ══════════════════════════════════════════
+   DARK MODE (parehong palette ng ongoing-loans.css)
+   ══════════════════════════════════════════ */
+html.app-skin-dark .credit-tabs-v2 {
+    background: #0d0d0d !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .credit-tab-v2 {
+    color: #C4C4C4 !important;
+    border-color: #262626 !important;
+}
+html.app-skin-dark .credit-tab-v2:hover:not(.is-active) {
+    background: #262626 !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .credit-tab-v2.is-active {
+    background: #F5F5F5 !important;
+    color: #0A0A0A !important;
+}
+html.app-skin-dark .credit-tab-count-v2 {
+    background: #262626 !important;
+    color: #F5F5F5 !important;
+}
+html.app-skin-dark .credit-tab-v2.is-active .credit-tab-count-v2 {
+    background: rgba(10,10,10,.15) !important;
+    color: #0A0A0A !important;
+}
+
+html.app-skin-dark .status-pill-v2.is-success { background: rgba(22,163,74,.15) !important; color: #6ee7a4 !important; }
+html.app-skin-dark .status-pill-v2.is-danger  { background: rgba(220,38,38,.15) !important; color: #fca5a5 !important; }
+html.app-skin-dark .status-pill-v2.is-warning { background: rgba(180,83,9,.2) !important;  color: #fcd34d !important; }
+
+html.app-skin-dark .credit-reason-v2 { color: #9A9A9A !important; }
+html.app-skin-dark .credit-wait-v2   { color: #fca5a5 !important; }
+
+/* ============================================================
+   IDAGDAG SA DULO NG credit-standing.css (walang babaguhin sa dati)
+   Borrower Credit Profile modal
+============================================================ */
+
+button.btn-view-v2 { font-family: inherit; cursor: pointer; }
+
+.cs-modal-overlay {
+    position: fixed; inset: 0; z-index: 2000;
+    background: rgba(15, 23, 42, .55);
+    display: none; align-items: center; justify-content: center;
+    padding: 20px;
+}
+.cs-modal-overlay.is-open { display: flex; }
+
+.cs-modal {
+    background: #fff; color: var(--rs-ink);
+    width: 100%; max-width: 920px; max-height: calc(100vh - 40px);
+    border-radius: 14px; display: flex; flex-direction: column;
+    box-shadow: 0 24px 60px rgba(0,0,0,.25);
+}
+.cs-modal-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 24px; border-bottom: 1px solid var(--rs-border);
+}
+.cs-modal-head h5 { margin: 0; font-size: 1.15rem; font-weight: 700; }
+.cs-x { background: none; border: 0; font-size: 1.3rem; cursor: pointer; color: var(--rs-muted); line-height: 1; }
+.cs-modal-body { padding: 20px 24px; overflow-y: auto; }
+.cs-modal-foot { padding: 14px 24px; border-top: 1px solid var(--rs-border); display: flex; justify-content: flex-end; }
+.cs-close-btn {
+    background: #0f1b3d; color: #fff; border: 0; border-radius: 8px;
+    padding: 9px 22px; font-weight: 600; font-family: inherit; cursor: pointer;
+}
+
+.cs-state { padding: 60px 0; text-align: center; color: var(--rs-muted); }
+
+/* Header: avatar, name, pill */
+.cs-profile { display: flex; align-items: center; gap: 18px; margin-bottom: 18px; }
+.cs-avatar {
+    width: 84px; height: 84px; border-radius: 50%; background: var(--rs-bg);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; color: #0f1b3d; flex-shrink: 0;
+}
+.cs-profile-info { flex: 1; min-width: 0; }
+.cs-name  { font-size: 1.35rem; font-weight: 700; line-height: 1.2; }
+.cs-bid   { font-weight: 700; font-size: .9rem; margin-top: 2px; }
+.cs-email { color: var(--rs-brand); font-size: .9rem; margin-top: 2px; word-break: break-all; }
+.cs-big-pill {
+    padding: 12px 22px; border-radius: 999px; font-weight: 700; font-size: 1rem;
+    white-space: nowrap;
+}
+.cs-big-pill.is-success { background: var(--rs-green-soft); color: var(--rs-green); }
+.cs-big-pill.is-danger  { background: #fde2e8; color: #d6204a; }
+
+/* 3 stat cards */
+.cs-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 16px; }
+.cs-stat {
+    border: 1px solid var(--rs-border); border-radius: 10px; padding: 14px 16px;
+    background: var(--rs-bg); display: flex; align-items: center; gap: 14px;
+}
+.cs-stat.is-late { background: #fdecef; border-color: #f7c9d3; }
+.cs-stat i { font-size: 1.6rem; color: #0f1b3d; }
+.cs-stat.is-late i, .cs-stat.is-late .cs-stat-num { color: #d6204a; }
+.cs-stat-num { font-size: 1.5rem; font-weight: 700; line-height: 1; }
+.cs-stat-label { font-size: .8rem; color: var(--rs-muted); margin-top: 4px; }
+
+/* 2 columns: assessment + loan history */
+.cs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+.cs-card { border: 1px solid var(--rs-border); border-radius: 10px; padding: 14px 16px; }
+.cs-card-title { font-weight: 700; font-size: 1rem; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.cs-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: .88rem; border-bottom: 1px solid var(--rs-border); }
+.cs-row:last-child { border-bottom: 0; }
+.cs-reason { margin-top: 12px; padding: 12px 14px; border-radius: 8px; font-size: .84rem; }
+.cs-reason.is-danger  { background: #fdecef; color: #8a1230; }
+.cs-reason.is-success { background: var(--rs-green-soft); color: var(--rs-green); }
+.cs-reason b { display: block; margin-bottom: 2px; }
+.cs-wait { margin-top: 8px; font-size: .82rem; font-weight: 600; color: var(--rs-red); }
+
+.cs-loan-scroll { max-height: 270px; overflow-y: auto; }
+.cs-loan + .cs-loan { margin-top: 14px; padding-top: 12px; border-top: 2px solid var(--rs-border); }
+.cs-loan-head { display: flex; justify-content: space-between; align-items: center; font-weight: 700; margin-bottom: 4px; }
+.cs-tag { font-size: .74rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+.cs-tag.is-success { background: var(--rs-green-soft); color: var(--rs-green); }
+.cs-tag.is-danger  { background: #fde2e8; color: #d6204a; }
+
+/* Payment behavior */
+.cs-behavior { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
+.cs-beh-stats { display: grid; grid-template-columns: repeat(4, 1fr); }
+.cs-beh-stat { padding: 0 12px; border-left: 1px solid var(--rs-border); }
+.cs-beh-stat:first-child { border-left: 0; padding-left: 0; }
+.cs-beh-label { font-size: .78rem; color: var(--rs-muted); }
+.cs-beh-num { font-size: 1.4rem; font-weight: 700; margin-top: 4px; }
+.cs-late-rec { border-left: 1px solid var(--rs-border); padding-left: 14px; font-size: .78rem; }
+.cs-late-rec-title { font-weight: 700; font-size: .9rem; margin-bottom: 6px; }
+.cs-late-item + .cs-late-item { margin-top: 10px; }
+.cs-late-pill { display: inline-block; background: #fde2e8; color: #d6204a; font-weight: 600; padding: 2px 10px; border-radius: 6px; margin: 2px 0; }
+.cs-muted { color: var(--rs-muted); }
+
+@media (max-width: 767px) {
+    .cs-stats, .cs-grid, .cs-behavior { grid-template-columns: 1fr; }
+    .cs-profile { flex-wrap: wrap; }
+    .cs-beh-stats { grid-template-columns: repeat(2, 1fr); row-gap: 12px; }
+    .cs-late-rec { border-left: 0; padding-left: 0; }
+}
+
+/* Dark mode */
+html.app-skin-dark .cs-modal { background: #0d0d0d !important; color: #F5F5F5 !important; }
+html.app-skin-dark .cs-modal-head,
+html.app-skin-dark .cs-modal-foot,
+html.app-skin-dark .cs-card,
+html.app-skin-dark .cs-stat,
+html.app-skin-dark .cs-row,
+html.app-skin-dark .cs-beh-stat,
+html.app-skin-dark .cs-late-rec { border-color: #262626 !important; }
+html.app-skin-dark .cs-stat, html.app-skin-dark .cs-avatar { background: #171717 !important; }
+html.app-skin-dark .cs-avatar, html.app-skin-dark .cs-stat i { color: #F5F5F5 !important; }
+html.app-skin-dark .cs-stat.is-late { background: rgba(220,38,38,.12) !important; }
+html.app-skin-dark .cs-big-pill.is-danger,
+html.app-skin-dark .cs-tag.is-danger,
+html.app-skin-dark .cs-late-pill { background: rgba(220,38,38,.18) !important; color: #fca5a5 !important; }
+html.app-skin-dark .cs-big-pill.is-success,
+html.app-skin-dark .cs-tag.is-success { background: rgba(22,163,74,.15) !important; color: #6ee7a4 !important; }
+html.app-skin-dark .cs-reason.is-danger { background: rgba(220,38,38,.12) !important; color: #fca5a5 !important; }
+html.app-skin-dark .cs-close-btn { background: #F5F5F5 !important; color: #0A0A0A !important; }

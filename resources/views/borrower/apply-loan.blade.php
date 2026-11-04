@@ -120,6 +120,17 @@
                         // First-time borrowers: up to 6 months. From the 2nd loan onward: up to 12 months.
                         // Galing sa controller (BorrowerController::getLoanEligibility); fallback lang ito.
                         $maxTerm = $maxTerm ?? ($isFirstTime ? 6 : 12);
+
+                        // Monthly income ranges (value => label).
+                        // Dapat magkapareho ang values dito at sa controller validation.
+                        $monthlyIncomeOptions = [
+                            '0_10k' => '₱0 – ₱10,000',
+                            '10k_20k' => '₱10,001 – ₱20,000',
+                            '20k_30k' => '₱20,001 – ₱30,000',
+                            '30k_50k' => '₱30,001 – ₱50,000',
+                            'above_50k' => 'Above ₱50,000',
+                            'others' => 'Others',
+                        ];
                     @endphp
 
                     {{-- INFO NOTICE --}}
@@ -195,7 +206,8 @@
                                                 <option value="{{ $m }}">{{ $m }} {{ $m === 1 ? 'Month' : 'Months' }}</option>
                                             @endfor
                                         </select>
-                                        <small class="aln-hint">Max: {{ $maxTerm }} months</small>
+                                       <small class="aln-hint">Max: {{ $maxTerm }} months</small>
+                                        <div class="aln-hint" id="termInfo" style="display:none; margin-top:4px;"></div>
                                     </div>
 
                                     {{-- Loan Purpose --}}
@@ -227,6 +239,29 @@
                                         </label>
                                         <input type="text" class="form-control aln-input" id="loanPurposeOther"
                                             maxlength="100" placeholder="e.g. Buying a motorcycle for delivery work">
+                                    </div>
+
+                                    {{-- Monthly Income (range dropdown) --}}
+                                    <div class="col-12">
+                                        <label class="aln-label" for="monthlyIncome">
+                                            Monthly Income <span class="aln-required">*</span>
+                                        </label>
+                                        <select class="form-select aln-input" id="monthlyIncome" required>
+                                            <option value="">Select monthly income</option>
+                                            @foreach ($monthlyIncomeOptions as $val => $label)
+                                                <option value="{{ $val }}">{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    {{-- Monthly Income: Others (user types their specific income) --}}
+                                    <div class="col-12" id="monthlyIncomeOtherField" style="display:none;">
+                                        <label class="aln-label" for="monthlyIncomeOther">
+                                            Please specify your monthly income <span class="aln-required">*</span>
+                                        </label>
+                                       <input type="text" class="form-control aln-input" id="monthlyIncomeOther"
+    inputmode="numeric" autocomplete="off"
+    maxlength="12" placeholder="Please input your specific monthly income">
                                     </div>
 
                                     {{-- Referral --}}
@@ -728,10 +763,14 @@
 
                         <div class="aln-hr aln-hr--tight"></div>
 
-                        <div class="aln-summary-row" style="grid-template-columns: 1fr;">
+                        <div class="aln-summary-row" style="grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));">
                             <div class="aln-summary-item">
                                 <span class="aln-summary-label">Purpose of Loan</span>
                                 <span class="aln-summary-value" id="displayPurpose">—</span>
+                            </div>
+                            <div class="aln-summary-item">
+                                <span class="aln-summary-label">Monthly Income</span>
+                                <span class="aln-summary-value" id="displayIncome">—</span>
                             </div>
                         </div>
 
